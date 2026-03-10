@@ -1,0 +1,103 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "profile": "Profil",
+    "leaderboard": "Classement",
+    "settings": "Paramètres"
+  },
+  "typing": {
+    "start": "Commencez à taper pour démarrer…",
+    "restart": "Recommencer",
+    "results": "Voir les résultats",
+    "wpm": "MPM",
+    "accuracy": "Précision",
+    "consistency": "Régularité",
+    "duration": "Durée",
+    "words": "mots",
+    "characters": "caractères",
+    "errors": "erreurs"
+  },
+  "modes": {
+    "classic": "Classique",
+    "sprint": "Sprint",
+    "endurance": "Endurance",
+    "code": "Code",
+    "ghost": "Fantôme"
+  },
+  "results": {
+    "title": "Résultats",
+    "personalBest": "Record personnel",
+    "newRecord": "Nouveau record !",
+    "shareReplay": "Partager le replay",
+    "challenge": "Lancer un défi",
+    "tryAgain": "Réessayer",
+    "nextText": "Texte suivant",
+    "diagnosis": "Diagnostic"
+  },
+  "challenge": {
+    "title": "Défi TypeWav",
+    "description": "Pouvez-vous battre ce score ?",
+    "targetWpm": "Objectif",
+    "yourResult": "Votre score",
+    "won": "Félicitations, vous avez gagné !",
+    "lost": "Dommage, réessayez !",
+    "counterChallenge": "Contre-défier",
+    "invalidLink": "Lien de défi invalide.",
+    "loading": "Chargement du défi…"
+  },
+  "replay": {
+    "title": "Replay TypeWav",
+    "launch": "Lancer",
+    "watching": "Lecture en cours…",
+    "invalidLink": "Lien de replay invalide.",
+    "loading": "Chargement du replay…"
+  },
+  "leaderboard": {
+    "title": "Classement de la semaine",
+    "rank": "Rang",
+    "pseudo": "Joueur",
+    "wpm": "MPM",
+    "accuracy": "Précision",
+    "mode": "Mode",
+    "noData": "Aucune session cette semaine.",
+    "filterAll": "Tous",
+    "you": "vous"
+  },
+  "profile": {
+    "title": "Mon profil",
+    "sessions": "Sessions",
+    "avgWpm": "MPM moyen",
+    "bestWpm": "Meilleur MPM",
+    "totalTime": "Temps total",
+    "progression": "Progression"
+  },
+  "progression": {
+    "rank": "Rang",
+    "nextMilestone": "Prochain jalon",
+    "milestoneUnlocked": "Jalon débloqué !"
+  },
+  "audio": {
+    "pack": "Pack sonore",
+    "volume": "Volume",
+    "mute": "Couper le son",
+    "unmute": "Activer le son"
+  },
+  "theme": {
+    "select": "Thème",
+    "dark": "Sombre",
+    "light": "Clair"
+  },
+  "common": {
+    "loading": "Chargement…",
+    "error": "Une erreur est survenue.",
+    "back": "Retour",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "cancel": "Annuler",
+    "copy": "Copier",
+    "copied": "Copié !",
+    "share": "Partager",
+    "open_source": "Open source",
+    "language": "Langue"
+  }
+}

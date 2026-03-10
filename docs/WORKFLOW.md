@@ -32,17 +32,21 @@ Pour toute tâche impliquant plus de 3 fichiers, produire un plan écrit :
 ## Plan : [Nom de la feature]
 
 ### Fichiers à créer
+
 - [ ] packages/types/src/xxx.ts
 - [ ] packages/audio-engine/src/xxx.ts
 - [ ] apps/web/components/xxx.tsx
 
 ### Fichiers à modifier
+
 - [ ] packages/types/src/index.ts (re-export)
 
 ### Tests à écrire
-- [ ] packages/audio-engine/src/__tests__/xxx.test.ts
+
+- [ ] packages/audio-engine/src/**tests**/xxx.test.ts
 
 ### Ordre d'implémentation
+
 1. Types → 2. Logique pure → 3. Hooks → 4. Composants → 5. Tests E2E
 ```
 
@@ -54,16 +58,16 @@ Jamais de types inline dans les composants, jamais de `any`.
 ```typescript
 // packages/types/src/session.ts — exemple
 export interface SessionResult {
-  id: string
-  timestamp: number
-  wpm: number
-  accuracy: number
-  consistency: number
-  duration: number
-  mode: TypingMode
-  theme: string
-  collection?: string
-  keystrokeData: KeystrokeEntry[]
+  id: string;
+  timestamp: number;
+  wpm: number;
+  accuracy: number;
+  consistency: number;
+  duration: number;
+  mode: TypingMode;
+  theme: string;
+  collection?: string;
+  keystrokeData: KeystrokeEntry[];
 }
 ```
 
@@ -76,6 +80,7 @@ pnpm test --watch  # Lancer en mode watch pendant le développement
 ```
 
 Structure des fichiers de test :
+
 ```
 packages/audio-engine/src/__tests__/pentatonic.test.ts
 apps/web/components/__tests__/TypingArea.test.tsx
@@ -136,6 +141,7 @@ Voir le template `.github/PULL_REQUEST_TEMPLATE.md`.
 Objectif : monorepo opérationnel, design system de base, prototype audio.
 
 **Ordre strict :**
+
 1. Init monorepo pnpm workspaces + TypeScript strict
 2. Setup Next.js 16.1 avec App Router
 3. Tailwind CSS 4.0 + variables de design (`@theme`)
@@ -152,6 +158,7 @@ Objectif : monorepo opérationnel, design system de base, prototype audio.
 Objectif : test de typing fonctionnel de bout en bout.
 
 **Ordre strict :**
+
 1. Moteur audio complet (pentatonique + progressions d'accords)
 2. Zone de frappe avec WPM/accuracy/consistency en temps réel
 3. Page de résultats — heatmap SVG, stats, recommandation
@@ -166,6 +173,7 @@ Objectif : test de typing fonctionnel de bout en bout.
 ### Phase 2 — Enrichissement (Semaines 7-10)
 
 **Ordre strict :**
+
 1. Mode Apprentissage (Home Row + niveaux progressifs)
 2. Mode Code (JS, Python, Rust)
 3. Difficulté adaptative en temps réel
@@ -176,16 +184,18 @@ Objectif : test de typing fonctionnel de bout en bout.
 ### Phase 3 — Social & Open Source (Semaines 11-14)
 
 **Ordre strict :**
+
 1. Replay partageable (canvas recording)
 2. Challenge direct (lien de challenge)
 3. Leaderboards contextuels
-4. CLI de scaffolding (npx create-typewav-*)
+4. CLI de scaffolding (npx create-typewav-\*)
 5. Documentation de contribution complète
 6. Internationalisation FR/EN (next-intl)
 
 ### Phase 4 — Monétisation (Semaines 15-18)
 
 **Ordre strict :**
+
 1. Supabase Auth (@supabase/ssr) — compte utilisateur
 2. Sync cloud IndexedDB ↔ Supabase
 3. Stripe Checkout — abonnement mensuel/annuel
