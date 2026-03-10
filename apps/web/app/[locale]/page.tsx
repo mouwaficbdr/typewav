@@ -1,7 +1,9 @@
 import { HomeClient } from '@/components/typing/HomeClient';
 import {
   codeCollection,
+  gamingCollection,
   litteratureCollection,
+  philosophieCollection,
   poesieCollection,
 } from '@typewav/collections';
 
@@ -18,6 +20,8 @@ export default function HomePage() {
       litterature={litteratureCollection}
       poesie={poesieCollection}
       code={codeCollection}
+      philosophie={philosophieCollection}
+      gaming={gamingCollection}
     />
   );
 }
