@@ -1,8 +1,12 @@
 {
   "nav": {
     "home": "Accueil",
+    "mainNav": "Navigation principale",
     "profile": "Profil",
     "leaderboard": "Classement",
+    "premium": "Premium",
+    "login": "Connexion",
+    "account": "Mon compte",
     "settings": "Paramètres"
   },
   "typing": {
@@ -15,7 +19,28 @@
     "duration": "Durée",
     "words": "mots",
     "characters": "caractères",
-    "errors": "erreurs"
+    "errors": "erreurs",
+    "hint": "cliquer pour activer · chaque frappe produit une note",
+    "contextIndicatorLabel": "Mode et collection actifs",
+    "collection": {
+      "litterature": "Littérature",
+      "poesie": "Poésie",
+      "code": "Code",
+      "philosophie": "Philosophie",
+      "gaming": "Gaming"
+    },
+    "mode": {
+      "ghost": "Ghost",
+      "learning": "Apprentissage",
+      "code": "Code",
+      "sprint": "Sprint",
+      "endurance": "Endurance",
+      "bigrams": "Bigrammes",
+      "numbers": "Nombres",
+      "classics": "Classiques",
+      "custom": "Personnalisé",
+      "challenge": "Challenge"
+    }
   },
   "modes": {
     "classic": "Classique",
@@ -114,12 +139,12 @@
     "comingSoonExplainer": "La synchronisation cloud cross-device est en cours de déploiement. Elle sera disponible très prochainement pour tous les abonnés Premium. Les packs sonores premium sont disponibles dès maintenant.",
     "premiumBanner": "La sync cloud cross-device sera bientôt disponible. Tes sessions sont actuellement sauvegardées localement. Tu seras notifié dès l'activation."
   },
-  "nav": {
-    "mainNav": "Navigation principale",
-    "profile": "Profil",
-    "leaderboard": "Classement",
-    "premium": "Premium",
-    "login": "Connexion",
-    "account": "Mon compte"
+  "ghost": {
+    "label": "Fantôme",
+    "active": "Fantôme actif",
+    "enable": "Activer le mode Fantôme",
+    "disable": "Désactiver le mode Fantôme",
+    "locked": "Mode Fantôme verrouillé",
+    "lockedTooltip": "Complète un test pour débloquer le mode Fantôme — ton meilleur résultat servira de référence"
   }
 }

@@ -53,6 +53,60 @@ import { TypingArea } from '../typing/TypingArea';
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
+describe('TypingArea — i18n hint text', () => {
+  it('affiche le hint text depuis les traductions (non hardcodé)', () => {
+    render(<TypingArea text="hello world" />);
+    // La clé i18n 'hint' doit être affiché, pas le texte hardcodé FR
+    expect(screen.getByText('hint')).toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        'cliquer pour activer · chaque frappe produit une note',
+      ),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe('TypingArea — accessibilité focus ring', () => {
+  it("n'a pas de focus:outline-none sans remplacement accessible", () => {
+    render(<TypingArea text="hello world" />);
+    const container = screen.getByRole('textbox');
+    // La classe focus:outline-none ne doit plus être présente
+    expect(container.className).not.toContain('focus:outline-none');
+    // La classe accessible doit être présente
+    expect(container.className).toContain('typing-focus-ring');
+  });
+});
+
+describe('TypingArea — indicateur mode/collection', () => {
+  it('affiche le badge de mode ghost quand mode=ghost', () => {
+    render(
+      <TypingArea text="hello world" mode="ghost" collectionId="litterature" />,
+    );
+    // L'indicateur de mode doit être visible
+    const indicator = screen.getByLabelText('contextIndicatorLabel');
+    expect(indicator).toBeInTheDocument();
+  });
+
+  it("n'affiche pas l'indicateur mode en mode classic sans collectionId", () => {
+    render(<TypingArea text="hello world" mode="classic" />);
+    expect(
+      screen.queryByLabelText('contextIndicatorLabel'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('affiche la collection active si collectionId fourni', () => {
+    render(
+      <TypingArea
+        text="hello world"
+        mode="classic"
+        collectionId="litterature"
+      />,
+    );
+    const indicator = screen.getByLabelText('contextIndicatorLabel');
+    expect(indicator).toBeInTheDocument();
+  });
+});
+
 describe('TypingArea — Backspace', () => {
   it('appelle handleBackspace quand la touche Backspace est pressée', async () => {
     const user = userEvent.setup();
