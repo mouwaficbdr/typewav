@@ -27,7 +27,11 @@ export type MidiPieceId =
   | 'fur-elise'
   | 'prelude-bwv846'
   | 'gymnopedie-1'
-  | 'korobeiniki';
+  | 'korobeiniki'
+  | 'ode-to-joy'
+  | 'nocturne-op9-n2'
+  | 'rondo-alla-turca'
+  | 'canon-pachelbel';
 
 // ─── Catalogue ────────────────────────────────────────────────────────────────
 
@@ -336,6 +340,258 @@ const KOROBEINIKI: string[] = [
 
 // ─── Catalogue global ─────────────────────────────────────────────────────────
 
+/**
+ * Ode à la Joie (9e Symphonie) — Ludwig van Beethoven (1824)
+ * Thème principal de l'hymne européen. Public domain.
+ */
+const ODE_TO_JOY: string[] = [
+  // Phrase A (×2)
+  'E4',
+  'E4',
+  'F4',
+  'G4',
+  'G4',
+  'F4',
+  'E4',
+  'D4',
+  'C4',
+  'C4',
+  'D4',
+  'E4',
+  'E4',
+  'D4',
+  'D4',
+  // Phrase A' (variante finale)
+  'E4',
+  'E4',
+  'F4',
+  'G4',
+  'G4',
+  'F4',
+  'E4',
+  'D4',
+  'C4',
+  'C4',
+  'D4',
+  'E4',
+  'D4',
+  'C4',
+  'C4',
+  // Phrase B
+  'D4',
+  'D4',
+  'E4',
+  'C4',
+  'D4',
+  'E4',
+  'F4',
+  'E4',
+  'C4',
+  'D4',
+  'E4',
+  'F4',
+  'E4',
+  'D4',
+  'C4',
+  'D4',
+  'G3',
+  // Reprise phrase A
+  'E4',
+  'E4',
+  'F4',
+  'G4',
+  'G4',
+  'F4',
+  'E4',
+  'D4',
+  'C4',
+  'C4',
+  'D4',
+  'E4',
+  'D4',
+  'C4',
+  'C4',
+];
+
+/**
+ * Nocturne Op.9 N°2 en Mi bémol majeur — Frédéric Chopin (1830)
+ * Mélodie principale, voix haute. Public domain (Chopin décédé en 1849).
+ */
+const NOCTURNE_OP9_N2: string[] = [
+  // Phrase d'ouverture
+  'Bb4',
+  'C5',
+  'Eb5',
+  'Db5',
+  'C5',
+  'Bb4',
+  'Ab4',
+  'Bb4',
+  'Ab4',
+  'G4',
+  'Bb4',
+  // Phrase 2
+  'Bb4',
+  'C5',
+  'Eb5',
+  'Db5',
+  'C5',
+  'Bb4',
+  'Ab4',
+  'Gb4',
+  'Eb4',
+  'F4',
+  'Eb4',
+  // Phrase 3 — montée lyrique
+  'Eb5',
+  'F5',
+  'Gb5',
+  'F5',
+  'Eb5',
+  'Db5',
+  'C5',
+  'Bb4',
+  'Ab4',
+  'Bb4',
+  'G4',
+  // Phrase 4 — retour
+  'Bb4',
+  'C5',
+  'Eb5',
+  'Db5',
+  'C5',
+  'Bb4',
+  'Ab4',
+  'Gb4',
+  'F4',
+  'Eb4',
+  'Bb3',
+];
+
+/**
+ * Rondo alla Turca (Sonate K. 331) — W. A. Mozart (1783)
+ * Thème principal du 3e mouvement. Public domain (Mozart décédé en 1791).
+ */
+const RONDO_ALLA_TURCA: string[] = [
+  // Motif A — staccato
+  'A4',
+  'G4',
+  'F4',
+  'E4',
+  'E4',
+  'E4',
+  'A4',
+  'G4',
+  'F4',
+  'E4',
+  'E4',
+  'E4',
+  // Motif B
+  'E4',
+  'F4',
+  'G4',
+  'A4',
+  'B4',
+  'C5',
+  'D5',
+  'C5',
+  'B4',
+  'A4',
+  // Motif C — ornements
+  'A4',
+  'B4',
+  'A4',
+  'G4',
+  'F4',
+  'E4',
+  'D4',
+  'E4',
+  'F4',
+  'G4',
+  'A4',
+  // Fin de section
+  'A4',
+  'G4',
+  'F4',
+  'G4',
+  'A4',
+  'E4',
+  'F4',
+  'G4',
+  'A4',
+  'B4',
+  'C5',
+  'B4',
+  'A4',
+  'G4',
+  'A4',
+  'E4',
+];
+
+/**
+ * Canon en Ré Majeur — Johann Pachelbel (1680)
+ * Progression de basse + voix canoniques. Public domain.
+ */
+const CANON_PACHELBEL: string[] = [
+  // Voix 1 — basse ostinato
+  'D4',
+  'A4',
+  'B3',
+  'F4',
+  'G3',
+  'D4',
+  'G3',
+  'A3',
+  // Voix 2 — contrepoint
+  'F4',
+  'E4',
+  'D4',
+  'C4',
+  'B3',
+  'A3',
+  'B3',
+  'C4',
+  // Voix 3 — mélodie supérieure
+  'D4',
+  'F4',
+  'A4',
+  'D5',
+  'C5',
+  'B4',
+  'A4',
+  'G4',
+  'F4',
+  'G4',
+  'A4',
+  'B4',
+  'C5',
+  'D5',
+  'E5',
+  'F5',
+  // Phrase ornementée
+  'E5',
+  'D5',
+  'C5',
+  'B4',
+  'A4',
+  'B4',
+  'C5',
+  'D5',
+  'A4',
+  'B4',
+  'C5',
+  'A4',
+  // Reprise de la basse
+  'D4',
+  'A4',
+  'B3',
+  'F4',
+  'G3',
+  'D4',
+  'G3',
+  'A3',
+];
+
 export const MIDI_PIECES: Record<MidiPieceId, MidiPiece> = {
   'fur-elise': {
     id: 'fur-elise',
@@ -368,6 +624,38 @@ export const MIDI_PIECES: Record<MidiPieceId, MidiPiece> = {
     year: 1861,
     notes: KOROBEINIKI,
     noteDuration: '16n',
+  },
+  'ode-to-joy': {
+    id: 'ode-to-joy',
+    title: 'Ode à la Joie',
+    composer: 'L. v. Beethoven',
+    year: 1824,
+    notes: ODE_TO_JOY,
+    noteDuration: '8n',
+  },
+  'nocturne-op9-n2': {
+    id: 'nocturne-op9-n2',
+    title: 'Nocturne Op.9 N°2',
+    composer: 'F. Chopin',
+    year: 1830,
+    notes: NOCTURNE_OP9_N2,
+    noteDuration: '8n',
+  },
+  'rondo-alla-turca': {
+    id: 'rondo-alla-turca',
+    title: 'Rondo alla Turca',
+    composer: 'W. A. Mozart',
+    year: 1783,
+    notes: RONDO_ALLA_TURCA,
+    noteDuration: '16n',
+  },
+  'canon-pachelbel': {
+    id: 'canon-pachelbel',
+    title: 'Canon en Ré Majeur',
+    composer: 'J. Pachelbel',
+    year: 1680,
+    notes: CANON_PACHELBEL,
+    noteDuration: '8n',
   },
 };
 
