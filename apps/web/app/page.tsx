@@ -1,5 +1,6 @@
 import { TypingArea } from '@/components/typing/TypingArea';
 import { litteratureCollection } from '@typewav/collections';
+import Link from 'next/link';
 
 /**
  * Page d'accueil — Server Component.
@@ -50,6 +51,17 @@ export default function HomePage() {
       >
         {entry.source}
       </p>
+
+      <Link
+        href="/profil"
+        className="text-xs tracking-widest uppercase transition-colors hover:underline"
+        style={{
+          color: 'var(--color-text-muted)',
+          fontFamily: 'var(--font-ui)',
+        }}
+      >
+        Profil &amp; statistiques →
+      </Link>
     </main>
   );
 }
