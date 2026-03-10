@@ -67,7 +67,7 @@ export default defineConfig({
           include: [
             'apps/web/hooks/__tests__/**/*.test.{ts,tsx}',
             'apps/web/stores/__tests__/**/*.test.{ts,tsx}',
-            'apps/web/components/__tests__/**/*.test.{ts,tsx}',
+            'apps/web/components/**/__tests__/**/*.test.{ts,tsx}',
             'apps/web/app/**/__tests__/**/*.test.{ts,tsx}',
           ],
           environment: 'jsdom',
