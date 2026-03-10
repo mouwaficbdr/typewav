@@ -35,6 +35,12 @@ export function AuthForm({ mode }: AuthFormProps) {
     setSuccess(null);
     setLoading(true);
 
+    if (!supabase) {
+      setError('Service d\'authentification non configuré. Ajoutez vos variables NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY dans .env.local.');
+      setLoading(false);
+      return;
+    }
+
     try {
       if (mode === 'signup') {
         const { error: signUpError } = await supabase.auth.signUp({

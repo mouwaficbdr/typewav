@@ -17,12 +17,21 @@ let _client: SupabaseClient | null = null;
 
 /**
  * Singleton client navigateur — réutilise la même instance entre renders.
+ * Retourne null si les variables d'environnement ne sont pas définies
+ * (développement local sans Supabase configuré).
  */
-export function getSupabaseBrowserClient(): SupabaseClient {
+export function getSupabaseBrowserClient(): SupabaseClient | null {
+  if (typeof window === 'undefined') return null;
+  if (
+    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  ) {
+    return null;
+  }
   if (!_client) {
     _client = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     );
   }
   return _client;

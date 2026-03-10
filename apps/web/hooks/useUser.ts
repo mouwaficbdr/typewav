@@ -28,10 +28,15 @@ export function useUser(): UserState {
   const supabase = getSupabaseBrowserClient();
 
   useEffect(() => {
+    // Pas de config Supabase — utilisateur non authentifié, fin du chargement
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
     // Charger l'utilisateur initial
     void supabase.auth.getUser().then(({ data: { user: u } }) => {
       setUser(u);
-      if (u) void fetchPremiumStatus(u.id);
+      if (u) void fetchPremiumStatus(supabase, u.id);
       else setLoading(false);
     });
 
@@ -41,7 +46,7 @@ export function useUser(): UserState {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       const u = session?.user ?? null;
       setUser(u);
-      if (u) void fetchPremiumStatus(u.id);
+      if (u) void fetchPremiumStatus(supabase, u.id);
       else {
         setIsPremium(false);
         setLoading(false);
@@ -51,9 +56,9 @@ export function useUser(): UserState {
     return () => subscription.unsubscribe();
   }, [supabase]);
 
-  async function fetchPremiumStatus(userId: string) {
+  async function fetchPremiumStatus(client: NonNullable<ReturnType<typeof getSupabaseBrowserClient>>, userId: string) {
     try {
-      const { data } = await supabase
+      const { data } = await client
         .from('user_premium')
         .select('is_premium')
         .eq('user_id', userId)
