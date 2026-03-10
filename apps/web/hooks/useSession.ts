@@ -145,6 +145,7 @@ export function useSession({
       const params = new URLSearchParams({
         id,
         wpm: String(Math.round(wpm)),
+        wpmNet: String(Math.round(wpmNet)),
         accuracy: String(Math.round(accuracy)),
         consistency: String(Math.round(consistency)),
         recommendation,

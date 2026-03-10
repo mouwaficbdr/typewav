@@ -12,6 +12,7 @@ export function ResultsPageClient() {
   const searchParams = useSearchParams();
 
   const wpm = Number(searchParams.get('wpm') ?? '0');
+  const wpmNet = Number(searchParams.get('wpmNet') ?? '0');
   const accuracy = Number(searchParams.get('accuracy') ?? '0');
   const consistency = Number(searchParams.get('consistency') ?? '0');
   const recommendation = searchParams.get('recommendation') ?? '';
@@ -20,7 +21,7 @@ export function ResultsPageClient() {
   return (
     <ResultsPage
       wpm={wpm}
-      wpmNet={wpm}
+      wpmNet={wpmNet}
       accuracy={accuracy}
       consistency={consistency}
       recommendation={recommendation}
