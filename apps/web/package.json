@@ -1,0 +1,38 @@
+{
+  "name": "@typewav/web",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings=0"
+  },
+  "dependencies": {
+    "@typewav/audio-engine": "workspace:*",
+    "@typewav/collections": "workspace:*",
+    "@typewav/soundpacks": "workspace:*",
+    "@typewav/themes": "workspace:*",
+    "@typewav/types": "workspace:*",
+    "idb": "^8.0.2",
+    "motion": "^12.4.10",
+    "next": "^16.1.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "recharts": "^3.8.0",
+    "tone": "^15.0.4",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.2.0",
+    "@types/node": "^22.13.10",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "eslint": "^9.20.0",
+    "eslint-config-next": "^16.1.0",
+    "fake-indexeddb": "^6.0.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.8.2"
+  }
+}

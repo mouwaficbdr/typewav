@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+/**
+ * TypeWav — Design System "Dark Terminal Luxury"
+ * Tailwind CSS 4.0 — CSS-first, pas de tailwind.config.js
+ * Spec : docs/specs/04-design-system.md
+ */
+@theme {
+  /* ---- Palette ---- */
+  --color-bg: #000000;
+  --color-surface: #0A0A0A;
+  --color-border: #1A1A2E;
+  --color-accent: #00D4AA;
+  --color-text-primary: #E8E8E8;
+  --color-text-muted: #888888;
+  --color-error: #FF4444;
+
+  /* ---- Typographie ---- */
+  /* Les variables CSS --font-* sont injectées par next/font dans le layout */
+  --font-display: var(--font-display, 'Cormorant Garamond', serif);
+  --font-ui: var(--font-ui, 'Sora', sans-serif);
+  --font-mono: var(--font-mono, 'JetBrains Mono', monospace);
+
+  /* ---- Espacement & rayon ---- */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+
+  /* ---- Transitions ---- */
+  --transition-fast: 120ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 350ms ease;
+}
+
+/* ---- Base ---- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background-color: var(--color-bg);
+}
+
+/* ---- Focus visible accessible ---- */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* ---- Curseur de typing ---- */
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* ---- Zones de frappe ---- */
+.char-pending {
+  color: var(--color-text-muted);
+}
+
+.char-correct {
+  color: var(--color-text-primary);
+}
+
+.char-error {
+  color: var(--color-error);
+  text-decoration: underline;
+  text-decoration-color: var(--color-error);
+  text-underline-offset: 3px;
+}
+
+.char-current {
+  position: relative;
+}
+
+.char-current::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 2px;
+  background-color: var(--color-accent);
+  animation: blink 1s step-end infinite;
+}
