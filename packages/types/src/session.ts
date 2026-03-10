@@ -1,9 +1,15 @@
 export type TypingMode =
-  | 'classic'
-  | 'code'
-  | 'learning'
-  | 'ghost'
-  | 'challenge';
+  | 'classic' // Mots aléatoires
+  | 'learning' // Apprentissage Home Row — débutants
+  | 'bigrams' // Bigrams ciblés depuis diagnostic
+  | 'code' // Snippets de code réel
+  | 'numbers' // Chiffres et ponctuation
+  | 'sprint' // 10 mots, le plus vite possible
+  | 'endurance' // Session longue — analyse dégradation
+  | 'custom' // Texte personnel
+  | 'classics' // Mode MIDI — pièces classiques
+  | 'ghost' // Avec curseur fantôme (record personnel)
+  | 'challenge'; // Challenge partagé via URL
 
 export interface KeystrokeEntry {
   char: string;
