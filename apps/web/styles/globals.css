@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /**
  * TypeWav — Design System "Dark Terminal Luxury"
@@ -8,12 +8,12 @@
 @theme {
   /* ---- Palette ---- */
   --color-bg: #000000;
-  --color-surface: #0A0A0A;
-  --color-border: #1A1A2E;
-  --color-accent: #00D4AA;
-  --color-text-primary: #E8E8E8;
+  --color-surface: #0a0a0a;
+  --color-border: #1a1a2e;
+  --color-accent: #00d4aa;
+  --color-text-primary: #e8e8e8;
   --color-text-muted: #888888;
-  --color-error: #FF4444;
+  --color-error: #ff4444;
 
   /* ---- Typographie ---- */
   /* Les variables CSS --font-* sont injectées par next/font dans le layout */
@@ -61,13 +61,21 @@ body {
   outline-offset: 2px;
 }
 
+/* ---- Focus ring zone de frappe (box-shadow pour ne pas chevaucher la bordure) ---- */
+.typing-focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+
 /* ---- Curseur de typing ---- */
 .cursor-blink {
   animation: blink 1s step-end infinite;
 }
 
 @keyframes blink {
-  50% { opacity: 0; }
+  50% {
+    opacity: 0;
+  }
 }
 
 /* ---- Zones de frappe ---- */

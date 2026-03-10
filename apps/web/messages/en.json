@@ -1,8 +1,12 @@
 {
   "nav": {
     "home": "Home",
+    "mainNav": "Main navigation",
     "profile": "Profile",
     "leaderboard": "Leaderboard",
+    "premium": "Premium",
+    "login": "Login",
+    "account": "Account",
     "settings": "Settings"
   },
   "typing": {
@@ -15,7 +19,28 @@
     "duration": "Duration",
     "words": "words",
     "characters": "characters",
-    "errors": "errors"
+    "errors": "errors",
+    "hint": "click to activate · each keystroke plays a note",
+    "contextIndicatorLabel": "Active mode and collection",
+    "collection": {
+      "litterature": "Literature",
+      "poesie": "Poetry",
+      "code": "Code",
+      "philosophie": "Philosophy",
+      "gaming": "Gaming"
+    },
+    "mode": {
+      "ghost": "Ghost",
+      "learning": "Learning",
+      "code": "Code",
+      "sprint": "Sprint",
+      "endurance": "Endurance",
+      "bigrams": "Bigrams",
+      "numbers": "Numbers",
+      "classics": "Classics",
+      "custom": "Custom",
+      "challenge": "Challenge"
+    }
   },
   "modes": {
     "classic": "Classic",
@@ -114,12 +139,12 @@
     "comingSoonExplainer": "Cross-device cloud sync is being deployed. It will be available very soon for all Premium subscribers. Premium sound packs are available right now.",
     "premiumBanner": "Cross-device cloud sync will be available soon. Your sessions are currently saved locally. You will be notified when it goes live."
   },
-  "nav": {
-    "mainNav": "Main navigation",
-    "profile": "Profile",
-    "leaderboard": "Leaderboard",
-    "premium": "Premium",
-    "login": "Login",
-    "account": "Account"
+  "ghost": {
+    "label": "Ghost",
+    "active": "Ghost active",
+    "enable": "Enable Ghost mode",
+    "disable": "Disable Ghost mode",
+    "locked": "Ghost mode locked",
+    "lockedTooltip": "Complete a test to unlock Ghost mode — your best result will be used as reference"
   }
 }

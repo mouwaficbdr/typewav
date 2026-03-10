@@ -11,6 +11,7 @@ import { GhostCursor } from '@/components/typing/GhostCursor';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useSession } from '@/hooks/useSession';
 import type { TypingMode } from '@typewav/types';
+import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef } from 'react';
 
 interface TypingAreaProps {
@@ -51,6 +52,7 @@ export function TypingArea({
   });
   const { initialize, playNote, triggerSilence, triggerResume } =
     useAudioEngine();
+  const t = useTranslations('typing');
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -127,6 +129,30 @@ export function TypingArea({
 
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-3xl">
+      {/* Indicateur mode/collection */}
+      {(mode !== 'classic' || collectionId) && (
+        <div
+          style={{
+            display: 'flex',
+            gap: '8px',
+            alignItems: 'center',
+            fontFamily: 'var(--font-ui)',
+            fontSize: '0.75rem',
+            color: 'var(--color-text-muted)',
+          }}
+          aria-label={t('contextIndicatorLabel')}
+        >
+          {collectionId && <span>{t(`collection.${collectionId}`)}</span>}
+          {collectionId && mode !== 'classic' && (
+            <span aria-hidden="true">·</span>
+          )}
+          {mode !== 'classic' && (
+            <span style={{ color: 'var(--color-accent)' }}>
+              {t(`mode.${mode}`)}
+            </span>
+          )}
+        </div>
+      )}
       {/* Stats live */}
       <div
         className="flex gap-8 text-sm"
@@ -178,7 +204,7 @@ export function TypingArea({
         aria-multiline="false"
         tabIndex={0}
         onKeyDown={handleKeyDown}
-        className="relative cursor-text select-none rounded-md p-8 focus:outline-none w-full"
+        className="relative cursor-text select-none rounded-md p-8 typing-focus-ring w-full"
         style={{
           backgroundColor: 'var(--color-surface)',
           border: '1px solid var(--color-border)',
@@ -225,7 +251,7 @@ export function TypingArea({
             className="absolute bottom-2 right-4 text-xs"
             style={{ color: 'var(--color-text-muted)' }}
           >
-            cliquer pour activer · chaque frappe produit une note
+            {t('hint')}
           </p>
         )}
       </div>
