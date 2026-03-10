@@ -7,12 +7,32 @@
  * des Client Components ou des hooks côté client.
  *
  * Stores :
- *   sessions        — SessionResult complet
- *   keystroke_stats — agrégats par touche/bigram (mis à jour après chaque session)
+ *   sessions          — SessionResult complet
+ *   keystroke_stats   — agrégats par touche/bigram
+ *   user_preferences  — préférences diverses
+ *   user_profile      — profil et unlocks
+ *   personal_records  — records personnels
+ *   personal_texts    — textes personnalisés
  */
 
-import type { KeystrokeEntry, SessionResult } from '@typewav/types';
+import type {
+  KeystrokeEntry,
+  PersonalRecords,
+  SessionResult,
+  UserProfile,
+} from '@typewav/types';
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
+
+// ─── Types locaux DB ──────────────────────────────────────────────────────────
+
+export interface PersonalText {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: number;
+  lastUsed: number;
+  isFavorite: boolean;
+}
 
 // ─── Schéma ────────────────────────────────────────────────────────────────────
 
@@ -20,17 +40,28 @@ interface TypeWavDB extends DBSchema {
   sessions: {
     key: string;
     value: SessionResult;
-    indexes: {
-      'by-timestamp': number;
-    };
+    indexes: { 'by-timestamp': number };
   };
   keystroke_stats: {
-    key: string; // char ou bigram
+    key: string;
     value: KeystrokeAggregate;
   };
   user_preferences: {
     key: string;
     value: unknown;
+  };
+  user_profile: {
+    key: string;
+    value: UserProfile;
+  };
+  personal_records: {
+    key: string;
+    value: PersonalRecords;
+  };
+  personal_texts: {
+    key: string;
+    value: PersonalText;
+    indexes: { 'by-createdAt': number };
   };
 }
 
@@ -46,7 +77,7 @@ export interface KeystrokeAggregate {
 // ─── Singleton DB ──────────────────────────────────────────────────────────────
 
 const DB_NAME = 'typewav';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbInstance: IDBPDatabase<TypeWavDB> | null = null;
 
@@ -67,6 +98,21 @@ async function getDB(): Promise<IDBPDatabase<TypeWavDB>> {
       // user_preferences
       if (!db.objectStoreNames.contains('user_preferences')) {
         db.createObjectStore('user_preferences');
+      }
+      // user_profile
+      if (!db.objectStoreNames.contains('user_profile')) {
+        db.createObjectStore('user_profile');
+      }
+      // personal_records
+      if (!db.objectStoreNames.contains('personal_records')) {
+        db.createObjectStore('personal_records');
+      }
+      // personal_texts
+      if (!db.objectStoreNames.contains('personal_texts')) {
+        const personalTexts = db.createObjectStore('personal_texts', {
+          keyPath: 'id',
+        });
+        personalTexts.createIndex('by-createdAt', 'createdAt');
       }
     },
   });
@@ -180,4 +226,58 @@ export async function setPreference<T>(key: string, value: T): Promise<void> {
 export async function getPreference<T>(key: string): Promise<T | undefined> {
   const db = await getDB();
   return db.get('user_preferences', key) as Promise<T | undefined>;
+}
+
+// ─── Profil utilisateur ───────────────────────────────────────────────────────
+
+const DEFAULT_PROFILE: UserProfile = {
+  unlockedThemes: ['terminal'],
+  unlockedSoundPacks: ['piano'],
+  unlockedCollections: ['litterature'],
+  unlockedMilestoneIds: [],
+  currentRank: 'novice',
+  pseudo: '',
+};
+
+export async function getUserProfile(): Promise<UserProfile> {
+  const db = await getDB();
+  return (await db.get('user_profile', 'profile')) ?? DEFAULT_PROFILE;
+}
+
+export async function saveUserProfile(profile: UserProfile): Promise<void> {
+  const db = await getDB();
+  await db.put('user_profile', profile, 'profile');
+}
+
+// ─── Records personnels ───────────────────────────────────────────────────────
+
+export async function getPersonalRecords(): Promise<PersonalRecords | null> {
+  const db = await getDB();
+  return (await db.get('personal_records', 'records')) ?? null;
+}
+
+export async function savePersonalRecords(
+  records: PersonalRecords,
+): Promise<void> {
+  const db = await getDB();
+  await db.put('personal_records', records, 'records');
+}
+
+// ─── Textes personnels ────────────────────────────────────────────────────────
+
+export async function savePersonalText(text: PersonalText): Promise<string> {
+  const db = await getDB();
+  await db.put('personal_texts', text);
+  return text.id;
+}
+
+export async function getPersonalTexts(): Promise<PersonalText[]> {
+  const db = await getDB();
+  const all = await db.getAllFromIndex('personal_texts', 'by-createdAt');
+  return all.reverse();
+}
+
+export async function deletePersonalText(id: string): Promise<void> {
+  const db = await getDB();
+  await db.delete('personal_texts', id);
 }

@@ -1,0 +1,201 @@
+/**
+ * Logique de progression narrative — rangs, jalons, records.
+ * Spec : docs/specs/05-progression.md
+ *
+ * Logique pure — pas d'imports React, pas de hooks.
+ * Testable indépendamment.
+ */
+
+import {
+  MILESTONES,
+  RANKS,
+  type Milestone,
+  type PersonalRecords,
+  type RankTier,
+  type SessionResult,
+  type UserProfile,
+} from '@typewav/types';
+
+// ─── Rang ──────────────────────────────────────────────────────────────────────
+
+/**
+ * Calcule le rang d'un utilisateur à partir de la médiane WPM
+ * des 10 dernières sessions.
+ */
+export function calculateRank(sessions: SessionResult[]): RankTier {
+  const last10 = sessions.slice(0, 10);
+  if (last10.length === 0) return 'novice';
+
+  const medianWpm = calculateMedianWpm(last10);
+
+  const tiers: RankTier[] = [
+    'ghost',
+    'architect',
+    'operator',
+    'apprentice',
+    'novice',
+  ];
+  for (const tier of tiers) {
+    if (medianWpm >= RANKS[tier].minWpm) return tier;
+  }
+
+  return 'novice';
+}
+
+function calculateMedianWpm(sessions: SessionResult[]): number {
+  if (sessions.length === 0) return 0;
+  const sorted = [...sessions].sort((a, b) => a.wpm - b.wpm);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0
+    ? (sorted[mid - 1]!.wpm + sorted[mid]!.wpm) / 2
+    : sorted[mid]!.wpm;
+}
+
+// ─── Jalons ────────────────────────────────────────────────────────────────────
+
+/**
+ * Vérifie les jalons nouvellement débloqués après une session.
+ * Retourne uniquement les jalons qui viennent d'être débloqués.
+ */
+export function checkMilestones(
+  sessions: SessionResult[],
+  profile: UserProfile,
+): Milestone[] {
+  const newlyUnlocked: Milestone[] = [];
+  const latestSession = sessions[0];
+  if (!latestSession) return newlyUnlocked;
+
+  const currentRank = calculateRank(sessions);
+
+  for (const milestone of MILESTONES) {
+    if (profile.unlockedMilestoneIds.includes(milestone.id)) continue;
+
+    const { condition } = milestone;
+
+    let conditionMet = false;
+    switch (condition.type) {
+      case 'sessions':
+        conditionMet = sessions.length >= condition.value;
+        break;
+      case 'wpm':
+        conditionMet = latestSession.wpm >= condition.value;
+        break;
+      case 'accuracy':
+        conditionMet = latestSession.accuracy >= condition.value;
+        break;
+      case 'rank':
+        conditionMet = isRankAtLeast(currentRank, condition.tier);
+        break;
+      case 'streak':
+        conditionMet = calculateStreak(sessions) >= condition.days;
+        break;
+    }
+
+    if (conditionMet) {
+      newlyUnlocked.push(milestone);
+    }
+  }
+
+  return newlyUnlocked;
+}
+
+function isRankAtLeast(current: RankTier, minimum: RankTier): boolean {
+  const order: RankTier[] = [
+    'novice',
+    'apprentice',
+    'operator',
+    'architect',
+    'ghost',
+  ];
+  return order.indexOf(current) >= order.indexOf(minimum);
+}
+
+function calculateStreak(sessions: SessionResult[]): number {
+  if (sessions.length === 0) return 0;
+
+  const DAY_MS = 86_400_000;
+  let streak = 1;
+  let lastDay = Math.floor(sessions[0]!.timestamp / DAY_MS);
+
+  for (let i = 1; i < sessions.length; i++) {
+    const sessionDay = Math.floor(sessions[i]!.timestamp / DAY_MS);
+    if (lastDay - sessionDay === 1) {
+      streak++;
+      lastDay = sessionDay;
+    } else if (lastDay - sessionDay === 0) {
+      // Même jour — skip
+      continue;
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+}
+
+// ─── Records personnels ────────────────────────────────────────────────────────
+
+const DEFAULT_RECORDS: PersonalRecords = {
+  maxWpm: { value: 0, sessionId: '', achievedAt: 0 },
+  maxAccuracy: { value: 0, sessionId: '', achievedAt: 0 },
+  maxConsistency: { value: 0, sessionId: '', achievedAt: 0 },
+  longestSession: { duration: 0, sessionId: '', achievedAt: 0 },
+  byCollection: {},
+};
+
+/**
+ * Met à jour les records personnels avec une nouvelle session.
+ * Retourne les records mis à jour (immuable — ne modifie pas l'original).
+ */
+export function updatePersonalRecords(
+  current: PersonalRecords | null,
+  session: SessionResult,
+): PersonalRecords {
+  const records: PersonalRecords = current
+    ? (JSON.parse(JSON.stringify(current)) as PersonalRecords)
+    : (JSON.parse(JSON.stringify(DEFAULT_RECORDS)) as PersonalRecords);
+
+  if (session.wpm > records.maxWpm.value) {
+    records.maxWpm = {
+      value: session.wpm,
+      sessionId: session.id,
+      achievedAt: session.timestamp,
+    };
+  }
+
+  if (session.accuracy > records.maxAccuracy.value) {
+    records.maxAccuracy = {
+      value: session.accuracy,
+      sessionId: session.id,
+      achievedAt: session.timestamp,
+    };
+  }
+
+  if (session.consistency > records.maxConsistency.value) {
+    records.maxConsistency = {
+      value: session.consistency,
+      sessionId: session.id,
+      achievedAt: session.timestamp,
+    };
+  }
+
+  if (session.duration > records.longestSession.duration) {
+    records.longestSession = {
+      duration: session.duration,
+      sessionId: session.id,
+      achievedAt: session.timestamp,
+    };
+  }
+
+  if (session.collectionId) {
+    const existing = records.byCollection[session.collectionId];
+    if (!existing || session.wpm > existing.wpm) {
+      records.byCollection[session.collectionId] = {
+        wpm: session.wpm,
+        achievedAt: session.timestamp,
+      };
+    }
+  }
+
+  return records;
+}
