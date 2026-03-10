@@ -99,5 +99,14 @@
     "share": "Share",
     "open_source": "Open source",
     "language": "Language"
+  },
+  "auth": {
+    "forgotPassword": "Forgot password?",
+    "resetTitle": "Reset your password",
+    "resetDescription": "Enter your email address. You'll receive a link to create a new password.",
+    "resetButton": "Send reset link",
+    "resetSent": "Email sent! Check your inbox.",
+    "resetError": "Could not send email. Please check the address.",
+    "backToLogin": "Back to login"
   }
 }
