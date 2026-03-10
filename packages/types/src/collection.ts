@@ -2,6 +2,15 @@ export type CollectionLanguage = 'fr' | 'en' | 'multi';
 
 export type TextDifficulty = 'easy' | 'medium' | 'hard';
 
+/** Langage de programmation d'un snippet — utilisé pour le Mode Code */
+export type CodeLanguage =
+  | 'javascript'
+  | 'typescript'
+  | 'python'
+  | 'rust'
+  | 'go'
+  | 'sql';
+
 export interface TextEntry {
   id: string;
   content: string;
@@ -10,6 +19,8 @@ export interface TextEntry {
   difficulty: TextDifficulty;
   language: 'fr' | 'en';
   tags: string[];
+  /** Langage de programmation — renseigné uniquement pour la collection code */
+  codeLanguage?: CodeLanguage;
 }
 
 export interface CollectionConfig {

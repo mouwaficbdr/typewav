@@ -1,4 +1,5 @@
 export type {
+  CodeLanguage,
   CollectionConfig,
   CollectionLanguage,
   TextDifficulty,

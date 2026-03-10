@@ -23,6 +23,7 @@ export const codeCollection: CollectionConfig = {
       difficulty: 'easy',
       language: 'en',
       tags: ['typescript', 'function', 'template-literal'],
+      codeLanguage: 'typescript',
     },
     {
       id: 'code-ts-02',
@@ -32,6 +33,7 @@ export const codeCollection: CollectionConfig = {
       difficulty: 'medium',
       language: 'en',
       tags: ['typescript', 'async', 'generics'],
+      codeLanguage: 'typescript',
     },
     {
       id: 'code-ts-03',
@@ -41,6 +43,7 @@ export const codeCollection: CollectionConfig = {
       difficulty: 'medium',
       language: 'en',
       tags: ['typescript', 'types', 'discriminated-union'],
+      codeLanguage: 'typescript',
     },
     {
       id: 'code-ts-04',
@@ -50,6 +53,7 @@ export const codeCollection: CollectionConfig = {
       difficulty: 'hard',
       language: 'en',
       tags: ['typescript', 'functional', 'higher-order'],
+      codeLanguage: 'typescript',
     },
     {
       id: 'code-ts-05',
@@ -59,6 +63,7 @@ export const codeCollection: CollectionConfig = {
       difficulty: 'hard',
       language: 'en',
       tags: ['typescript', 'utility', 'timing'],
+      codeLanguage: 'typescript',
     },
     {
       id: 'code-py-01',
@@ -68,6 +73,7 @@ export const codeCollection: CollectionConfig = {
       difficulty: 'easy',
       language: 'en',
       tags: ['python', 'recursion', 'math'],
+      codeLanguage: 'python',
     },
     {
       id: 'code-py-02',
@@ -77,6 +83,7 @@ export const codeCollection: CollectionConfig = {
       difficulty: 'medium',
       language: 'en',
       tags: ['python', 'generator', 'math'],
+      codeLanguage: 'python',
     },
     {
       id: 'code-py-03',
@@ -86,6 +93,7 @@ export const codeCollection: CollectionConfig = {
       difficulty: 'easy',
       language: 'en',
       tags: ['python', 'comprehension', 'dict'],
+      codeLanguage: 'python',
     },
     {
       id: 'code-rs-01',
@@ -95,6 +103,7 @@ export const codeCollection: CollectionConfig = {
       difficulty: 'medium',
       language: 'en',
       tags: ['rust', 'iterators', 'collections'],
+      codeLanguage: 'rust',
     },
     {
       id: 'code-rs-02',
@@ -104,6 +113,7 @@ export const codeCollection: CollectionConfig = {
       difficulty: 'hard',
       language: 'en',
       tags: ['rust', 'algorithm', 'generics'],
+      codeLanguage: 'rust',
     },
     {
       id: 'code-sh-01',
@@ -148,6 +158,7 @@ export const codeCollection: CollectionConfig = {
       difficulty: 'hard',
       language: 'en',
       tags: ['sql', 'database', 'aggregation'],
+      codeLanguage: 'sql',
     },
     {
       id: 'code-ts-06',
@@ -157,6 +168,7 @@ export const codeCollection: CollectionConfig = {
       difficulty: 'medium',
       language: 'en',
       tags: ['typescript', 'interface', 'state'],
+      codeLanguage: 'typescript',
     },
     {
       id: 'code-ts-07',
@@ -166,6 +178,7 @@ export const codeCollection: CollectionConfig = {
       difficulty: 'easy',
       language: 'en',
       tags: ['typescript', 'math', 'utility'],
+      codeLanguage: 'typescript',
     },
     {
       id: 'code-py-04',
@@ -175,6 +188,7 @@ export const codeCollection: CollectionConfig = {
       difficulty: 'medium',
       language: 'en',
       tags: ['python', 'dataclass', 'oop'],
+      codeLanguage: 'python',
     },
     {
       id: 'code-rs-03',
@@ -184,6 +198,7 @@ export const codeCollection: CollectionConfig = {
       difficulty: 'medium',
       language: 'en',
       tags: ['rust', 'iterators', 'functional'],
+      codeLanguage: 'rust',
     },
     {
       id: 'code-ts-08',
@@ -193,6 +208,7 @@ export const codeCollection: CollectionConfig = {
       difficulty: 'hard',
       language: 'en',
       tags: ['typescript', 'performance', 'memoize'],
+      codeLanguage: 'typescript',
     },
   ],
 };
