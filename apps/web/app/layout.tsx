@@ -1,5 +1,15 @@
 import { fontDisplay, fontMono, fontUi } from '@/lib/fonts';
+import { buildMetadata } from '@/lib/seo';
 import '@/styles/globals.css';
+import type { Viewport } from 'next';
+
+export const metadata = buildMetadata();
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#000000',
+};
 
 /**
  * Root layout — Server Component.
