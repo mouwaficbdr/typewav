@@ -2,69 +2,71 @@
 
 > Dernière mise à jour : 10 Mars 2026
 
-## Statut actuel : Phase 0 — Fondations
+## Statut actuel : Phase 4 terminée — Backlog en cours
 
 ## ✅ Phases complétées
 
-*Rien encore — le projet démarre.*
+### Phase 0 — Fondations ✅
+
+- [x] Monorepo pnpm workspaces configuré
+- [x] Next.js 16.1 + TypeScript strict + Tailwind CSS 4.0
+- [x] Design system — tokens CSS, polices Google Fonts
+- [x] Prototype Tone.js — une note par keydown
+- [x] Zone de frappe minimale fonctionnelle
+- [x] Vitest configuré — 115 tests qui passent
+
+### Phase 1 — MVP ✅
+
+- [x] Moteur audio complet (pentatonique + progressions d'accords)
+- [x] Test de typing complet — WPM, accuracy, consistency
+- [x] Page de résultats — heatmap clavier SVG, stats, recommandation
+- [x] Stockage IndexedDB (sessions, stats, préférences)
+- [x] Packs sonores core (Piano, Marimba, Synth, Chiptune)
+- [x] 4 thèmes officiels (Terminal, Noir, Soleil de minuit, Arcade)
+- [x] 3 collections officielles (Littérature, Code, Poésie)
+- [x] Mode Classiques MIDI — 4 pièces domaine public
+- [x] Page d'accueil interactive — sélection collection, mode, pack sonore
+
+### Phase 2 — Enrichissement ✅
+
+- [x] Mode Apprentissage complet (5 niveaux, schéma clavier SVG)
+- [x] Mode Code (JS, Python, Rust — détection de langage automatique)
+- [x] Difficulté adaptative en temps réel
+- [x] Dashboard profil — graphes Recharts, heatmap temporelle
+- [x] Système de rangs narratifs (Novice → Maître)
+- [x] Jalons débloquables (vitesse, précision, régularité, sessions)
+- [x] Ghost mode — curseur fantôme sur meilleure session précédente
+
+### Phase 3 — Social & Open Source ✅
+
+- [x] Replay partageable (encodage base64, lien URL)
+- [x] Challenge direct (URL partageable avec texte et cible WPM)
+- [x] Leaderboards contextuels (par collection / mode / semaine)
+- [x] CLI de scaffolding (`npx create-typewav-*`)
+- [x] Documentation de contribution complète
+- [x] Internationalisation FR/EN (next-intl)
+
+### Phase 4 — Monétisation ✅
+
+- [x] Supabase Auth (@supabase/ssr) — connexion email/password + OAuth
+- [x] Stripe Checkout — abonnement mensuel (€4.99) et annuel (€39.99)
+- [x] Packs sonores premium (Cinematic, Phonk, Jazz Piano)
+- [x] Page de transparence financière
+- [x] Webhook Stripe — provisioning premium automatique
 
 ---
 
-## 🚧 Phase 0 — Fondations (Semaines 1-2)
+## 🚧 Backlog en cours
 
-- [ ] Monorepo pnpm workspaces configuré
-- [ ] Next.js 16.1 + TypeScript strict + Tailwind CSS 4.0
-- [ ] Design system — tokens CSS, polices Google Fonts
-- [ ] Prototype Tone.js — une note par keydown
-- [ ] Zone de frappe minimale fonctionnelle
-- [ ] Vitest configuré — premier test qui passe
-
-## 📋 Phase 1 — MVP (Semaines 3-6)
-
-- [ ] Moteur audio complet (pentatonique + progressions d'accords)
-- [ ] Test de typing complet — WPM, accuracy, consistency
-- [ ] Page de résultats — heatmap clavier SVG, stats, recommandation
-- [ ] Stockage IndexedDB (sessions, stats, préférences)
-- [ ] Packs sonores core (Piano, Marimba, Synth, Chiptune)
-- [ ] 4 thèmes officiels (Terminal, Noir, Soleil de minuit, Arcade)
-- [ ] 3 collections officielles (Littérature, Code, Poésie)
-- [ ] Mode Classiques MIDI — 4 pièces domaine public
-
-## 📋 Phase 2 — Enrichissement (Semaines 7-10)
-
-- [ ] Mode Apprentissage complet (5 niveaux, schéma clavier SVG)
-- [ ] Mode Code (JS, Python, Rust, Go, SQL)
-- [ ] Difficulté adaptative en temps réel
-- [ ] 4 collections supplémentaires (Philosophie, Gaming, Quotidien, Custom)
-- [ ] Dashboard profil — graphes Recharts, heatmap temporelle
-- [ ] Système de rangs narratifs (5 niveaux)
-- [ ] Jalons débloquables (8 jalons)
-- [ ] Ghost mode
-
-## 📋 Phase 3 — Social & Open Source (Semaines 11-14)
-
-- [ ] Replay partageable (lien + vidéo canvas)
-- [ ] Challenge direct (URL partageable)
-- [ ] Leaderboards contextuels (par collection / mode / semaine)
-- [ ] CLI de scaffolding (`npx create-typewav-*`)
-- [ ] Galerie thèmes communautaires dans l'UI
-- [ ] Documentation de contribution complète
-- [ ] Internationalisation FR/EN (next-intl)
-- [ ] Mode Classiques — catalogue complet (8 pièces)
-
-## 📋 Phase 4 — Monétisation (Semaines 15-18)
-
-- [ ] Supabase Auth (@supabase/ssr)
-- [ ] Sync cloud cross-device IndexedDB ↔ Supabase
-- [ ] Stripe Checkout — abonnement 4€/mois ou 30€/an
-- [ ] Packs sonores premium (Cinematic, Phonk, Jazz Piano)
-- [ ] Page de transparence financière
-- [ ] Ko-fi / GitHub Sponsors — don volontaire
+- [ ] **Collections** — Philosophie et Gaming (domaine public)
+- [ ] **MIDI catalogue complet** — 8 pièces (4 ajoutées en Phase 1, 4 en attente)
+- [ ] **Sync cloud cross-device** — IndexedDB ↔ Supabase pour comptes premium
+- [ ] **Ko-fi / GitHub Sponsors** — don volontaire
 
 ## 🔮 Backlog (post-Phase 4)
 
-- [ ] Saisons thématiques communautaires *(requiert audience + rentabilité)*
-- [ ] Mode multijoueur temps réel *(requiert infrastructure serveur)*
+- [ ] Saisons thématiques communautaires _(requiert audience + rentabilité)_
+- [ ] Mode multijoueur temps réel _(requiert infrastructure serveur)_
 - [ ] API publique pour intégrations tierces
 - [ ] Application mobile (PWA)
 - [ ] Support QWERTZ (DE)
@@ -76,8 +78,9 @@
 Les items marqués **contributions welcome** dans nos issues GitHub sont ouverts à la communauté. Lire [CONTRIBUTING.md](./CONTRIBUTING.md) avant de commencer.
 
 **Priorités actuelles pour contributions externes :**
+
 - Nouvelles collections de textes (domaine public)
 - Nouveaux thèmes communautaires
 - Traductions (ES, DE, PT...)
 
-*Créer une issue avant de commencer un gros travail — éviter les doublons.*
+_Créer une issue avant de commencer un gros travail — éviter les doublons._
