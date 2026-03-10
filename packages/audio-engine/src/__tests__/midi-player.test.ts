@@ -10,8 +10,8 @@ import {
 } from '../midi-player';
 
 describe('MIDI_PIECES', () => {
-  it('contient exactement 4 pièces', () => {
-    expect(Object.keys(MIDI_PIECES)).toHaveLength(4);
+  it('contient exactement 8 pièces', () => {
+    expect(Object.keys(MIDI_PIECES)).toHaveLength(8);
   });
 
   it('chaque pièce a un tableau de notes non vide', () => {
@@ -55,6 +55,20 @@ describe('loadPiece', () => {
     loadPiece('korobeiniki');
     expect(getCurrentPiece()?.id).toBe('korobeiniki');
     expect(getCurrentPosition()).toBe(0);
+  });
+
+  it('charge les 4 nouvelles pièces sans erreur', () => {
+    const newPieces = [
+      'ode-to-joy',
+      'nocturne-op9-n2',
+      'rondo-alla-turca',
+      'canon-pachelbel',
+    ] as const;
+    for (const id of newPieces) {
+      const piece = loadPiece(id);
+      expect(piece.id).toBe(id);
+      expect(piece.notes.length).toBeGreaterThan(0);
+    }
   });
 });
 
