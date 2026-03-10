@@ -191,6 +191,81 @@ export default function TransparencePage() {
         </p>
       </section>
 
+      {/* Soutenir le projet */}
+      <section className="w-full">
+        <h2
+          style={{
+            color: 'var(--color-accent)',
+            fontFamily: 'var(--font-ui)',
+            fontSize: '0.75rem',
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+            marginBottom: '16px',
+          }}
+        >
+          Soutenir le projet
+        </h2>
+        <p
+          style={{
+            color: 'var(--color-text-muted)',
+            fontFamily: 'var(--font-ui)',
+            fontSize: '0.875rem',
+            lineHeight: '1.7',
+            marginBottom: '20px',
+          }}
+        >
+          TypeWav est développé bénévolement. Si l&apos;outil vous est utile,
+          un soutien ponctuel ou récurrent aide à financer le temps de
+          développement, les packs sonores, et les collections de contenu.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <a
+            href="https://ko-fi.com/typewav"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 20px',
+              backgroundColor: 'var(--color-surface)',
+              border: '1px solid var(--color-accent)',
+              borderRadius: '6px',
+              color: 'var(--color-accent)',
+              fontFamily: 'var(--font-ui)',
+              fontSize: '0.875rem',
+              textDecoration: 'none',
+              transition: 'opacity 0.15s',
+            }}
+            className="hover:opacity-80"
+          >
+            ☕ Ko-fi — Soutien ponctuel
+          </a>
+          <a
+            href="https://github.com/sponsors/mouwaficbdr"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 20px',
+              backgroundColor: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '6px',
+              color: 'var(--color-text-primary)',
+              fontFamily: 'var(--font-ui)',
+              fontSize: '0.875rem',
+              textDecoration: 'none',
+              transition: 'opacity 0.15s',
+            }}
+            className="hover:opacity-80"
+          >
+            ♥ GitHub Sponsors — Soutien mensuel
+          </a>
+        </div>
+      </section>
+
       <Link
         href="/"
         style={{
