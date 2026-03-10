@@ -20,3 +20,15 @@ export {
 } from './chord-progressions';
 
 export type { AudioEngine } from './engine';
+
+export type { MidiPiece, MidiPieceId } from './midi-player';
+
+export {
+  MIDI_PIECES,
+  advanceAndGet,
+  getCurrentDuration,
+  getCurrentPiece,
+  getCurrentPosition,
+  loadPiece,
+  resetSequence,
+} from './midi-player';
