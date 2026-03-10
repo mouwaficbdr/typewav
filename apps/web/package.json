@@ -10,6 +10,9 @@
     "lint": "eslint . --max-warnings=0"
   },
   "dependencies": {
+    "@stripe/stripe-js": "^8.9.0",
+    "@supabase/ssr": "0.9.0",
+    "@supabase/supabase-js": "2.98.0",
     "@typewav/audio-engine": "workspace:*",
     "@typewav/collections": "workspace:*",
     "@typewav/soundpacks": "workspace:*",
@@ -22,6 +25,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "recharts": "^3.8.0",
+    "stripe": "^20.4.1",
     "tone": "^15.0.4",
     "zustand": "^5.0.8"
   },
