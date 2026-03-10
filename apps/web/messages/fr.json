@@ -146,5 +146,21 @@
     "disable": "Désactiver le mode Fantôme",
     "locked": "Mode Fantôme verrouillé",
     "lockedTooltip": "Complète un test pour débloquer le mode Fantôme — ton meilleur résultat servira de référence"
+  },
+  "preview": {
+    "play": "Aperçu sonore",
+    "replay": "Rejouer l'aperçu",
+    "ariaLabel": "Écouter un aperçu de l'expérience sonore TypeWav",
+    "orStartTyping": "ou commencez à taper"
+  },
+  "rank": {
+    "viewProfile": "Voir mon profil et ma progression"
+  },
+  "ranks": {
+    "novice": "Novice",
+    "apprentice": "Apprenti",
+    "operator": "Opérateur",
+    "architect": "Architecte",
+    "ghost": "Fantôme"
   }
 }

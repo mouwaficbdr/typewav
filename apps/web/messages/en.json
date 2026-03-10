@@ -146,5 +146,21 @@
     "disable": "Disable Ghost mode",
     "locked": "Ghost mode locked",
     "lockedTooltip": "Complete a test to unlock Ghost mode — your best result will be used as reference"
+  },
+  "preview": {
+    "play": "Hear a preview",
+    "replay": "Replay preview",
+    "ariaLabel": "Listen to a preview of the TypeWav audio experience",
+    "orStartTyping": "or start typing"
+  },
+  "rank": {
+    "viewProfile": "View my profile and progression"
+  },
+  "ranks": {
+    "novice": "Novice",
+    "apprentice": "Apprentice",
+    "operator": "Operator",
+    "architect": "Architect",
+    "ghost": "Ghost"
   }
 }
