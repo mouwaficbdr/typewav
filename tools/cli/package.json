@@ -1,0 +1,22 @@
+{
+  "name": "create-typewav",
+  "version": "0.1.0",
+  "description": "CLI de scaffolding TypeWav — créer un thème, soundpack ou collection",
+  "type": "module",
+  "bin": {
+    "create-typewav-theme": "./dist/create-theme.js",
+    "create-typewav-soundpack": "./dist/create-soundpack.js",
+    "create-typewav-collection": "./dist/create-collection.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@typewav/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "typescript": "^5.0.0"
+  }
+}

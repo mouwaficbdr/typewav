@@ -1,19 +1,10 @@
-import { MilestoneToast } from '@/components/progression/MilestoneToast';
 import { fontDisplay, fontMono, fontUi } from '@/lib/fonts';
 import '@/styles/globals.css';
-import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'TypeWav — Immersive Musical Typing',
-  description:
-    'TypeWav est un outil de typing immersif et musical. Chaque frappe produit une note. Chaque séance devient une composition.',
-  keywords: ['typing', 'music', 'wpm', 'monkeytype', 'open source'],
-};
 
 /**
  * Root layout — Server Component.
- * Les variables CSS des polices sont injectées ici pour
- * être disponibles dans le @theme de globals.css.
+ * next-intl injecte un nested layout [locale] qui ajoute
+ * NextIntlClientProvider. Ce layout ne pose que les balises HTML fondamentales.
  */
 export default function RootLayout({
   children,
@@ -22,13 +13,10 @@ export default function RootLayout({
 }) {
   return (
     <html
-      lang="fr"
       className={`${fontDisplay.variable} ${fontUi.variable} ${fontMono.variable}`}
+      suppressHydrationWarning
     >
-      <body>
-        {children}
-        <MilestoneToast />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

@@ -23,6 +23,8 @@ interface TypingAreaProps {
   onActiveKeyChange?: (key: string | undefined) => void;
   /** Timings inter-frappe du record personnel (ms) — active le ghost mode */
   ghostTimings?: number[];
+  /** Callback appelé à la fin du test avec le WPM final (utile si autoNavigate=false) */
+  onComplete?: (wpm: number) => void;
 }
 
 export function TypingArea({
@@ -32,6 +34,7 @@ export function TypingArea({
   autoNavigate = true,
   onActiveKeyChange,
   ghostTimings,
+  onComplete,
 }: TypingAreaProps) {
   const { position, keystrokes, liveStats, isComplete, handleKeystroke } =
     useSession({
@@ -56,6 +59,15 @@ export function TypingArea({
     const expected = text[position];
     onActiveKeyChange(isComplete ? undefined : expected);
   }, [position, text, isComplete, onActiveKeyChange]);
+
+  // Callback onComplete quand le test se termine
+  useEffect(() => {
+    if (isComplete && onComplete) {
+      onComplete(liveStats.wpm);
+    }
+    // onComplete est stable — pas besoin de l'ajouter dans les deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isComplete, liveStats.wpm]);
 
   // Calcul du mot courant (pour l'accord musical)
   const wordIndex = text.slice(0, position).split(' ').length - 1;
