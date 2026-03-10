@@ -15,12 +15,13 @@ import { TypingArea } from '@/components/typing/TypingArea';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useSyncCloud } from '@/hooks/useSyncCloud';
 import { useUser } from '@/hooks/useUser';
+import { getPersonalRecords, getSessionById } from '@/lib/db';
 import { useAudioStore } from '@/stores/useAudioStore';
 import { MIDI_PIECES, type MidiPieceId } from '@typewav/audio-engine';
 import type { CollectionConfig } from '@typewav/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface HomeClientProps {
   litterature: CollectionConfig;
@@ -81,6 +82,8 @@ export function HomeClient({
   const [selectedPieceId, setSelectedPieceId] =
     useState<MidiPieceId>('fur-elise');
   const [isLearningMode, setIsLearningMode] = useState(false);
+  const [ghostTimings, setGhostTimings] = useState<number[] | null>(null);
+  const [ghostEnabled, setGhostEnabled] = useState(false);
 
   const { setSoundPack, soundPackId } = useAudioStore();
   const { loadMidiPiece, disableMidiMode } = useAudioEngine();
@@ -89,6 +92,18 @@ export function HomeClient({
 
   // Sync cloud silencieuse au démarrage pour les users premium
   useSyncCloud(user?.id ?? null, isPremium);
+
+  // Charger les timings du record personnel pour le ghost mode
+  useEffect(() => {
+    async function loadGhostTimings() {
+      const records = await getPersonalRecords();
+      if (!records?.maxWpm?.sessionId) return;
+      const session = await getSessionById(records.maxWpm.sessionId);
+      if (!session || session.keystrokeData.length === 0) return;
+      setGhostTimings(session.keystrokeData.map((k) => k.deltaMs));
+    }
+    void loadGhostTimings();
+  }, []);
 
   // Texte actuel selon l'onglet et l'offset de shuffle
   const { text, source, collectionId } = useMemo(() => {
@@ -274,12 +289,15 @@ export function HomeClient({
         text={text}
         collectionId={collectionId}
         mode={
-          activeTab === 'classiques'
-            ? 'classics'
-            : activeTab === 'code'
-              ? 'code'
-              : 'classic'
+          ghostEnabled && ghostTimings
+            ? 'ghost'
+            : activeTab === 'classiques'
+              ? 'classics'
+              : activeTab === 'code'
+                ? 'code'
+                : 'classic'
         }
+        {...(ghostEnabled && ghostTimings ? { ghostTimings } : {})}
       />
 
       {/* Pied de page — source + contrôles */}
@@ -355,10 +373,8 @@ export function HomeClient({
               </button>
             ))}
           </div>
-
           {/* Divider */}
           <span style={{ color: 'var(--color-border)' }}>|</span>
-
           {/* Shuffle */}
           <button
             onClick={handleShuffle}
@@ -370,7 +386,6 @@ export function HomeClient({
           >
             ↻ Nouveau texte
           </button>
-
           {/* Mode Apprentissage */}
           <button
             onClick={() => setIsLearningMode(true)}
@@ -382,6 +397,22 @@ export function HomeClient({
           >
             ✦ Apprentissage
           </button>
+          {/* Ghost mode — visible uniquement si un record personnel existe */}
+          {ghostTimings && (
+            <button
+              onClick={() => setGhostEnabled((prev) => !prev)}
+              className="text-xs tracking-widest uppercase transition-colors hover:underline"
+              style={{
+                color: ghostEnabled
+                  ? 'var(--color-rank-ghost, #FFD700)'
+                  : 'var(--color-text-muted)',
+                fontFamily: 'var(--font-ui)',
+              }}
+              title="Rejouer votre meilleur record en curseur fantôme"
+            >
+              👻 Ghost
+            </button>
+          )}{' '}
         </div>
 
         <div className="flex items-center gap-4">
