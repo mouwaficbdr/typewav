@@ -73,7 +73,7 @@ export function LeaderboardTable({
             const isCurrentUser = entry.pseudo === currentUserPseudo;
             return (
               <tr
-                key={`${entry.pseudo}-${entry.achievedAt}`}
+                key={`${entry.pseudo}-${entry.achievedAt}-${i}`}
                 style={{
                   borderBottom: '1px solid var(--color-border)',
                   color: isCurrentUser
