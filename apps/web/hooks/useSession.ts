@@ -11,6 +11,7 @@
  * Spec : docs/WORKFLOW.md — Custom hooks (orchestrent logique pure + état React/Zustand)
  */
 
+import { useProgressionCheck } from '@/hooks/useProgressionCheck';
 import { saveSession } from '@/lib/db';
 import {
   calculateAccuracy,
@@ -21,7 +22,7 @@ import {
 } from '@/lib/stats';
 import { useAudioStore } from '@/stores/useAudioStore';
 import { useSessionStore } from '@/stores/useSessionStore';
-import type { KeystrokeEntry, TypingMode } from '@typewav/types';
+import type { KeystrokeEntry, SessionResult, TypingMode } from '@typewav/types';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -59,6 +60,7 @@ export function useSession({
     reset,
   } = useSessionStore();
   const { themeId: audioThemeId } = useAudioStore();
+  const { runAfterSession } = useProgressionCheck();
 
   const [liveStats, setLiveStats] = useState<LiveStats>({
     wpm: 0,
@@ -116,7 +118,7 @@ export function useSession({
     const accuracy = calculateAccuracy(keystrokes);
     const consistency = calculateConsistency(keystrokes);
 
-    const sessionResult = {
+    const sessionResult: SessionResult = {
       id: crypto.randomUUID(),
       timestamp: startedAt,
       wpm,
@@ -134,6 +136,9 @@ export function useSession({
     const recommendation = generateRecommendation(sessionResult);
 
     saveSession(sessionResult).then((id) => {
+      // Progression : rang + jalons + records (async, n'attend pas)
+      void runAfterSession(sessionResult);
+
       if (!autoNavigate) return;
 
       // Encoder les stats essentielles dans l'URL (le détail est en DB)
