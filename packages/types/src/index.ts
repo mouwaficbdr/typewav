@@ -22,5 +22,13 @@ export type {
   SessionResult,
   TypingMode,
 } from './session';
+export type {
+  ChallengeParams,
+  LeaderboardEntry,
+  PlateauInfo,
+  PlateauRecommendation,
+  ReplayData,
+  WeeklySummary,
+} from './social';
 export type { InstrumentType, SoundPackConfig } from './soundpack';
 export type { ThemeColors, ThemeConfig, ThemeFonts } from './theme';
