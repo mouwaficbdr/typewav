@@ -56,11 +56,45 @@
 
 ---
 
-## 🚧 Backlog en cours
+## 🔴 Refonte qualité — En cours (10 Mars 2026)
+
+Audit complet du produit. 18 axes d'amélioration identifiés.
+Spec détaillée : `docs/specs/11-refonte-audit-2026.md`
+
+### Critiques (bloquants avant déploiement public)
+
+- [ ] **Fix wpmNet** — `wpmNet` toujours égal à `wpm` dans les résultats (`spec-12`)
+- [ ] **Backspace** — Ignoré silencieusement dans TypingArea (`spec-13`)
+- [ ] **Auth redirect** — Post-login redirige vers `/` instead de `/[locale]/` (`spec-14`)
+- [ ] **Gate sync cloud** — Checkout actif pour feature non disponible en prod (`spec-16`)
+
+### Haute priorité
+
+- [ ] **Navigation globale** — Aucun navbar = zéro discoverability (`spec-15`)
+- [ ] **Reset password** — Pas de "Mot de passe oublié ?" sur le formulaire login (`spec-14`)
+
+### Moyen terme
+
+- [ ] **i18n TypingArea** — Hint text hardcodé en français (`spec-19`)
+- [ ] **Accessibilité WCAG** — `focus:outline-none` sans remplacement (`spec-19`)
+- [ ] **Ghost mode discoverable** — Bouton absent pour nouveaux utilisateurs (`spec-20`)
+- [ ] **Lazy loading collections** — 5 collections dans le RSC payload (`spec-18`)
+- [ ] **Transparence date** — `new Date()` évalué au build time (`spec-19`)
+
+### Vision
+
+- [ ] **SEO / OG** — Aucune balise OpenGraph, aucune Twitter card (`spec-17`)
+- [ ] **Audio value prop** — Preview sonore avant la première frappe (`spec-21`)
+- [ ] **Rang en contexte** — Badge de rang sur la home page (`spec-21`)
+- [ ] **URLs canoniques** — `/challenge?c=...` sans locale pour le partage (`spec-17`)
+
+---
+
+## 🚧 Backlog contenu (inchangé)
 
 - [ ] **Collections** — Philosophie et Gaming (domaine public)
 - [ ] **MIDI catalogue complet** — 8 pièces (4 ajoutées en Phase 1, 4 en attente)
-- [ ] **Sync cloud cross-device** — IndexedDB ↔ Supabase pour comptes premium
+- [ ] **Sync cloud cross-device** — IndexedDB ↔ Supabase pour comptes premium (après gate spec-16)
 - [ ] **Ko-fi / GitHub Sponsors** — don volontaire
 
 ## 🔮 Backlog (post-Phase 4)

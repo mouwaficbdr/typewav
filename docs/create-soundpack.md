@@ -30,13 +30,13 @@ nom-du-pack/
 
 Le moteur audio TypeWav (Tone.js + gamme pentatonique) utilise les notes suivantes :
 
-| Note | Octave | Priorité |
-|------|--------|----------|
-| C | 3, 4, 5 | Obligatoire |
-| D | 4 | Obligatoire |
-| E | 4 | Obligatoire |
-| G | 4 | Obligatoire |
-| A | 4 | Obligatoire |
+| Note | Octave  | Priorité    |
+| ---- | ------- | ----------- |
+| C    | 3, 4, 5 | Obligatoire |
+| D    | 4       | Obligatoire |
+| E    | 4       | Obligatoire |
+| G    | 4       | Obligatoire |
+| A    | 4       | Obligatoire |
 
 Tone.js interpole les notes manquantes — fournir au moins les 5 notes pentatoniques de base (C4 D4 E4 G4 A4) suffit. Plus de notes = meilleure qualité.
 
@@ -58,7 +58,7 @@ const soundpack: SoundPackConfig = {
     A4: './samples/A4.mp3',
     C5: './samples/C5.mp3',
   },
-  baseUrl: '',  // Laissez vide — l'application gère le chemin
+  baseUrl: '', // Laissez vide — l'application gère le chemin
 };
 
 export default soundpack;
@@ -66,17 +66,18 @@ export default soundpack;
 
 ## Exigences sur les fichiers audio
 
-| Critère | Requis |
-|---------|--------|
-| Formats | `.mp3` (requis), `.ogg` recommandé |
-| Taille totale | **< 2 MB** |
-| Fréquence d'échantillonnage | 44100 Hz |
-| Volume normalisé | -6 dBFS peak |
-| Licence | CC0, CC-BY ou originaux — aucun copyright actif |
+| Critère                     | Requis                                          |
+| --------------------------- | ----------------------------------------------- |
+| Formats                     | `.mp3` (requis), `.ogg` recommandé              |
+| Taille totale               | **< 2 MB**                                      |
+| Fréquence d'échantillonnage | 44100 Hz                                        |
+| Volume normalisé            | -6 dBFS peak                                    |
+| Licence                     | CC0, CC-BY ou originaux — aucun copyright actif |
 
 ## Vérifier les licences
 
 Pour les samples trouvés en ligne :
+
 - [Freesound.org](https://freesound.org) — filtrer par licence CC0
 - [SampleSwap](https://sampleswap.org) — domaine public
 - Samples originaux enregistrés par vous-même

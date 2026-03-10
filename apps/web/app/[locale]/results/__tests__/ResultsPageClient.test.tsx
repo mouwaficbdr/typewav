@@ -42,7 +42,11 @@ describe('ResultsPageClient', () => {
   });
 
   it('utilise 0 comme fallback si wpmNet est absent des params', () => {
-    const params = new URLSearchParams({ wpm: '60', accuracy: '90', consistency: '80' });
+    const params = new URLSearchParams({
+      wpm: '60',
+      accuracy: '90',
+      consistency: '80',
+    });
 
     vi.mocked(useSearchParams).mockReturnValue(
       params as unknown as ReturnType<typeof useSearchParams>,

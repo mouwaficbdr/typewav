@@ -5,6 +5,7 @@ Ce guide explique comment créer et soumettre une collection de textes pour Type
 ## Règle absolue — droits d'auteur
 
 **Textes domaine public uniquement.** Un texte est dans le domaine public si :
+
 - L'auteur est décédé depuis **plus de 70 ans** (règle UE / France)
 - OU la licence est explicitement **CC0** (Creative Commons Zero)
 
@@ -42,17 +43,18 @@ const collection: CollectionConfig = {
   name: 'Nom FR',
   nameEn: 'Name EN',
   description: 'Description courte de la collection.',
-  language: 'fr',              // 'fr' | 'en' | 'multi'
+  language: 'fr', // 'fr' | 'en' | 'multi'
   recommendedTheme: 'terminal', // Thème suggéré (optionnel)
   recommendedSoundPack: 'piano', // Pack sonore suggéré (optionnel)
   isPremium: false,
   texts: [
     {
       id: 'nom-de-la-collection-001',
-      content: 'Le texte à taper — sans retours à la ligne sauf si intentionnels.',
-      source: 'Auteur — Titre de l\'œuvre (année de publication)',
-      difficulty: 'medium',   // 'easy' | 'medium' | 'hard'
-      language: 'fr',         // 'fr' | 'en'
+      content:
+        'Le texte à taper — sans retours à la ligne sauf si intentionnels.',
+      source: "Auteur — Titre de l'œuvre (année de publication)",
+      difficulty: 'medium', // 'easy' | 'medium' | 'hard'
+      language: 'fr', // 'fr' | 'en'
       tags: ['philosophie', 'classique'],
     },
     // ... au moins 19 autres entrées
@@ -64,22 +66,22 @@ export default collection;
 
 ## Règles de contenu
 
-| Critère | Requis |
-|---------|--------|
-| Minimum 20 `TextEntry` | ✅ |
-| Chaque texte a un champ `source` vérifiable | ✅ |
-| Texte domaine public (auteur mort +70 ans) | ✅ |
-| Pas de contenu offensant ou discriminatoire | ✅ |
-| Longueur recommandée par texte | 80–400 caractères |
-| `id` unique dans la collection (`slug-001`, `slug-002`…) | ✅ |
+| Critère                                                  | Requis            |
+| -------------------------------------------------------- | ----------------- |
+| Minimum 20 `TextEntry`                                   | ✅                |
+| Chaque texte a un champ `source` vérifiable              | ✅                |
+| Texte domaine public (auteur mort +70 ans)               | ✅                |
+| Pas de contenu offensant ou discriminatoire              | ✅                |
+| Longueur recommandée par texte                           | 80–400 caractères |
+| `id` unique dans la collection (`slug-001`, `slug-002`…) | ✅                |
 
 ## Choisir la difficulté
 
-| Niveau | Critères |
-|--------|----------|
-| `easy` | Phrases courtes, vocabulaire courant, aucune ponctuation complexe |
-| `medium` | Phrases moyennes, quelques virgules et tirets |
-| `hard` | Phrases longues, ponctuation dense, mots rares ou techniques |
+| Niveau   | Critères                                                          |
+| -------- | ----------------------------------------------------------------- |
+| `easy`   | Phrases courtes, vocabulaire courant, aucune ponctuation complexe |
+| `medium` | Phrases moyennes, quelques virgules et tirets                     |
+| `hard`   | Phrases longues, ponctuation dense, mots rares ou techniques      |
 
 ## Tester localement
 

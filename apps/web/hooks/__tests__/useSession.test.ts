@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
@@ -166,7 +166,9 @@ describe('useSession — handleBackspace', () => {
   it('appelle moveBack sur le store si position > 0', () => {
     mockSessionStore.position = 2;
 
-    const { result } = renderHook(() => useSession({ text: 'hello', autoNavigate: false }));
+    const { result } = renderHook(() =>
+      useSession({ text: 'hello', autoNavigate: false }),
+    );
 
     act(() => {
       result.current.handleBackspace();
@@ -178,7 +180,9 @@ describe('useSession — handleBackspace', () => {
   it('ne fait rien si position === 0', () => {
     mockSessionStore.position = 0;
 
-    const { result } = renderHook(() => useSession({ text: 'hello', autoNavigate: false }));
+    const { result } = renderHook(() =>
+      useSession({ text: 'hello', autoNavigate: false }),
+    );
 
     act(() => {
       result.current.handleBackspace();
@@ -191,7 +195,9 @@ describe('useSession — handleBackspace', () => {
     mockSessionStore.position = 2;
     mockSessionStore.endedAt = Date.now();
 
-    const { result } = renderHook(() => useSession({ text: 'hello', autoNavigate: false }));
+    const { result } = renderHook(() =>
+      useSession({ text: 'hello', autoNavigate: false }),
+    );
 
     act(() => {
       result.current.handleBackspace();

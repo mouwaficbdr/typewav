@@ -99,10 +99,26 @@ Autres :
 
 ## Roadmap de lancement
 
-| Phase | Durée | Objectif |
-|-------|-------|----------|
-| 0 — Fondations | Sem. 1-2 | Monorepo + design + prototype audio |
-| 1 — MVP | Sem. 3-6 | Test fonctionnel de bout en bout |
-| 2 — Enrichissement | Sem. 7-10 | Modes, progression, analytics |
-| 3 — Social & OSS | Sem. 11-14 | Replay, CLI, i18n |
-| 4 — Monétisation | Sem. 15-18 | Auth, Stripe, packs premium |
+| Phase              | Durée        | Objectif                                 | Statut          |
+| ------------------ | ------------ | ---------------------------------------- | --------------- |
+| 0 — Fondations     | Sem. 1-2     | Monorepo + design + prototype audio      | ✅ Terminée     |
+| 1 — MVP            | Sem. 3-6     | Test fonctionnel de bout en bout         | ✅ Terminée     |
+| 2 — Enrichissement | Sem. 7-10    | Modes, progression, analytics            | ✅ Terminée     |
+| 3 — Social & OSS   | Sem. 11-14   | Replay, CLI, i18n                        | ✅ Terminée     |
+| 4 — Monétisation   | Sem. 15-18   | Auth, Stripe, packs premium              | ✅ Terminée     |
+| **REFONTE**        | **en cours** | **Bugs critiques + qualité UX + vision** | 🔴 **En cours** |
+
+## Phase Refonte — 10 Mars 2026
+
+Suite à l'audit produit APEX, 18 axes d'amélioration ont été identifiés.
+Voir le backlog complet et ordonné : `docs/specs/11-refonte-audit-2026.md`
+Chaque item a sa spec détaillée : `docs/specs/12-21-*.md`
+
+### Bugs critiques à corriger en priorité absolue
+
+| #   | Bug                                               | Spec    | Impact                    |
+| --- | ------------------------------------------------- | ------- | ------------------------- |
+| 1   | `wpmNet` toujours égal à `wpm` dans les résultats | spec-12 | Scoring honnête cassé     |
+| 2   | Backspace ignoré dans TypingArea                  | spec-13 | Rétention bloquée         |
+| 3   | Redirect post-login ignore la locale              | spec-14 | Auth cassée sur locale EN |
+| 4   | Sync cloud non disponible mais checkout actif     | spec-16 | Risque légal (EU)         |
