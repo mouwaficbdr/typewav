@@ -90,16 +90,15 @@ export function MilestoneToast() {
   const { pendingMilestones, clearPendingMilestones } = useProgressionStore();
   const [visible, setVisible] = useState<Milestone[]>([]);
 
-  // Synchroniser avec les jalons en attente (asynchrone pour éviter setState synchrone dans effet)
+  // Synchroniser avec les jalons en attente
   useEffect(() => {
     if (pendingMilestones.length > 0) {
-      const toAdd = [...pendingMilestones];
-      queueMicrotask(() => {
-        setVisible((prev) => [...prev, ...toAdd]);
-        clearPendingMilestones();
-      });
+      setVisible((prev) => [...prev, ...pendingMilestones]);
+      clearPendingMilestones();
     }
-  }, [pendingMilestones, clearPendingMilestones]);
+    // clearPendingMilestones est stable (Zustand action), pas besoin de la déclarer
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingMilestones]);
 
   function dismiss(id: string) {
     setVisible((prev) => prev.filter((m) => m.id !== id));
