@@ -37,7 +37,7 @@ export function useSyncCloud(
   const supabase = getSupabaseBrowserClient();
 
   const sync = useCallback(async () => {
-    if (!userId || !isPremium || isSyncingRef.current) return;
+    if (!userId || !isPremium || !supabase || isSyncingRef.current) return;
 
     isSyncingRef.current = true;
     setStatus('syncing');
