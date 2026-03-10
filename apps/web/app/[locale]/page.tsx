@@ -1,27 +1,13 @@
 import { HomeClient } from '@/components/typing/HomeClient';
-import {
-  codeCollection,
-  gamingCollection,
-  litteratureCollection,
-  philosophieCollection,
-  poesieCollection,
-} from '@typewav/collections';
+import { litteratureCollection } from '@typewav/collections';
 
 /**
  * Page d'accueil — Server Component.
- * Les collections sont importées côté serveur et passées au Client Component.
- * La sélection du texte et du mode se fait côté client (HomeClient).
+ * Seule la collection initiale (littérature) est passée au Client Component.
+ * Les autres collections sont chargées à la demande via Server Action.
  *
- * Spec : docs/ARCHITECTURE.md — Server vs Client
+ * Spec : docs/specs/18-performance.md — Lazy loading collections
  */
 export default function HomePage() {
-  return (
-    <HomeClient
-      litterature={litteratureCollection}
-      poesie={poesieCollection}
-      code={codeCollection}
-      philosophie={philosophieCollection}
-      gaming={gamingCollection}
-    />
-  );
+  return <HomeClient initialCollection={litteratureCollection} />;
 }
