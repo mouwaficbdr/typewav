@@ -113,5 +113,13 @@
     "comingSoon": "Coming soon",
     "comingSoonExplainer": "Cross-device cloud sync is being deployed. It will be available very soon for all Premium subscribers. Premium sound packs are available right now.",
     "premiumBanner": "Cross-device cloud sync will be available soon. Your sessions are currently saved locally. You will be notified when it goes live."
+  },
+  "nav": {
+    "mainNav": "Main navigation",
+    "profile": "Profile",
+    "leaderboard": "Leaderboard",
+    "premium": "Premium",
+    "login": "Login",
+    "account": "Account"
   }
 }

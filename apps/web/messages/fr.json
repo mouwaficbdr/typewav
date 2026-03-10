@@ -113,5 +113,13 @@
     "comingSoon": "Bientôt",
     "comingSoonExplainer": "La synchronisation cloud cross-device est en cours de déploiement. Elle sera disponible très prochainement pour tous les abonnés Premium. Les packs sonores premium sont disponibles dès maintenant.",
     "premiumBanner": "La sync cloud cross-device sera bientôt disponible. Tes sessions sont actuellement sauvegardées localement. Tu seras notifié dès l'activation."
+  },
+  "nav": {
+    "mainNav": "Navigation principale",
+    "profile": "Profil",
+    "leaderboard": "Classement",
+    "premium": "Premium",
+    "login": "Connexion",
+    "account": "Mon compte"
   }
 }
