@@ -31,6 +31,18 @@ vi.mock('@/stores/useAudioStore', () => ({
   useAudioStore: () => ({ setSoundPack: vi.fn(), soundPackId: 'piano' }),
 }));
 
+vi.mock('@/stores/useProgressionStore', () => ({
+  useProgressionStore: () => ({
+    rank: 'novice',
+    personalRecords: null,
+  }),
+}));
+
+vi.mock('@/stores/useSessionStore', () => ({
+  useSessionStore: (selector: (s: { position: number }) => unknown) =>
+    selector({ position: 0 }),
+}));
+
 vi.mock('@/lib/db', () => ({
   getPersonalRecords: vi.fn().mockResolvedValue(null),
   getSessionById: vi.fn().mockResolvedValue(null),
@@ -44,6 +56,12 @@ vi.mock('@/components/typing/TypingArea', () => ({
 
 vi.mock('@/components/modes/LearningMode', () => ({
   LearningMode: () => <div data-testid="learning-mode" />,
+}));
+
+vi.mock('@/components/typing/AudioPreviewButton', () => ({
+  AudioPreviewButton: () => (
+    <button data-testid="audio-preview-btn">Preview</button>
+  ),
 }));
 
 vi.mock('next-intl', () => ({
@@ -182,5 +200,21 @@ describe('HomeClient — ghost mode button', () => {
     await user.click(ghostBtn);
     // Pas d'erreur, pas de crash — test de non-régression
     expect(ghostBtn).toHaveAttribute('aria-disabled', 'true');
+  });
+});
+
+describe('HomeClient — badge de rang', () => {
+  it("n'affiche pas le badge si le rang est novice", async () => {
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+    expect(screen.queryByTestId('rank-badge')).not.toBeInTheDocument();
+  });
+});
+
+describe('HomeClient — aperçu sonore', () => {
+  it('affiche le bouton AudioPreviewButton avant de commencer à taper', async () => {
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+    expect(screen.getByTestId('audio-preview-btn')).toBeInTheDocument();
   });
 });

@@ -15,16 +15,19 @@ import {
   fetchCollection,
 } from '@/app/[locale]/actions/collections';
 import { LearningMode } from '@/components/modes/LearningMode';
+import { AudioPreviewButton } from '@/components/typing/AudioPreviewButton';
 import { TypingArea } from '@/components/typing/TypingArea';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useSyncCloud } from '@/hooks/useSyncCloud';
 import { useUser } from '@/hooks/useUser';
 import { getPersonalRecords, getSessionById } from '@/lib/db';
 import { useAudioStore } from '@/stores/useAudioStore';
+import { useProgressionStore } from '@/stores/useProgressionStore';
+import { useSessionStore } from '@/stores/useSessionStore';
 import { MIDI_PIECES, type MidiPieceId } from '@typewav/audio-engine';
 import type { CollectionConfig } from '@typewav/types';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -73,7 +76,11 @@ function getDailyIndex(length: number, offset = 0): number {
 }
 
 export function HomeClient({ initialCollection }: HomeClientProps) {
-  const t = useTranslations('ghost');
+  const tGhost = useTranslations('ghost');
+  const tPreview = useTranslations('preview');
+  const tRank = useTranslations('rank');
+  const tRanks = useTranslations('ranks');
+  const locale = useLocale();
   const shouldReduceMotion = useReducedMotion();
   const [activeTab, setActiveTab] = useState<CollectionTab>('litterature');
   const [shuffleOffset, setShuffleOffset] = useState(0);
@@ -92,6 +99,9 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const { setSoundPack, soundPackId } = useAudioStore();
   const { loadMidiPiece, disableMidiMode } = useAudioEngine();
   const { user, isPremium } = useUser();
+  const { rank, personalRecords } = useProgressionStore();
+  const position = useSessionStore((s) => s.position);
+  const isTypingStarted = position > 0;
   const router = useRouter();
 
   // Sync cloud silencieuse au démarrage pour les users premium
@@ -217,6 +227,54 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           immersive musical typing
         </p>
       </header>
+
+      {/* Badge de rang — visible si rang non-novice */}
+      {rank !== 'novice' && (
+        <Link
+          href={`/${locale}/profil`}
+          data-testid="rank-badge"
+          aria-label={tRank('viewProfile')}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '4px 12px',
+            backgroundColor: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '20px',
+            color: 'var(--color-text-muted)',
+            fontFamily: 'var(--font-ui)',
+            fontSize: '0.75rem',
+            textDecoration: 'none',
+            transition: 'color 0.15s',
+          }}
+          className="hover:text-[var(--color-text-primary)]"
+        >
+          <span style={{ color: 'var(--color-accent)' }}>{tRanks(rank)}</span>
+          {personalRecords && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>{personalRecords.maxWpm.value} WPM</span>
+            </>
+          )}
+        </Link>
+      )}
+
+      {/* Aperçu sonore — visible avant le début de la saisie */}
+      {!isTypingStarted && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <AudioPreviewButton />
+          <span
+            style={{
+              color: 'var(--color-text-muted)',
+              fontFamily: 'var(--font-ui)',
+              fontSize: '0.8125rem',
+            }}
+          >
+            {tPreview('orStartTyping')}
+          </span>
+        </div>
+      )}
 
       {/* Sélecteur de collection */}
       <nav
@@ -420,11 +478,11 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
                 aria-label={
                   hasGhostData
                     ? ghostEnabled
-                      ? t('disable')
-                      : t('enable')
-                    : t('locked')
+                      ? tGhost('disable')
+                      : tGhost('enable')
+                    : tGhost('locked')
                 }
-                title={!hasGhostData ? t('lockedTooltip') : undefined}
+                title={!hasGhostData ? tGhost('lockedTooltip') : undefined}
                 className="text-xs tracking-widest uppercase transition-colors hover:underline"
                 style={{
                   color: ghostEnabled
@@ -451,7 +509,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
                     </motion.span>
                   )}
                 </AnimatePresence>
-                👻 {ghostEnabled ? t('active') : t('label')}
+                👻 {ghostEnabled ? tGhost('active') : tGhost('label')}
               </button>
             );
           })()}{' '}
@@ -459,7 +517,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
         <div className="flex items-center gap-4">
           <Link
-            href="/profil"
+            href={`/${locale}/profil`}
             className="text-xs tracking-widest uppercase transition-colors hover:underline"
             style={{
               color: 'var(--color-text-muted)',
