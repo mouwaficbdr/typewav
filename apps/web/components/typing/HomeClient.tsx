@@ -10,6 +10,10 @@
  * Spec : docs/ARCHITECTURE.md — Client Components ('use client')
  */
 
+import {
+  type CollectionId,
+  fetchCollection,
+} from '@/app/[locale]/actions/collections';
 import { LearningMode } from '@/components/modes/LearningMode';
 import { TypingArea } from '@/components/typing/TypingArea';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
@@ -19,16 +23,14 @@ import { getPersonalRecords, getSessionById } from '@/lib/db';
 import { useAudioStore } from '@/stores/useAudioStore';
 import { MIDI_PIECES, type MidiPieceId } from '@typewav/audio-engine';
 import type { CollectionConfig } from '@typewav/types';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface HomeClientProps {
-  litterature: CollectionConfig;
-  poesie: CollectionConfig;
-  code: CollectionConfig;
-  philosophie: CollectionConfig;
-  gaming: CollectionConfig;
+  initialCollection: CollectionConfig;
 }
 
 type CollectionTab =
@@ -70,13 +72,9 @@ function getDailyIndex(length: number, offset = 0): number {
   return (dayOfYear + offset) % length;
 }
 
-export function HomeClient({
-  litterature,
-  poesie,
-  code,
-  philosophie,
-  gaming,
-}: HomeClientProps) {
+export function HomeClient({ initialCollection }: HomeClientProps) {
+  const t = useTranslations('ghost');
+  const shouldReduceMotion = useReducedMotion();
   const [activeTab, setActiveTab] = useState<CollectionTab>('litterature');
   const [shuffleOffset, setShuffleOffset] = useState(0);
   const [selectedPieceId, setSelectedPieceId] =
@@ -84,6 +82,12 @@ export function HomeClient({
   const [isLearningMode, setIsLearningMode] = useState(false);
   const [ghostTimings, setGhostTimings] = useState<number[] | null>(null);
   const [ghostEnabled, setGhostEnabled] = useState(false);
+
+  // Cache des collections chargées — seule litterature est pré-chargée
+  const [collectionsCache, setCollectionsCache] = useState<
+    Partial<Record<CollectionId, CollectionConfig>>
+  >({ litterature: initialCollection });
+  const [loadingCollection, setLoadingCollection] = useState(false);
 
   const { setSoundPack, soundPackId } = useAudioStore();
   const { loadMidiPiece, disableMidiMode } = useAudioEngine();
@@ -105,28 +109,14 @@ export function HomeClient({
     void loadGhostTimings();
   }, []);
 
-  // Texte actuel selon l'onglet et l'offset de shuffle
+  // Texte actuel selon l'onglet actif et l'offset de shuffle
   const { text, source, collectionId } = useMemo(() => {
-    if (activeTab === 'classiques') {
-      // En mode Classiques, on utilise un texte de littérature (le MIDI joue en fond)
-      const idx = getDailyIndex(litterature.texts.length, shuffleOffset);
-      const entry = litterature.texts[idx]!;
-      return {
-        text: entry.content,
-        source: entry.source,
-        collectionId: litterature.id,
-      };
+    const collKey: CollectionId =
+      activeTab === 'classiques' ? 'litterature' : (activeTab as CollectionId);
+    const collection = collectionsCache[collKey];
+    if (!collection || collection.texts.length === 0) {
+      return { text: '', source: '', collectionId: '' };
     }
-    const collection =
-      activeTab === 'litterature'
-        ? litterature
-        : activeTab === 'poesie'
-          ? poesie
-          : activeTab === 'philosophie'
-            ? philosophie
-            : activeTab === 'gaming'
-              ? gaming
-              : code;
     const idx = getDailyIndex(collection.texts.length, shuffleOffset);
     const entry = collection.texts[idx]!;
     return {
@@ -134,15 +124,7 @@ export function HomeClient({
       source: entry.source,
       collectionId: collection.id,
     };
-  }, [
-    activeTab,
-    shuffleOffset,
-    litterature,
-    poesie,
-    code,
-    philosophie,
-    gaming,
-  ]);
+  }, [activeTab, shuffleOffset, collectionsCache]);
 
   const handleTabChange = useCallback(
     async (tab: CollectionTab) => {
@@ -150,11 +132,21 @@ export function HomeClient({
       setShuffleOffset(0);
       if (tab === 'classiques') {
         await loadMidiPiece(selectedPieceId);
-      } else {
-        disableMidiMode();
+        return;
+      }
+      disableMidiMode();
+      const collKey = tab as CollectionId;
+      if (!collectionsCache[collKey]) {
+        setLoadingCollection(true);
+        try {
+          const collection = await fetchCollection(collKey);
+          setCollectionsCache((prev) => ({ ...prev, [collKey]: collection }));
+        } finally {
+          setLoadingCollection(false);
+        }
       }
     },
-    [selectedPieceId, loadMidiPiece, disableMidiMode],
+    [selectedPieceId, loadMidiPiece, disableMidiMode, collectionsCache],
   );
 
   const handlePieceChange = useCallback(
@@ -284,21 +276,37 @@ export function HomeClient({
       )}
 
       {/* Zone de frappe */}
-      <TypingArea
-        key={`${activeTab}-${shuffleOffset}-${selectedPieceId}`}
-        text={text}
-        collectionId={collectionId}
-        mode={
-          ghostEnabled && ghostTimings
-            ? 'ghost'
-            : activeTab === 'classiques'
-              ? 'classics'
-              : activeTab === 'code'
-                ? 'code'
-                : 'classic'
-        }
-        {...(ghostEnabled && ghostTimings ? { ghostTimings } : {})}
-      />
+      {loadingCollection ? (
+        <div
+          role="status"
+          aria-label="Chargement de la collection"
+          style={{
+            width: '100%',
+            maxWidth: '48rem',
+            height: '200px',
+            backgroundColor: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '6px',
+            animation: 'pulse 1.5s ease-in-out infinite',
+          }}
+        />
+      ) : (
+        <TypingArea
+          key={`${activeTab}-${shuffleOffset}-${selectedPieceId}`}
+          text={text}
+          collectionId={collectionId}
+          mode={
+            ghostEnabled && ghostTimings
+              ? 'ghost'
+              : activeTab === 'classiques'
+                ? 'classics'
+                : activeTab === 'code'
+                  ? 'code'
+                  : 'classic'
+          }
+          {...(ghostEnabled && ghostTimings ? { ghostTimings } : {})}
+        />
+      )}
 
       {/* Pied de page — source + contrôles */}
       <footer className="flex w-full max-w-2xl flex-col items-center gap-4">
@@ -397,22 +405,56 @@ export function HomeClient({
           >
             ✦ Apprentissage
           </button>
-          {/* Ghost mode — visible uniquement si un record personnel existe */}
-          {ghostTimings && (
-            <button
-              onClick={() => setGhostEnabled((prev) => !prev)}
-              className="text-xs tracking-widest uppercase transition-colors hover:underline"
-              style={{
-                color: ghostEnabled
-                  ? 'var(--color-rank-ghost, #FFD700)'
-                  : 'var(--color-text-muted)',
-                fontFamily: 'var(--font-ui)',
-              }}
-              title="Rejouer votre meilleur record en curseur fantôme"
-            >
-              👻 Ghost
-            </button>
-          )}{' '}
+          {/* Ghost mode — toujours visible, verrouillé si pas de record */}
+          {(() => {
+            const hasGhostData = ghostTimings && ghostTimings.length > 0;
+            return (
+              <button
+                data-testid="ghost-toggle"
+                onClick={
+                  hasGhostData
+                    ? () => setGhostEnabled((prev) => !prev)
+                    : undefined
+                }
+                aria-disabled={!hasGhostData ? true : undefined}
+                aria-label={
+                  hasGhostData
+                    ? ghostEnabled
+                      ? t('disable')
+                      : t('enable')
+                    : t('locked')
+                }
+                title={!hasGhostData ? t('lockedTooltip') : undefined}
+                className="text-xs tracking-widest uppercase transition-colors hover:underline"
+                style={{
+                  color: ghostEnabled
+                    ? 'var(--color-rank-ghost, #FFD700)'
+                    : 'var(--color-text-muted)',
+                  fontFamily: 'var(--font-ui)',
+                  opacity: hasGhostData ? 1 : 0.45,
+                  cursor: hasGhostData ? 'pointer' : 'not-allowed',
+                }}
+              >
+                <AnimatePresence>
+                  {!hasGhostData && (
+                    <motion.span
+                      aria-hidden="true"
+                      style={{ marginRight: '4px', display: 'inline-block' }}
+                      initial={{ opacity: 1 }}
+                      exit={{
+                        opacity: 0,
+                        scale: shouldReduceMotion ? 1 : 0,
+                      }}
+                      transition={{ duration: shouldReduceMotion ? 0 : 0.3 }}
+                    >
+                      🔒
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+                👻 {ghostEnabled ? t('active') : t('label')}
+              </button>
+            );
+          })()}{' '}
         </div>
 
         <div className="flex items-center gap-4">
