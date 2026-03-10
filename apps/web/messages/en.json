@@ -1,0 +1,103 @@
+{
+  "nav": {
+    "home": "Home",
+    "profile": "Profile",
+    "leaderboard": "Leaderboard",
+    "settings": "Settings"
+  },
+  "typing": {
+    "start": "Start typing to begin…",
+    "restart": "Restart",
+    "results": "See results",
+    "wpm": "WPM",
+    "accuracy": "Accuracy",
+    "consistency": "Consistency",
+    "duration": "Duration",
+    "words": "words",
+    "characters": "characters",
+    "errors": "errors"
+  },
+  "modes": {
+    "classic": "Classic",
+    "sprint": "Sprint",
+    "endurance": "Endurance",
+    "code": "Code",
+    "ghost": "Ghost"
+  },
+  "results": {
+    "title": "Results",
+    "personalBest": "Personal best",
+    "newRecord": "New record!",
+    "shareReplay": "Share replay",
+    "challenge": "Challenge",
+    "tryAgain": "Try again",
+    "nextText": "Next text",
+    "diagnosis": "Diagnosis"
+  },
+  "challenge": {
+    "title": "TypeWav Challenge",
+    "description": "Can you beat this score?",
+    "targetWpm": "Target",
+    "yourResult": "Your score",
+    "won": "Congratulations, you won!",
+    "lost": "Better luck next time!",
+    "counterChallenge": "Counter-challenge",
+    "invalidLink": "Invalid challenge link.",
+    "loading": "Loading challenge…"
+  },
+  "replay": {
+    "title": "TypeWav Replay",
+    "launch": "Play",
+    "watching": "Playing…",
+    "invalidLink": "Invalid replay link.",
+    "loading": "Loading replay…"
+  },
+  "leaderboard": {
+    "title": "Weekly Leaderboard",
+    "rank": "Rank",
+    "pseudo": "Player",
+    "wpm": "WPM",
+    "accuracy": "Accuracy",
+    "mode": "Mode",
+    "noData": "No sessions this week.",
+    "filterAll": "All",
+    "you": "you"
+  },
+  "profile": {
+    "title": "My profile",
+    "sessions": "Sessions",
+    "avgWpm": "Avg WPM",
+    "bestWpm": "Best WPM",
+    "totalTime": "Total time",
+    "progression": "Progression"
+  },
+  "progression": {
+    "rank": "Rank",
+    "nextMilestone": "Next milestone",
+    "milestoneUnlocked": "Milestone unlocked!"
+  },
+  "audio": {
+    "pack": "Sound pack",
+    "volume": "Volume",
+    "mute": "Mute",
+    "unmute": "Unmute"
+  },
+  "theme": {
+    "select": "Theme",
+    "dark": "Dark",
+    "light": "Light"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong.",
+    "back": "Back",
+    "close": "Close",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "share": "Share",
+    "open_source": "Open source",
+    "language": "Language"
+  }
+}

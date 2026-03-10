@@ -13,6 +13,9 @@ export default [
     ignores: [
       'node_modules/',
       '.next/',
+      '**/node_modules/',
+      '**/.next/',
+      '**/dist/',
       'dist/',
       'coverage/',
       '**/*.config.js',
