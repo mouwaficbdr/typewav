@@ -36,13 +36,19 @@ export function TypingArea({
   ghostTimings,
   onComplete,
 }: TypingAreaProps) {
-  const { position, keystrokes, liveStats, isComplete, handleKeystroke } =
-    useSession({
-      text,
-      mode,
-      ...(collectionId !== undefined ? { collectionId } : {}),
-      autoNavigate,
-    });
+  const {
+    position,
+    keystrokes,
+    liveStats,
+    isComplete,
+    handleKeystroke,
+    handleBackspace,
+  } = useSession({
+    text,
+    mode,
+    ...(collectionId !== undefined ? { collectionId } : {}),
+    autoNavigate,
+  });
   const { initialize, playNote, triggerSilence, triggerResume } =
     useAudioEngine();
 
@@ -81,7 +87,7 @@ export function TypingArea({
       await initialize();
 
       if (e.key === 'Backspace') {
-        // Backspace : pas encore implémenté côté store en Phase 1
+        handleBackspace();
         return;
       }
 
@@ -112,6 +118,7 @@ export function TypingArea({
       wordIndex,
       initialize,
       handleKeystroke,
+      handleBackspace,
       playNote,
       triggerSilence,
       triggerResume,

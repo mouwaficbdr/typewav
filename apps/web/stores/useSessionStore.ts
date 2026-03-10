@@ -41,6 +41,8 @@ interface SessionActions {
   ) => void;
   /** Enregistre une frappe */
   recordKeystroke: (entry: KeystrokeEntry) => void;
+  /** Recule d'une position et retire le dernier keystroke */
+  moveBack: () => void;
   /** Termine la session */
   endSession: () => void;
   /** Remet à zéro pour un nouveau test */
@@ -96,6 +98,16 @@ export const useSessionStore = create<SessionState & SessionActions>(
     endSession: () => {
       set({ endedAt: Date.now() });
     },
+
+    moveBack: () =>
+      set((state) => {
+        if (state.position === 0) return state; // déjà au début
+        if (state.endedAt !== null) return state; // session terminée
+        return {
+          position: state.position - 1,
+          keystrokes: state.keystrokes.slice(0, -1),
+        };
+      }),
 
     reset: () => {
       set(initialState);

@@ -1,5 +1,5 @@
-import path from 'path';
 import react from '@vitejs/plugin-react';
+import path from 'path';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
@@ -48,7 +48,10 @@ export default defineConfig({
           alias: {
             '@': path.resolve(__dirname, 'apps/web'),
             react: path.resolve(__dirname, 'apps/web/node_modules/react'),
-            'react-dom': path.resolve(__dirname, 'apps/web/node_modules/react-dom'),
+            'react-dom': path.resolve(
+              __dirname,
+              'apps/web/node_modules/react-dom',
+            ),
             'react/jsx-runtime': path.resolve(
               __dirname,
               'apps/web/node_modules/react/jsx-runtime',
@@ -63,6 +66,7 @@ export default defineConfig({
           name: 'web-components',
           include: [
             'apps/web/hooks/__tests__/**/*.test.{ts,tsx}',
+            'apps/web/stores/__tests__/**/*.test.{ts,tsx}',
             'apps/web/components/__tests__/**/*.test.{ts,tsx}',
             'apps/web/app/**/__tests__/**/*.test.{ts,tsx}',
           ],

@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -35,10 +35,13 @@ vi.mock('@/lib/db', () => ({
 
 // Mock progression check
 vi.mock('@/hooks/useProgressionCheck', () => ({
-  useProgressionCheck: () => ({ runAfterSession: vi.fn().mockResolvedValue(undefined) }),
+  useProgressionCheck: () => ({
+    runAfterSession: vi.fn().mockResolvedValue(undefined),
+  }),
 }));
 
 // Mock stores Zustand
+const mockMoveBack = vi.fn();
 const mockSessionStore = {
   position: 0,
   keystrokes: [] as import('@typewav/types').KeystrokeEntry[],
@@ -48,6 +51,7 @@ const mockSessionStore = {
   themeId: 'terminal',
   startSession: vi.fn(),
   recordKeystroke: vi.fn(),
+  moveBack: mockMoveBack,
   endSession: vi.fn(),
   reset: vi.fn(),
 };
@@ -147,5 +151,52 @@ describe('useSession — navigation vers /results', () => {
 
     // Session parfaite : wpmNet doit être égal à wpm
     expect(wpmNet).toBe(wpm);
+  });
+});
+
+describe('useSession — handleBackspace', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSessionStore.position = 0;
+    mockSessionStore.keystrokes = [];
+    mockSessionStore.startedAt = Date.now() - 5000;
+    mockSessionStore.endedAt = null;
+  });
+
+  it('appelle moveBack sur le store si position > 0', () => {
+    mockSessionStore.position = 2;
+
+    const { result } = renderHook(() => useSession({ text: 'hello', autoNavigate: false }));
+
+    act(() => {
+      result.current.handleBackspace();
+    });
+
+    expect(mockMoveBack).toHaveBeenCalledOnce();
+  });
+
+  it('ne fait rien si position === 0', () => {
+    mockSessionStore.position = 0;
+
+    const { result } = renderHook(() => useSession({ text: 'hello', autoNavigate: false }));
+
+    act(() => {
+      result.current.handleBackspace();
+    });
+
+    expect(mockMoveBack).not.toHaveBeenCalled();
+  });
+
+  it('ne fait rien si la session est terminée', () => {
+    mockSessionStore.position = 2;
+    mockSessionStore.endedAt = Date.now();
+
+    const { result } = renderHook(() => useSession({ text: 'hello', autoNavigate: false }));
+
+    act(() => {
+      result.current.handleBackspace();
+    });
+
+    expect(mockMoveBack).not.toHaveBeenCalled();
   });
 });

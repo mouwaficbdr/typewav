@@ -56,6 +56,7 @@ export function useSession({
     themeId,
     startSession,
     recordKeystroke,
+    moveBack,
     endSession,
     reset,
   } = useSessionStore();
@@ -179,9 +180,10 @@ export function useSession({
   );
 
   const handleBackspace = useCallback(() => {
-    // Backspace non implémenté en Phase 1 (prévu Phase 2)
-    // Le curseur ne recule pas, mais on pourrait implémenter ici plus tard
-  }, []);
+    if (endedAt !== null) return; // session terminée
+    if (position === 0) return; // début du texte
+    moveBack();
+  }, [endedAt, position, moveBack]);
 
   return {
     position,

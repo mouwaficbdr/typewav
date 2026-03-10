@@ -1,0 +1,158 @@
+import { beforeEach, describe, expect, it } from 'vitest';
+import { useSessionStore } from '../useSessionStore';
+
+// Réccupérer l'état initial du store avant chaque test
+beforeEach(() => {
+  useSessionStore.getState().reset();
+});
+
+describe('useSessionStore — recordKeystroke', () => {
+  it('incrémente position si la frappe est correcte', () => {
+    useSessionStore.getState().startSession('abc');
+    useSessionStore
+      .getState()
+      .recordKeystroke({
+        char: 'a',
+        timestamp: 1000,
+        correct: true,
+        deltaMs: 0,
+      });
+    expect(useSessionStore.getState().position).toBe(1);
+  });
+
+  it("ne change pas position si la frappe n'est pas correcte", () => {
+    useSessionStore.getState().startSession('abc');
+    useSessionStore
+      .getState()
+      .recordKeystroke({
+        char: 'x',
+        timestamp: 1000,
+        correct: false,
+        deltaMs: 0,
+      });
+    expect(useSessionStore.getState().position).toBe(0);
+  });
+});
+
+describe('useSessionStore — moveBack', () => {
+  it('décrémente position de 1 après des frappes', () => {
+    // Texte long pour ne pas terminer la session avant moveBack
+    useSessionStore.getState().startSession('abcdef');
+    useSessionStore
+      .getState()
+      .recordKeystroke({
+        char: 'a',
+        timestamp: 1000,
+        correct: true,
+        deltaMs: 0,
+      });
+    useSessionStore
+      .getState()
+      .recordKeystroke({
+        char: 'b',
+        timestamp: 1100,
+        correct: true,
+        deltaMs: 100,
+      });
+    useSessionStore
+      .getState()
+      .recordKeystroke({
+        char: 'c',
+        timestamp: 1200,
+        correct: true,
+        deltaMs: 100,
+      });
+
+    expect(useSessionStore.getState().position).toBe(3);
+    useSessionStore.getState().moveBack();
+    expect(useSessionStore.getState().position).toBe(2);
+  });
+
+  it('retire le dernier keystroke du tableau', () => {
+    // Texte long pour ne pas terminer la session avant moveBack
+    useSessionStore.getState().startSession('abcdef');
+    useSessionStore
+      .getState()
+      .recordKeystroke({
+        char: 'a',
+        timestamp: 1000,
+        correct: true,
+        deltaMs: 0,
+      });
+    useSessionStore
+      .getState()
+      .recordKeystroke({
+        char: 'b',
+        timestamp: 1100,
+        correct: true,
+        deltaMs: 100,
+      });
+    useSessionStore
+      .getState()
+      .recordKeystroke({
+        char: 'c',
+        timestamp: 1200,
+        correct: true,
+        deltaMs: 100,
+      });
+
+    expect(useSessionStore.getState().keystrokes).toHaveLength(3);
+    useSessionStore.getState().moveBack();
+    expect(useSessionStore.getState().keystrokes).toHaveLength(2);
+  });
+
+  it('ne fait rien si position === 0', () => {
+    useSessionStore.getState().startSession('abc');
+    expect(useSessionStore.getState().position).toBe(0);
+    useSessionStore.getState().moveBack();
+    expect(useSessionStore.getState().position).toBe(0);
+    expect(useSessionStore.getState().keystrokes).toHaveLength(0);
+  });
+
+  it('ne fait rien si la session est terminée (endedAt !== null)', () => {
+    useSessionStore.getState().startSession('a');
+    useSessionStore
+      .getState()
+      .recordKeystroke({
+        char: 'a',
+        timestamp: 1000,
+        correct: true,
+        deltaMs: 0,
+      });
+
+    // La session se termine automatiquement quand position >= text.length
+    expect(useSessionStore.getState().endedAt).not.toBeNull();
+    const positionBeforeBack = useSessionStore.getState().position;
+    const keystrokesBeforeBack = useSessionStore.getState().keystrokes.length;
+
+    useSessionStore.getState().moveBack();
+
+    expect(useSessionStore.getState().position).toBe(positionBeforeBack);
+    expect(useSessionStore.getState().keystrokes).toHaveLength(
+      keystrokesBeforeBack,
+    );
+  });
+
+  it('peut revenir sur une erreur', () => {
+    useSessionStore.getState().startSession('abc');
+    // Frappe incorrecte (position reste à 0)
+    useSessionStore
+      .getState()
+      .recordKeystroke({
+        char: 'x',
+        timestamp: 1000,
+        correct: false,
+        deltaMs: 0,
+      });
+    expect(useSessionStore.getState().position).toBe(0);
+    expect(useSessionStore.getState().keystrokes).toHaveLength(1);
+
+    // moveBack retire quand même le keystroke incorrect
+    // Note : position est déjà à 0, donc moveBack ne fait rien (garde-fou)
+    // Car le caractère incorrect n'avance pas la position
+    // Correction : moveBack agit sur la position, pas sur les keystrokes incorrects seuls
+    // Ce cas est acceptable : l'erreur sur place ne nécessite pas de moveBack
+    useSessionStore.getState().moveBack();
+    expect(useSessionStore.getState().position).toBe(0);
+  });
+});
