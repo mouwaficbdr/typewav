@@ -1,0 +1,61 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+
+# Build
+dist/
+build/
+
+# Cache
+.cache/
+.turbo/
+.vercel/
+
+# Tests
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# Audio samples (trop lourds pour le repo — stockés séparément)
+public/sounds/**/*.mp3
+public/sounds/**/*.ogg
+public/sounds/**/*.wav
+!public/sounds/**/.gitkeep
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# TypeScript build info
+*.tsbuildinfo
+
+# AI tooling — local only, never push
+.github/copilot-instructions.md
+CLAUDE.md
+AGENTS.md
+.copilot/
+.cursor/
+*.instructions.md

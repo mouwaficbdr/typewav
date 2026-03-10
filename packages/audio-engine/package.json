@@ -1,0 +1,22 @@
+{
+  "name": "@typewav/audio-engine",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@typewav/types": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2",
+    "vitest": "^4.0.18"
+  },
+  "peerDependencies": {
+    "tone": "^15.0.4"
+  }
+}
