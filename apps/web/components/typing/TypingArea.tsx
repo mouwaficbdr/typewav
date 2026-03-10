@@ -7,6 +7,7 @@
  * Spec : docs/ARCHITECTURE.md — Client Components ('use client')
  */
 
+import { GhostCursor } from '@/components/typing/GhostCursor';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useSession } from '@/hooks/useSession';
 import type { TypingMode } from '@typewav/types';
@@ -16,19 +17,28 @@ interface TypingAreaProps {
   text: string;
   mode?: TypingMode;
   collectionId?: string;
+  /** Si false, ne navigue pas vers /results automatiquement (ex: LearningMode) */
+  autoNavigate?: boolean;
+  /** Callback : touche attendue actuellement (pour KeyboardDiagram) */
+  onActiveKeyChange?: (key: string | undefined) => void;
+  /** Timings inter-frappe du record personnel (ms) — active le ghost mode */
+  ghostTimings?: number[];
 }
 
 export function TypingArea({
   text,
   mode = 'classic',
   collectionId,
+  autoNavigate = true,
+  onActiveKeyChange,
+  ghostTimings,
 }: TypingAreaProps) {
   const { position, keystrokes, liveStats, isComplete, handleKeystroke } =
     useSession({
       text,
       mode,
       ...(collectionId !== undefined ? { collectionId } : {}),
-      autoNavigate: true,
+      autoNavigate,
     });
   const { initialize, playNote, triggerSilence, triggerResume } =
     useAudioEngine();
@@ -39,6 +49,13 @@ export function TypingArea({
   useEffect(() => {
     containerRef.current?.focus();
   }, []);
+
+  // Notifier la touche actuellement attendue (pour KeyboardDiagram)
+  useEffect(() => {
+    if (!onActiveKeyChange) return;
+    const expected = text[position];
+    onActiveKeyChange(isComplete ? undefined : expected);
+  }, [position, text, isComplete, onActiveKeyChange]);
 
   // Calcul du mot courant (pour l'accord musical)
   const wordIndex = text.slice(0, position).split(' ').length - 1;
@@ -151,6 +168,14 @@ export function TypingArea({
           lineHeight: '2',
         }}
       >
+        {/* Ghost cursor — mode ghost activé si ghostTimings fourni */}
+        {ghostTimings && ghostTimings.length > 0 && (
+          <GhostCursor
+            ghostTimings={ghostTimings}
+            userPosition={position}
+            textLength={text.length}
+          />
+        )}
         <p
           aria-live="off"
           className="m-0 flex flex-wrap gap-0"
