@@ -1,0 +1,12 @@
+{
+  "name": "@typewav/themes",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "main": "./src/index.ts",
+  "dependencies": {
+    "@typewav/types": "workspace:*"
+  }
+}
