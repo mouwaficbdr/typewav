@@ -9,6 +9,8 @@
 
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { useLocale, useTranslations } from 'next-intl';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -18,6 +20,8 @@ interface AuthFormProps {
 
 export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
+  const locale = useLocale();
+  const t = useTranslations('auth');
   const shouldReduceMotion = useReducedMotion();
   const duration = shouldReduceMotion ? 0 : 0.3;
 
@@ -36,7 +40,9 @@ export function AuthForm({ mode }: AuthFormProps) {
     setLoading(true);
 
     if (!supabase) {
-      setError('Service d\'authentification non configuré. Ajoutez vos variables NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY dans .env.local.');
+      setError(
+        "Service d'authentification non configuré. Ajoutez vos variables NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY dans .env.local.",
+      );
       setLoading(false);
       return;
     }
@@ -60,7 +66,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           password,
         });
         if (signInError) throw signInError;
-        router.push('/');
+        router.push(`/${locale}`);
         router.refresh();
       }
     } catch (err: unknown) {
@@ -109,6 +115,22 @@ export function AuthForm({ mode }: AuthFormProps) {
           minLength={8}
           style={inputStyle}
         />
+
+        {mode === 'login' && (
+          <Link
+            href={`/${locale}/auth/reset-password`}
+            style={{
+              color: 'var(--color-text-muted)',
+              fontFamily: 'var(--font-ui)',
+              fontSize: '0.8125rem',
+              textDecoration: 'none',
+              alignSelf: 'flex-end',
+            }}
+            className="hover:underline"
+          >
+            {t('forgotPassword')}
+          </Link>
+        )}
 
         <AnimatePresence>
           {error && (
