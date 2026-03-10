@@ -214,8 +214,8 @@ export default function TransparencePage() {
             marginBottom: '20px',
           }}
         >
-          TypeWav est développé bénévolement. Si l&apos;outil vous est utile,
-          un soutien ponctuel ou récurrent aide à financer le temps de
+          TypeWav est développé bénévolement. Si l&apos;outil vous est utile, un
+          soutien ponctuel ou récurrent aide à financer le temps de
           développement, les packs sonores, et les collections de contenu.
         </p>
         <div className="flex flex-wrap gap-4">

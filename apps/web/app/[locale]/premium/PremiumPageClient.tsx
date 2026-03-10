@@ -8,24 +8,72 @@
  */
 
 import { useUser } from '@/hooks/useUser';
+import { SYNC_IS_COMING_SOON } from '@/lib/featureFlags';
 import { STRIPE_PLANS } from '@/lib/stripe';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useState } from 'react';
 
 const PREMIUM_FEATURES = [
-  { emoji: '🎹', label: 'Pack Cinematic — cordes + piano', premium: true },
-  { emoji: '🎸', label: 'Pack Phonk — synthés sombres', premium: true },
-  { emoji: '🎷', label: 'Pack Jazz Piano — swing', premium: true },
-  { emoji: '🎵', label: 'Mode Classiques MIDI', premium: false },
-  { emoji: '📊', label: 'Dashboard analytics complet', premium: false },
-  { emoji: '👻', label: 'Ghost mode — record personnel', premium: false },
-  { emoji: '🔗', label: 'Replay partageable', premium: false },
-  { emoji: '⚔️', label: 'Challenge direct par lien', premium: false },
-  { emoji: '☁️', label: 'Sync cloud tous appareils', premium: true },
+  {
+    emoji: '🎹',
+    label: 'Pack Cinematic — cordes + piano',
+    premium: true,
+    comingSoon: false,
+  },
+  {
+    emoji: '🎸',
+    label: 'Pack Phonk — synthés sombres',
+    premium: true,
+    comingSoon: false,
+  },
+  {
+    emoji: '🎷',
+    label: 'Pack Jazz Piano — swing',
+    premium: true,
+    comingSoon: false,
+  },
+  {
+    emoji: '🎵',
+    label: 'Mode Classiques MIDI',
+    premium: false,
+    comingSoon: false,
+  },
+  {
+    emoji: '📊',
+    label: 'Dashboard analytics complet',
+    premium: false,
+    comingSoon: false,
+  },
+  {
+    emoji: '👻',
+    label: 'Ghost mode — record personnel',
+    premium: false,
+    comingSoon: false,
+  },
+  {
+    emoji: '🔗',
+    label: 'Replay partageable',
+    premium: false,
+    comingSoon: false,
+  },
+  {
+    emoji: '⚔️',
+    label: 'Challenge direct par lien',
+    premium: false,
+    comingSoon: false,
+  },
+  {
+    emoji: '☁️',
+    label: 'Sync cloud tous appareils',
+    premium: true,
+    comingSoon: true,
+  },
 ];
 
 export function PremiumPageClient() {
   const { user, isPremium, loading } = useUser();
+  const t = useTranslations('sync');
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -168,7 +216,7 @@ export function PremiumPageClient() {
           >
             <span>{f.emoji}</span>
             <span>{f.label}</span>
-            {f.premium && (
+            {f.premium && !f.comingSoon && (
               <span
                 style={{
                   backgroundColor: 'var(--color-accent)',
@@ -184,9 +232,49 @@ export function PremiumPageClient() {
                 PREMIUM
               </span>
             )}
+            {f.comingSoon && SYNC_IS_COMING_SOON && (
+              <span
+                aria-label={t('comingSoon')}
+                style={{
+                  backgroundColor: 'var(--color-border)',
+                  borderRadius: '12px',
+                  color: 'var(--color-text-muted)',
+                  fontFamily: 'var(--font-ui)',
+                  fontSize: '0.6875rem',
+                  fontWeight: '600',
+                  letterSpacing: '0.08em',
+                  marginLeft: 'auto',
+                  padding: '2px 8px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {t('comingSoon')}
+              </span>
+            )}
           </li>
         ))}
       </ul>
+
+      {/* Note sync coming soon */}
+      {SYNC_IS_COMING_SOON && (
+        <p
+          role="status"
+          style={{
+            color: 'var(--color-text-muted)',
+            fontFamily: 'var(--font-ui)',
+            fontSize: '0.8125rem',
+            lineHeight: '1.6',
+            padding: '12px 16px',
+            backgroundColor: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '6px',
+            maxWidth: '480px',
+            width: '100%',
+          }}
+        >
+          {t('comingSoonExplainer')}
+        </p>
+      )}
 
       {/* Tarification */}
       <div className="flex flex-wrap justify-center gap-6">

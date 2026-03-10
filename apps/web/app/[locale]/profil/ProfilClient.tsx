@@ -10,9 +10,12 @@
 import { ContributionHeatmap } from '@/components/charts/ContributionHeatmap';
 import { WpmProgressChart } from '@/components/charts/WpmProgressChart';
 import { RankBadge } from '@/components/progression/RankBadge';
+import { useUser } from '@/hooks/useUser';
 import { getPersonalRecords, getSessions, getUserProfile } from '@/lib/db';
+import { SYNC_IS_COMING_SOON } from '@/lib/featureFlags';
 import { useProgressionStore } from '@/stores/useProgressionStore';
 import type { PersonalRecords, RankTier, SessionResult } from '@typewav/types';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
@@ -20,6 +23,8 @@ type ChartDays = 7 | 30 | 90;
 
 export function ProfilClient() {
   const { setProfile, setPersonalRecords, setRank } = useProgressionStore();
+  const { isPremium } = useUser();
+  const t = useTranslations('sync');
 
   const [sessions, setSessions] = useState<SessionResult[]>([]);
   const [records, setRecords] = useState<PersonalRecords | null>(null);
@@ -88,6 +93,27 @@ export function ProfilClient() {
         margin: '0 auto',
       }}
     >
+      {/* Banner sync coming soon — visible uniquement pour les utilisateurs Premium */}
+      {isPremium && SYNC_IS_COMING_SOON && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            backgroundColor: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '6px',
+            padding: '12px 16px',
+            marginBottom: '24px',
+            fontFamily: 'var(--font-ui)',
+            fontSize: '0.8125rem',
+            color: 'var(--color-text-muted)',
+            lineHeight: '1.6',
+          }}
+        >
+          {t('premiumBanner')}
+        </div>
+      )}
+
       {/* En-tête */}
       <div className="flex items-center justify-between mb-10">
         <div>

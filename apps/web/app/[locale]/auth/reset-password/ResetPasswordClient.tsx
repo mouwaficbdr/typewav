@@ -32,9 +32,12 @@ export function ResetPasswordClient() {
     }
 
     try {
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/${locale}/auth/callback`,
-      });
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        email,
+        {
+          redirectTo: `${window.location.origin}/${locale}/auth/callback`,
+        },
+      );
       if (resetError) throw resetError;
       setSent(true);
     } catch {
@@ -70,7 +73,10 @@ export function ResetPasswordClient() {
         <p style={{ marginBottom: '1rem' }}>{t('resetSent')}</p>
         <Link
           href={`/${locale}/auth/login`}
-          style={{ color: 'var(--color-text-muted)', textDecoration: 'underline' }}
+          style={{
+            color: 'var(--color-text-muted)',
+            textDecoration: 'underline',
+          }}
         >
           {t('backToLogin')}
         </Link>

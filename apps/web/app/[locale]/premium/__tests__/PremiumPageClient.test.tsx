@@ -1,0 +1,58 @@
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { PremiumPageClient } from '../PremiumPageClient';
+
+vi.mock('@/hooks/useUser', () => ({
+  useUser: () => ({ user: null, isPremium: false, loading: false }),
+}));
+
+vi.mock('@/lib/featureFlags', () => ({
+  SYNC_IS_COMING_SOON: true,
+}));
+
+vi.mock('@/lib/stripe', () => ({
+  STRIPE_PLANS: {
+    monthly: { priceId: 'price_monthly' },
+    annual: { priceId: 'price_annual' },
+  },
+}));
+
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => key,
+  useLocale: () => 'fr',
+}));
+
+vi.mock('next/link', () => ({
+  default: ({
+    children,
+    href,
+  }: {
+    children: React.ReactNode;
+    href: string;
+  }) => <a href={href}>{children}</a>,
+}));
+
+describe('PremiumPageClient — sync coming soon', () => {
+  it('affiche un badge "Bientôt disponible" à côté de la feature sync', () => {
+    render(<PremiumPageClient />);
+    const badge = screen.getByLabelText('comingSoon');
+    expect(badge).toBeInTheDocument();
+    expect(badge.textContent).toBe('comingSoon');
+  });
+
+  it('affiche la note explicative sync coming soon', () => {
+    render(<PremiumPageClient />);
+    const note = screen.getByRole('status');
+    expect(note).toBeInTheDocument();
+    expect(note.textContent).toBe('comingSoonExplainer');
+  });
+
+  it('les boutons de checkout Stripe restent accessibles (non désactivés)', () => {
+    render(<PremiumPageClient />);
+    const buttons = screen.getAllByRole('button');
+    expect(buttons.length).toBeGreaterThan(0);
+    buttons.forEach((btn) => {
+      expect(btn).not.toBeDisabled();
+    });
+  });
+});

@@ -9,27 +9,23 @@ beforeEach(() => {
 describe('useSessionStore — recordKeystroke', () => {
   it('incrémente position si la frappe est correcte', () => {
     useSessionStore.getState().startSession('abc');
-    useSessionStore
-      .getState()
-      .recordKeystroke({
-        char: 'a',
-        timestamp: 1000,
-        correct: true,
-        deltaMs: 0,
-      });
+    useSessionStore.getState().recordKeystroke({
+      char: 'a',
+      timestamp: 1000,
+      correct: true,
+      deltaMs: 0,
+    });
     expect(useSessionStore.getState().position).toBe(1);
   });
 
   it("ne change pas position si la frappe n'est pas correcte", () => {
     useSessionStore.getState().startSession('abc');
-    useSessionStore
-      .getState()
-      .recordKeystroke({
-        char: 'x',
-        timestamp: 1000,
-        correct: false,
-        deltaMs: 0,
-      });
+    useSessionStore.getState().recordKeystroke({
+      char: 'x',
+      timestamp: 1000,
+      correct: false,
+      deltaMs: 0,
+    });
     expect(useSessionStore.getState().position).toBe(0);
   });
 });
@@ -38,30 +34,24 @@ describe('useSessionStore — moveBack', () => {
   it('décrémente position de 1 après des frappes', () => {
     // Texte long pour ne pas terminer la session avant moveBack
     useSessionStore.getState().startSession('abcdef');
-    useSessionStore
-      .getState()
-      .recordKeystroke({
-        char: 'a',
-        timestamp: 1000,
-        correct: true,
-        deltaMs: 0,
-      });
-    useSessionStore
-      .getState()
-      .recordKeystroke({
-        char: 'b',
-        timestamp: 1100,
-        correct: true,
-        deltaMs: 100,
-      });
-    useSessionStore
-      .getState()
-      .recordKeystroke({
-        char: 'c',
-        timestamp: 1200,
-        correct: true,
-        deltaMs: 100,
-      });
+    useSessionStore.getState().recordKeystroke({
+      char: 'a',
+      timestamp: 1000,
+      correct: true,
+      deltaMs: 0,
+    });
+    useSessionStore.getState().recordKeystroke({
+      char: 'b',
+      timestamp: 1100,
+      correct: true,
+      deltaMs: 100,
+    });
+    useSessionStore.getState().recordKeystroke({
+      char: 'c',
+      timestamp: 1200,
+      correct: true,
+      deltaMs: 100,
+    });
 
     expect(useSessionStore.getState().position).toBe(3);
     useSessionStore.getState().moveBack();
@@ -71,30 +61,24 @@ describe('useSessionStore — moveBack', () => {
   it('retire le dernier keystroke du tableau', () => {
     // Texte long pour ne pas terminer la session avant moveBack
     useSessionStore.getState().startSession('abcdef');
-    useSessionStore
-      .getState()
-      .recordKeystroke({
-        char: 'a',
-        timestamp: 1000,
-        correct: true,
-        deltaMs: 0,
-      });
-    useSessionStore
-      .getState()
-      .recordKeystroke({
-        char: 'b',
-        timestamp: 1100,
-        correct: true,
-        deltaMs: 100,
-      });
-    useSessionStore
-      .getState()
-      .recordKeystroke({
-        char: 'c',
-        timestamp: 1200,
-        correct: true,
-        deltaMs: 100,
-      });
+    useSessionStore.getState().recordKeystroke({
+      char: 'a',
+      timestamp: 1000,
+      correct: true,
+      deltaMs: 0,
+    });
+    useSessionStore.getState().recordKeystroke({
+      char: 'b',
+      timestamp: 1100,
+      correct: true,
+      deltaMs: 100,
+    });
+    useSessionStore.getState().recordKeystroke({
+      char: 'c',
+      timestamp: 1200,
+      correct: true,
+      deltaMs: 100,
+    });
 
     expect(useSessionStore.getState().keystrokes).toHaveLength(3);
     useSessionStore.getState().moveBack();
@@ -111,14 +95,12 @@ describe('useSessionStore — moveBack', () => {
 
   it('ne fait rien si la session est terminée (endedAt !== null)', () => {
     useSessionStore.getState().startSession('a');
-    useSessionStore
-      .getState()
-      .recordKeystroke({
-        char: 'a',
-        timestamp: 1000,
-        correct: true,
-        deltaMs: 0,
-      });
+    useSessionStore.getState().recordKeystroke({
+      char: 'a',
+      timestamp: 1000,
+      correct: true,
+      deltaMs: 0,
+    });
 
     // La session se termine automatiquement quand position >= text.length
     expect(useSessionStore.getState().endedAt).not.toBeNull();
@@ -136,14 +118,12 @@ describe('useSessionStore — moveBack', () => {
   it('peut revenir sur une erreur', () => {
     useSessionStore.getState().startSession('abc');
     // Frappe incorrecte (position reste à 0)
-    useSessionStore
-      .getState()
-      .recordKeystroke({
-        char: 'x',
-        timestamp: 1000,
-        correct: false,
-        deltaMs: 0,
-      });
+    useSessionStore.getState().recordKeystroke({
+      char: 'x',
+      timestamp: 1000,
+      correct: false,
+      deltaMs: 0,
+    });
     expect(useSessionStore.getState().position).toBe(0);
     expect(useSessionStore.getState().keystrokes).toHaveLength(1);
 

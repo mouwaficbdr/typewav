@@ -88,16 +88,17 @@ describe('syncAll', () => {
     vi.mocked(saveSession).mockResolvedValue('session-cloud-1');
 
     // Cloud a une session que le local n'a pas
-    const cloudSession = { ...mockSession, id: 'session-cloud-1' } satisfies import('@typewav/types').SessionResult;
+    const cloudSession = {
+      ...mockSession,
+      id: 'session-cloud-1',
+    } satisfies import('@typewav/types').SessionResult;
 
     // Premier select (ids) retourne la session cloud
     // Deuxième select (raw_data) retourne la session complète
-    const inFn = vi
-      .fn()
-      .mockResolvedValueOnce({
-        data: [{ raw_data: cloudSession }],
-        error: null,
-      });
+    const inFn = vi.fn().mockResolvedValueOnce({
+      data: [{ raw_data: cloudSession }],
+      error: null,
+    });
     const eqSelectFn = vi.fn().mockReturnValue({ in: inFn });
     const selectFn = vi.fn().mockReturnValue({ eq: eqSelectFn });
 

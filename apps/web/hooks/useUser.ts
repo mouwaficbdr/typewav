@@ -56,7 +56,10 @@ export function useUser(): UserState {
     return () => subscription.unsubscribe();
   }, [supabase]);
 
-  async function fetchPremiumStatus(client: NonNullable<ReturnType<typeof getSupabaseBrowserClient>>, userId: string) {
+  async function fetchPremiumStatus(
+    client: NonNullable<ReturnType<typeof getSupabaseBrowserClient>>,
+    userId: string,
+  ) {
     try {
       const { data } = await client
         .from('user_premium')

@@ -32,18 +32,18 @@ const theme: ThemeConfig = {
   id: 'nom-du-theme',
   name: 'Nom du Thème',
   colors: {
-    bg: '#000000',           // Fond principal
-    surface: '#0A0A0A',      // Fond des cartes / panels
-    border: '#1A1A2E',       // Bordures
-    accent: '#00D4AA',       // Couleur d'emphase
-    textPrimary: '#E8E8E8',  // Texte principal
-    textMuted: '#888888',    // Texte secondaire
-    error: '#FF4444',        // Erreur de frappe
+    bg: '#000000', // Fond principal
+    surface: '#0A0A0A', // Fond des cartes / panels
+    border: '#1A1A2E', // Bordures
+    accent: '#00D4AA', // Couleur d'emphase
+    textPrimary: '#E8E8E8', // Texte principal
+    textMuted: '#888888', // Texte secondaire
+    error: '#FF4444', // Erreur de frappe
   },
   fonts: {
-    display: 'Cormorant Garamond',  // Titres — ou autre Google Font
-    ui: 'Sora',                     // Interface
-    mono: 'JetBrains Mono',         // Zone de frappe
+    display: 'Cormorant Garamond', // Titres — ou autre Google Font
+    ui: 'Sora', // Interface
+    mono: 'JetBrains Mono', // Zone de frappe
   },
 };
 
@@ -54,14 +54,14 @@ Tous les champs de `ThemeConfig` sont **obligatoires**. Aucun champ ne peut êtr
 
 ## Critères de validation
 
-| Critère | Requis |
-|---------|--------|
+| Critère                                     | Requis           |
+| ------------------------------------------- | ---------------- |
 | Contraste WCAG AA — texte principal vs fond | ✅ ratio ≥ 4.5:1 |
-| Contraste WCAG AA — texte muted vs fond | ✅ ratio ≥ 3:1 |
-| Tous les tokens de couleur définis | ✅ |
-| Polices Google Fonts disponibles | ✅ |
-| `id` en kebab-case, unique | ✅ |
-| Fichier `preview.png` inclus à la racine | ✅ |
+| Contraste WCAG AA — texte muted vs fond     | ✅ ratio ≥ 3:1   |
+| Tous les tokens de couleur définis          | ✅               |
+| Polices Google Fonts disponibles            | ✅               |
+| `id` en kebab-case, unique                  | ✅               |
+| Fichier `preview.png` inclus à la racine    | ✅               |
 
 ## Tester localement
 
