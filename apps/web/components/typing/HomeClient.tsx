@@ -13,6 +13,7 @@
 import { LearningMode } from '@/components/modes/LearningMode';
 import { TypingArea } from '@/components/typing/TypingArea';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
+import { useSyncCloud } from '@/hooks/useSyncCloud';
 import { useUser } from '@/hooks/useUser';
 import { useAudioStore } from '@/stores/useAudioStore';
 import { MIDI_PIECES, type MidiPieceId } from '@typewav/audio-engine';
@@ -25,9 +26,17 @@ interface HomeClientProps {
   litterature: CollectionConfig;
   poesie: CollectionConfig;
   code: CollectionConfig;
+  philosophie: CollectionConfig;
+  gaming: CollectionConfig;
 }
 
-type CollectionTab = 'litterature' | 'poesie' | 'code' | 'classiques';
+type CollectionTab =
+  | 'litterature'
+  | 'poesie'
+  | 'code'
+  | 'philosophie'
+  | 'gaming'
+  | 'classiques';
 type FreeSoundPackId = 'piano' | 'marimba' | 'synth-lofi' | 'chiptune';
 type PremiumSoundPackId = 'cinematic' | 'phonk' | 'jazz-piano';
 type SoundPackId = FreeSoundPackId | PremiumSoundPackId;
@@ -60,7 +69,13 @@ function getDailyIndex(length: number, offset = 0): number {
   return (dayOfYear + offset) % length;
 }
 
-export function HomeClient({ litterature, poesie, code }: HomeClientProps) {
+export function HomeClient({
+  litterature,
+  poesie,
+  code,
+  philosophie,
+  gaming,
+}: HomeClientProps) {
   const [activeTab, setActiveTab] = useState<CollectionTab>('litterature');
   const [shuffleOffset, setShuffleOffset] = useState(0);
   const [selectedPieceId, setSelectedPieceId] =
@@ -69,8 +84,11 @@ export function HomeClient({ litterature, poesie, code }: HomeClientProps) {
 
   const { setSoundPack, soundPackId } = useAudioStore();
   const { loadMidiPiece, disableMidiMode } = useAudioEngine();
-  const { isPremium } = useUser();
+  const { user, isPremium } = useUser();
   const router = useRouter();
+
+  // Sync cloud silencieuse au démarrage pour les users premium
+  useSyncCloud(user?.id ?? null, isPremium);
 
   // Texte actuel selon l'onglet et l'offset de shuffle
   const { text, source, collectionId } = useMemo(() => {
@@ -89,7 +107,11 @@ export function HomeClient({ litterature, poesie, code }: HomeClientProps) {
         ? litterature
         : activeTab === 'poesie'
           ? poesie
-          : code;
+          : activeTab === 'philosophie'
+            ? philosophie
+            : activeTab === 'gaming'
+              ? gaming
+              : code;
     const idx = getDailyIndex(collection.texts.length, shuffleOffset);
     const entry = collection.texts[idx]!;
     return {
@@ -97,7 +119,15 @@ export function HomeClient({ litterature, poesie, code }: HomeClientProps) {
       source: entry.source,
       collectionId: collection.id,
     };
-  }, [activeTab, shuffleOffset, litterature, poesie, code]);
+  }, [
+    activeTab,
+    shuffleOffset,
+    litterature,
+    poesie,
+    code,
+    philosophie,
+    gaming,
+  ]);
 
   const handleTabChange = useCallback(
     async (tab: CollectionTab) => {
@@ -128,6 +158,8 @@ export function HomeClient({ litterature, poesie, code }: HomeClientProps) {
     { id: 'litterature', label: 'Littérature' },
     { id: 'poesie', label: 'Poésie' },
     { id: 'code', label: 'Code' },
+    { id: 'philosophie', label: 'Philosophie' },
+    { id: 'gaming', label: 'Gaming' },
     { id: 'classiques', label: '♩ Classiques' },
   ];
 
