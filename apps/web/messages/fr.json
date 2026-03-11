@@ -231,5 +231,11 @@
   },
   "source": {
     "label": "Source du texte"
+  },
+  "music": {
+    "chipLabel": "♪ {piece}",
+    "refreshPiece": "Nouvelle suggestion musicale",
+    "selectPiece": "Sélectionner une pièce",
+    "allPiecesComingSoon": "Sélection complète dans la config bar"
   }
 }

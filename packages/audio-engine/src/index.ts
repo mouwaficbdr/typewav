@@ -32,3 +32,15 @@ export {
   loadPiece,
   resetSequence,
 } from './midi-player';
+
+export type { EmotionalRegister, MusicPiece } from './library';
+
+export { MUSIC_LIBRARY, MUSIC_LIBRARY_MAP } from './library';
+
+export type { CollectionId } from './recommendation';
+
+export {
+  getRecommendedPiece,
+  getRecommendedRegister,
+  pickPiece,
+} from './recommendation';
