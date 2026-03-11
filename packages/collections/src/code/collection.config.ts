@@ -1,6 +1,6 @@
 /**
  * Collection Code — snippets sous licence MIT / Apache 2.0 / domaine public.
- * Langages : TypeScript, Python, Rust.
+ * Langages : TypeScript, Python, Rust, Go, Shell, SQL, CSS, JSON, JavaScript.
  * Spec : docs/specs/06-content.md
  */
 
@@ -16,199 +16,990 @@ export const codeCollection: CollectionConfig = {
   recommendedSoundPack: 'chiptune',
   isPremium: false,
   texts: [
+    // ── English ───────────────────────────────────────────────────────────────
     {
       id: 'code-ts-01',
-      content: 'const greet = (name: string): string => `Hello, ${name}!`;',
+      content: `const greet = (name: string): string => \`Hello, \${name}!\`;`,
       source: 'TypeScript — exemple original',
-      difficulty: 'easy',
       language: 'en',
-      tags: ['typescript', 'function', 'template-literal'],
+      difficulty: 1,
+      wordCount: 9,
+      charCount: 58,
+      tags: ["typescript","function","template-literal"],
       codeLanguage: 'typescript',
     },
     {
       id: 'code-ts-02',
-      content:
-        'async function fetchData<T>(url: string): Promise<T> {\n  const response = await fetch(url);\n  return response.json() as Promise<T>;\n}',
+      content: `async function fetchData<T>(url: string): Promise<T> {
+  const response = await fetch(url);
+  return response.json() as Promise<T>;
+}`,
       source: 'TypeScript — exemple original',
-      difficulty: 'medium',
       language: 'en',
-      tags: ['typescript', 'async', 'generics'],
+      difficulty: 3,
+      wordCount: 16,
+      charCount: 133,
+      tags: ["typescript","async","generics"],
       codeLanguage: 'typescript',
     },
     {
       id: 'code-ts-03',
-      content:
-        'type Result<T, E> = { ok: true; value: T } | { ok: false; error: E };',
+      content: `type Result<T, E> = { ok: true; value: T } | { ok: false; error: E };`,
       source: 'TypeScript — pattern Result type',
-      difficulty: 'medium',
       language: 'en',
-      tags: ['typescript', 'types', 'discriminated-union'],
+      difficulty: 3,
+      wordCount: 17,
+      charCount: 69,
+      tags: ["typescript","types","discriminated-union"],
       codeLanguage: 'typescript',
     },
     {
       id: 'code-ts-04',
-      content:
-        'export function pipe<T>(...fns: Array<(x: T) => T>): (x: T) => T {\n  return (x) => fns.reduce((v, f) => f(v), x);\n}',
+      content: `export function pipe<T>(...fns: Array<(x: T) => T>): (x: T) => T {
+  return (x) => fns.reduce((v, f) => f(v), x);
+}`,
       source: 'TypeScript — functional programming',
-      difficulty: 'hard',
       language: 'en',
-      tags: ['typescript', 'functional', 'higher-order'],
+      difficulty: 5,
+      wordCount: 21,
+      charCount: 115,
+      tags: ["typescript","functional","higher-order"],
       codeLanguage: 'typescript',
     },
     {
       id: 'code-ts-05',
-      content:
-        'const debounce = <T extends unknown[]>(fn: (...args: T) => void, ms: number) => {\n  let timer: ReturnType<typeof setTimeout>;\n  return (...args: T) => {\n    clearTimeout(timer);\n    timer = setTimeout(() => fn(...args), ms);\n  };\n};',
+      content: `const debounce = <T extends unknown[]>(fn: (...args: T) => void, ms: number) => {
+  let timer: ReturnType<typeof setTimeout>;
+  return (...args: T) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), ms);
+  };
+};`,
       source: 'TypeScript — utilitaire debounce',
-      difficulty: 'hard',
       language: 'en',
-      tags: ['typescript', 'utility', 'timing'],
+      difficulty: 5,
+      wordCount: 32,
+      charCount: 232,
+      tags: ["typescript","utility","timing"],
       codeLanguage: 'typescript',
     },
     {
       id: 'code-py-01',
-      content:
-        'def factorial(n: int) -> int:\n    return 1 if n <= 1 else n * factorial(n - 1)',
+      content: `def factorial(n: int) -> int:
+    return 1 if n <= 1 else n * factorial(n - 1)`,
       source: 'Python — exemple original',
-      difficulty: 'easy',
       language: 'en',
-      tags: ['python', 'recursion', 'math'],
+      difficulty: 1,
+      wordCount: 17,
+      charCount: 78,
+      tags: ["python","recursion","math"],
       codeLanguage: 'python',
     },
     {
       id: 'code-py-02',
-      content:
-        'from typing import Generator\n\ndef fibonacci() -> Generator[int, None, None]:\n    a, b = 0, 1\n    while True:\n        yield a\n        a, b = b, a + b',
+      content: `from typing import Generator
+
+def fibonacci() -> Generator[int, None, None]:
+    a, b = 0, 1
+    while True:
+        yield a
+        a, b = b, a + b`,
       source: 'Python — générateur Fibonacci',
-      difficulty: 'medium',
       language: 'en',
-      tags: ['python', 'generator', 'math'],
+      difficulty: 3,
+      wordCount: 26,
+      charCount: 148,
+      tags: ["python","generator","math"],
       codeLanguage: 'python',
     },
     {
       id: 'code-py-03',
-      content:
-        'words = ["hello", "world", "python"]\nresult = {word: len(word) for word in words if len(word) > 4}',
+      content: `words = ["hello", "world", "python"]
+result = {word: len(word) for word in words if len(word) > 4}`,
       source: 'Python — dict comprehension',
-      difficulty: 'easy',
       language: 'en',
-      tags: ['python', 'comprehension', 'dict'],
+      difficulty: 1,
+      wordCount: 17,
+      charCount: 98,
+      tags: ["python","comprehension","dict"],
       codeLanguage: 'python',
     },
     {
       id: 'code-rs-01',
-      content:
-        'fn main() {\n    let numbers = vec![1, 2, 3, 4, 5];\n    let sum: i32 = numbers.iter().sum();\n    println!("Sum: {}", sum);\n}',
+      content: `fn main() {
+    let numbers = vec![1, 2, 3, 4, 5];
+    let sum: i32 = numbers.iter().sum();
+    println!("Sum: {}", sum);
+}`,
       source: 'Rust — exemple original',
-      difficulty: 'medium',
       language: 'en',
-      tags: ['rust', 'iterators', 'collections'],
+      difficulty: 3,
+      wordCount: 20,
+      charCount: 123,
+      tags: ["rust","iterators","collections"],
       codeLanguage: 'rust',
     },
     {
       id: 'code-rs-02',
-      content:
-        'pub fn binary_search<T: Ord>(arr: &[T], target: &T) -> Option<usize> {\n    let (mut low, mut high) = (0, arr.len());\n    while low < high {\n        let mid = low + (high - low) / 2;\n        match arr[mid].cmp(target) {\n            std::cmp::Ordering::Equal => return Some(mid),\n            std::cmp::Ordering::Less => low = mid + 1,\n            std::cmp::Ordering::Greater => high = mid,\n        }\n    }\n    None\n}',
+      content: `pub fn binary_search<T: Ord>(arr: &[T], target: &T) -> Option<usize> {
+    let (mut low, mut high) = (0, arr.len());
+    while low < high {
+        let mid = low + (high - low) / 2;
+        match arr[mid].cmp(target) {
+            std::cmp::Ordering::Equal => return Some(mid),
+            std::cmp::Ordering::Less => low = mid + 1,
+            std::cmp::Ordering::Greater => high = mid,
+        }
+    }
+    None
+}`,
       source: 'Rust — algorithme recherche binaire',
-      difficulty: 'hard',
       language: 'en',
-      tags: ['rust', 'algorithm', 'generics'],
+      difficulty: 5,
+      wordCount: 56,
+      charCount: 414,
+      tags: ["rust","algorithm","generics"],
       codeLanguage: 'rust',
     },
     {
       id: 'code-sh-01',
-      content:
-        'find . -name "*.ts" -not -path "*/node_modules/*" | xargs wc -l | sort -n',
+      content: `find . -name "*.ts" -not -path "*/node_modules/*" | xargs wc -l | sort -n`,
       source: 'Shell — compter les lignes TypeScript',
-      difficulty: 'medium',
       language: 'en',
-      tags: ['shell', 'unix', 'find'],
+      difficulty: 3,
+      wordCount: 14,
+      charCount: 73,
+      tags: ["shell","unix","find"],
     },
     {
       id: 'code-sh-02',
-      content: 'git log --oneline --graph --all --decorate | head -20',
-      source: "Git — visualiser l'historique",
-      difficulty: 'easy',
+      content: `git log --oneline --graph --all --decorate | head -20`,
+      source: 'Git — visualiser l\'historique',
       language: 'en',
-      tags: ['git', 'shell', 'log'],
+      difficulty: 1,
+      wordCount: 9,
+      charCount: 53,
+      tags: ["git","shell","log"],
     },
     {
       id: 'code-json-01',
-      content:
-        '{\n  "name": "typewav",\n  "version": "0.0.1",\n  "type": "module",\n  "scripts": {\n    "dev": "next dev",\n    "build": "next build"\n  }\n}',
+      content: `{
+  "name": "typewav",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build"
+  }
+}`,
       source: 'JSON — package.json exemple',
-      difficulty: 'easy',
       language: 'en',
-      tags: ['json', 'config', 'npm'],
+      difficulty: 1,
+      wordCount: 17,
+      charCount: 134,
+      tags: ["json","config","npm"],
     },
     {
       id: 'code-css-01',
-      content:
-        ':root {\n  --color-bg: #000000;\n  --color-accent: #00D4AA;\n  --font-mono: "JetBrains Mono", monospace;\n}',
+      content: `:root {
+  --color-bg: #000000;
+  --color-accent: #00D4AA;
+  --font-mono: "JetBrains Mono", monospace;
+}`,
       source: 'CSS — variables custom properties',
-      difficulty: 'easy',
       language: 'en',
-      tags: ['css', 'custom-properties', 'design-tokens'],
+      difficulty: 1,
+      wordCount: 11,
+      charCount: 103,
+      tags: ["css","custom-properties","design-tokens"],
     },
     {
       id: 'code-sql-01',
-      content:
-        'SELECT u.name, COUNT(s.id) AS session_count\nFROM users u\nLEFT JOIN sessions s ON s.user_id = u.id\nGROUP BY u.id\nHAVING session_count > 10\nORDER BY session_count DESC;',
+      content: `SELECT u.name, COUNT(s.id) AS session_count
+FROM users u
+LEFT JOIN sessions s ON s.user_id = u.id
+GROUP BY u.id
+HAVING session_count > 10
+ORDER BY session_count DESC;`,
       source: 'SQL — requête agrégation',
-      difficulty: 'hard',
       language: 'en',
-      tags: ['sql', 'database', 'aggregation'],
+      difficulty: 5,
+      wordCount: 27,
+      charCount: 166,
+      tags: ["sql","database","aggregation"],
       codeLanguage: 'sql',
     },
     {
       id: 'code-ts-06',
-      content:
-        'interface Store<T> {\n  getState(): T;\n  setState(partial: Partial<T>): void;\n  subscribe(listener: () => void): () => void;\n}',
+      content: `interface Store<T> {
+  getState(): T;
+  setState(partial: Partial<T>): void;
+  subscribe(listener: () => void): () => void;
+}`,
       source: 'TypeScript — interface Store minimaliste',
-      difficulty: 'medium',
       language: 'en',
-      tags: ['typescript', 'interface', 'state'],
+      difficulty: 3,
+      wordCount: 16,
+      charCount: 125,
+      tags: ["typescript","interface","state"],
       codeLanguage: 'typescript',
     },
     {
       id: 'code-ts-07',
-      content:
-        'export const clamp = (value: number, min: number, max: number): number =>\n  Math.min(Math.max(value, min), max);',
+      content: `export const clamp = (value: number, min: number, max: number): number =>
+  Math.min(Math.max(value, min), max);`,
       source: 'TypeScript — utilitaire clamp',
-      difficulty: 'easy',
       language: 'en',
-      tags: ['typescript', 'math', 'utility'],
+      difficulty: 1,
+      wordCount: 15,
+      charCount: 112,
+      tags: ["typescript","math","utility"],
       codeLanguage: 'typescript',
     },
     {
       id: 'code-py-04',
-      content:
-        '@dataclass\nclass Point:\n    x: float\n    y: float\n\n    def distance_to(self, other: "Point") -> float:\n        return ((self.x - other.x) ** 2 + (self.y - other.y) ** 2) ** 0.5',
+      content: `@dataclass
+class Point:
+    x: float
+    y: float
+
+    def distance_to(self, other: "Point") -> float:
+        return ((self.x - other.x) ** 2 + (self.y - other.y) ** 2) ** 0.5`,
       source: 'Python — dataclass',
-      difficulty: 'medium',
       language: 'en',
-      tags: ['python', 'dataclass', 'oop'],
+      difficulty: 3,
+      wordCount: 27,
+      charCount: 176,
+      tags: ["python","dataclass","oop"],
       codeLanguage: 'python',
     },
     {
       id: 'code-rs-03',
-      content:
-        'let result: Vec<_> = (1..=10).filter(|n| n % 2 == 0).map(|n| n * n).collect();',
+      content: `let result: Vec<_> = (1..=10).filter(|n| n % 2 == 0).map(|n| n * n).collect();`,
       source: 'Rust — iterator chaining',
-      difficulty: 'medium',
       language: 'en',
-      tags: ['rust', 'iterators', 'functional'],
+      difficulty: 3,
+      wordCount: 13,
+      charCount: 78,
+      tags: ["rust","iterators","functional"],
       codeLanguage: 'rust',
     },
     {
       id: 'code-ts-08',
-      content:
-        'const memoize = <T, R>(fn: (arg: T) => R): ((arg: T) => R) => {\n  const cache = new Map<T, R>();\n  return (arg) => {\n    if (cache.has(arg)) return cache.get(arg)!;\n    const result = fn(arg);\n    cache.set(arg, result);\n    return result;\n  };\n};',
+      content: `const memoize = <T, R>(fn: (arg: T) => R): ((arg: T) => R) => {
+  const cache = new Map<T, R>();
+  return (arg) => {
+    if (cache.has(arg)) return cache.get(arg)!;
+    const result = fn(arg);
+    cache.set(arg, result);
+    return result;
+  };
+};`,
       source: 'TypeScript — memoization',
-      difficulty: 'hard',
       language: 'en',
-      tags: ['typescript', 'performance', 'memoize'],
+      difficulty: 5,
+      wordCount: 39,
+      charCount: 247,
+      tags: ["typescript","performance","memoize"],
       codeLanguage: 'typescript',
     },
+    {
+      id: 'code-ts-09',
+      content: `function isEmpty<T>(arr: T[]): boolean {
+  return arr.length === 0;
+}`,
+      source: 'TypeScript — type guard utility',
+      language: 'en',
+      difficulty: 1,
+      wordCount: 10,
+      charCount: 69,
+      tags: ["typescript","utility","array"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-ts-10',
+      content: `type DeepPartial<T> = T extends object ? {
+  [P in keyof T]?: DeepPartial<T[P]>;
+} : T;`,
+      source: 'TypeScript — deep partial type',
+      language: 'en',
+      difficulty: 5,
+      wordCount: 16,
+      charCount: 87,
+      tags: ["typescript","types","deep"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-ts-11',
+      content: `const groupBy = <T>(arr: T[], key: keyof T): Record<string, T[]> =>
+  arr.reduce((groups, item) => {
+    const group = String(item[key]);
+    return { ...groups, [group]: [...(groups[group] ?? []), item] };
+  }, {} as Record<string, T[]>);`,
+      source: 'TypeScript — groupBy utility',
+      language: 'en',
+      difficulty: 5,
+      wordCount: 33,
+      charCount: 239,
+      tags: ["typescript","functional","groupBy"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-ts-12',
+      content: `class EventEmitter<T extends Record<string, unknown>> {
+  private listeners = new Map<keyof T, Set<(data: T[keyof T]) => void>>();
+}`,
+      source: 'TypeScript — typed EventEmitter',
+      language: 'en',
+      difficulty: 5,
+      wordCount: 18,
+      charCount: 132,
+      tags: ["typescript","events","class"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-ts-13',
+      content: `const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));`,
+      source: 'TypeScript — async sleep utility',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 12,
+      charCount: 97,
+      tags: ["typescript","async","timer"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-ts-14',
+      content: `export type Nullable<T> = T | null | undefined;`,
+      source: 'TypeScript — nullable type alias',
+      language: 'en',
+      difficulty: 1,
+      wordCount: 9,
+      charCount: 47,
+      tags: ["typescript","types","nullable"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-ts-15',
+      content: `const unique = <T>(arr: T[]): T[] => [...new Set(arr)];`,
+      source: 'TypeScript — unique array elements',
+      language: 'en',
+      difficulty: 1,
+      wordCount: 9,
+      charCount: 55,
+      tags: ["typescript","array","set"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-py-05',
+      content: `import functools
+
+@functools.lru_cache(maxsize=None)
+def fib(n: int) -> int:
+    return n if n < 2 else fib(n - 1) + fib(n - 2)`,
+      source: 'Python — memoized fibonacci',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 22,
+      charCount: 127,
+      tags: ["python","memoize","fibonacci"],
+      codeLanguage: 'python',
+    },
+    {
+      id: 'code-py-06',
+      content: `from contextlib import contextmanager
+from typing import Generator
+
+@contextmanager
+def timer() -> Generator[None, None, None]:
+    import time
+    start = time.perf_counter()
+    yield
+    print(f'Elapsed: {time.perf_counter() - start:.3f}s')`,
+      source: 'Python — context manager timer',
+      language: 'en',
+      difficulty: 5,
+      wordCount: 25,
+      charCount: 243,
+      tags: ["python","contextmanager","timing"],
+      codeLanguage: 'python',
+    },
+    {
+      id: 'code-py-07',
+      content: `squares = [x ** 2 for x in range(1, 11)]`,
+      source: 'Python — list comprehension squares',
+      language: 'en',
+      difficulty: 1,
+      wordCount: 10,
+      charCount: 40,
+      tags: ["python","comprehension","math"],
+      codeLanguage: 'python',
+    },
+    {
+      id: 'code-py-08',
+      content: `def chunk(lst: list, size: int) -> list:
+    return [lst[i:i + size] for i in range(0, len(lst), size)]`,
+      source: 'Python — chunk list into batches',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 17,
+      charCount: 103,
+      tags: ["python","list","batch"],
+      codeLanguage: 'python',
+    },
+    {
+      id: 'code-rs-04',
+      content: `fn is_palindrome(s: &str) -> bool {
+    let chars: Vec<char> = s.chars().collect();
+    chars == chars.iter().rev().cloned().collect::<Vec<_>>()
+}`,
+      source: 'Rust — palindrome check',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 15,
+      charCount: 146,
+      tags: ["rust","string","palindrome"],
+      codeLanguage: 'rust',
+    },
+    {
+      id: 'code-rs-05',
+      content: `use std::collections::HashMap;
+
+let mut scores: HashMap<&str, i32> = HashMap::new();
+scores.entry("player1").and_modify(|s| *s += 10).or_insert(10);`,
+      source: 'Rust — HashMap entry API',
+      language: 'en',
+      difficulty: 5,
+      wordCount: 13,
+      charCount: 148,
+      tags: ["rust","hashmap","entry"],
+      codeLanguage: 'rust',
+    },
+    {
+      id: 'code-rs-06',
+      content: `#[derive(Debug, Clone, PartialEq)]
+struct Point {
+    x: f64,
+    y: f64,
+}`,
+      source: 'Rust — derive macro struct',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 11,
+      charCount: 75,
+      tags: ["rust","struct","derive"],
+      codeLanguage: 'rust',
+    },
+    {
+      id: 'code-go-01',
+      content: `func main() {
+    fmt.Println("Hello, World!")
+}`,
+      source: 'Go — hello world',
+      language: 'en',
+      difficulty: 1,
+      wordCount: 6,
+      charCount: 48,
+      tags: ["go","hello","basics"],
+      codeLanguage: 'go',
+    },
+    {
+      id: 'code-go-02',
+      content: `func fibonacci(n int) int {
+    if n <= 1 {
+        return n
+    }
+    return fibonacci(n-1) + fibonacci(n-2)
+}`,
+      source: 'Go — recursive fibonacci',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 18,
+      charCount: 111,
+      tags: ["go","recursion","fibonacci"],
+      codeLanguage: 'go',
+    },
+    {
+      id: 'code-go-03',
+      content: `ch := make(chan int, 10)
+go func() {
+    for i := 0; i < 10; i++ {
+        ch <- i
+    }
+    close(ch)
+}()`,
+      source: 'Go — goroutine channel',
+      language: 'en',
+      difficulty: 5,
+      wordCount: 23,
+      charCount: 106,
+      tags: ["go","goroutine","channel"],
+      codeLanguage: 'go',
+    },
+    {
+      id: 'code-go-04',
+      content: `type Stack[T any] struct {
+    items []T
+}
+
+func (s *Stack[T]) Push(item T) {
+    s.items = append(s.items, item)
+}`,
+      source: 'Go — generic stack',
+      language: 'en',
+      difficulty: 5,
+      wordCount: 19,
+      charCount: 115,
+      tags: ["go","generics","stack"],
+      codeLanguage: 'go',
+    },
+    {
+      id: 'code-go-05',
+      content: `defer func() {
+    if r := recover(); r != nil {
+        log.Printf("Recovered from panic: %v", r)
+    }
+}()`,
+      source: 'Go — recover from panic',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 18,
+      charCount: 108,
+      tags: ["go","defer","panic"],
+      codeLanguage: 'go',
+    },
+    {
+      id: 'code-sh-03',
+      content: `#!/bin/bash
+set -euo pipefail
+mkdir -p dist && cp -r src/* dist/`,
+      source: 'Shell — strict mode script',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 12,
+      charCount: 64,
+      tags: ["shell","bash","scripting"],
+    },
+    {
+      id: 'code-sh-04',
+      content: `for f in *.json; do jq . "$f" > "\${f%.json}.formatted.json"; done`,
+      source: 'Shell — format all JSON files',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 11,
+      charCount: 65,
+      tags: ["shell","jq","json"],
+    },
+    {
+      id: 'code-sh-05',
+      content: `docker ps --format 'table {{.ID}}	{{.Names}}	{{.Status}}' | grep running`,
+      source: 'Docker — list running containers',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 10,
+      charCount: 72,
+      tags: ["docker","shell","containers"],
+    },
+    {
+      id: 'code-sql-02',
+      content: `CREATE INDEX CONCURRENTLY idx_users_email
+ON users (email)
+WHERE email IS NOT NULL;`,
+      source: 'SQL — concurrent index creation',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 12,
+      charCount: 83,
+      tags: ["sql","index","performance"],
+      codeLanguage: 'sql',
+    },
+    {
+      id: 'code-sql-03',
+      content: `WITH ranked AS (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at DESC) AS rn
+  FROM sessions
+)
+SELECT * FROM ranked WHERE rn = 1;`,
+      source: 'SQL — latest row per user CTE',
+      language: 'en',
+      difficulty: 5,
+      wordCount: 28,
+      charCount: 153,
+      tags: ["sql","cte","window-function"],
+      codeLanguage: 'sql',
+    },
+    {
+      id: 'code-css-02',
+      content: `.container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}`,
+      source: 'CSS — responsive grid layout',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 11,
+      charCount: 108,
+      tags: ["css","grid","responsive"],
+    },
+    {
+      id: 'code-css-03',
+      content: `@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}`,
+      source: 'CSS — fade-in animation',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 18,
+      charCount: 123,
+      tags: ["css","animation","keyframes"],
+    },
+    {
+      id: 'code-json-02',
+      content: `{
+  "compilerOptions": {
+    "target": "ES2022",
+    "strict": true,
+    "moduleResolution": "bundler"
+  }
+}`,
+      source: 'JSON — tsconfig.json example',
+      language: 'en',
+      difficulty: 1,
+      wordCount: 11,
+      charCount: 108,
+      tags: ["json","typescript","config"],
+    },
+    {
+      id: 'code-json-03',
+      content: `{
+  "extends": "../../eslint.config.mjs",
+  "rules": {
+    "no-console": "warn",
+    "@typescript-eslint/no-explicit-any": "error"
+  }
+}`,
+      source: 'JSON — ESLint config',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 11,
+      charCount: 136,
+      tags: ["json","eslint","config"],
+    },
+    {
+      id: 'code-js-01',
+      content: `const throttle = (fn, limit) => {
+  let inThrottle;
+  return (...args) => {
+    if (!inThrottle) {
+      fn(...args);
+      inThrottle = true;
+      setTimeout(() => (inThrottle = false), limit);
+    }
+  };
+};`,
+      source: 'JavaScript — throttle utility',
+      language: 'en',
+      difficulty: 5,
+      wordCount: 29,
+      charCount: 209,
+      tags: ["javascript","utility","throttle"],
+      codeLanguage: 'javascript',
+    },
+    {
+      id: 'code-js-02',
+      content: `const curry = fn => {
+  const arity = fn.length;
+  return function curried(...args) {
+    return args.length >= arity ? fn(...args) : curried.bind(null, ...args);
+  };
+};`,
+      source: 'JavaScript — curry function',
+      language: 'en',
+      difficulty: 5,
+      wordCount: 25,
+      charCount: 170,
+      tags: ["javascript","functional","curry"],
+      codeLanguage: 'javascript',
+    },
+    // ── Français ──────────────────────────────────────────────────────────────
+    {
+      id: 'code-ts-fr-01',
+      content: `// Vérifie si un tableau est vide
+const estVide = <T>(tab: T[]): boolean => tab.length === 0;`,
+      source: 'TypeScript — utilitaire tableau vide',
+      language: 'fr',
+      difficulty: 1,
+      wordCount: 17,
+      charCount: 93,
+      tags: ["typescript","tableau","utilitaire"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-ts-fr-02',
+      content: `// Attend N millisecondes de façon asynchrone
+const attendre = (ms: number): Promise<void> =>
+  new Promise((résoudre) => setTimeout(résoudre, ms));`,
+      source: 'TypeScript — utilitaire attente',
+      language: 'fr',
+      difficulty: 3,
+      wordCount: 19,
+      charCount: 148,
+      tags: ["typescript","async","attente"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-ts-fr-03',
+      content: `// Retourne les éléments uniques d'un tableau
+const unique = <T>(tab: T[]): T[] => [...new Set(tab)];`,
+      source: 'TypeScript — éléments uniques',
+      language: 'fr',
+      difficulty: 1,
+      wordCount: 16,
+      charCount: 101,
+      tags: ["typescript","tableau","set"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-ts-fr-04',
+      content: `// Limite une valeur entre un minimum et un maximum
+export const limiter = (valeur: number, min: number, max: number): number =>
+  Math.min(Math.max(valeur, min), max);`,
+      source: 'TypeScript — utilitaire limiter',
+      language: 'fr',
+      difficulty: 1,
+      wordCount: 25,
+      charCount: 168,
+      tags: ["typescript","math","utilitaire"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-ts-fr-05',
+      content: `// Interface d'un magasin d'état minimaliste
+interface Magasin<T> {
+  lireÉtat(): T;
+  modifierÉtat(partiel: Partial<T>): void;
+  abonner(écouteur: () => void): () => void;
+}`,
+      source: 'TypeScript — interface Magasin',
+      language: 'fr',
+      difficulty: 3,
+      wordCount: 22,
+      charCount: 174,
+      tags: ["typescript","interface","état"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-ts-fr-06',
+      content: `// Fonction de composition : applique les fonctions de gauche à droite
+export function composer<T>(...fns: Array<(x: T) => T>): (x: T) => T {
+  return (x) => fns.reduce((v, f) => f(v), x);
+}`,
+      source: 'TypeScript — programmation fonctionnelle',
+      language: 'fr',
+      difficulty: 5,
+      wordCount: 33,
+      charCount: 190,
+      tags: ["typescript","fonctionnel","composition"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-py-fr-01',
+      content: `# Calcule le factoriel de façon récursive
+def factorielle(n: int) -> int:
+    return 1 if n <= 1 else n * factorielle(n - 1)`,
+      source: 'Python — factorielle récursive',
+      language: 'fr',
+      difficulty: 1,
+      wordCount: 24,
+      charCount: 124,
+      tags: ["python","récursion","math"],
+      codeLanguage: 'python',
+    },
+    {
+      id: 'code-py-fr-02',
+      content: `# Générateur de la suite de Fibonacci
+from typing import Generator
+
+def fibonacci() -> Generator[int, None, None]:
+    a, b = 0, 1
+    while True:
+        yield a
+        a, b = b, a + b`,
+      source: 'Python — générateur Fibonacci',
+      language: 'fr',
+      difficulty: 3,
+      wordCount: 33,
+      charCount: 186,
+      tags: ["python","générateur","math"],
+      codeLanguage: 'python',
+    },
+    {
+      id: 'code-py-fr-03',
+      content: `# Compter les mots dans chaque chaîne
+mots = ["bonjour", "monde", "python"]
+résultat = {mot: len(mot) for mot in mots if len(mot) > 4}`,
+      source: 'Python — compréhension de dict',
+      language: 'fr',
+      difficulty: 1,
+      wordCount: 24,
+      charCount: 134,
+      tags: ["python","compréhension","dict"],
+      codeLanguage: 'python',
+    },
+    {
+      id: 'code-py-fr-04',
+      content: `# Découpe une liste en sous-listes de taille fixe
+def découper(liste: list, taille: int) -> list:
+    return [liste[i:i + taille] for i in range(0, len(liste), taille)]`,
+      source: 'Python — découpage de liste',
+      language: 'fr',
+      difficulty: 3,
+      wordCount: 26,
+      charCount: 168,
+      tags: ["python","liste","lot"],
+      codeLanguage: 'python',
+    },
+    {
+      id: 'code-py-fr-05',
+      content: `# Carrés des dix premiers entiers
+carrés = [x ** 2 for x in range(1, 11)]`,
+      source: 'Python — compréhension de liste',
+      language: 'fr',
+      difficulty: 1,
+      wordCount: 16,
+      charCount: 73,
+      tags: ["python","compréhension","math"],
+      codeLanguage: 'python',
+    },
+    {
+      id: 'code-rs-fr-01',
+      content: `// Vérifie si une chaîne est un palindrome
+fn est_palindrome(s: &str) -> bool {
+    let chars: Vec<char> = s.chars().collect();
+    chars == chars.iter().rev().cloned().collect::<Vec<_>>()
+}`,
+      source: 'Rust — palindrome',
+      language: 'fr',
+      difficulty: 3,
+      wordCount: 23,
+      charCount: 190,
+      tags: ["rust","chaîne","palindrome"],
+      codeLanguage: 'rust',
+    },
+    {
+      id: 'code-rs-fr-02',
+      content: `// Structure Point dérivant Debug, Clone et PartialEq
+#[derive(Debug, Clone, PartialEq)]
+struct Point {
+    x: f64,
+    y: f64,
+}`,
+      source: 'Rust — struct dérivée',
+      language: 'fr',
+      difficulty: 3,
+      wordCount: 19,
+      charCount: 129,
+      tags: ["rust","struct","dérivation"],
+      codeLanguage: 'rust',
+    },
+    {
+      id: 'code-rs-fr-03',
+      content: `// Résultat de chaîne d'itérateurs
+let résultat: Vec<_> = (1..=10).filter(|n| n % 2 == 0).map(|n| n * n).collect();`,
+      source: 'Rust — chaîne d\'itérateurs',
+      language: 'fr',
+      difficulty: 3,
+      wordCount: 18,
+      charCount: 115,
+      tags: ["rust","itérateurs","fonctionnel"],
+      codeLanguage: 'rust',
+    },
+    {
+      id: 'code-go-fr-01',
+      content: `// Point d'entrée principal du programme
+func main() {
+    fmt.Println("Bonjour, monde !")
+}`,
+      source: 'Go — bonjour monde',
+      language: 'fr',
+      difficulty: 1,
+      wordCount: 13,
+      charCount: 92,
+      tags: ["go","bonjour","bases"],
+      codeLanguage: 'go',
+    },
+    {
+      id: 'code-go-fr-02',
+      content: `// Fibonacci récursif
+func fibonacci(n int) int {
+    if n <= 1 {
+        return n
+    }
+    return fibonacci(n-1) + fibonacci(n-2)
+}`,
+      source: 'Go — fibonacci récursif',
+      language: 'fr',
+      difficulty: 3,
+      wordCount: 21,
+      charCount: 133,
+      tags: ["go","récursion","fibonacci"],
+      codeLanguage: 'go',
+    },
+    {
+      id: 'code-go-fr-03',
+      content: `// Goroutine envoyant des entiers dans un canal
+ch := make(chan int, 10)
+go func() {
+    for i := 0; i < 10; i++ {
+        ch <- i
+    }
+    close(ch)
+}()`,
+      source: 'Go — goroutine et canal',
+      language: 'fr',
+      difficulty: 5,
+      wordCount: 31,
+      charCount: 154,
+      tags: ["go","goroutine","canal"],
+      codeLanguage: 'go',
+    },
+    {
+      id: 'code-sh-fr-01',
+      content: `#!/bin/bash
+# Mode strict : sortir en cas d'erreur
+set -euo pipefail
+mkdir -p dist && cp -r src/* dist/`,
+      source: 'Shell — script mode strict',
+      language: 'fr',
+      difficulty: 3,
+      wordCount: 20,
+      charCount: 103,
+      tags: ["shell","bash","scripting"],
+    },
+    {
+      id: 'code-sh-fr-02',
+      content: `# Compter les lignes TypeScript en excluant node_modules
+find . -name '*.ts' -not -path '*/node_modules/*' | xargs wc -l | sort -n`,
+      source: 'Shell — compter les lignes TypeScript',
+      language: 'fr',
+      difficulty: 3,
+      wordCount: 22,
+      charCount: 130,
+      tags: ["shell","unix","find"],
+    },
+    {
+      id: 'code-sh-fr-03',
+      content: `# Visualiser l'historique git en ligne
+git log --oneline --graph --all --decorate | head -20`,
+      source: 'Git — visualiser l\'historique',
+      language: 'fr',
+      difficulty: 1,
+      wordCount: 15,
+      charCount: 92,
+      tags: ["git","shell","historique"],
+    }
   ],
 };

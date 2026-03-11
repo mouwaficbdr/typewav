@@ -2,7 +2,6 @@ export type {
   CodeLanguage,
   CollectionConfig,
   CollectionLanguage,
-  TextDifficulty,
   TextEntry,
 } from './collection';
 export { LEARNING_LEVELS, MILESTONES, RANKS } from './progression';

@@ -16,3 +16,6 @@ export const ALL_COLLECTIONS = [
   'gaming',
 ] as const;
 export type CollectionId = (typeof ALL_COLLECTIONS)[number];
+
+export type { FetchOptions } from './fetch';
+export { fetchCollection, fetchPool } from './fetch';
