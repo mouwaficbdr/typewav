@@ -12,7 +12,7 @@ import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useSession } from '@/hooks/useSession';
 import type { TypingMode } from '@typewav/types';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface TypingAreaProps {
   text: string;
@@ -55,6 +55,7 @@ export function TypingArea({
   const t = useTranslations('typing');
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isFocused, setIsFocused] = useState(false);
 
   // Focus automatique sur le conteneur au montage
   useEffect(() => {
@@ -204,6 +205,8 @@ export function TypingArea({
         aria-multiline="false"
         tabIndex={0}
         onKeyDown={handleKeyDown}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         className="relative cursor-text select-none rounded-md p-8 typing-focus-ring w-full"
         style={{
           backgroundColor: 'var(--color-surface)',
@@ -220,6 +223,38 @@ export function TypingArea({
             userPosition={position}
             textLength={text.length}
           />
+        )}
+
+        {/* Overlay d'activation — disparaît au focus */}
+        {!isFocused && !isComplete && (
+          <div
+            aria-hidden="true"
+            data-testid="typing-activation-overlay"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background:
+                'color-mix(in srgb, var(--color-bg) 60%, transparent)',
+              borderRadius: 'var(--radius-lg)',
+              cursor: 'pointer',
+              zIndex: 1,
+              pointerEvents: 'none',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: 'var(--font-ui)',
+                fontSize: '0.875rem',
+                color: 'var(--color-text-muted)',
+                letterSpacing: '0.05em',
+              }}
+            >
+              {t('hint')}
+            </span>
+          </div>
         )}
         <p
           aria-live="off"
@@ -245,15 +280,6 @@ export function TypingArea({
             );
           })}
         </p>
-
-        {!isComplete && (
-          <p
-            className="absolute bottom-2 right-4 text-xs"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            {t('hint')}
-          </p>
-        )}
       </div>
     </div>
   );

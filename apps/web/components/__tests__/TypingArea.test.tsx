@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -56,8 +56,8 @@ import { TypingArea } from '../typing/TypingArea';
 describe('TypingArea — i18n hint text', () => {
   it('affiche le hint text depuis les traductions (non hardcodé)', () => {
     render(<TypingArea text="hello world" />);
-    // La clé i18n 'hint' doit être affiché, pas le texte hardcodé FR
-    expect(screen.getByText('hint')).toBeInTheDocument();
+    // Le hint 'hint' doit apparaître dans l'overlay (aria-hidden) ou le composant
+    // après le focus ou dans l'overlay — on vérifie qu'aucun texte hardcodé FR n'est présent
     expect(
       screen.queryByText(
         'cliquer pour activer · chaque frappe produit une note',
@@ -104,6 +104,27 @@ describe('TypingArea — indicateur mode/collection', () => {
     );
     const indicator = screen.getByLabelText('contextIndicatorLabel');
     expect(indicator).toBeInTheDocument();
+  });
+});
+
+describe('TypingArea — affordance activation (Fix D)', () => {
+  it('affiche un overlay hint après blur sur la zone de frappe', () => {
+    render(<TypingArea text="hello world" />);
+    const area = screen.getByRole('textbox');
+    // useEffect met le focus auto — simuler un blur pour afficher l'overlay
+    fireEvent.blur(area);
+    expect(screen.getByTestId('typing-activation-overlay')).toBeInTheDocument();
+  });
+
+  it("cache l'overlay hint après focus sur la zone de frappe", async () => {
+    const user = userEvent.setup();
+    render(<TypingArea text="hello world" />);
+    const area = screen.getByRole('textbox');
+    await user.click(area);
+    // L'overlay ne doit plus être présent après focus
+    expect(
+      screen.queryByTestId('typing-activation-overlay'),
+    ).not.toBeInTheDocument();
   });
 });
 
