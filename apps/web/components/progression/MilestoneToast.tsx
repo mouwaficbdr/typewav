@@ -53,10 +53,11 @@ function SingleToast({
         padding: '12px 18px',
         background: 'var(--color-surface)',
         border: '1px solid var(--color-accent)',
-        borderRadius: 10,
+        borderRadius: 'var(--radius-lg)',
         cursor: 'pointer',
         maxWidth: 320,
-        boxShadow: '0 4px 20px rgba(0,212,170,0.15)',
+        boxShadow:
+          '0 4px 20px color-mix(in srgb, var(--color-accent) 15%, transparent)',
       }}
     >
       <span style={{ fontSize: 24 }}>

@@ -223,7 +223,7 @@ export function PremiumPageClient() {
               <span
                 style={{
                   backgroundColor: 'var(--color-accent)',
-                  borderRadius: '3px',
+                  borderRadius: 'var(--radius-sm)',
                   color: 'var(--color-bg)',
                   fontSize: '0.625rem',
                   fontWeight: '700',
@@ -240,7 +240,7 @@ export function PremiumPageClient() {
                 aria-label={tSync('comingSoon')}
                 style={{
                   backgroundColor: 'var(--color-border)',
-                  borderRadius: '12px',
+                  borderRadius: 'var(--radius-lg)',
                   color: 'var(--color-text-muted)',
                   fontFamily: 'var(--font-ui)',
                   fontSize: '0.6875rem',
@@ -270,7 +270,7 @@ export function PremiumPageClient() {
             padding: '12px 16px',
             backgroundColor: 'var(--color-surface)',
             border: '1px solid var(--color-border)',
-            borderRadius: '6px',
+            borderRadius: 'var(--radius-md)',
             maxWidth: '480px',
             width: '100%',
           }}
@@ -326,7 +326,7 @@ export function PremiumPageClient() {
             style={{
               backgroundColor: 'var(--color-border)',
               border: '1px solid var(--color-accent)',
-              borderRadius: '4px',
+              borderRadius: 'var(--radius-md)',
               color: 'var(--color-accent)',
               cursor: 'pointer',
               fontFamily: 'var(--font-ui)',
@@ -338,7 +338,11 @@ export function PremiumPageClient() {
               width: '100%',
             }}
           >
-            {checkoutLoading ? '…' : user ? tPremium('subscribe') : tAuth('signIn')}
+            {checkoutLoading
+              ? '…'
+              : user
+                ? tPremium('subscribe')
+                : tAuth('signIn')}
           </button>
         </div>
 
@@ -355,7 +359,7 @@ export function PremiumPageClient() {
           <span
             style={{
               backgroundColor: 'var(--color-accent)',
-              borderRadius: '3px',
+              borderRadius: 'var(--radius-sm)',
               color: 'var(--color-bg)',
               fontSize: '0.625rem',
               fontWeight: '700',
@@ -365,7 +369,7 @@ export function PremiumPageClient() {
               top: '-14px',
             }}
           >
-          {tPremium('bestPrice')}
+            {tPremium('bestPrice')}
           </span>
           <p
             style={{
@@ -403,7 +407,7 @@ export function PremiumPageClient() {
             style={{
               backgroundColor: 'var(--color-accent)',
               border: 'none',
-              borderRadius: '4px',
+              borderRadius: 'var(--radius-md)',
               color: 'var(--color-bg)',
               cursor: 'pointer',
               fontFamily: 'var(--font-ui)',
@@ -415,7 +419,11 @@ export function PremiumPageClient() {
               width: '100%',
             }}
           >
-            {checkoutLoading ? '…' : user ? tPremium('subscribe') : tAuth('signIn')}
+            {checkoutLoading
+              ? '…'
+              : user
+                ? tPremium('subscribe')
+                : tAuth('signIn')}
           </button>
         </div>
       </div>

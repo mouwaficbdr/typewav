@@ -29,7 +29,12 @@ vi.mock('next/link', () => ({
 }));
 
 vi.mock('@/hooks/useUser', () => ({
-  useUser: vi.fn(() => ({ user: null, isPremium: false, loading: false })),
+  useUser: vi.fn(() => ({
+    user: null,
+    isPremium: false,
+    loading: false,
+    pseudo: '',
+  })),
 }));
 
 describe('GlobalNav', () => {
@@ -52,15 +57,39 @@ describe('GlobalNav', () => {
     expect(screen.getByText('login')).toBeInTheDocument();
   });
 
-  it('affiche le pseudo si utilisateur connecté', async () => {
+  it('affiche email.split("@")[0] si pseudo vide', async () => {
     const { useUser } = await import('@/hooks/useUser');
     vi.mocked(useUser).mockReturnValueOnce({
-      user: { email: 'alice@example.com' } as any,
+      user: {
+        email: 'alice@example.com',
+      } as unknown as import('@supabase/supabase-js').User,
       isPremium: false,
       loading: false,
+      pseudo: '',
     });
     render(<GlobalNav />);
     expect(screen.getByText('alice')).toBeInTheDocument();
+  });
+
+  it("affiche le pseudo en priorité sur l'email", async () => {
+    const { useUser } = await import('@/hooks/useUser');
+    vi.mocked(useUser).mockReturnValueOnce({
+      user: {
+        email: 'alice@example.com',
+      } as unknown as import('@supabase/supabase-js').User,
+      isPremium: false,
+      loading: false,
+      pseudo: 'Alice',
+    });
+    render(<GlobalNav />);
+    expect(screen.getByText('Alice')).toBeInTheDocument();
+    expect(screen.queryByText('alice')).not.toBeInTheDocument();
+  });
+
+  it('le logo utilise --font-display', () => {
+    render(<GlobalNav />);
+    const logo = screen.getByRole('link', { name: /typewav/i });
+    expect(logo).toHaveStyle({ fontFamily: 'var(--font-display)' });
   });
 
   it('marque le lien actif avec aria-current="page"', () => {

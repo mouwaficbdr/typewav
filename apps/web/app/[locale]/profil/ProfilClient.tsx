@@ -103,7 +103,7 @@ export function ProfilClient() {
           style={{
             backgroundColor: 'var(--color-surface)',
             border: '1px solid var(--color-border)',
-            borderRadius: '6px',
+            borderRadius: 'var(--radius-md)',
             padding: '12px 16px',
             marginBottom: '24px',
             fontFamily: 'var(--font-ui)',
@@ -172,7 +172,7 @@ export function ProfilClient() {
               padding: 20,
               background: 'var(--color-surface)',
               border: '1px solid var(--color-border)',
-              borderRadius: 10,
+              borderRadius: 'var(--radius-lg)',
             }}
           >
             <p
@@ -238,10 +238,12 @@ export function ProfilClient() {
                 onClick={() => setChartDays(d)}
                 style={{
                   padding: '4px 12px',
-                  borderRadius: 6,
+                  borderRadius: 'var(--radius-md)',
                   border: `1px solid ${chartDays === d ? 'var(--color-accent)' : 'var(--color-border)'}`,
                   background:
-                    chartDays === d ? 'rgba(0,212,170,0.1)' : 'transparent',
+                    chartDays === d
+                      ? 'color-mix(in srgb, var(--color-accent) 10%, transparent)'
+                      : 'transparent',
                   color:
                     chartDays === d
                       ? 'var(--color-accent)'
@@ -281,7 +283,7 @@ export function ProfilClient() {
           display: 'inline-block',
           padding: '10px 24px',
           border: '1px solid var(--color-border)',
-          borderRadius: 8,
+          borderRadius: 'var(--radius-lg)',
           color: 'var(--color-text-muted)',
           fontFamily: 'var(--font-ui)',
           fontSize: 14,

@@ -85,7 +85,7 @@ export function LeaderboardTable({
                     ? 'var(--color-accent)'
                     : 'var(--color-text-primary)',
                   background: isCurrentUser
-                    ? 'rgba(0, 212, 170, 0.04)'
+                    ? 'color-mix(in srgb, var(--color-accent) 4%, transparent)'
                     : 'transparent',
                 }}
               >
