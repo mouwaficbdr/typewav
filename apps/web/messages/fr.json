@@ -126,6 +126,13 @@
     "language": "Langue"
   },
   "auth": {
+    "emailLabel": "Adresse email",
+    "emailPlaceholder": "Email",
+    "passwordLabel": "Mot de passe",
+    "passwordPlaceholder": "Mot de passe",
+    "loading": "Chargement…",
+    "createAccount": "Créer un compte",
+    "signIn": "Se connecter",
     "forgotPassword": "Mot de passe oublié ?",
     "resetTitle": "Réinitialiser le mot de passe",
     "resetDescription": "Entrez votre adresse email. Vous recevrez un lien pour créer un nouveau mot de passe.",

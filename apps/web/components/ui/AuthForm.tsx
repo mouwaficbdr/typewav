@@ -80,14 +80,15 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   const inputStyle: React.CSSProperties = {
     backgroundColor: 'var(--color-surface)',
-    border: '1px solid var(--color-border)',
-    borderRadius: '4px',
+    border: '1px solid var(--color-text-muted)', // contraste 5.7:1 — WCAG 1.4.11 AA ✅
+    borderRadius: 'var(--radius-md)',
     color: 'var(--color-text-primary)',
     fontFamily: 'var(--font-mono)',
     fontSize: '0.875rem',
     padding: '10px 14px',
     width: '100%',
-    outline: 'none',
+    transition: 'border-color var(--transition-fast)',
+    // Pas d'outline:none — :focus-visible géré via la classe CSS .form-input
   };
 
   return (
@@ -96,23 +97,33 @@ export function AuthForm({ mode }: AuthFormProps) {
       style={{ width: '100%', maxWidth: '360px' }}
     >
       <div className="flex flex-col gap-4">
+        <label htmlFor="auth-email" className="sr-only">
+          {t('emailLabel')}
+        </label>
         <input
+          id="auth-email"
           type="email"
-          placeholder="Email"
+          placeholder={t('emailPlaceholder')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
           autoComplete="email"
+          className="form-input"
           style={inputStyle}
         />
+        <label htmlFor="auth-password" className="sr-only">
+          {t('passwordLabel')}
+        </label>
         <input
+          id="auth-password"
           type="password"
-          placeholder="Mot de passe"
+          placeholder={t('passwordPlaceholder')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
           autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
           minLength={8}
+          className="form-input"
           style={inputStyle}
         />
 
@@ -171,7 +182,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           style={{
             backgroundColor: 'var(--color-accent)',
             border: 'none',
-            borderRadius: '4px',
+            borderRadius: 'var(--radius-md)',
             color: 'var(--color-bg)',
             cursor: loading ? 'wait' : 'pointer',
             fontFamily: 'var(--font-ui)',
@@ -186,10 +197,10 @@ export function AuthForm({ mode }: AuthFormProps) {
           }}
         >
           {loading
-            ? 'Chargement…'
+            ? t('loading')
             : mode === 'signup'
-              ? 'Créer un compte'
-              : 'Se connecter'}
+              ? t('createAccount')
+              : t('signIn')}
         </button>
       </div>
     </form>

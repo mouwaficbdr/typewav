@@ -45,6 +45,48 @@ import { AuthForm } from '../ui/AuthForm';
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
+// ─── Spec-22 : Accessibilité (WCAG 1.3.1, 2.4.7, 1.4.11 / RGAA 11.1) ────────
+
+describe('AuthForm — accessibilité', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('mode login : le champ email possède un label associé', () => {
+    render(<AuthForm mode="login" />);
+    const input = screen.getByLabelText('emailLabel');
+    expect(input).toBeInTheDocument();
+    expect(input).toHaveAttribute('type', 'email');
+  });
+
+  it('mode login : le champ password possède un label associé', () => {
+    render(<AuthForm mode="login" />);
+    const input = screen.getByLabelText('passwordLabel');
+    expect(input).toBeInTheDocument();
+    expect(input).toHaveAttribute('type', 'password');
+  });
+
+  it('mode signup : les deux labels sont présents', () => {
+    render(<AuthForm mode="signup" />);
+    expect(screen.getByLabelText('emailLabel')).toBeInTheDocument();
+    expect(screen.getByLabelText('passwordLabel')).toBeInTheDocument();
+  });
+
+  it("les inputs n'ont pas d'attribut style outline:none (focus ring géré par CSS)", () => {
+    render(<AuthForm mode="login" />);
+    const input = screen.getByLabelText('emailLabel') as HTMLInputElement;
+    expect(input.style.outline).not.toBe('none');
+  });
+
+  it('les inputs ont la classe form-input pour le focus ring CSS', () => {
+    render(<AuthForm mode="login" />);
+    expect(screen.getByLabelText('emailLabel')).toHaveClass('form-input');
+    expect(screen.getByLabelText('passwordLabel')).toHaveClass('form-input');
+  });
+});
+
+// ─── Redirection post-login ───────────────────────────────────────────────────
+
 describe('AuthForm — redirection post-login', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -58,8 +100,8 @@ describe('AuthForm — redirection post-login', () => {
     const user = userEvent.setup();
 
     render(<AuthForm mode="login" />);
-    await user.type(screen.getByPlaceholderText('Email'), 'test@example.com');
-    await user.type(screen.getByPlaceholderText('Mot de passe'), 'password123');
+    await user.type(screen.getByLabelText('emailLabel'), 'test@example.com');
+    await user.type(screen.getByLabelText('passwordLabel'), 'password123');
     await user.click(screen.getByRole('button'));
 
     await vi.waitFor(() => {
@@ -72,8 +114,8 @@ describe('AuthForm — redirection post-login', () => {
     const user = userEvent.setup();
 
     render(<AuthForm mode="login" />);
-    await user.type(screen.getByPlaceholderText('Email'), 'test@example.com');
-    await user.type(screen.getByPlaceholderText('Mot de passe'), 'password123');
+    await user.type(screen.getByLabelText('emailLabel'), 'test@example.com');
+    await user.type(screen.getByLabelText('passwordLabel'), 'password123');
     await user.click(screen.getByRole('button'));
 
     await vi.waitFor(() => {
