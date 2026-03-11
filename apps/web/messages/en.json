@@ -57,7 +57,11 @@
     "challenge": "Challenge",
     "tryAgain": "Try again",
     "nextText": "Next text",
-    "diagnosis": "Diagnosis"
+    "diagnosis": "Diagnosis",
+    "wpmGross": "Gross WPM",
+    "wpmNet": "Net WPM",
+    "accuracy": "Accuracy",
+    "consistency": "Consistency"
   },
   "challenge": {
     "title": "TypeWav Challenge",

@@ -57,7 +57,11 @@
     "challenge": "Lancer un défi",
     "tryAgain": "Réessayer",
     "nextText": "Texte suivant",
-    "diagnosis": "Diagnostic"
+    "diagnosis": "Diagnostic",
+    "wpmGross": "WPM brut",
+    "wpmNet": "WPM net",
+    "accuracy": "Précision",
+    "consistency": "Régularité"
   },
   "challenge": {
     "title": "Défi TypeWav",
