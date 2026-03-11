@@ -16,6 +16,7 @@
  */
 
 import { useAudioStore } from '@/stores/useAudioStore';
+import { useSessionStore } from '@/stores/useSessionStore';
 import {
   advanceAndGet,
   getChordAtIndex,
@@ -116,6 +117,8 @@ const DEFAULT_PACK_CONFIG = PACK_CONFIGS['piano']!;
 export function useAudioEngine() {
   const { initialized, themeId, soundPackId, activePieceId, setInitialized } =
     useAudioStore();
+  const recordNoteEvent = useSessionStore((s) => s.recordNoteEvent);
+  const sessionPosition = useSessionStore((s) => s.position);
 
   // Refs Tone.js — initialisées paresseusement après le premier keydown
   const synthRef = useRef<ToneSynth | null>(null);
@@ -223,8 +226,20 @@ export function useAudioEngine() {
 
       const duration = activePieceId !== null ? getCurrentDuration() : '16n';
       synth.triggerAttackRelease(noteToPlay, duration, Tone.now());
+
+      // Enregistrer l'événement note pour le visualiseur waveform
+      recordNoteEvent(noteToPlay, sessionPosition);
     },
-    [initialized, initialize, soundPackId, themeId, activePieceId, buildSynth],
+    [
+      initialized,
+      initialize,
+      soundPackId,
+      themeId,
+      activePieceId,
+      buildSynth,
+      recordNoteEvent,
+      sessionPosition,
+    ],
   );
 
   /**

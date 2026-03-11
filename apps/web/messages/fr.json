@@ -61,7 +61,8 @@
     "wpmGross": "WPM brut",
     "wpmNet": "WPM net",
     "accuracy": "Précision",
-    "consistency": "Régularité"
+    "consistency": "Régularité",
+    "waveformLabel": "votre session en notes"
   },
   "challenge": {
     "title": "Défi TypeWav",

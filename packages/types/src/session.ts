@@ -51,4 +51,18 @@ export interface SessionResult {
   collectionId?: string;
   soundPackId: string;
   keystrokeData: KeystrokeEntry[];
+  /** Événements note enregistrés pendant la session — optional pour backward compat */
+  noteEvents?: NoteEvent[];
+}
+
+/** Événement note généré par une frappe correcte */
+export interface NoteEvent {
+  /** Nom de la note jouée, ex: "C4", "G5" */
+  noteName: string;
+  /** Timestamp depuis le début de la session (ms) */
+  timestamp: number;
+  /** Index de position dans le texte */
+  charIndex: number;
+  /** Les erreurs ne génèrent pas d'événement note */
+  isError: false;
 }

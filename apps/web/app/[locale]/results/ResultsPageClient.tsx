@@ -8,6 +8,7 @@
 
 import { ResultsPage } from '@/components/typing/ResultsPage';
 import { getPersonalRecords } from '@/lib/db';
+import { useSessionStore } from '@/stores/useSessionStore';
 import type { PersonalRecords } from '@typewav/types';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -15,6 +16,12 @@ import { useEffect, useState } from 'react';
 export function ResultsPageClient() {
   const searchParams = useSearchParams();
   const [records, setRecords] = useState<PersonalRecords | null>(null);
+
+  const noteEvents = useSessionStore((s) => s.noteEvents);
+  const startedAt = useSessionStore((s) => s.startedAt);
+  const endedAt = useSessionStore((s) => s.endedAt);
+  const sessionDuration =
+    startedAt !== null && endedAt !== null ? endedAt - startedAt : undefined;
 
   const wpm = Number(searchParams.get('wpm') ?? '0');
   const wpmNet = Number(searchParams.get('wpmNet') ?? '0');
@@ -43,6 +50,10 @@ export function ResultsPageClient() {
       {...(sessionId !== undefined ? { sessionId } : {})}
       isNewWpmRecord={isNewWpmRecord}
       isNewAccuracyRecord={isNewAccuracyRecord}
+      {...(noteEvents.length > 0 ? { noteEvents } : {})}
+      {...(sessionDuration !== undefined
+        ? { durationMs: sessionDuration }
+        : {})}
     />
   );
 }

@@ -61,7 +61,8 @@
     "wpmGross": "Gross WPM",
     "wpmNet": "Net WPM",
     "accuracy": "Accuracy",
-    "consistency": "Consistency"
+    "consistency": "Consistency",
+    "waveformLabel": "your session in notes"
   },
   "challenge": {
     "title": "TypeWav Challenge",

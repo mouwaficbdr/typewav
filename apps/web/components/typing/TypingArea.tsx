@@ -8,8 +8,10 @@
  */
 
 import { GhostCursor } from '@/components/typing/GhostCursor';
+import { WaveformBars } from '@/components/typing/WaveformBars';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useSession } from '@/hooks/useSession';
+import { useSessionStore } from '@/stores/useSessionStore';
 import type { TypingMode } from '@typewav/types';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -53,9 +55,12 @@ export function TypingArea({
   const { initialize, playNote, triggerSilence, triggerResume } =
     useAudioEngine();
   const t = useTranslations('typing');
+  const noteEvents = useSessionStore((s) => s.noteEvents);
+  const lastNoteEvent = noteEvents[noteEvents.length - 1];
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = useState(false);
+  const [lastKeyWasError, setLastKeyWasError] = useState(false);
 
   // Focus automatique sur le conteneur au montage
   useEffect(() => {
@@ -102,8 +107,10 @@ export function TypingArea({
       handleKeystroke(e.key);
 
       if (isCorrect) {
+        setLastKeyWasError(false);
         await playNote(e.key, wordIndex);
       } else {
+        setLastKeyWasError(true);
         triggerSilence();
       }
 
@@ -196,6 +203,12 @@ export function TypingArea({
           % const
         </span>
       </div>
+
+      {/* Visualiseur waveform — barres réactives aux notes */}
+      <WaveformBars
+        lastNote={lastNoteEvent?.noteName}
+        isError={lastKeyWasError}
+      />
 
       {/* Zone de frappe */}
       <div

@@ -7,6 +7,8 @@
  * Spec : docs/specs/02-diagnostic.md, docs/specs/25-results-page-enhancement.md
  */
 
+import { SessionWaveform } from '@/components/typing/SessionWaveform';
+import type { NoteEvent } from '@typewav/types';
 import { motion, useReducedMotion } from 'motion/react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
@@ -20,6 +22,8 @@ interface ResultsPageProps {
   sessionId?: string;
   isNewWpmRecord?: boolean;
   isNewAccuracyRecord?: boolean;
+  noteEvents?: NoteEvent[];
+  durationMs?: number;
 }
 
 function StatCard({
@@ -92,6 +96,8 @@ export function ResultsPage({
   recommendation,
   isNewWpmRecord,
   isNewAccuracyRecord,
+  noteEvents,
+  durationMs,
 }: ResultsPageProps) {
   const shouldReduceMotion = useReducedMotion();
   const duration = shouldReduceMotion ? 0 : 0.5;
@@ -145,6 +151,37 @@ export function ResultsPage({
           role="status"
         >
           ✦ {t('newRecord')}
+        </motion.div>
+      )}
+
+      {/* Session waveform — rendre la musique visible */}
+      {noteEvents && noteEvents.length > 2 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{
+            duration: shouldReduceMotion ? 0 : 0.6,
+            delay: shouldReduceMotion ? 0 : 0.05,
+          }}
+          style={{ width: '100%', maxWidth: 600 }}
+        >
+          <SessionWaveform
+            noteEvents={noteEvents}
+            durationMs={durationMs ?? 60000}
+          />
+          <p
+            style={{
+              fontFamily: 'var(--font-ui)',
+              fontSize: '0.625rem',
+              color: 'var(--color-text-muted)',
+              textAlign: 'center',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              marginTop: 6,
+            }}
+          >
+            {t('waveformLabel')}
+          </p>
         </motion.div>
       )}
 
