@@ -313,10 +313,11 @@ export function PremiumPageClient() {
       <div className="flex flex-wrap justify-center gap-6">
         {/* Plan mensuel */}
         <div
-          className="flex flex-col items-center gap-4 rounded-md p-8"
+          className="flex flex-col items-center gap-4 p-8"
           style={{
             backgroundColor: 'var(--color-surface)',
             border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-lg)',
             minWidth: '200px',
           }}
         >
@@ -379,10 +380,11 @@ export function PremiumPageClient() {
 
         {/* Plan annuel */}
         <div
-          className="flex flex-col items-center gap-4 rounded-md p-8"
+          className="flex flex-col items-center gap-4 p-8"
           style={{
             backgroundColor: 'var(--color-surface)',
             border: '2px solid var(--color-accent)',
+            borderRadius: 'var(--radius-lg)',
             minWidth: '200px',
             position: 'relative',
           }}
