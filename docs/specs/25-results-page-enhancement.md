@@ -5,6 +5,20 @@
 > **Spec parente : `docs/specs/11-refonte-audit-2026.md` — item #22**
 > **Dépendance : spec-12 (wpmNet) doit être terminé avant — fournit sessionId correct**
 
+> ## ⚠️ SUPERSÉDÉE PAR SPEC-30
+>
+> **Mise à jour le : 11 Mars 2026**
+>
+> Cette spec est entièrement absorbée par **`docs/specs/30-results-refonte.md`** (FORGE [2]).
+>
+> spec-30 couvre tout ce que spec-25 prévoyait (StatCard order, PB detection, CTAs)
+> **plus** un redesign complet du layout (2 colonnes, WpmChart, SessionWaveform overlay,
+> barre d'actions 4 icônes, recommandation personnalisée).
+>
+> **Ne pas implémenter spec-25 séparément.** Utiliser spec-30 directement.
+>
+> Le contenu ci-dessous est conservé à titre de référence historique.
+
 ---
 
 ## Problème
