@@ -4,32 +4,12 @@ import Link from 'next/link';
 export default function SignupPage() {
   return (
     <main
-      className="flex min-h-dvh flex-col items-center justify-center gap-8 p-8"
-      style={{ backgroundColor: 'var(--color-bg)' }}
+      className="flex flex-col items-center justify-center p-8"
+      style={{
+        minHeight: 'calc(100dvh - 48px)',
+        backgroundColor: 'var(--color-bg)',
+      }}
     >
-      <header className="text-center">
-        <Link href="/">
-          <h1
-            className="text-3xl font-light tracking-widest"
-            style={{
-              fontFamily: 'var(--font-display)',
-              color: 'var(--color-accent)',
-            }}
-          >
-            TypeWav
-          </h1>
-        </Link>
-        <p
-          className="mt-2 text-sm tracking-widest uppercase"
-          style={{
-            color: 'var(--color-text-muted)',
-            fontFamily: 'var(--font-ui)',
-          }}
-        >
-          Créer un compte
-        </p>
-      </header>
-
       <AuthForm mode="signup" />
 
       <p
@@ -37,6 +17,7 @@ export default function SignupPage() {
           color: 'var(--color-text-muted)',
           fontFamily: 'var(--font-ui)',
           fontSize: '0.8125rem',
+          marginTop: '1.5rem',
         }}
       >
         Déjà un compte ?{' '}

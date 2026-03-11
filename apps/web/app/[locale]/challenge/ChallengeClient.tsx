@@ -18,11 +18,13 @@ import {
   hashText,
 } from '@/lib/challenge';
 import type { ChallengeParams } from '@typewav/types';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 export function ChallengeClient() {
+  const t = useTranslations('challenge');
   const searchParams = useSearchParams();
   const encoded = searchParams.get('c');
 
@@ -93,34 +95,22 @@ export function ChallengeClient() {
 
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-8 p-8">
-      <header className="text-center">
-        <h1
-          style={{
-            fontFamily: 'var(--font-display)',
-            color: 'var(--color-accent)',
-            fontSize: '2rem',
-            fontWeight: 300,
-            letterSpacing: '0.1em',
-          }}
-        >
-          Challenge TypeWav
-        </h1>
-        {params.creatorWpm !== undefined && (
-          <p
-            style={{
-              color: 'var(--color-text-muted)',
-              fontFamily: 'var(--font-ui)',
-              fontSize: '0.85rem',
-              marginTop: '0.5rem',
-            }}
-          >
-            Objectif : battre{' '}
-            <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>
-              {params.creatorWpm} WPM
-            </span>
-          </p>
-        )}
-      </header>
+      {/* Banner slim contextuel */}
+      <div
+        style={{
+          borderRadius: 'var(--radius-sm)',
+          color: 'var(--color-accent)',
+          fontFamily: 'var(--font-ui)',
+          fontSize: '0.8125rem',
+          letterSpacing: '0.05em',
+          marginBottom: 8,
+          textAlign: 'center',
+        }}
+      >
+        {params.creatorWpm !== undefined
+          ? t('bannerWithTarget', { target: params.creatorWpm })
+          : t('banner')}
+      </div>
 
       {!completed ? (
         <TypingArea

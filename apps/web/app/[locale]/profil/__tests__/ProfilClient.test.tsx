@@ -1,9 +1,24 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
+const mockSessions = Array.from({ length: 10 }, (_, i) => ({
+  id: `session-${i}`,
+  timestamp: Date.now() - i * 1000,
+  wpm: 60 + i,
+  wpmNet: 58 + i,
+  accuracy: 95,
+  consistency: 80,
+  duration: 60000,
+  mode: 'classic',
+  themeId: 'terminal',
+  collectionId: 'litterature',
+  soundPackId: 'piano',
+  keystrokeData: [],
+}));
+
 vi.mock('@/lib/db', () => ({
   getSessions: vi.fn().mockResolvedValue([]),
-  getUserProfile: vi.fn().mockResolvedValue({ currentRank: 'novice' }),
+  getUserProfile: vi.fn().mockResolvedValue({ currentRank: 'novice', pseudo: '' }),
   getPersonalRecords: vi.fn().mockResolvedValue(null),
 }));
 
@@ -34,10 +49,12 @@ vi.mock('next/link', () => ({
   default: ({
     children,
     href,
+    ...rest
   }: {
     children: React.ReactNode;
     href: string;
-  }) => <a href={href}>{children}</a>,
+    [key: string]: unknown;
+  }) => <a href={href} {...rest}>{children}</a>,
 }));
 
 vi.mock('@/components/charts/ContributionHeatmap', () => ({
@@ -89,3 +106,29 @@ describe('ProfilClient — sync banner', () => {
     unmount();
   });
 });
+
+describe('ProfilClient — structure spec-31', () => {
+  it('affiche le rang et le WPM médian en grand', async () => {
+    mockIsPremium.mockReturnValue(false);
+    await renderProfilClient();
+    await waitFor(() => {
+      // With mock (key) => key, tRanks('novice') = 'novice', avgWpm = 0
+      expect(screen.getByText(/WPM MÉDIAN/)).toBeInTheDocument();
+    });
+  });
+
+  it('affiche max 5 replays récents même avec 10 sessions', async () => {
+    const { getSessions } = await import('@/lib/db');
+    (getSessions as ReturnType<typeof vi.fn>).mockResolvedValue(mockSessions);
+    mockIsPremium.mockReturnValue(false);
+    const { unmount } = await renderProfilClient();
+    await waitFor(() => {
+      const replayLinks = screen.getAllByRole('link', { name: 'openReplay' });
+      expect(replayLinks).toHaveLength(5);
+    });
+    // restore
+    (getSessions as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    unmount();
+  });
+});
+

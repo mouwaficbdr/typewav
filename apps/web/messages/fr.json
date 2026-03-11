@@ -80,7 +80,9 @@
     "lost": "Dommage, réessayez !",
     "counterChallenge": "Contre-défier",
     "invalidLink": "Lien de défi invalide.",
-    "loading": "Chargement du défi…"
+    "loading": "Chargement du défi…",
+    "banner": "Challenge TypeWav",
+    "bannerWithTarget": "Objectif : battre {target} WPM"
   },
   "replay": {
     "title": "Replay TypeWav",
@@ -103,7 +105,10 @@
     "pseudoHeader": "Pseudo",
     "wpmHeader": "WPM",
     "accuracyHeader": "Précision",
-    "modeHeader": "Mode"
+    "modeHeader": "Mode",
+    "comingSoonMessage": "Classement mondial disponible dès la synchronisation cloud",
+    "soon": "BIENTÔT",
+    "myBestSessions": "Mes meilleures sessions"
   },
   "profile": {
     "title": "Profil",
@@ -118,7 +123,10 @@
     "recordAccuracy": "Record précision",
     "wpmProgress": "Progression WPM",
     "activity90Days": "Activité — 90 jours",
-    "daysFilter": "{count}j"
+    "daysFilter": "{count}j",
+    "recentReplays": "Replays récents",
+    "openReplay": "Voir le replay",
+    "noReplays": "Aucun replay sauvegardé"
   },
   "progression": {
     "rank": "Rang",
@@ -206,7 +214,9 @@
     "annualDesc": "par an · 3,33 €/mois",
     "bestPrice": "MEILLEUR PRIX · −33 %",
     "subscribe": "Souscrire",
-    "financialTransparency": "Transparence financière →"
+    "financialTransparency": "Transparence financière →",
+    "syncComingSoon": "Synchronisation cloud bientôt disponible",
+    "soon": "BIENTÔT"
   },
   "config": {
     "label": "Configuration",

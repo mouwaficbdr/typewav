@@ -290,23 +290,38 @@ export function PremiumPageClient() {
 
       {/* Note sync coming soon */}
       {SYNC_IS_COMING_SOON && (
-        <p
+        <div
+          data-testid="sync-coming-soon-banner"
           role="status"
           style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
             color: 'var(--color-text-muted)',
             fontFamily: 'var(--font-ui)',
             fontSize: '0.8125rem',
             lineHeight: '1.6',
-            padding: '12px 16px',
-            backgroundColor: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
             maxWidth: '480px',
             width: '100%',
           }}
         >
-          {tSync('comingSoonExplainer')}
-        </p>
+          <span>{tPremium('syncComingSoon')}</span>
+          <span
+            data-testid="premium-soon-badge"
+            style={{
+              color: 'var(--color-accent)',
+              fontSize: '0.75rem',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              border: '1px solid var(--color-accent)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '2px 8px',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {tPremium('soon')}
+          </span>
+        </div>
       )}
 
       {/* Plans */}
@@ -382,8 +397,7 @@ export function PremiumPageClient() {
         <div
           className="flex flex-col items-center gap-4 p-8"
           style={{
-            backgroundColor: 'var(--color-surface)',
-            border: '2px solid var(--color-accent)',
+            background: 'color-mix(in srgb, var(--color-accent) 8%, var(--color-surface))',
             borderRadius: 'var(--radius-lg)',
             minWidth: '200px',
             position: 'relative',
