@@ -126,6 +126,13 @@
     "language": "Language"
   },
   "auth": {
+    "emailLabel": "Email address",
+    "emailPlaceholder": "Email",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Password",
+    "loading": "Loading…",
+    "createAccount": "Create an account",
+    "signIn": "Sign in",
     "forgotPassword": "Forgot password?",
     "resetTitle": "Reset your password",
     "resetDescription": "Enter your email address. You'll receive a link to create a new password.",
