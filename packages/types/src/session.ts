@@ -9,7 +9,9 @@ export type TypingMode =
   | 'custom' // Texte personnel
   | 'classics' // Mode MIDI — pièces classiques
   | 'ghost' // Avec curseur fantôme (record personnel)
-  | 'challenge'; // Challenge partagé via URL
+  | 'challenge' // Challenge partagé via URL
+  | 'quote' // Citation unique
+  | 'zen'; // Mode sans pression, sans timer
 
 export interface KeystrokeEntry {
   char: string;
