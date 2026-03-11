@@ -122,10 +122,11 @@ export default function TransparencePage() {
           ].map((item) => (
             <div
               key={item.label}
-              className="flex items-start justify-between gap-4 rounded-md p-4"
+              className="flex items-start justify-between gap-4 p-4"
               style={{
                 backgroundColor: 'var(--color-surface)',
                 border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-md)',
               }}
             >
               <div>
@@ -232,7 +233,7 @@ export default function TransparencePage() {
               padding: '10px 20px',
               backgroundColor: 'var(--color-surface)',
               border: '1px solid var(--color-accent)',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-md)',
               color: 'var(--color-accent)',
               fontFamily: 'var(--font-ui)',
               fontSize: '0.875rem',
@@ -254,7 +255,7 @@ export default function TransparencePage() {
               padding: '10px 20px',
               backgroundColor: 'var(--color-surface)',
               border: '1px solid var(--color-border)',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-md)',
               color: 'var(--color-text-primary)',
               fontFamily: 'var(--font-ui)',
               fontSize: '0.875rem',
