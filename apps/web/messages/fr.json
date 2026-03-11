@@ -60,7 +60,16 @@
     "wpmNet": "WPM net",
     "accuracy": "Précision",
     "consistency": "Régularité",
-    "waveformLabel": "votre session en notes"
+    "waveformLabel": "votre session en notes",
+    "wpm": "wpm",
+    "record": "record",
+    "nextTest": "Prochain test",
+    "repeatTest": "Répéter",
+    "relisten": "Réécouter",
+    "loginCta": "Se connecter pour sauvegarder",
+    "duration": "durée",
+    "raw": "raw",
+    "characters": "caractères"
   },
   "challenge": {
     "title": "Défi TypeWav",

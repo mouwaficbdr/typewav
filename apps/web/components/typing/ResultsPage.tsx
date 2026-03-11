@@ -1,90 +1,152 @@
 'use client';
 
 /**
- * ResultsPage — affichage des résultats après un test de typing.
+ * ResultsPage — affichage des résultats, layout 2 colonnes.
  *
- * Client Component justifié : animation Motion, interaction (rejouer).
- * Spec : docs/specs/02-diagnostic.md, docs/specs/25-results-page-enhancement.md
+ * Colonne gauche : stats primaires (wpm / wpmNet / accuracy) + métadonnées mode
+ * Colonne droite : WpmChart + stats secondaires + barre d'actions 4 icônes + CTA login
+ *
+ * Client Component justifié : useUser, interactions (relisten, share).
+ * Spec : docs/specs/30-results-refonte.md (absorbe spec-25)
  */
 
-import { SessionWaveform } from '@/components/typing/SessionWaveform';
-import type { NoteEvent } from '@typewav/types';
+import { WpmChart } from '@/components/typing/WpmChart';
+import { useUser } from '@/hooks/useUser';
+import type { NoteEvent, TypingMode } from '@typewav/types';
 import { motion, useReducedMotion } from 'motion/react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 
 interface ResultsPageProps {
+  // ── Métriques core ────────────────────────────────────────────────────────
   wpm: number;
   wpmNet: number;
   accuracy: number;
   consistency: number;
-  recommendation: string;
+  /** Durée totale en ms */
+  durationMs: number;
+  // ── Session metadata ──────────────────────────────────────────────────────
+  mode: TypingMode;
+  collectionId?: string;
   sessionId?: string;
+  // ── Waveform ─────────────────────────────────────────────────────────────
+  noteEvents?: NoteEvent[];
+  // ── Records ──────────────────────────────────────────────────────────────
   isNewWpmRecord?: boolean;
   isNewAccuracyRecord?: boolean;
-  noteEvents?: NoteEvent[];
-  durationMs?: number;
 }
 
-function StatCard({
+/**
+ * StatPrimary — stat principale (label → grande valeur → microlabel record).
+ * Ordre label → valeur requis par spec-25.
+ */
+function StatPrimary({
   label,
   value,
-  unit,
-  delay,
   isRecord,
+  t,
 }: {
   label: string;
   value: number;
-  unit: string;
-  delay: number;
   isRecord?: boolean;
+  t: (key: string) => string;
 }) {
-  const shouldReduceMotion = useReducedMotion();
-  const duration = shouldReduceMotion ? 0 : 0.4;
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration, delay: shouldReduceMotion ? 0 : delay }}
-      className="flex flex-col items-center gap-1 p-6"
-      style={{
-        backgroundColor: 'var(--color-surface)',
-        border: '1px solid var(--color-border)',
-        borderRadius: 'var(--radius-lg)',
-        minWidth: '140px',
-      }}
-    >
-      {/* 1. Label */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <span
         style={{
           color: 'var(--color-text-muted)',
           fontFamily: 'var(--font-ui)',
           fontSize: '0.75rem',
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
+          letterSpacing: '0.05em',
         }}
       >
         {label}
       </span>
-      {/* 2. Valeur */}
       <span
         style={{
-          color: isRecord ? 'var(--color-accent)' : 'var(--color-text-primary)',
+          color: 'var(--color-accent)',
           fontFamily: 'var(--font-mono)',
           fontSize: '2.5rem',
-          fontWeight: '600',
+          fontWeight: 600,
           fontVariantNumeric: 'tabular-nums',
-          lineHeight: '1',
+          lineHeight: 1,
+          position: 'relative',
+          display: 'inline-block',
         }}
       >
         {Math.round(value)}
+        {isRecord && (
+          <span
+            role="status"
+            aria-label={t('newRecord')}
+            style={{
+              position: 'absolute',
+              bottom: -2,
+              left: 0,
+              width: '100%',
+              height: 1,
+              backgroundColor: 'var(--color-accent)',
+            }}
+          />
+        )}
       </span>
-      {/* 3. Unité */}
-      <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
-        {unit}
-      </span>
-    </motion.div>
+      {isRecord && (
+        <span
+          style={{
+            color: 'var(--color-text-muted)',
+            fontFamily: 'var(--font-ui)',
+            fontSize: '0.625rem',
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+          }}
+        >
+          {t('record')}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function formatDuration(ms: number): string {
+  const s = Math.round(ms / 1000);
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  const rem = s % 60;
+  return rem > 0 ? `${m}m ${rem}s` : `${m}m`;
+}
+
+function ActionBtn({
+  icon,
+  label,
+  disabled,
+  onClick,
+}: {
+  icon: string;
+  label: string;
+  disabled?: boolean;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      title={label}
+      style={{
+        background: 'transparent',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius-sm)',
+        color: disabled ? 'var(--color-border)' : 'var(--color-text-muted)',
+        cursor: disabled ? 'default' : 'pointer',
+        fontFamily: 'var(--font-mono)',
+        fontSize: '0.875rem',
+        padding: '6px 12px',
+        transition: 'color 0.1s, border-color 0.1s',
+      }}
+    >
+      {icon}
+    </button>
   );
 }
 
@@ -93,206 +155,191 @@ export function ResultsPage({
   wpmNet,
   accuracy,
   consistency,
-  recommendation,
+  durationMs,
+  mode,
+  collectionId,
+  sessionId,
+  noteEvents,
   isNewWpmRecord,
   isNewAccuracyRecord,
-  noteEvents,
-  durationMs,
 }: ResultsPageProps) {
-  const shouldReduceMotion = useReducedMotion();
-  const duration = shouldReduceMotion ? 0 : 0.5;
   const t = useTranslations('results');
-  const tProfile = useTranslations('profile');
   const locale = useLocale();
+  const { user } = useUser();
+  const shouldReduceMotion = useReducedMotion();
+  const animDur = shouldReduceMotion ? 0 : 0.4;
 
-  const hasRecord = (isNewWpmRecord ?? false) || (isNewAccuracyRecord ?? false);
+  const handleShare = () => {
+    if (!sessionId) return;
+    const url = `${window.location.origin}/${locale}/replay?id=${sessionId}`;
+    void navigator.clipboard.writeText(url).catch(() => null);
+  };
 
   return (
     <main
-      className="flex min-h-screen flex-col items-center justify-center gap-10 px-6 py-16"
-      style={{ backgroundColor: 'var(--color-bg)' }}
+      style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        gap: 48,
+        padding: '48px 24px',
+        minHeight: 'calc(100dvh - 48px)',
+        backgroundColor: 'var(--color-bg)',
+        flexWrap: 'wrap',
+      }}
     >
-      <motion.h1
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration }}
+      {/* ── Colonne gauche : stats primaires ─────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, x: shouldReduceMotion ? 0 : -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: animDur }}
         style={{
-          color: 'var(--color-text-primary)',
-          fontFamily: 'var(--font-display)',
-          fontSize: '2.5rem',
-          fontWeight: '300',
-          letterSpacing: '0.05em',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 28,
+          minWidth: 140,
         }}
       >
-        {t('title')}
-      </motion.h1>
-
-      {/* Bannière record personnel */}
-      {hasRecord && (
-        <motion.div
-          initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{
-            duration: shouldReduceMotion ? 0 : 0.4,
-            delay: shouldReduceMotion ? 0 : 0.05,
-          }}
-          style={{
-            border: '1px solid var(--color-accent)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '10px 24px',
-            fontFamily: 'var(--font-ui)',
-            fontSize: '0.875rem',
-            fontWeight: '600',
-            color: 'var(--color-accent)',
-            letterSpacing: '0.05em',
-            textTransform: 'uppercase',
-          }}
-          aria-live="polite"
-          role="status"
-        >
-          ✦ {t('newRecord')}
-        </motion.div>
-      )}
-
-      {/* Session waveform — rendre la musique visible */}
-      {noteEvents && noteEvents.length > 2 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{
-            duration: shouldReduceMotion ? 0 : 0.6,
-            delay: shouldReduceMotion ? 0 : 0.05,
-          }}
-          style={{ width: '100%', maxWidth: 600 }}
-        >
-          <SessionWaveform
-            noteEvents={noteEvents}
-            durationMs={durationMs ?? 60000}
-          />
-          <p
-            style={{
-              fontFamily: 'var(--font-ui)',
-              fontSize: '0.625rem',
-              color: 'var(--color-text-muted)',
-              textAlign: 'center',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              marginTop: 6,
-            }}
-          >
-            {t('waveformLabel')}
-          </p>
-        </motion.div>
-      )}
-
-      {/* Métriques principales */}
-      <div className="flex flex-wrap gap-4 justify-center">
-        <StatCard
-          label={t('wpmGross')}
+        <StatPrimary
+          label={t('wpm')}
           value={wpm}
-          unit="mots/min"
-          delay={0.1}
-          {...(isNewWpmRecord !== undefined
-            ? { isRecord: isNewWpmRecord }
-            : {})}
+          {...(isNewWpmRecord !== undefined ? { isRecord: isNewWpmRecord } : {})}
+          t={t}
         />
-        <StatCard
-          label={t('wpmNet')}
-          value={wpmNet}
-          unit="mots/min"
-          delay={0.2}
-        />
-        <StatCard
+        <StatPrimary label={t('wpmNet')} value={wpmNet} t={t} />
+        <StatPrimary
           label={t('accuracy')}
           value={accuracy}
-          unit="%"
-          delay={0.3}
           {...(isNewAccuracyRecord !== undefined
             ? { isRecord: isNewAccuracyRecord }
             : {})}
+          t={t}
         />
-        <StatCard
-          label={t('consistency')}
-          value={consistency}
-          unit="%"
-          delay={0.4}
-        />
-      </div>
 
-      {/* Recommandation */}
-      {recommendation && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration, delay: shouldReduceMotion ? 0 : 0.6 }}
-          className="max-w-lg p-6 text-center"
+        {/* Métadonnées mode · collection */}
+        <div
           style={{
-            backgroundColor: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-lg)',
+            color: 'var(--color-text-muted)',
+            fontFamily: 'var(--font-ui)',
+            fontSize: '0.75rem',
+            letterSpacing: '0.03em',
           }}
         >
-          <p
-            style={{
-              color: 'var(--color-text-muted)',
-              fontSize: '0.75rem',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              marginBottom: '0.5rem',
-            }}
-          >
-            {t('diagnosis')}
-          </p>
-          <p
-            style={{
-              color: 'var(--color-text-primary)',
-              fontFamily: 'var(--font-ui)',
-              fontSize: '0.9375rem',
-              lineHeight: '1.6',
-            }}
-          >
-            {recommendation}
-          </p>
-        </motion.div>
-      )}
+          {mode}
+          {collectionId ? ` · ${collectionId}` : ''}
+        </div>
+      </motion.div>
 
-      {/* Actions */}
+      {/* ── Zone centrale : graphique + stats + actions ───────────────────── */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration, delay: shouldReduceMotion ? 0 : 0.8 }}
-        className="flex flex-wrap gap-3 justify-center"
+        transition={{ duration: animDur, delay: shouldReduceMotion ? 0 : 0.1 }}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+          flex: 1,
+          minWidth: 280,
+          maxWidth: 600,
+        }}
       >
-        <Link
-          href="/"
+        {/* WpmChart */}
+        <WpmChart points={[]} noteEvents={noteEvents ?? []} durationMs={durationMs} />
+
+        {/* Stats secondaires */}
+        <div
           style={{
-            backgroundColor: 'var(--color-accent)',
-            borderRadius: 'var(--radius-md)',
-            color: 'var(--color-bg)',
+            display: 'flex',
+            gap: 16,
+            flexWrap: 'wrap',
             fontFamily: 'var(--font-ui)',
-            fontWeight: '600',
-            letterSpacing: '0.05em',
-            padding: '10px 24px',
-            textDecoration: 'none',
-            fontSize: '0.875rem',
-          }}
-        >
-          {t('tryAgain')}
-        </Link>
-        <Link
-          href={`/${locale}/profil`}
-          style={{
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
+            fontSize: '0.75rem',
             color: 'var(--color-text-muted)',
-            fontFamily: 'var(--font-ui)',
-            fontSize: '0.875rem',
-            padding: '10px 24px',
-            textDecoration: 'none',
           }}
         >
-          {tProfile('title')}
-        </Link>
+          <span>
+            <span style={{ color: 'var(--color-text-primary)' }}>
+              {consistency}%
+            </span>{' '}
+            {t('consistency')}
+          </span>
+          <span aria-hidden="true" style={{ color: 'var(--color-border)' }}>
+            |
+          </span>
+          <span>
+            <span style={{ color: 'var(--color-text-primary)' }}>
+              {formatDuration(durationMs)}
+            </span>{' '}
+            {t('duration')}
+          </span>
+        </div>
+
+        {/* Barre d'actions — 4 icônes */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <Link
+            href={`/${locale}`}
+            aria-label={t('nextTest')}
+            title={t('nextTest')}
+            style={{
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-sm)',
+              color: 'var(--color-text-muted)',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.875rem',
+              padding: '6px 12px',
+              textDecoration: 'none',
+              transition: 'color 0.1s',
+            }}
+          >
+            &gt;
+          </Link>
+          <Link
+            href={`/${locale}`}
+            aria-label={t('repeatTest')}
+            title={t('repeatTest')}
+            style={{
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-sm)',
+              color: 'var(--color-text-muted)',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.875rem',
+              padding: '6px 12px',
+              textDecoration: 'none',
+              transition: 'color 0.1s',
+            }}
+          >
+            ↺
+          </Link>
+          <ActionBtn
+            icon="♪"
+            label={t('relisten')}
+            disabled={!noteEvents || noteEvents.length === 0}
+          />
+          <ActionBtn
+            icon="|◄"
+            label={t('shareReplay')}
+            disabled={!sessionId}
+            onClick={handleShare}
+          />
+        </div>
+
+        {/* CTA connexion (si non connecté) */}
+        {!user && (
+          <Link
+            href={`/${locale}/auth/login`}
+            style={{
+              color: 'var(--color-text-muted)',
+              fontFamily: 'var(--font-ui)',
+              fontSize: '0.75rem',
+              textDecoration: 'none',
+              letterSpacing: '0.03em',
+              opacity: 0.7,
+            }}
+          >
+            {t('loginCta')}
+          </Link>
+        )}
       </motion.div>
     </main>
   );

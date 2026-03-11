@@ -60,7 +60,16 @@
     "wpmNet": "Net WPM",
     "accuracy": "Accuracy",
     "consistency": "Consistency",
-    "waveformLabel": "your session in notes"
+    "waveformLabel": "your session in notes",
+    "wpm": "wpm",
+    "record": "record",
+    "nextTest": "Next test",
+    "repeatTest": "Repeat",
+    "relisten": "Relisten",
+    "loginCta": "Sign in to save",
+    "duration": "duration",
+    "raw": "raw",
+    "characters": "characters"
   },
   "challenge": {
     "title": "TypeWav Challenge",
