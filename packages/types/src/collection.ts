@@ -1,7 +1,5 @@
 export type CollectionLanguage = 'fr' | 'en' | 'multi';
 
-export type TextDifficulty = 'easy' | 'medium' | 'hard';
-
 /** Langage de programmation d'un snippet — utilisé pour le Mode Code */
 export type CodeLanguage =
   | 'javascript'
@@ -13,12 +11,23 @@ export type CodeLanguage =
 
 export interface TextEntry {
   id: string;
+  /** Contenu textuel brut à taper */
   content: string;
-  /** Auteur / œuvre source */
+  /** Attribution : "Auteur — Œuvre (Année)" — optionnel pour code/gaming */
   source?: string;
-  difficulty: TextDifficulty;
+  /** Langue du contenu (indépendant de la langue de l'interface) */
   language: 'fr' | 'en';
-  tags: string[];
+  /**
+   * Niveau de difficulté numérique.
+   * 1 = très facile, 2 = facile, 3 = moyen, 4 = difficile, 5 = très difficile
+   */
+  difficulty: 1 | 2 | 3 | 4 | 5;
+  /** Nombre de mots (calculé à l'ingestion, pas à la volée) */
+  wordCount: number;
+  /** Nombre de caractères (contenu brut, espaces inclus) */
+  charCount: number;
+  /** Tags libres pour filtrage futur */
+  tags?: string[];
   /** Langage de programmation — renseigné uniquement pour la collection code */
   codeLanguage?: CodeLanguage;
 }
