@@ -58,18 +58,47 @@ export function ProfilClient() {
 
   if (loading) {
     return (
-      <div
+      <main
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '60vh',
-          color: 'var(--color-text-muted)',
-          fontFamily: 'var(--font-ui)',
+          minHeight: '100vh',
+          background: 'var(--color-bg)',
+          padding: '48px 24px',
+          maxWidth: 860,
+          margin: '0 auto',
         }}
       >
-        {tCommon('loading')}
-      </div>
+        {/* Stats skeleton */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+            gap: 16,
+            marginBottom: 40,
+          }}
+        >
+          {[0, 1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="skeleton"
+              style={{ height: 96, borderRadius: 'var(--radius-lg)' }}
+            />
+          ))}
+        </div>
+        {/* Chart skeleton */}
+        <div
+          className="skeleton"
+          style={{
+            height: 200,
+            marginBottom: 40,
+            borderRadius: 'var(--radius-lg)',
+          }}
+        />
+        {/* Heatmap skeleton */}
+        <div
+          className="skeleton"
+          style={{ height: 120, borderRadius: 'var(--radius-lg)' }}
+        />
+      </main>
     );
   }
 
@@ -279,6 +308,7 @@ export function ProfilClient() {
       {/* Lien retour */}
       <Link
         href="/"
+        className="transition-colors duration-150 hover:text-[var(--color-text-primary)] hover:underline"
         style={{
           display: 'inline-block',
           padding: '10px 24px',

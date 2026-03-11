@@ -94,12 +94,14 @@ export function ClassementClient() {
       <header className="w-full">
         <Link
           href="/profil"
+          className="transition-colors duration-150 hover:text-[var(--color-text-primary)] hover:underline"
           style={{
             color: 'var(--color-text-muted)',
             fontFamily: 'var(--font-ui)',
             fontSize: '0.75rem',
             marginBottom: '1rem',
             display: 'inline-block',
+            textDecoration: 'none',
           }}
         >
           ← Profil
@@ -148,6 +150,7 @@ export function ClassementClient() {
                 modeFilter === value
                   ? 'var(--color-accent)'
                   : 'var(--color-border)',
+              borderRadius: 'var(--radius-sm)',
               transition: 'all 0.15s',
             }}
           >

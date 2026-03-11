@@ -117,25 +117,6 @@ export function GhostCursor({
         }
         transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
       />
-
-      {/* Label avance/retard */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 8,
-          left: `${ghostPercent * 100}%`,
-          transform: 'translateX(-50%)',
-          fontSize: 10,
-          color: isAhead
-            ? '#FFD700'
-            : 'color-mix(in srgb, var(--color-text-primary) 40%, transparent)',
-          fontFamily: 'var(--font-mono)',
-          whiteSpace: 'nowrap',
-          pointerEvents: 'none',
-        }}
-      >
-        👻 record
-      </div>
     </div>
   );
 }

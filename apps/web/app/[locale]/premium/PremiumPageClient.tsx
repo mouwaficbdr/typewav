@@ -115,18 +115,48 @@ export function PremiumPageClient() {
 
   if (loading) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '60vh',
-          color: 'var(--color-text-muted)',
-          fontFamily: 'var(--font-ui)',
-        }}
+      <main
+        className="flex min-h-dvh flex-col items-center gap-6 p-8 pt-16"
+        style={{ backgroundColor: 'var(--color-bg)' }}
       >
-        {tCommon('loading')}
-      </div>
+        {/* Titre skeleton */}
+        <div
+          className="skeleton"
+          style={{ width: 240, height: 48, borderRadius: 'var(--radius-sm)' }}
+        />
+        {/* Feature list skeleton */}
+        <div
+          className="flex flex-col gap-3"
+          style={{ maxWidth: '480px', width: '100%' }}
+        >
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <div
+              key={i}
+              className="skeleton"
+              style={{ height: 24, borderRadius: 'var(--radius-sm)' }}
+            />
+          ))}
+        </div>
+        {/* Cards skeleton */}
+        <div style={{ display: 'flex', gap: 24 }}>
+          <div
+            className="skeleton"
+            style={{
+              width: 200,
+              height: 200,
+              borderRadius: 'var(--radius-lg)',
+            }}
+          />
+          <div
+            className="skeleton"
+            style={{
+              width: 200,
+              height: 200,
+              borderRadius: 'var(--radius-lg)',
+            }}
+          />
+        </div>
+      </main>
     );
   }
 
@@ -324,8 +354,8 @@ export function PremiumPageClient() {
             onClick={() => void handleCheckout('monthly')}
             disabled={checkoutLoading}
             style={{
-              backgroundColor: 'var(--color-border)',
-              border: '1px solid var(--color-accent)',
+              backgroundColor: 'transparent',
+              border: '2px solid var(--color-accent)',
               borderRadius: 'var(--radius-md)',
               color: 'var(--color-accent)',
               cursor: 'pointer',
@@ -335,6 +365,7 @@ export function PremiumPageClient() {
               letterSpacing: '0.05em',
               padding: '10px 20px',
               textTransform: 'uppercase',
+              transition: 'background-color var(--transition-fast)',
               width: '100%',
             }}
           >
@@ -443,20 +474,24 @@ export function PremiumPageClient() {
       <div className="flex gap-6">
         <Link
           href="/"
+          className="transition-colors duration-150 hover:text-[var(--color-text-primary)] hover:underline"
           style={{
             color: 'var(--color-text-muted)',
             fontFamily: 'var(--font-ui)',
             fontSize: '0.8125rem',
+            textDecoration: 'none',
           }}
         >
           {tCommon('back')}
         </Link>
         <Link
           href="/transparence"
+          className="transition-colors duration-150 hover:text-[var(--color-text-primary)] hover:underline"
           style={{
             color: 'var(--color-text-muted)',
             fontFamily: 'var(--font-ui)',
             fontSize: '0.8125rem',
+            textDecoration: 'none',
           }}
         >
           {tPremium('financialTransparency')}

@@ -24,7 +24,9 @@ export function ResultsPageClient() {
   const sessionId = searchParams.get('id') ?? undefined;
 
   useEffect(() => {
-    getPersonalRecords().then(setRecords).catch(() => null);
+    getPersonalRecords()
+      .then(setRecords)
+      .catch(() => null);
   }, []);
 
   const isNewWpmRecord = records !== null && wpm > records.maxWpm.value;

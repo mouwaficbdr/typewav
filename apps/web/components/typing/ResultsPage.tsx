@@ -155,7 +155,9 @@ export function ResultsPage({
           value={wpm}
           unit="mots/min"
           delay={0.1}
-          {...(isNewWpmRecord !== undefined ? { isRecord: isNewWpmRecord } : {})}
+          {...(isNewWpmRecord !== undefined
+            ? { isRecord: isNewWpmRecord }
+            : {})}
         />
         <StatCard
           label={t('wpmNet')}
@@ -168,7 +170,9 @@ export function ResultsPage({
           value={accuracy}
           unit="%"
           delay={0.3}
-          {...(isNewAccuracyRecord !== undefined ? { isRecord: isNewAccuracyRecord } : {})}
+          {...(isNewAccuracyRecord !== undefined
+            ? { isRecord: isNewAccuracyRecord }
+            : {})}
         />
         <StatCard
           label={t('consistency')}
