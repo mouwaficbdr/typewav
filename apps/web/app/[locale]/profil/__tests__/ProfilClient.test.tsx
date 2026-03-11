@@ -57,6 +57,18 @@ const renderProfilClient = async () => {
   return render(<ProfilClient />);
 };
 
+describe('ProfilClient — i18n daysFilter', () => {
+  it("les boutons de filtre jours utilisent tProfile('daysFilter') et non '{n}j' hardcodé", async () => {
+    mockIsPremium.mockReturnValue(false);
+    await renderProfilClient();
+    await waitFor(() => {
+      // Le mock retourne la clé — 3 boutons (7, 30, 90 jours) doivent rendre 'daysFilter'
+      const buttons = screen.getAllByText('daysFilter');
+      expect(buttons).toHaveLength(3);
+    });
+  });
+});
+
 describe('ProfilClient — sync banner', () => {
   it("n'affiche pas de banner sync si utilisateur gratuit", async () => {
     mockIsPremium.mockReturnValue(false);

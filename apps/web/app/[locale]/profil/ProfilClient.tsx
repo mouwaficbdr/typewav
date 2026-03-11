@@ -282,7 +282,7 @@ export function ProfilClient() {
                   cursor: 'pointer',
                 }}
               >
-                {d}j
+                {tProfile('daysFilter', { count: d })}
               </button>
             ))}
           </div>
