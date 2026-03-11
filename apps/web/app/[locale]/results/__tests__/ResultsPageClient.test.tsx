@@ -11,12 +11,21 @@ vi.mock('next/navigation', () => ({
 
 // Mock ResultsPage pour inspecter les props reçues
 vi.mock('@/components/typing/ResultsPage', () => ({
-  ResultsPage: vi.fn(({ wpm, wpmNet }: { wpm: number; wpmNet: number }) => (
-    <div>
-      <span data-testid="wpm">{wpm}</span>
-      <span data-testid="wpmNet">{wpmNet}</span>
-    </div>
-  )),
+  ResultsPage: vi.fn(
+    ({
+      wpm,
+      wpmNet,
+    }: {
+      wpm: number;
+      wpmNet: number;
+      [key: string]: unknown;
+    }) => (
+      <div>
+        <span data-testid="wpm">{wpm}</span>
+        <span data-testid="wpmNet">{wpmNet}</span>
+      </div>
+    ),
+  ),
 }));
 
 import { useSearchParams } from 'next/navigation';

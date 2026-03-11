@@ -3,13 +3,13 @@
 /**
  * ResultsPageClient — lit les params URL et affiche les résultats.
  * Client Component justifié : useSearchParams + IndexedDB (records).
- * Spec : docs/specs/25-results-page-enhancement.md
+ * Spec : docs/specs/30-results-refonte.md
  */
 
 import { ResultsPage } from '@/components/typing/ResultsPage';
 import { getPersonalRecords } from '@/lib/db';
 import { useSessionStore } from '@/stores/useSessionStore';
-import type { PersonalRecords } from '@typewav/types';
+import type { PersonalRecords, TypingMode } from '@typewav/types';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -27,8 +27,12 @@ export function ResultsPageClient() {
   const wpmNet = Number(searchParams.get('wpmNet') ?? '0');
   const accuracy = Number(searchParams.get('accuracy') ?? '0');
   const consistency = Number(searchParams.get('consistency') ?? '0');
-  const recommendation = searchParams.get('recommendation') ?? '';
+  const durationMs = Number(searchParams.get('duration') ?? '60000');
+  const mode = (searchParams.get('mode') ?? 'classic') as TypingMode;
+  const collectionId = searchParams.get('collection') ?? undefined;
   const sessionId = searchParams.get('id') ?? undefined;
+
+  const computedDurationMs = sessionDuration ?? durationMs;
 
   useEffect(() => {
     getPersonalRecords()
@@ -46,14 +50,13 @@ export function ResultsPageClient() {
       wpmNet={wpmNet}
       accuracy={accuracy}
       consistency={consistency}
-      recommendation={recommendation}
+      durationMs={computedDurationMs}
+      mode={mode}
+      {...(collectionId !== undefined ? { collectionId } : {})}
       {...(sessionId !== undefined ? { sessionId } : {})}
       isNewWpmRecord={isNewWpmRecord}
       isNewAccuracyRecord={isNewAccuracyRecord}
       {...(noteEvents.length > 0 ? { noteEvents } : {})}
-      {...(sessionDuration !== undefined
-        ? { durationMs: sessionDuration }
-        : {})}
     />
   );
 }

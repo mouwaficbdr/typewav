@@ -1,7 +1,16 @@
 import { render, screen } from '@testing-library/react';
+import type { TypingMode } from '@typewav/types';
 import { describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
+
+vi.mock('@/hooks/useUser', () => ({
+  useUser: () => ({ user: null, isPremium: false }),
+}));
+
+vi.mock('@/components/typing/WpmChart', () => ({
+  WpmChart: () => <div data-testid="wpm-chart" />,
+}));
 
 vi.mock('motion/react', () => ({
   motion: {
@@ -12,16 +21,7 @@ vi.mock('motion/react', () => ({
       initial?: unknown;
       animate?: unknown;
       transition?: unknown;
-      exit?: unknown;
     }) => <div {...props}>{children}</div>,
-    h1: ({
-      children,
-      ...props
-    }: React.HTMLAttributes<HTMLHeadingElement> & {
-      initial?: unknown;
-      animate?: unknown;
-      transition?: unknown;
-    }) => <h1 {...props}>{children}</h1>,
   },
   useReducedMotion: () => true,
 }));
@@ -49,82 +49,79 @@ vi.mock('next/link', () => ({
 
 import { ResultsPage } from '../typing/ResultsPage';
 
+// ─── Fixtures ─────────────────────────────────────────────────────────────────
+
+const baseProps = {
+  wpm: 87,
+  wpmNet: 82,
+  accuracy: 96,
+  consistency: 88,
+  durationMs: 51000,
+  mode: 'classic' as TypingMode,
+};
+
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('ResultsPage — record et CTAs', () => {
-  it('affiche la bannière "nouveau record" quand isNewWpmRecord=true', () => {
-    render(
-      <ResultsPage
-        wpm={90}
-        wpmNet={85}
-        accuracy={98}
-        consistency={88}
-        recommendation=""
-        isNewWpmRecord={true}
-      />,
-    );
-    expect(screen.getByRole('status')).toBeInTheDocument();
+describe('ResultsPage — stats primaires', () => {
+  it('affiche les 3 valeurs numériques principales', () => {
+    render(<ResultsPage {...baseProps} />);
+    expect(screen.getByText('87')).toBeInTheDocument();
+    expect(screen.getByText('82')).toBeInTheDocument();
+    expect(screen.getByText('96')).toBeInTheDocument();
   });
 
-  it("n'affiche pas la bannière record quand isNewWpmRecord=false", () => {
+  it('StatPrimary : label précède la valeur dans le DOM', () => {
+    render(<ResultsPage {...baseProps} />);
+    const wpmLabel = screen.getByText('wpm');
+    const wpmValue = screen.getByText('87');
+    expect(wpmLabel.compareDocumentPosition(wpmValue)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+  });
+});
+
+describe('ResultsPage — record', () => {
+  it('affiche le marqueur record si isNewWpmRecord=true', () => {
+    render(<ResultsPage {...baseProps} isNewWpmRecord={true} />);
+    expect(screen.getByRole('status', { name: /record/i })).toBeInTheDocument();
+  });
+
+  it("n'affiche pas de marqueur si isNewWpmRecord est false", () => {
     render(
       <ResultsPage
-        wpm={50}
-        wpmNet={47}
-        accuracy={95}
-        consistency={80}
-        recommendation=""
+        {...baseProps}
         isNewWpmRecord={false}
+        isNewAccuracyRecord={false}
       />,
     );
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
+});
 
-  it('StatCard : label précède la valeur dans le DOM', () => {
-    render(
-      <ResultsPage
-        wpm={75}
-        wpmNet={70}
-        accuracy={97}
-        consistency={85}
-        recommendation=""
-      />,
-    );
-    // Le label "wpmGross" (clé i18n mockée) doit apparaître dans le DOM
-    const allText = document.body.textContent ?? '';
-    const wpmGrossIndex = allText.indexOf('wpmGross');
-    const value75Index = allText.indexOf('75');
-    // label avant valeur
-    expect(wpmGrossIndex).toBeLessThan(value75Index);
-  });
-
-  it('affiche le lien profil dans les CTAs', () => {
-    render(
-      <ResultsPage
-        wpm={75}
-        wpmNet={70}
-        accuracy={97}
-        consistency={85}
-        recommendation=""
-      />,
-    );
-    // Le CTA "profil" doit être présent — clé mock retourne 'title' (profile.title)
+describe('ResultsPage — barre d\u2019actions', () => {
+  it('affiche les liens nextTest et repeatTest', () => {
+    render(<ResultsPage {...baseProps} />);
     const links = screen.getAllByRole('link');
-    expect(links.some((l) => l.getAttribute('href')?.includes('profil'))).toBe(
-      true,
+    const nextOrRepeat = links.filter(
+      (l) =>
+        l.getAttribute('aria-label') === 'nextTest' ||
+        l.getAttribute('aria-label') === 'repeatTest',
     );
+    expect(nextOrRepeat.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('affiche le lien "tryAgain" principal', () => {
-    render(
-      <ResultsPage
-        wpm={75}
-        wpmNet={70}
-        accuracy={97}
-        consistency={85}
-        recommendation=""
-      />,
-    );
-    expect(screen.getByText('tryAgain')).toBeInTheDocument();
+  it('rend sans crash avec noteEvents vides', () => {
+    expect(() =>
+      render(<ResultsPage {...baseProps} noteEvents={[]} />),
+    ).not.toThrow();
+  });
+});
+
+describe('ResultsPage — CTA login', () => {
+  it('affiche le lien connexion si utilisateur non connecté', () => {
+    render(<ResultsPage {...baseProps} />);
+    const loginLink = screen.getByRole('link', { name: /loginCta/i });
+    expect(loginLink).toBeInTheDocument();
+    expect(loginLink.getAttribute('href')).toContain('/auth/login');
   });
 });
