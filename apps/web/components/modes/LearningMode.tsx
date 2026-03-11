@@ -106,15 +106,14 @@ export function LearningMode() {
               width: 160,
               height: 4,
               background: 'var(--color-border)',
-              borderRadius: 2,
-              overflow: 'hidden',
+              borderRadius: 'var(--radius-sm)',
             }}
           >
             <motion.div
               style={{
                 height: '100%',
                 background: 'var(--color-accent)',
-                borderRadius: 2,
+                borderRadius: 'var(--radius-sm)',
               }}
               animate={{ width: `${Math.min(100, progressPercent)}%` }}
               transition={{ duration }}
@@ -146,9 +145,11 @@ export function LearningMode() {
               aria-label={`Niveau ${level.id} — ${level.name}`}
               style={{
                 padding: '6px 14px',
-                borderRadius: 6,
+                borderRadius: 'var(--radius-md)',
                 border: `1px solid ${isActive ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                background: isActive ? 'rgba(0,212,170,0.1)' : 'transparent',
+                background: isActive
+                  ? 'color-mix(in srgb, var(--color-accent) 10%, transparent)'
+                  : 'transparent',
                 color: progress.unlocked
                   ? isActive
                     ? 'var(--color-accent)'
@@ -198,7 +199,7 @@ export function LearningMode() {
               padding: '10px 24px',
               background: 'var(--color-accent)',
               color: '#000',
-              borderRadius: 8,
+              borderRadius: 'var(--radius-lg)',
               border: 'none',
               fontFamily: 'var(--font-ui)',
               fontWeight: 700,

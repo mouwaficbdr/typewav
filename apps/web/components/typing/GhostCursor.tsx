@@ -76,7 +76,7 @@ export function GhostCursor({
         right: 0,
         height: '4px',
         background: 'var(--color-border)',
-        borderRadius: '2px',
+        borderRadius: 'var(--radius-sm)',
         overflow: 'hidden',
       }}
     >
@@ -89,7 +89,7 @@ export function GhostCursor({
           height: '100%',
           width: `${userPercent * 100}%`,
           background: 'var(--color-accent)',
-          borderRadius: '2px',
+          borderRadius: 'var(--radius-sm)',
           transition: 'width 0.1s linear',
         }}
       />
@@ -102,8 +102,10 @@ export function GhostCursor({
           left: `${ghostPercent * 100}%`,
           width: '3px',
           height: '100%',
-          background: isAhead ? '#FFD700' : 'rgba(255,255,255,0.3)',
-          borderRadius: '2px',
+          background: isAhead
+            ? '#FFD700'
+            : 'color-mix(in srgb, var(--color-text-primary) 30%, transparent)',
+          borderRadius: 'var(--radius-sm)',
           transform: 'translateX(-50%)',
         }}
         animate={
@@ -124,7 +126,9 @@ export function GhostCursor({
           left: `${ghostPercent * 100}%`,
           transform: 'translateX(-50%)',
           fontSize: 10,
-          color: isAhead ? '#FFD700' : 'rgba(255,255,255,0.4)',
+          color: isAhead
+            ? '#FFD700'
+            : 'color-mix(in srgb, var(--color-text-primary) 40%, transparent)',
           fontFamily: 'var(--font-mono)',
           whiteSpace: 'nowrap',
           pointerEvents: 'none',

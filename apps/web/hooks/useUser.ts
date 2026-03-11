@@ -10,6 +10,7 @@
  * Spec : docs/ARCHITECTURE.md — Supabase uniquement pour premium
  */
 
+import { getUserProfile } from '@/lib/db';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
@@ -18,12 +19,22 @@ interface UserState {
   user: User | null;
   isPremium: boolean;
   loading: boolean;
+  pseudo: string;
 }
 
 export function useUser(): UserState {
   const [user, setUser] = useState<User | null>(null);
   const [isPremium, setIsPremium] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [pseudo, setPseudo] = useState('');
+
+  useEffect(() => {
+    getUserProfile()
+      .then((profile) => setPseudo(profile.pseudo))
+      .catch(() => {
+        // IndexedDB non disponible ou profil absent — pseudo reste vide
+      });
+  }, []);
 
   const supabase = getSupabaseBrowserClient();
 
@@ -75,5 +86,5 @@ export function useUser(): UserState {
     }
   }
 
-  return { user, isPremium, loading };
+  return { user, isPremium, loading, pseudo };
 }

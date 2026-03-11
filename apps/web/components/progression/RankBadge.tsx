@@ -43,7 +43,7 @@ export function RankBadge({
         alignItems: 'center',
         gap: 6,
         padding,
-        borderRadius: 6,
+        borderRadius: 'var(--radius-md)',
         border: `1px solid ${rankData.accentColor}33`,
         background: `${rankData.accentColor}11`,
         color: rankData.accentColor,

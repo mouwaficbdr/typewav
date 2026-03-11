@@ -16,7 +16,7 @@ export function GlobalNav() {
   const t = useTranslations('nav');
   const locale = useLocale();
   const pathname = usePathname();
-  const { user, loading } = useUser();
+  const { user, loading, pseudo } = useUser();
 
   const navLinks = [
     { href: `/${locale}/profil`, label: t('profile') },
@@ -48,8 +48,10 @@ export function GlobalNav() {
         style={{
           color: 'var(--color-text-primary)',
           textDecoration: 'none',
-          fontWeight: '600',
-          letterSpacing: '0.05em',
+          fontFamily: 'var(--font-display)',
+          fontWeight: '300',
+          fontSize: '1.125rem',
+          letterSpacing: '0.08em',
         }}
       >
         TypeWav
@@ -86,7 +88,7 @@ export function GlobalNav() {
           <span
             style={{ color: 'var(--color-text-muted)', fontSize: '0.8125rem' }}
           >
-            {user.email?.split('@')[0] ?? t('account')}
+            {pseudo || user.email?.split('@')[0] || t('account')}
           </span>
         ) : (
           <Link
