@@ -127,6 +127,7 @@ export function ChallengeClient() {
           text={text}
           mode={params.mode}
           onComplete={handleComplete}
+          autoNavigate={false}
         />
       ) : (
         <div
