@@ -9,7 +9,7 @@
  * - Correction = reprise + micro-reverb (decay 0.3, wet 0.4)
  * - Lazy loading : uniquement le pack actif en mémoire
  *
- * Packs supportés : piano | marimba | synth-lofi | chiptune
+ * Packs supportés : piano | synth-lofi | cinematic | jazz-piano
  * Mode MIDI : activePieceId !== null → joue la séquence classique
  *
  * Spec : docs/specs/01-audio-engine.md
@@ -53,15 +53,6 @@ const PACK_CONFIGS: Record<string, PackSynthConfig> = {
     reverbWet: 0.25,
     noteDuration: '16n',
   },
-  marimba: {
-    oscillatorType: 'sine',
-    attack: 0.002,
-    decay: 0.15,
-    sustain: 0.0,
-    release: 0.4,
-    reverbWet: 0.15,
-    noteDuration: '16n',
-  },
   'synth-lofi': {
     oscillatorType: 'sawtooth',
     attack: 0.05,
@@ -70,15 +61,6 @@ const PACK_CONFIGS: Record<string, PackSynthConfig> = {
     release: 0.8,
     reverbWet: 0.35,
     noteDuration: '16n',
-  },
-  chiptune: {
-    oscillatorType: 'square',
-    attack: 0.001,
-    decay: 0.05,
-    sustain: 0.6,
-    release: 0.1,
-    reverbWet: 0.05,
-    noteDuration: '32n',
   },
   // ─── Packs premium ─────────────────────────────────────────────────────────
   cinematic: {
@@ -89,15 +71,6 @@ const PACK_CONFIGS: Record<string, PackSynthConfig> = {
     release: 2.0,
     reverbWet: 0.45,
     noteDuration: '8n',
-  },
-  phonk: {
-    oscillatorType: 'square',
-    attack: 0.001,
-    decay: 0.1,
-    sustain: 0.8,
-    release: 0.15,
-    reverbWet: 0.08,
-    noteDuration: '32n',
   },
   'jazz-piano': {
     oscillatorType: 'sine',
