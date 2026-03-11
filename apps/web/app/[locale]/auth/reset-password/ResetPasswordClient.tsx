@@ -49,14 +49,15 @@ export function ResetPasswordClient() {
 
   const inputStyle: React.CSSProperties = {
     backgroundColor: 'var(--color-surface)',
-    border: '1px solid var(--color-border)',
-    borderRadius: '4px',
+    border: '1px solid var(--color-text-muted)',
+    borderRadius: 'var(--radius-md)',
     color: 'var(--color-text-primary)',
     fontFamily: 'var(--font-mono)',
     fontSize: '0.875rem',
     padding: '10px 14px',
     width: '100%',
-    outline: 'none',
+    transition: 'border-color var(--transition-fast)',
+    // Pas d'outline:none — :focus-visible géré via la classe CSS .form-input
   };
 
   if (sent) {
@@ -101,15 +102,19 @@ export function ResetPasswordClient() {
           {t('resetDescription')}
         </p>
 
+        <label htmlFor="reset-email" className="sr-only">
+          {t('emailLabel')}
+        </label>
         <input
+          id="reset-email"
           type="email"
-          placeholder="Email"
+          placeholder={t('emailPlaceholder')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
           autoComplete="email"
+          className="form-input"
           style={inputStyle}
-          aria-label="Email"
         />
 
         {error && (
@@ -131,7 +136,7 @@ export function ResetPasswordClient() {
           style={{
             backgroundColor: 'var(--color-accent)',
             border: 'none',
-            borderRadius: '4px',
+            borderRadius: 'var(--radius-md)',
             color: 'var(--color-bg)',
             cursor: loading ? 'wait' : 'pointer',
             fontFamily: 'var(--font-ui)',
