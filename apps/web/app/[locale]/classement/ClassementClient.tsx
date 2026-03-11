@@ -1,38 +1,25 @@
 'use client';
 
 /**
- * ClassementClient — page de classement hebdomadaire.
+ * ClassementClient — page de classement / meilleures sessions.
  *
  * Phase 3 : classement local basé sur IndexedDB.
- * Les sessions de la semaine courante sont transformées en LeaderboardEntry
- * en utilisant le pseudo de l'utilisateur (depuis UserProfile).
- *
- * Phase 4 ajoutera Supabase pour un classement global.
+ * Affiche les meilleures sessions personnelles (all-time), triées par WPM.
+ * Phase 4 ajoutera Supabase pour un classement global (BIENTÔT).
  *
  * Spec : docs/specs/08 — Leaderboards contextuels
+ * Spec : docs/specs/31-pages-refonte.md — FORGE [3] design direction
  * 'use client' justifié : IndexedDB, state React, filtres
  */
 
 import { LeaderboardTable } from '@/components/social/LeaderboardTable';
 import { getSessions, getUserProfile } from '@/lib/db';
 import type { LeaderboardEntry, SessionResult } from '@typewav/types';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 
 type FilterMode = 'all' | 'classic' | 'sprint' | 'endurance' | 'code';
-
-function getISOWeek(date: Date): string {
-  const d = new Date(
-    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
-  );
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const weekNo = Math.ceil(
-    ((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7,
-  );
-  return `${d.getUTCFullYear()}-${String(weekNo).padStart(2, '0')}`;
-}
 
 function sessionToEntry(
   session: SessionResult,
@@ -45,11 +32,14 @@ function sessionToEntry(
     achievedAt: session.timestamp,
     collectionId: session.collectionId ?? '',
     mode: session.mode,
-    week: getISOWeek(new Date(session.timestamp)),
+    week: '',
   };
 }
 
 export function ClassementClient() {
+  const t = useTranslations('leaderboard');
+  const tCommon = useTranslations('common');
+
   const [sessions, setSessions] = useState<SessionResult[]>([]);
   const [pseudo, setPseudo] = useState('');
   const [modeFilter, setModeFilter] = useState<FilterMode>('all');
@@ -68,18 +58,15 @@ export function ClassementClient() {
     void load();
   }, []);
 
-  const currentWeek = useMemo(() => getISOWeek(new Date()), []);
-
   const entries = useMemo<LeaderboardEntry[]>(() => {
     return sessions
       .filter((s) => {
-        const week = getISOWeek(new Date(s.timestamp));
-        if (week !== currentWeek) return false;
         if (modeFilter !== 'all' && s.mode !== modeFilter) return false;
         return true;
       })
-      .map((s) => sessionToEntry(s, pseudo));
-  }, [sessions, pseudo, modeFilter, currentWeek]);
+      .map((s) => sessionToEntry(s, pseudo))
+      .sort((a, b) => b.wpm - a.wpm);
+  }, [sessions, pseudo, modeFilter]);
 
   const filterButtons: { label: string; value: FilterMode }[] = [
     { label: 'Tous', value: 'all' },
@@ -90,7 +77,48 @@ export function ClassementClient() {
   ];
 
   return (
-    <main className="flex min-h-dvh flex-col items-center gap-8 p-8 max-w-3xl mx-auto w-full">
+    <main
+      className="flex flex-col items-center gap-8 p-8 max-w-3xl mx-auto w-full"
+      style={{ minHeight: 'calc(100dvh - 48px)' }}
+    >
+      {/* Banner honnête — classement mondial bientôt */}
+      <div
+        data-testid="coming-soon-banner"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          width: '100%',
+        }}
+      >
+        <p
+          style={{
+            color: 'var(--color-text-muted)',
+            fontFamily: 'var(--font-ui)',
+            fontSize: '0.875rem',
+            margin: 0,
+          }}
+        >
+          {t('comingSoonMessage')}
+        </p>
+        <span
+          data-testid="soon-badge"
+          style={{
+            color: 'var(--color-accent)',
+            fontFamily: 'var(--font-ui)',
+            fontSize: '0.75rem',
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            border: '1px solid var(--color-accent)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '2px 8px',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {t('soon')}
+        </span>
+      </div>
+
       <header className="w-full">
         <Link
           href="/profil"
@@ -106,28 +134,23 @@ export function ClassementClient() {
         >
           ← Profil
         </Link>
-        <h1
-          style={{
-            fontFamily: 'var(--font-display)',
-            color: 'var(--color-text-primary)',
-            fontSize: '2rem',
-            fontWeight: 300,
-            letterSpacing: '0.1em',
-          }}
-        >
-          Classement
-        </h1>
-        <p
-          style={{
-            color: 'var(--color-text-muted)',
-            fontFamily: 'var(--font-ui)',
-            fontSize: '0.8rem',
-            marginTop: '0.25rem',
-          }}
-        >
-          Semaine {currentWeek} · Vos sessions de cette semaine
-        </p>
       </header>
+
+      {/* Titre section */}
+      <h2
+        style={{
+          color: 'var(--color-text-muted)',
+          fontFamily: 'var(--font-ui)',
+          fontSize: '0.75rem',
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          marginBottom: 0,
+          marginTop: 0,
+          width: '100%',
+        }}
+      >
+        {t('myBestSessions')}
+      </h2>
 
       {/* Filtres par mode */}
       <div className="flex gap-2 flex-wrap w-full">
@@ -167,7 +190,7 @@ export function ClassementClient() {
             fontSize: '0.85rem',
           }}
         >
-          Chargement…
+          {tCommon('loading')}
         </p>
       ) : (
         <div className="w-full">

@@ -5,17 +5,17 @@
  *
  * Client Component justifié : IndexedDB, Recharts interactif, Zustand.
  * Spec : docs/specs/08-10-social-analytics-extensibility.md — Profil & analytics
+ * Spec : docs/specs/31-pages-refonte.md — FORGE [3] design direction
  */
 
 import { ContributionHeatmap } from '@/components/charts/ContributionHeatmap';
 import { WpmProgressChart } from '@/components/charts/WpmProgressChart';
-import { RankBadge } from '@/components/progression/RankBadge';
 import { useUser } from '@/hooks/useUser';
 import { getPersonalRecords, getSessions, getUserProfile } from '@/lib/db';
 import { SYNC_IS_COMING_SOON } from '@/lib/featureFlags';
 import { useProgressionStore } from '@/stores/useProgressionStore';
 import type { PersonalRecords, RankTier, SessionResult } from '@typewav/types';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
@@ -27,10 +27,13 @@ export function ProfilClient() {
   const tSync = useTranslations('sync');
   const tProfile = useTranslations('profile');
   const tCommon = useTranslations('common');
+  const tRanks = useTranslations('ranks');
+  const locale = useLocale();
 
   const [sessions, setSessions] = useState<SessionResult[]>([]);
   const [records, setRecords] = useState<PersonalRecords | null>(null);
   const [rank, setLocalRank] = useState<RankTier>('novice');
+  const [pseudo, setPseudo] = useState('');
   const [chartDays, setChartDays] = useState<ChartDays>(30);
   const [loading, setLoading] = useState(true);
 
@@ -45,6 +48,7 @@ export function ProfilClient() {
       setSessions(allSessions);
       setRecords(personalRecords);
       setLocalRank(profile.currentRank);
+      setPseudo(profile.pseudo);
 
       // Synchroniser le store global
       setProfile(profile);
@@ -60,7 +64,7 @@ export function ProfilClient() {
     return (
       <main
         style={{
-          minHeight: '100vh',
+          minHeight: 'calc(100dvh - 48px)',
           background: 'var(--color-bg)',
           padding: '48px 24px',
           maxWidth: 860,
@@ -114,10 +118,12 @@ export function ProfilClient() {
         )
       : 0;
 
+  const recentReplays = sessions.slice(0, 5);
+
   return (
     <main
       style={{
-        minHeight: '100vh',
+        minHeight: 'calc(100dvh - 48px)',
         background: 'var(--color-bg)',
         padding: '48px 24px',
         maxWidth: 860,
@@ -145,39 +151,51 @@ export function ProfilClient() {
         </div>
       )}
 
-      {/* En-tête */}
-      <div className="flex items-center justify-between mb-10">
-        <div>
-          <h1
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '2.5rem',
-              color: 'var(--color-text-primary)',
-              margin: 0,
-            }}
-          >
-            {tProfile('title')}
-          </h1>
+      {/* En-tête — rang + WPM médian + pseudo */}
+      <div style={{ marginBottom: 40 }}>
+        <p
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontWeight: 300,
+            fontSize: '2rem',
+            color: 'var(--color-text-primary)',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            margin: 0,
+          }}
+        >
+          {tRanks(rank)} · {avgWpm} WPM MÉDIAN
+        </p>
+        {pseudo && (
           <p
             style={{
               fontFamily: 'var(--font-ui)',
+              fontSize: '0.875rem',
               color: 'var(--color-text-muted)',
-              fontSize: 14,
               marginTop: 4,
             }}
           >
-            {tProfile('sessionCount', { count: totalSessions })}
+            {pseudo}
           </p>
-        </div>
-        <RankBadge rank={rank} size="lg" />
+        )}
+        <p
+          style={{
+            fontFamily: 'var(--font-ui)',
+            color: 'var(--color-text-muted)',
+            fontSize: 14,
+            marginTop: 4,
+          }}
+        >
+          {tProfile('sessionCount', { count: totalSessions })}
+        </p>
       </div>
 
-      {/* Stats résumé */}
+      {/* Stats résumé — grille 2×2 flottante, zéro bordure */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-          gap: 16,
+          gridTemplateColumns: '1fr 1fr',
+          gap: '24px 48px',
           marginBottom: 40,
         }}
       >
@@ -197,45 +215,40 @@ export function ProfilClient() {
         ].map((stat) => (
           <div
             key={stat.label}
-            style={{
-              padding: 20,
-              background: 'var(--color-surface)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-lg)',
-            }}
+            style={{ display: 'flex', flexDirection: 'column', gap: 2 }}
           >
-            <p
+            <span
               style={{
-                margin: 0,
-                fontFamily: 'var(--font-ui)',
-                fontSize: 12,
                 color: 'var(--color-text-muted)',
+                fontSize: '0.75rem',
+                fontFamily: 'var(--font-ui)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.08em',
               }}
             >
               {stat.label}
-            </p>
-            <p
+            </span>
+            <span
               style={{
-                margin: '6px 0 0',
-                fontFamily: 'var(--font-mono)',
-                fontSize: 28,
                 color: 'var(--color-accent)',
-                fontWeight: 700,
+                fontSize: '2rem',
+                fontFamily: 'var(--font-mono)',
+                fontVariantNumeric: 'tabular-nums',
               }}
             >
               {stat.value}
-              <span
-                style={{
-                  fontSize: 14,
-                  color: 'var(--color-text-muted)',
-                  marginLeft: 4,
-                }}
-              >
-                {stat.unit}
-              </span>
-            </p>
+              {stat.unit && (
+                <span
+                  style={{
+                    fontSize: '0.875rem',
+                    color: 'var(--color-text-muted)',
+                    marginLeft: 4,
+                  }}
+                >
+                  {stat.unit}
+                </span>
+              )}
+            </span>
           </div>
         ))}
       </div>
@@ -303,6 +316,86 @@ export function ProfilClient() {
           {tProfile('activity90Days')}
         </h2>
         <ContributionHeatmap sessions={sessions} />
+      </section>
+
+      {/* Replays récents */}
+      <section style={{ marginBottom: 40 }}>
+        <h2
+          style={{
+            color: 'var(--color-text-muted)',
+            fontFamily: 'var(--font-ui)',
+            fontSize: '0.75rem',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            marginBottom: 12,
+          }}
+        >
+          {tProfile('recentReplays')}
+        </h2>
+        {recentReplays.length === 0 ? (
+          <p
+            style={{
+              color: 'var(--color-text-muted)',
+              fontSize: '0.875rem',
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
+            {tProfile('noReplays')}
+          </p>
+        ) : (
+          recentReplays.map((session) => (
+            <div
+              key={session.id}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 0',
+                borderBottom:
+                  '1px solid color-mix(in srgb, var(--color-border) 40%, transparent)',
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.875rem',
+                  color: 'var(--color-accent)',
+                }}
+              >
+                {session.wpm} WPM
+              </span>
+              <span
+                style={{
+                  fontFamily: 'var(--font-ui)',
+                  fontSize: '0.75rem',
+                  color: 'var(--color-text-muted)',
+                }}
+              >
+                {session.accuracy.toFixed(0)}% · {session.mode}
+                {session.collectionId ? ` · ${session.collectionId}` : ''}
+              </span>
+              <span
+                style={{
+                  fontFamily: 'var(--font-ui)',
+                  fontSize: '0.75rem',
+                  color: 'var(--color-text-muted)',
+                }}
+              >
+                {new Date(session.timestamp).toLocaleDateString(locale, {
+                  day: 'numeric',
+                  month: 'short',
+                })}
+              </span>
+              <Link
+                href={`/${locale}/replay?id=${session.id}`}
+                aria-label={tProfile('openReplay')}
+                style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', textDecoration: 'none' }}
+              >
+                |◄
+              </Link>
+            </div>
+          ))
+        )}
       </section>
 
       {/* Lien retour */}

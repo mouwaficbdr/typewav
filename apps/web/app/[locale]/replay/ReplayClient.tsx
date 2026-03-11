@@ -65,29 +65,18 @@ export function ReplayClient() {
 
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-8 p-8">
-      <header className="text-center">
-        <h1
-          style={{
-            fontFamily: 'var(--font-display)',
-            color: 'var(--color-accent)',
-            fontSize: '2rem',
-            fontWeight: 300,
-            letterSpacing: '0.1em',
-          }}
-        >
-          Replay TypeWav
-        </h1>
-        <p
-          style={{
-            color: 'var(--color-text-muted)',
-            fontFamily: 'var(--font-ui)',
-            fontSize: '0.85rem',
-            marginTop: '0.5rem',
-          }}
-        >
-          {data.wpm} WPM · {data.accuracy.toFixed(1)}% · thème {data.theme}
-        </p>
-      </header>
+      {/* Banner slim */}
+      <div
+        style={{
+          color: 'var(--color-text-muted)',
+          fontFamily: 'var(--font-ui)',
+          fontSize: '0.8125rem',
+          textAlign: 'center',
+          marginBottom: 8,
+        }}
+      >
+        Replay — {data.wpm} WPM · {data.accuracy.toFixed(1)}% · {data.theme}
+      </div>
 
       {!started ? (
         <div className="flex flex-col items-center gap-6">

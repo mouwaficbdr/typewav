@@ -122,11 +122,10 @@ export default function TransparencePage() {
           ].map((item) => (
             <div
               key={item.label}
-              className="flex items-start justify-between gap-4 p-4"
+              className="flex items-start justify-between gap-4"
               style={{
-                backgroundColor: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-md)',
+                padding: '12px 0',
+                borderBottom: '1px solid color-mix(in srgb, var(--color-border) 40%, transparent)',
               }}
             >
               <div>

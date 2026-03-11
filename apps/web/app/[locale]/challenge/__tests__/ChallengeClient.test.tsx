@@ -49,6 +49,13 @@ vi.mock('next/link', () => ({
   }) => <a href={href}>{children}</a>,
 }));
 
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string, params?: Record<string, unknown>) => {
+    if (params) return `${key}(${JSON.stringify(params)})`;
+    return key;
+  },
+}));
+
 import { ChallengeClient } from '../ChallengeClient';
 
 describe('ChallengeClient', () => {

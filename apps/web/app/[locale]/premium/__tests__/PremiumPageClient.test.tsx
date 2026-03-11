@@ -44,7 +44,19 @@ describe('PremiumPageClient — sync coming soon', () => {
     render(<PremiumPageClient />);
     const note = screen.getByRole('status');
     expect(note).toBeInTheDocument();
-    expect(note.textContent).toBe('comingSoonExplainer');
+    expect(note).toHaveAttribute('data-testid', 'sync-coming-soon-banner');
+  });
+
+  it('badge BIENTÔT visible dans le banner sync', () => {
+    render(<PremiumPageClient />);
+    const badge = screen.getByTestId('premium-soon-badge');
+    expect(badge).toBeInTheDocument();
+    expect(badge.textContent).toBe('soon');
+  });
+
+  it('aucun bouton checkout spécifique au sync visible', () => {
+    render(<PremiumPageClient />);
+    expect(screen.queryByTestId('sync-checkout-btn')).not.toBeInTheDocument();
   });
 
   it('les boutons de checkout Stripe restent accessibles (non désactivés)', () => {
