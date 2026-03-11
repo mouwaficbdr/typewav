@@ -198,5 +198,19 @@
     "bestPrice": "MEILLEUR PRIX · −33 %",
     "subscribe": "Souscrire",
     "financialTransparency": "Transparence financière →"
+  },
+  "config": {
+    "label": "Configuration",
+    "punctuation": "Activer la ponctuation",
+    "punctuationShort": "ponctuation",
+    "numbers": "Activer les chiffres",
+    "numbersShort": "chiffres"
+  },
+  "hint": {
+    "restart": "Recommencer (Tab + Entrée)",
+    "tabEnter": "tab + entrée — nouveau texte"
+  },
+  "source": {
+    "label": "Source du texte"
   }
 }

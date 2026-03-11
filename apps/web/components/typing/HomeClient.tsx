@@ -3,11 +3,16 @@
 /**
  * HomeClient — page d'accueil interactive.
  *
- * Gère : sélection de collection, rotation de texte (quotidienne + shuffle),
- * sélection du pack sonore, mode Classiques MIDI.
+ * 6 zones spec-29 :
+ *   Zone 1 — GlobalNav (layout.tsx)
+ *   Zone 2 — ConfigBar
+ *   Zone 3 — Source attribution
+ *   Zone 4 — TypingArea
+ *   Zone 5 — WaveformBars + ghost toggle + restart + hint
+ *   Zone 6 — Footer minimal
  *
  * Client Component justifié : état interactif, TypingArea, audio.
- * Spec : docs/ARCHITECTURE.md — Client Components ('use client')
+ * Spec : docs/specs/29-home-layout.md
  */
 
 import {
@@ -15,52 +20,24 @@ import {
   fetchCollection,
 } from '@/app/[locale]/actions/collections';
 import { LearningMode } from '@/components/modes/LearningMode';
-import { AudioPreviewButton } from '@/components/typing/AudioPreviewButton';
+import { ConfigBar } from '@/components/typing/ConfigBar';
 import { TypingArea } from '@/components/typing/TypingArea';
+import { WaveformBars } from '@/components/typing/WaveformBars';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useSyncCloud } from '@/hooks/useSyncCloud';
 import { useUser } from '@/hooks/useUser';
 import { getPersonalRecords, getSessionById } from '@/lib/db';
 import { useAudioStore } from '@/stores/useAudioStore';
-import { useProgressionStore } from '@/stores/useProgressionStore';
-import { useSessionStore } from '@/stores/useSessionStore';
+import { useConfigStore } from '@/stores/useConfigStore';
 import { MIDI_PIECES, type MidiPieceId } from '@typewav/audio-engine';
 import type { CollectionConfig } from '@typewav/types';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useLocale, useTranslations } from 'next-intl';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface HomeClientProps {
   initialCollection: CollectionConfig;
 }
-
-type CollectionTab =
-  | 'litterature'
-  | 'poesie'
-  | 'code'
-  | 'philosophie'
-  | 'gaming'
-  | 'classiques';
-type FreeSoundPackId = 'piano' | 'marimba' | 'synth-lofi' | 'chiptune';
-type PremiumSoundPackId = 'cinematic' | 'phonk' | 'jazz-piano';
-type SoundPackId = FreeSoundPackId | PremiumSoundPackId;
-
-const FREE_PACKS: { id: FreeSoundPackId; label: string }[] = [
-  { id: 'piano', label: 'Piano' },
-  { id: 'marimba', label: 'Marimba' },
-  { id: 'synth-lofi', label: 'Synth' },
-  { id: 'chiptune', label: 'Chiptune' },
-];
-
-const PREMIUM_PACKS: { id: PremiumSoundPackId; label: string }[] = [
-  { id: 'cinematic', label: 'Cinematic' },
-  { id: 'phonk', label: 'Phonk' },
-  { id: 'jazz-piano', label: 'Jazz Piano' },
-];
-
-const MIDI_PIECE_LIST = Object.values(MIDI_PIECES);
 
 /**
  * Calcule un index de texte déterministe basé sur le jour de l'année.
@@ -77,34 +54,36 @@ function getDailyIndex(length: number, offset = 0): number {
 
 export function HomeClient({ initialCollection }: HomeClientProps) {
   const tGhost = useTranslations('ghost');
-  const tPreview = useTranslations('preview');
-  const tRank = useTranslations('rank');
-  const tRanks = useTranslations('ranks');
+  const tHint = useTranslations('hint');
   const locale = useLocale();
   const shouldReduceMotion = useReducedMotion();
-  const [activeTab, setActiveTab] = useState<CollectionTab>('litterature');
+
   const [shuffleOffset, setShuffleOffset] = useState(0);
+  const [restartKey, setRestartKey] = useState(0);
   const [selectedPieceId, setSelectedPieceId] =
     useState<MidiPieceId>('fur-elise');
-  const [isLearningMode, setIsLearningMode] = useState(false);
   const [ghostTimings, setGhostTimings] = useState<number[] | null>(null);
-  const [ghostEnabled, setGhostEnabled] = useState(false);
-
-  // Cache des collections chargées — seule litterature est pré-chargée
   const [collectionsCache, setCollectionsCache] = useState<
     Partial<Record<CollectionId, CollectionConfig>>
   >({ litterature: initialCollection });
   const [loadingCollection, setLoadingCollection] = useState(false);
 
-  const { setSoundPack, soundPackId } = useAudioStore();
+  // Ref to avoid stale closure in useEffect (collections)
+  const collectionsCacheRef = useRef(collectionsCache);
+  collectionsCacheRef.current = collectionsCache;
+
+  const activeCollection = useConfigStore((s) => s.activeCollection);
+  const activeMode = useConfigStore((s) => s.activeMode);
+  const setMode = useConfigStore((s) => s.setMode);
+
+  const isLearningMode = activeMode === 'learning';
+  const hasGhostData = ghostTimings !== null && ghostTimings.length > 0;
+  const ghostEnabled = activeMode === 'ghost' && hasGhostData;
+
+  const { soundPackId } = useAudioStore();
   const { loadMidiPiece, disableMidiMode } = useAudioEngine();
   const { user, isPremium } = useUser();
-  const { rank, personalRecords } = useProgressionStore();
-  const position = useSessionStore((s) => s.position);
-  const isTypingStarted = position > 0;
-  const router = useRouter();
 
-  // Sync cloud silencieuse au démarrage pour les users premium
   useSyncCloud(user?.id ?? null, isPremium);
 
   // Charger les timings du record personnel pour le ghost mode
@@ -119,45 +98,27 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     void loadGhostTimings();
   }, []);
 
-  // Texte actuel selon l'onglet actif et l'offset de shuffle
-  const { text, source, collectionId } = useMemo(() => {
-    const collKey: CollectionId =
-      activeTab === 'classiques' ? 'litterature' : (activeTab as CollectionId);
-    const collection = collectionsCache[collKey];
-    if (!collection || collection.texts.length === 0) {
-      return { text: '', source: '', collectionId: '' };
-    }
-    const idx = getDailyIndex(collection.texts.length, shuffleOffset);
-    const entry = collection.texts[idx]!;
-    return {
-      text: entry.content,
-      source: entry.source,
-      collectionId: collection.id,
-    };
-  }, [activeTab, shuffleOffset, collectionsCache]);
+  // Charger la collection quand activeCollection change
+  useEffect(() => {
+    if (activeMode === 'classics') return;
+    const collKey = activeCollection as CollectionId;
+    if (collectionsCacheRef.current[collKey]) return;
+    setLoadingCollection(true);
+    fetchCollection(collKey)
+      .then((collection) => {
+        setCollectionsCache((prev) => ({ ...prev, [collKey]: collection }));
+      })
+      .finally(() => setLoadingCollection(false));
+  }, [activeCollection, activeMode]);
 
-  const handleTabChange = useCallback(
-    async (tab: CollectionTab) => {
-      setActiveTab(tab);
-      setShuffleOffset(0);
-      if (tab === 'classiques') {
-        await loadMidiPiece(selectedPieceId);
-        return;
-      }
+  // Mode MIDI quand activeMode === 'classics'
+  useEffect(() => {
+    if (activeMode === 'classics') {
+      void loadMidiPiece(selectedPieceId);
+    } else {
       disableMidiMode();
-      const collKey = tab as CollectionId;
-      if (!collectionsCache[collKey]) {
-        setLoadingCollection(true);
-        try {
-          const collection = await fetchCollection(collKey);
-          setCollectionsCache((prev) => ({ ...prev, [collKey]: collection }));
-        } finally {
-          setLoadingCollection(false);
-        }
-      }
-    },
-    [selectedPieceId, loadMidiPiece, disableMidiMode, collectionsCache],
-  );
+    }
+  }, [activeMode, selectedPieceId, loadMidiPiece, disableMidiMode]);
 
   const handlePieceChange = useCallback(
     async (pieceId: MidiPieceId) => {
@@ -171,27 +132,66 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     setShuffleOffset((prev) => prev + 1);
   }, []);
 
-  const tabs: { id: CollectionTab; label: string }[] = [
-    { id: 'litterature', label: 'Littérature' },
-    { id: 'poesie', label: 'Poésie' },
-    { id: 'code', label: 'Code' },
-    { id: 'philosophie', label: 'Philosophie' },
-    { id: 'gaming', label: 'Gaming' },
-    { id: 'classiques', label: '♩ Classiques' },
-  ];
+  const handleRestart = useCallback(() => {
+    setRestartKey((k) => k + 1);
+  }, []);
+
+  const { text, source, collectionId } = useMemo(() => {
+    const collKey: CollectionId =
+      activeMode === 'classics'
+        ? 'litterature'
+        : (activeCollection as CollectionId);
+    const collection = collectionsCache[collKey];
+    if (!collection || collection.texts.length === 0) {
+      return { text: '', source: '', collectionId: '' };
+    }
+    const idx = getDailyIndex(collection.texts.length, shuffleOffset);
+    const entry = collection.texts[idx]!;
+    return {
+      text: entry.content,
+      source: entry.source,
+      collectionId: collection.id,
+    };
+  }, [activeCollection, activeMode, shuffleOffset, collectionsCache]);
+
+  // Mode effectif pour TypingArea
+  const typingAreaMode =
+    ghostEnabled && ghostTimings
+      ? 'ghost'
+      : activeMode === 'classics'
+        ? 'classics'
+        : activeMode === 'code'
+          ? 'code'
+          : activeMode === 'sprint'
+            ? 'sprint'
+            : 'classic';
 
   if (isLearningMode) {
     return (
       <main
-        className="flex min-h-dvh flex-col items-center justify-center gap-8 p-8"
-        style={{ backgroundColor: 'var(--color-bg)' }}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 32,
+          padding: 32,
+          minHeight: 'calc(100dvh - 48px)',
+          backgroundColor: 'var(--color-bg)',
+        }}
       >
         <button
-          onClick={() => setIsLearningMode(false)}
-          className="self-start text-xs tracking-widest uppercase transition-colors hover:underline"
+          onClick={() => setMode('classic')}
           style={{
+            alignSelf: 'flex-start',
             color: 'var(--color-text-muted)',
             fontFamily: 'var(--font-ui)',
+            fontSize: '0.75rem',
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
           }}
         >
           ← Retour
@@ -203,120 +203,37 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
   return (
     <main
-      className="flex min-h-dvh flex-col items-center justify-center gap-8 p-8"
-      style={{ backgroundColor: 'var(--color-bg)' }}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 24,
+        padding: '24px 16px',
+        minHeight: 'calc(100dvh - 48px)',
+        backgroundColor: 'var(--color-bg)',
+      }}
     >
-      {/* En-tête */}
-      <header className="text-center">
-        <h1
-          className="text-5xl font-light tracking-widest"
-          style={{
-            fontFamily: 'var(--font-display)',
-            color: 'var(--color-accent)',
-          }}
-        >
-          TypeWav
-        </h1>
-        <p
-          className="mt-2 text-sm tracking-widest uppercase"
-          style={{
-            color: 'var(--color-text-muted)',
-            fontFamily: 'var(--font-ui)',
-          }}
-        >
-          immersive musical typing
-        </p>
-      </header>
-
-      {/* Badge de rang — visible si rang non-novice */}
-      {rank !== 'novice' && (
-        <Link
-          href={`/${locale}/profil`}
-          data-testid="rank-badge"
-          aria-label={tRank('viewProfile')}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '4px 12px',
-            backgroundColor: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '20px',
-            color: 'var(--color-text-muted)',
-            fontFamily: 'var(--font-ui)',
-            fontSize: '0.75rem',
-            textDecoration: 'none',
-            transition: 'color 0.15s',
-          }}
-          className="hover:text-[var(--color-text-primary)]"
-        >
-          <span style={{ color: 'var(--color-accent)' }}>{tRanks(rank)}</span>
-          {personalRecords && (
-            <>
-              <span aria-hidden="true">·</span>
-              <span>{personalRecords.maxWpm.value} WPM</span>
-            </>
-          )}
-        </Link>
-      )}
-
-      {/* Aperçu sonore — visible avant le début de la saisie */}
-      {!isTypingStarted && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <AudioPreviewButton />
-          <span
-            style={{
-              color: 'var(--color-text-muted)',
-              fontFamily: 'var(--font-ui)',
-              fontSize: '0.8125rem',
-            }}
-          >
-            {tPreview('orStartTyping')}
-          </span>
-        </div>
-      )}
-
-      {/* Sélecteur de collection */}
-      <nav
-        className="flex gap-1 rounded-md p-1"
-        style={{
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-        }}
-        aria-label="Choisir une collection"
-      >
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => void handleTabChange(tab.id)}
-            className="rounded px-4 py-2 text-xs tracking-widest uppercase transition-colors"
-            style={{
-              fontFamily: 'var(--font-ui)',
-              backgroundColor:
-                activeTab === tab.id ? 'var(--color-accent)' : 'transparent',
-              color:
-                activeTab === tab.id
-                  ? 'var(--color-bg)'
-                  : 'var(--color-text-muted)',
-              fontWeight: activeTab === tab.id ? '600' : '400',
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </nav>
+      {/* Zone 2 — ConfigBar */}
+      <ConfigBar />
 
       {/* Sélecteur de pièce (mode Classiques uniquement) */}
-      {activeTab === 'classiques' && (
-        <div className="flex flex-wrap justify-center gap-2">
-          {MIDI_PIECE_LIST.map((piece) => (
+      {activeMode === 'classics' && (
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            gap: 8,
+          }}
+        >
+          {Object.values(MIDI_PIECES).map((piece) => (
             <button
               key={piece.id}
               onClick={() => void handlePieceChange(piece.id)}
-              className="rounded px-3 py-1 text-xs transition-colors"
               style={{
                 fontFamily: 'var(--font-ui)',
                 border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-sm)',
                 backgroundColor:
                   selectedPieceId === piece.id
                     ? 'var(--color-border)'
@@ -325,6 +242,9 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
                   selectedPieceId === piece.id
                     ? 'var(--color-text-primary)'
                     : 'var(--color-text-muted)',
+                fontSize: '0.75rem',
+                padding: '2px 8px',
+                cursor: 'pointer',
               }}
             >
               {piece.title} — {piece.composer}
@@ -333,212 +253,213 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         </div>
       )}
 
-      {/* Zone de frappe */}
+      {/* Zone 3 — Source attribution */}
+      {source && (
+        <p
+          style={{
+            color: 'var(--color-text-muted)',
+            fontFamily: 'var(--font-ui)',
+            fontSize: '0.75rem',
+            letterSpacing: '0.03em',
+            textAlign: 'center',
+            margin: 0,
+            userSelect: 'none',
+          }}
+        >
+          {activeMode === 'classics'
+            ? `♩ ${MIDI_PIECES[selectedPieceId]?.title ?? selectedPieceId}`
+            : source}
+        </p>
+      )}
+
+      {/* Zone 4 — Zone de frappe */}
       {loadingCollection ? (
         <div
           role="status"
           aria-label="Chargement de la collection"
           style={{
             width: '100%',
-            maxWidth: '48rem',
-            height: '200px',
+            maxWidth: '70vw',
+            height: 200,
             backgroundColor: 'var(--color-surface)',
             border: '1px solid var(--color-border)',
-            borderRadius: '6px',
-            animation: 'pulse 1.5s ease-in-out infinite',
+            borderRadius: 6,
           }}
         />
       ) : (
         <TypingArea
-          key={`${activeTab}-${shuffleOffset}-${selectedPieceId}`}
+          key={`${activeCollection}-${shuffleOffset}-${selectedPieceId}-${restartKey}`}
           text={text}
           collectionId={collectionId}
-          mode={
-            ghostEnabled && ghostTimings
-              ? 'ghost'
-              : activeTab === 'classiques'
-                ? 'classics'
-                : activeTab === 'code'
-                  ? 'code'
-                  : 'classic'
-          }
+          mode={typingAreaMode}
           {...(ghostEnabled && ghostTimings ? { ghostTimings } : {})}
         />
       )}
 
-      {/* Pied de page — source + contrôles */}
-      <footer className="flex w-full max-w-2xl flex-col items-center gap-4">
+      {/* Zone 5 — WaveformBars + ghost + restart + hint */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 16,
+          width: '100%',
+          maxWidth: '70vw',
+          margin: '12px auto 0',
+        }}
+      >
+        <WaveformBars
+          barCount={14}
+          maxHeightPx={10}
+          idlePulse
+          style={{ flex: 1, maxWidth: 120 }}
+        />
+
+        {/* Ghost toggle */}
+        {(() => {
+          return (
+            <button
+              data-testid="ghost-toggle"
+              onClick={
+                hasGhostData
+                  ? () => setMode(ghostEnabled ? 'classic' : 'ghost')
+                  : undefined
+              }
+              aria-disabled={!hasGhostData ? true : undefined}
+              aria-label={
+                hasGhostData
+                  ? ghostEnabled
+                    ? tGhost('disable')
+                    : tGhost('enable')
+                  : tGhost('locked')
+              }
+              title={!hasGhostData ? tGhost('lockedTooltip') : undefined}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: ghostEnabled
+                  ? 'var(--color-rank-ghost, #FFD700)'
+                  : 'var(--color-text-muted)',
+                cursor: hasGhostData ? 'pointer' : 'not-allowed',
+                fontFamily: 'var(--font-ui)',
+                fontSize: '0.75rem',
+                opacity: hasGhostData ? 1 : 0.45,
+                padding: '3px 6px',
+              }}
+            >
+              <AnimatePresence>
+                {!hasGhostData && (
+                  <motion.span
+                    aria-hidden="true"
+                    style={{ marginRight: 4, display: 'inline-block' }}
+                    initial={{ opacity: 1 }}
+                    exit={{
+                      opacity: 0,
+                      scale: shouldReduceMotion ? 1 : 0,
+                    }}
+                    transition={{ duration: shouldReduceMotion ? 0 : 0.3 }}
+                  >
+                    🔒
+                  </motion.span>
+                )}
+              </AnimatePresence>
+              👻 {ghostEnabled ? tGhost('active') : tGhost('label')}
+            </button>
+          );
+        })()}
+
+        {/* Restart */}
+        <button
+          onClick={handleRestart}
+          aria-label={tHint('restart')}
+          tabIndex={-1}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--color-text-muted)',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontFamily: 'var(--font-ui)',
+            opacity: 0.5,
+          }}
+          className="hover:opacity-100"
+        >
+          ᴄ
+        </button>
+
+        {/* Hint tab + enter */}
         <p
-          className="text-xs text-center"
+          aria-hidden="true"
           style={{
             color: 'var(--color-text-muted)',
             fontFamily: 'var(--font-ui)',
+            fontSize: '0.6875rem',
+            letterSpacing: '0.05em',
+            opacity: 0.5,
+            margin: 0,
           }}
         >
-          {activeTab === 'classiques'
-            ? `♩ Mode Classiques — ${MIDI_PIECES[selectedPieceId].title}`
-            : source}
+          {tHint('tabEnter')}
         </p>
 
-        {/* Contrôles : pack sonore + shuffle + apprentissage */}
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          {/* Pack sonore — gratuit */}
-          <div className="flex flex-wrap gap-1">
-            {FREE_PACKS.map((pack) => (
-              <button
-                key={pack.id}
-                onClick={() => setSoundPack(pack.id)}
-                className="rounded px-2 py-1 text-xs transition-colors"
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  border: '1px solid var(--color-border)',
-                  backgroundColor:
-                    soundPackId === pack.id
-                      ? 'var(--color-border)'
-                      : 'transparent',
-                  color:
-                    soundPackId === pack.id
-                      ? 'var(--color-text-primary)'
-                      : 'var(--color-text-muted)',
-                }}
-              >
-                {pack.label}
-              </button>
-            ))}
-            {/* Pack sonore — premium */}
-            {PREMIUM_PACKS.map((pack) => (
-              <button
-                key={pack.id}
-                onClick={() => {
-                  if (isPremium) {
-                    setSoundPack(pack.id);
-                  } else {
-                    router.push('/premium');
-                  }
-                }}
-                title={
-                  isPremium ? undefined : 'Disponible avec TypeWav Premium'
-                }
-                className="rounded px-2 py-1 text-xs transition-colors"
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  border: '1px solid var(--color-border)',
-                  backgroundColor:
-                    soundPackId === pack.id
-                      ? 'var(--color-border)'
-                      : 'transparent',
-                  color: isPremium
-                    ? soundPackId === pack.id
-                      ? 'var(--color-text-primary)'
-                      : 'var(--color-text-muted)'
-                    : 'var(--color-border)',
-                  cursor: isPremium ? 'pointer' : 'default',
-                }}
-              >
-                {isPremium ? pack.label : `🔒 ${pack.label}`}
-              </button>
-            ))}
-          </div>
-          {/* Divider */}
-          <span style={{ color: 'var(--color-border)' }}>|</span>
-          {/* Shuffle */}
-          <button
-            onClick={handleShuffle}
-            className="text-xs tracking-widest uppercase transition-colors hover:underline"
-            style={{
-              color: 'var(--color-text-muted)',
-              fontFamily: 'var(--font-ui)',
-            }}
-          >
-            ↻ Nouveau texte
-          </button>
-          {/* Mode Apprentissage */}
-          <button
-            onClick={() => setIsLearningMode(true)}
-            className="text-xs tracking-widest uppercase transition-colors hover:underline"
-            style={{
-              color: 'var(--color-text-muted)',
-              fontFamily: 'var(--font-ui)',
-            }}
-          >
-            ✦ Apprentissage
-          </button>
-          {/* Ghost mode — toujours visible, verrouillé si pas de record */}
-          {(() => {
-            const hasGhostData = ghostTimings && ghostTimings.length > 0;
-            return (
-              <button
-                data-testid="ghost-toggle"
-                onClick={
-                  hasGhostData
-                    ? () => setGhostEnabled((prev) => !prev)
-                    : undefined
-                }
-                aria-disabled={!hasGhostData ? true : undefined}
-                aria-label={
-                  hasGhostData
-                    ? ghostEnabled
-                      ? tGhost('disable')
-                      : tGhost('enable')
-                    : tGhost('locked')
-                }
-                title={!hasGhostData ? tGhost('lockedTooltip') : undefined}
-                className="text-xs tracking-widest uppercase transition-colors hover:underline"
-                style={{
-                  color: ghostEnabled
-                    ? 'var(--color-rank-ghost, #FFD700)'
-                    : 'var(--color-text-muted)',
-                  fontFamily: 'var(--font-ui)',
-                  opacity: hasGhostData ? 1 : 0.45,
-                  cursor: hasGhostData ? 'pointer' : 'not-allowed',
-                }}
-              >
-                <AnimatePresence>
-                  {!hasGhostData && (
-                    <motion.span
-                      aria-hidden="true"
-                      style={{ marginRight: '4px', display: 'inline-block' }}
-                      initial={{ opacity: 1 }}
-                      exit={{
-                        opacity: 0,
-                        scale: shouldReduceMotion ? 1 : 0,
-                      }}
-                      transition={{ duration: shouldReduceMotion ? 0 : 0.3 }}
-                    >
-                      🔒
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-                👻 {ghostEnabled ? tGhost('active') : tGhost('label')}
-              </button>
-            );
-          })()}{' '}
-        </div>
+        {/* Shuffle */}
+        <button
+          onClick={handleShuffle}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--color-text-muted)',
+            cursor: 'pointer',
+            fontSize: '0.75rem',
+            fontFamily: 'var(--font-ui)',
+            opacity: 0.5,
+          }}
+          className="hover:opacity-100"
+        >
+          ↻
+        </button>
+      </div>
 
-        <div className="flex items-center gap-4">
-          <Link
-            href={`/${locale}/profil`}
-            className="text-xs tracking-widest uppercase transition-colors hover:underline"
-            style={{
-              color: 'var(--color-text-muted)',
-              fontFamily: 'var(--font-ui)',
-            }}
+      {/* Zone 6 — Footer minimal */}
+      <footer
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 24px',
+          height: 32,
+          marginTop: 'auto',
+          width: '100%',
+          fontFamily: 'var(--font-ui)',
+          fontSize: '0.6875rem',
+          color: 'var(--color-text-muted)',
+          opacity: 0.5,
+        }}
+      >
+        <div style={{ display: 'flex', gap: 12 }}>
+          <a
+            href="https://github.com/mouwaficbdr/typewav"
+            style={{ color: 'inherit', textDecoration: 'none' }}
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            Profil &amp; statistiques →
-          </Link>
-          <span style={{ color: 'var(--color-border)' }}>|</span>
-          <Link
-            href="/premium"
-            className="text-xs tracking-widest uppercase transition-colors hover:underline"
-            style={{
-              color: isPremium
-                ? 'var(--color-accent)'
-                : 'var(--color-text-muted)',
-              fontFamily: 'var(--font-ui)',
-            }}
+            github
+          </a>
+          <a
+            href={`/${locale}/transparence`}
+            style={{ color: 'inherit', textDecoration: 'none' }}
           >
-            {isPremium ? '★ Premium' : 'Premium →'}
-          </Link>
+            terms
+          </a>
+          <a
+            href={`/${locale}/transparence`}
+            style={{ color: 'inherit', textDecoration: 'none' }}
+          >
+            privacy
+          </a>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <span>♪ {soundPackId}</span>
         </div>
       </footer>
     </main>

@@ -198,5 +198,19 @@
     "bestPrice": "BEST PRICE · −33 %",
     "subscribe": "Subscribe",
     "financialTransparency": "Financial transparency →"
+  },
+  "config": {
+    "label": "Configuration",
+    "punctuation": "Enable punctuation",
+    "punctuationShort": "punctuation",
+    "numbers": "Enable numbers",
+    "numbersShort": "numbers"
+  },
+  "hint": {
+    "restart": "Restart (Tab + Enter)",
+    "tabEnter": "tab + enter — new text"
+  },
+  "source": {
+    "label": "Text source"
   }
 }
