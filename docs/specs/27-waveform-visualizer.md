@@ -6,6 +6,41 @@
 > **Dépendances : spec-12 (sessionId), spec-23 (i18n) terminés**
 > **Position dans le backlog : Dernière étape — VISION**
 
+> ## ✅ PARTIELLEMENT IMPLÉMENTÉE — Mise à jour 11 Mars 2026
+>
+> **Commit d'implémentation :** `b6f7774 feat(waveform): live WaveformBars and post-session SessionWaveform visualizer`
+>
+> ### État des composants (confirmé dans le code)
+>
+> | Élément                                | Fichier                                          | Statut        |
+> | -------------------------------------- | ------------------------------------------------ | ------------- |
+> | `NoteEvent` type                       | `packages/types/src/session.ts:58-68`            | ✅ Implémenté |
+> | `useSessionStore.noteEvents`           | `apps/web/stores/useSessionStore.ts:26`          | ✅ Implémenté |
+> | `useSessionStore.recordNoteEvent`      | `apps/web/stores/useSessionStore.ts:118-129`     | ✅ Implémenté |
+> | `useAudioEngine` appel recordNoteEvent | `apps/web/hooks/useAudioEngine.ts:231`           | ✅ Implémenté |
+> | `WaveformBars.tsx`                     | `apps/web/components/typing/WaveformBars.tsx`    | ✅ Implémenté |
+> | `SessionWaveform.tsx`                  | `apps/web/components/typing/SessionWaveform.tsx` | ✅ Implémenté |
+>
+> ### Changements restants (FORGE [1.6] et [2.3])
+>
+> **FORGE [1.6] — Zone 5 home :**
+>
+> - `WaveformBars` : `barCount` configurable (12–16), `maxHeightPx` réduit à 10px,
+>   nouvelle prop `idlePulse` (légère pulsation au repos)
+> - Ces props sont ajoutées dans **spec-29** (home layout refonte)
+>
+> **FORGE [2.3] — Page résultats :**
+>
+> - `SessionWaveform` n'est **plus** un bloc standalone sur la page résultats
+> - Il devient un **overlay fond** du graphique WPM (`opacity: 0.15`), pas une figure séparée
+> - L'intégration est dans **spec-30** (results refonte), composant `WpmChart.tsx`
+>
+> **Action requise :** Implémenter les props supplémentaires de WaveformBars (spec-29)
+> et l'intégration overlay (spec-30). Le contenu de cette spec reste valide pour
+> référence — ne pas réimplémenter ce qui est déjà en place.
+
+---
+
 ---
 
 ## Vision
