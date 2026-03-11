@@ -1,13 +1,11 @@
 {
   "nav": {
-    "home": "Accueil",
+    "home": "Retour à l'accueil",
     "mainNav": "Navigation principale",
-    "profile": "Profil",
+    "profile": "Mon profil",
     "leaderboard": "Classement",
     "premium": "Premium",
-    "login": "Connexion",
-    "account": "Mon compte",
-    "settings": "Paramètres"
+    "login": "Se connecter"
   },
   "typing": {
     "start": "Commencez à taper pour démarrer…",

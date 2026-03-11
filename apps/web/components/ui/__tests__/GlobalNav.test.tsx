@@ -1,9 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { GlobalNav } from '../GlobalNav';
+
+// ─── Mocks ────────────────────────────────────────────────────────────────────
 
 vi.mock('next/navigation', () => ({
-  usePathname: () => '/fr/profil',
+  usePathname: () => '/fr/classement',
   useRouter: () => ({ push: vi.fn() }),
 }));
 
@@ -37,41 +38,31 @@ vi.mock('@/hooks/useUser', () => ({
   })),
 }));
 
+import { GlobalNav } from '../GlobalNav';
+import { NavLogo } from '../NavLogo';
+
+// ─── GlobalNav v2 ─────────────────────────────────────────────────────────────
+
 describe('GlobalNav', () => {
-  it('affiche le logo TypeWav avec lien vers /[locale]/', () => {
+  it('affiche le logo NavLogo (lien TypeWav)', () => {
     render(<GlobalNav />);
-    const logo = screen.getByText('TypeWav');
-    expect(logo).toBeInTheDocument();
-    expect(logo.closest('a')).toHaveAttribute('href', '/fr');
+    expect(screen.getByRole('link', { name: /TypeWav/i })).toBeInTheDocument();
   });
 
-  it('affiche les liens Profil, Classement, Premium', () => {
+  it('affiche les icônes de navigation avec aria-label (leaderboard, premium)', () => {
     render(<GlobalNav />);
-    expect(screen.getByText('profile')).toBeInTheDocument();
-    expect(screen.getByText('leaderboard')).toBeInTheDocument();
-    expect(screen.getByText('premium')).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'leaderboard' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'premium' })).toBeInTheDocument();
   });
 
-  it('affiche "Connexion" si utilisateur non connecté', () => {
+  it('affiche le lien connexion si utilisateur non connecté', () => {
     render(<GlobalNav />);
-    expect(screen.getByText('login')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'login' })).toBeInTheDocument();
   });
 
-  it('affiche email.split("@")[0] si pseudo vide', async () => {
-    const { useUser } = await import('@/hooks/useUser');
-    vi.mocked(useUser).mockReturnValueOnce({
-      user: {
-        email: 'alice@example.com',
-      } as unknown as import('@supabase/supabase-js').User,
-      isPremium: false,
-      loading: false,
-      pseudo: '',
-    });
-    render(<GlobalNav />);
-    expect(screen.getByText('alice')).toBeInTheDocument();
-  });
-
-  it("affiche le pseudo en priorité sur l'email", async () => {
+  it('affiche le lien profil (icône ○) si utilisateur connecté', async () => {
     const { useUser } = await import('@/hooks/useUser');
     vi.mocked(useUser).mockReturnValueOnce({
       user: {
@@ -82,27 +73,61 @@ describe('GlobalNav', () => {
       pseudo: 'Alice',
     });
     render(<GlobalNav />);
-    expect(screen.getByText('Alice')).toBeInTheDocument();
-    expect(screen.queryByText('alice')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'profile' })).toBeInTheDocument();
   });
 
-  it('le logo utilise --font-display', () => {
+  it('marque le lien actif avec aria-current="page" (pathname=/fr/classement)', () => {
     render(<GlobalNav />);
-    const logo = screen.getByRole('link', { name: /typewav/i });
-    expect(logo).toHaveStyle({ fontFamily: 'var(--font-display)' });
+    expect(screen.getByRole('link', { name: 'leaderboard' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
   });
 
-  it('marque le lien actif avec aria-current="page"', () => {
+  it('les liens incluent la locale courante /fr/', () => {
     render(<GlobalNav />);
-    const profilLink = screen.getByText('profile').closest('a');
-    expect(profilLink).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'leaderboard' })).toHaveAttribute(
+      'href',
+      '/fr/classement',
+    );
   });
 
-  it('les liens incluent la locale courante', () => {
+  it('nav a un fond flottant (backdrop-filter)', () => {
     render(<GlobalNav />);
-    const profilLink = screen.getByText('profile').closest('a');
-    expect(profilLink).toHaveAttribute('href', '/fr/profil');
-    const classementLink = screen.getByText('leaderboard').closest('a');
-    expect(classementLink).toHaveAttribute('href', '/fr/classement');
+    const nav = screen.getByRole('navigation');
+    expect(nav).toHaveStyle({ backdropFilter: 'blur(8px)' });
+  });
+});
+
+// ─── NavLogo ──────────────────────────────────────────────────────────────────
+
+describe('NavLogo', () => {
+  it('contient un lien vers /{locale}/', () => {
+    render(<NavLogo locale="fr" />);
+    const link = screen.getByRole('link');
+    expect(link).toHaveAttribute('href', '/fr');
+  });
+
+  it('affiche le texte TypeWav', () => {
+    render(<NavLogo locale="fr" />);
+    expect(screen.getByText(/TypeWav/)).toBeInTheDocument();
+  });
+
+  it('affiche le curseur clignotant par défaut', () => {
+    render(<NavLogo locale="fr" />);
+    const cursor = document.querySelector('.cursor-blink');
+    expect(cursor).toBeInTheDocument();
+  });
+
+  it('masque le curseur si showCursor=false', () => {
+    render(<NavLogo locale="fr" showCursor={false} />);
+    const cursor = document.querySelector('.cursor-blink');
+    expect(cursor).not.toBeInTheDocument();
+  });
+
+  it('le texte TypeWav utilise --font-display', () => {
+    render(<NavLogo locale="fr" />);
+    const textSpan = screen.getByText(/TypeWav/);
+    expect(textSpan).toHaveStyle({ fontFamily: 'var(--font-display)' });
   });
 });

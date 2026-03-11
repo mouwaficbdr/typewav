@@ -1,13 +1,11 @@
 {
   "nav": {
-    "home": "Home",
+    "home": "Back to home",
     "mainNav": "Main navigation",
-    "profile": "Profile",
+    "profile": "My profile",
     "leaderboard": "Leaderboard",
     "premium": "Premium",
-    "login": "Login",
-    "account": "Account",
-    "settings": "Settings"
+    "login": "Sign in"
   },
   "typing": {
     "start": "Start typing to begin…",
