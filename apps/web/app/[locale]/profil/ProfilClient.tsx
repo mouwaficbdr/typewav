@@ -24,7 +24,9 @@ type ChartDays = 7 | 30 | 90;
 export function ProfilClient() {
   const { setProfile, setPersonalRecords, setRank } = useProgressionStore();
   const { isPremium } = useUser();
-  const t = useTranslations('sync');
+  const tSync = useTranslations('sync');
+  const tProfile = useTranslations('profile');
+  const tCommon = useTranslations('common');
 
   const [sessions, setSessions] = useState<SessionResult[]>([]);
   const [records, setRecords] = useState<PersonalRecords | null>(null);
@@ -66,7 +68,7 @@ export function ProfilClient() {
           fontFamily: 'var(--font-ui)',
         }}
       >
-        Chargement…
+        {tCommon('loading')}
       </div>
     );
   }
@@ -110,7 +112,7 @@ export function ProfilClient() {
             lineHeight: '1.6',
           }}
         >
-          {t('premiumBanner')}
+          {tSync('premiumBanner')}
         </div>
       )}
 
@@ -125,7 +127,7 @@ export function ProfilClient() {
               margin: 0,
             }}
           >
-            Profil
+            {tProfile('title')}
           </h1>
           <p
             style={{
@@ -135,8 +137,7 @@ export function ProfilClient() {
               marginTop: 4,
             }}
           >
-            {totalSessions} session{totalSessions !== 1 ? 's' : ''} complétée
-            {totalSessions !== 1 ? 's' : ''}
+            {tProfile('sessionCount', { count: totalSessions })}
           </p>
         </div>
         <RankBadge rank={rank} size="lg" />
@@ -152,15 +153,15 @@ export function ProfilClient() {
         }}
       >
         {[
-          { label: 'WPM moyen', value: avgWpm, unit: 'WPM' },
-          { label: 'Précision moy.', value: avgAccuracy, unit: '%' },
+          { label: tProfile('avgWpm'), value: avgWpm, unit: 'WPM' },
+          { label: tProfile('avgAccuracy'), value: avgAccuracy, unit: '%' },
           {
-            label: 'Record WPM',
+            label: tProfile('recordWpm'),
             value: records?.maxWpm.value ?? 0,
             unit: 'WPM',
           },
           {
-            label: 'Record précision',
+            label: tProfile('recordAccuracy'),
             value: Math.round(records?.maxAccuracy.value ?? 0),
             unit: '%',
           },
@@ -228,7 +229,7 @@ export function ProfilClient() {
               margin: 0,
             }}
           >
-            Progression WPM
+            {tProfile('wpmProgress')}
           </h2>
           <div style={{ display: 'flex', gap: 8 }}>
             {([7, 30, 90] as ChartDays[]).map((d) => (
@@ -268,7 +269,7 @@ export function ProfilClient() {
             marginBottom: 16,
           }}
         >
-          Activité — 90 jours
+          {tProfile('activity90Days')}
         </h2>
         <ContributionHeatmap sessions={sessions} />
       </section>
@@ -288,7 +289,7 @@ export function ProfilClient() {
           transition: 'border-color 0.15s, color 0.15s',
         }}
       >
-        ← Retour au test
+        {tCommon('backToTyping')}
       </Link>
     </main>
   );

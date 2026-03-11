@@ -84,17 +84,30 @@
     "wpm": "WPM",
     "accuracy": "Accuracy",
     "mode": "Mode",
-    "noData": "No sessions this week.",
+    "noData": "No scores this week. Complete a session to appear here.",
     "filterAll": "All",
-    "you": "you"
+    "you": "you",
+    "rankHeader": "#",
+    "pseudoHeader": "Pseudo",
+    "wpmHeader": "WPM",
+    "accuracyHeader": "Accuracy",
+    "modeHeader": "Mode"
   },
   "profile": {
-    "title": "My profile",
+    "title": "Profile",
     "sessions": "Sessions",
     "avgWpm": "Avg WPM",
     "bestWpm": "Best WPM",
     "totalTime": "Total time",
-    "progression": "Progression"
+    "progression": "Progression",
+    "sessionCount_one": "{count} session completed",
+    "sessionCount_other": "{count} sessions completed",
+    "avgAccuracy": "Avg. accuracy",
+    "recordWpm": "WPM record",
+    "recordAccuracy": "Accuracy record",
+    "wpmProgress": "WPM progress",
+    "activity90Days": "Activity — 90 days",
+    "daysFilter": "{count}d"
   },
   "progression": {
     "rank": "Rank",
@@ -115,7 +128,8 @@
   "common": {
     "loading": "Loading…",
     "error": "Something went wrong.",
-    "back": "Back",
+    "back": "← Back",
+    "backToTyping": "← Back to typing",
     "close": "Close",
     "confirm": "Confirm",
     "cancel": "Cancel",
@@ -169,5 +183,18 @@
     "operator": "Operator",
     "architect": "Architect",
     "ghost": "Ghost"
+  },
+  "premium": {
+    "alreadyPremium": "✦ You are Premium",
+    "alreadyPremiumDesc": "All sound packs and cloud features are unlocked.",
+    "title": "TypeWav Premium",
+    "subtitle": "Cinematic sounds. Your music, your rhythm.",
+    "monthly": "Monthly",
+    "monthlyDesc": "per month · no commitment",
+    "annual": "Annual",
+    "annualDesc": "per year · €3.33/month",
+    "bestPrice": "BEST PRICE · −33 %",
+    "subscribe": "Subscribe",
+    "financialTransparency": "Financial transparency →"
   }
 }
