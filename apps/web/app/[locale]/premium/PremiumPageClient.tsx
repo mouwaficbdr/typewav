@@ -73,7 +73,10 @@ const PREMIUM_FEATURES = [
 
 export function PremiumPageClient() {
   const { user, isPremium, loading } = useUser();
-  const t = useTranslations('sync');
+  const tSync = useTranslations('sync');
+  const tPremium = useTranslations('premium');
+  const tCommon = useTranslations('common');
+  const tAuth = useTranslations('auth');
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -122,7 +125,7 @@ export function PremiumPageClient() {
           fontFamily: 'var(--font-ui)',
         }}
       >
-        Chargement…
+        {tCommon('loading')}
       </div>
     );
   }
@@ -141,7 +144,7 @@ export function PremiumPageClient() {
               fontSize: '2rem',
             }}
           >
-            ✦ Vous êtes Premium
+            {tPremium('alreadyPremium')}
           </p>
           <p
             style={{
@@ -150,7 +153,7 @@ export function PremiumPageClient() {
               marginTop: '8px',
             }}
           >
-            Tous les packs sonores et fonctionnalités cloud sont débloqués.
+            {tPremium('alreadyPremiumDesc')}
           </p>
         </div>
         <Link
@@ -162,7 +165,7 @@ export function PremiumPageClient() {
             textDecoration: 'underline',
           }}
         >
-          ← Retour au typing
+          {tCommon('backToTyping')}
         </Link>
       </main>
     );
@@ -183,7 +186,7 @@ export function PremiumPageClient() {
             letterSpacing: '0.05em',
           }}
         >
-          TypeWav Premium
+          {tPremium('title')}
         </h1>
         <p
           style={{
@@ -193,7 +196,7 @@ export function PremiumPageClient() {
             marginTop: '8px',
           }}
         >
-          Des sons cinématiques. Votre musique, votre rythme.
+          {tPremium('subtitle')}
         </p>
       </header>
 
@@ -234,7 +237,7 @@ export function PremiumPageClient() {
             )}
             {f.comingSoon && SYNC_IS_COMING_SOON && (
               <span
-                aria-label={t('comingSoon')}
+                aria-label={tSync('comingSoon')}
                 style={{
                   backgroundColor: 'var(--color-border)',
                   borderRadius: '12px',
@@ -248,7 +251,7 @@ export function PremiumPageClient() {
                   textTransform: 'uppercase',
                 }}
               >
-                {t('comingSoon')}
+                {tSync('comingSoon')}
               </span>
             )}
           </li>
@@ -272,11 +275,11 @@ export function PremiumPageClient() {
             width: '100%',
           }}
         >
-          {t('comingSoonExplainer')}
+          {tSync('comingSoonExplainer')}
         </p>
       )}
 
-      {/* Tarification */}
+      {/* Plans */}
       <div className="flex flex-wrap justify-center gap-6">
         {/* Plan mensuel */}
         <div
@@ -296,7 +299,7 @@ export function PremiumPageClient() {
               letterSpacing: '0.1em',
             }}
           >
-            Mensuel
+            {tPremium('monthly')}
           </p>
           <p
             style={{
@@ -315,7 +318,7 @@ export function PremiumPageClient() {
               fontSize: '0.75rem',
             }}
           >
-            par mois · sans engagement
+            {tPremium('monthlyDesc')}
           </p>
           <button
             onClick={() => void handleCheckout('monthly')}
@@ -335,7 +338,7 @@ export function PremiumPageClient() {
               width: '100%',
             }}
           >
-            {checkoutLoading ? '…' : user ? 'Souscrire' : 'Se connecter'}
+            {checkoutLoading ? '…' : user ? tPremium('subscribe') : tAuth('signIn')}
           </button>
         </div>
 
@@ -362,7 +365,7 @@ export function PremiumPageClient() {
               top: '-14px',
             }}
           >
-            MEILLEUR PRIX · −33 %
+          {tPremium('bestPrice')}
           </span>
           <p
             style={{
@@ -373,7 +376,7 @@ export function PremiumPageClient() {
               letterSpacing: '0.1em',
             }}
           >
-            Annuel
+            {tPremium('annual')}
           </p>
           <p
             style={{
@@ -392,7 +395,7 @@ export function PremiumPageClient() {
               fontSize: '0.75rem',
             }}
           >
-            par an · 3,33 €/mois
+            {tPremium('annualDesc')}
           </p>
           <button
             onClick={() => void handleCheckout('annual')}
@@ -412,7 +415,7 @@ export function PremiumPageClient() {
               width: '100%',
             }}
           >
-            {checkoutLoading ? '…' : user ? 'Souscrire' : 'Se connecter'}
+            {checkoutLoading ? '…' : user ? tPremium('subscribe') : tAuth('signIn')}
           </button>
         </div>
       </div>
@@ -438,7 +441,7 @@ export function PremiumPageClient() {
             fontSize: '0.8125rem',
           }}
         >
-          ← Retour
+          {tCommon('back')}
         </Link>
         <Link
           href="/transparence"
@@ -448,7 +451,7 @@ export function PremiumPageClient() {
             fontSize: '0.8125rem',
           }}
         >
-          Transparence financière →
+          {tPremium('financialTransparency')}
         </Link>
       </div>
     </main>

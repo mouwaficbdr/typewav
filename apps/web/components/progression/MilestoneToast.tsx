@@ -11,6 +11,7 @@
 import { useProgressionStore } from '@/stores/useProgressionStore';
 import type { Milestone } from '@typewav/types';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 const REWARD_ICONS: Record<Milestone['reward']['type'], string> = {
@@ -28,6 +29,8 @@ function SingleToast({
   onDismiss: () => void;
 }) {
   const shouldReduceMotion = useReducedMotion();
+  const t = useTranslations('progression');
+  const locale = useLocale();
 
   useEffect(() => {
     const timer = setTimeout(onDismiss, 4000);
@@ -69,7 +72,7 @@ function SingleToast({
             color: 'var(--color-accent)',
           }}
         >
-          Jalon débloqué !
+          {t('milestoneUnlocked')}
         </p>
         <p
           style={{
@@ -79,7 +82,7 @@ function SingleToast({
             color: 'var(--color-text-muted)',
           }}
         >
-          {milestone.labelFr}
+          {locale === 'fr' ? milestone.labelFr : milestone.labelEn}
         </p>
       </div>
     </motion.div>

@@ -12,6 +12,7 @@
  */
 
 import type { LeaderboardEntry } from '@typewav/types';
+import { useTranslations } from 'next-intl';
 
 interface LeaderboardTableProps {
   entries: LeaderboardEntry[];
@@ -22,6 +23,8 @@ export function LeaderboardTable({
   entries,
   currentUserPseudo,
 }: LeaderboardTableProps) {
+  const t = useTranslations('leaderboard');
+
   if (entries.length === 0) {
     return (
       <p
@@ -33,7 +36,7 @@ export function LeaderboardTable({
           padding: '2rem 0',
         }}
       >
-        Aucun score cette semaine. Complétez un test pour apparaître ici.
+        {t('noData')}
       </p>
     );
   }
@@ -61,11 +64,13 @@ export function LeaderboardTable({
               fontSize: '0.7rem',
             }}
           >
-            <th style={{ padding: '0.5rem 1rem 0.5rem 0' }}>#</th>
-            <th style={{ padding: '0.5rem 1rem' }}>Pseudo</th>
-            <th style={{ padding: '0.5rem 1rem' }}>WPM</th>
-            <th style={{ padding: '0.5rem 1rem' }}>Précision</th>
-            <th style={{ padding: '0.5rem 1rem' }}>Mode</th>
+            <th style={{ padding: '0.5rem 1rem 0.5rem 0' }}>
+              {t('rankHeader')}
+            </th>
+            <th style={{ padding: '0.5rem 1rem' }}>{t('pseudoHeader')}</th>
+            <th style={{ padding: '0.5rem 1rem' }}>{t('wpmHeader')}</th>
+            <th style={{ padding: '0.5rem 1rem' }}>{t('accuracyHeader')}</th>
+            <th style={{ padding: '0.5rem 1rem' }}>{t('modeHeader')}</th>
           </tr>
         </thead>
         <tbody>
@@ -107,7 +112,7 @@ export function LeaderboardTable({
                         opacity: 0.7,
                       }}
                     >
-                      vous
+                      {t('you')}
                     </span>
                   )}
                 </td>
