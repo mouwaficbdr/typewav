@@ -33,6 +33,14 @@ vi.mock('@/stores/useAudioStore', () => ({
 vi.mock('@/lib/db', () => ({
   getPersonalRecords: vi.fn().mockResolvedValue(null),
   getSessionById: vi.fn().mockResolvedValue(null),
+  getUserProfile: vi.fn().mockResolvedValue({
+    currentRank: 'novice',
+    pseudo: '',
+    unlockedThemes: [],
+    unlockedSoundPacks: [],
+    unlockedCollections: [],
+    unlockedMilestoneIds: [],
+  }),
 }));
 
 vi.mock('@/components/typing/TypingArea', () => ({
@@ -80,8 +88,49 @@ vi.mock('motion/react', () => ({
       children?: React.ReactNode;
       [key: string]: unknown;
     }) => <span {...props}>{children}</span>,
+    button: ({
+      children,
+      whileTap: _wt,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      whileTap?: unknown;
+      [key: string]: unknown;
+    }) => <button {...(props as React.ButtonHTMLAttributes<HTMLButtonElement>)}>{children}</button>,
   },
   useReducedMotion: () => false,
+}));
+
+vi.mock('@/components/typing/AudioPreviewButton', () => ({
+  AudioPreviewButton: () => (
+    <button data-testid="audio-preview-button">▶ preview</button>
+  ),
+}));
+
+vi.mock('@/stores/useProgressionStore', () => ({
+  useProgressionStore: (selector: (s: { rank: string }) => unknown) =>
+    selector({ rank: 'novice' }),
+}));
+
+vi.mock('@/stores/useSessionStore', () => ({
+  useSessionStore: (selector: (s: { startedAt: null }) => unknown) =>
+    selector({ startedAt: null }),
+}));
+
+vi.mock('next/link', () => ({
+  default: ({
+    children,
+    href,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href: string;
+    [key: string]: unknown;
+  }) => (
+    <a href={href} {...(props as React.AnchorHTMLAttributes<HTMLAnchorElement>)}>
+      {children}
+    </a>
+  ),
 }));
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────

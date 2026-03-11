@@ -30,10 +30,15 @@ import { getPersonalRecords, getSessionById } from '@/lib/db';
 import { useAudioStore } from '@/stores/useAudioStore';
 import { useConfigStore } from '@/stores/useConfigStore';
 import { MIDI_PIECES, type MidiPieceId } from '@typewav/audio-engine';
-import type { CollectionConfig } from '@typewav/types';
+import type { CollectionConfig, PersonalRecords, UserProfile } from '@typewav/types';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AudioPreviewButton } from '@/components/typing/AudioPreviewButton';
+import { getUserProfile } from '@/lib/db';
+import { useProgressionStore } from '@/stores/useProgressionStore';
+import { useSessionStore } from '@/stores/useSessionStore';
+import Link from 'next/link';
 
 interface HomeClientProps {
   initialCollection: CollectionConfig;
@@ -55,6 +60,9 @@ function getDailyIndex(length: number, offset = 0): number {
 export function HomeClient({ initialCollection }: HomeClientProps) {
   const tGhost = useTranslations('ghost');
   const tHint = useTranslations('hint');
+  const tRanks = useTranslations('ranks');
+  const tRank = useTranslations('rank');
+  const tPreview = useTranslations('preview');
   const locale = useLocale();
   const shouldReduceMotion = useReducedMotion();
 
@@ -67,6 +75,8 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     Partial<Record<CollectionId, CollectionConfig>>
   >({ litterature: initialCollection });
   const [loadingCollection, setLoadingCollection] = useState(false);
+  const [records, setRecords] = useState<PersonalRecords | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
 
   // Ref to avoid stale closure in useEffect (collections)
   const collectionsCacheRef = useRef(collectionsCache);
@@ -80,22 +90,34 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const hasGhostData = ghostTimings !== null && ghostTimings.length > 0;
   const ghostEnabled = activeMode === 'ghost' && hasGhostData;
 
+  const isTyping = useSessionStore((s) => s.startedAt !== null);
+  const storeRank = useProgressionStore((s) => s.rank);
+  const effectiveRank =
+    storeRank !== 'novice' ? storeRank : (profile?.currentRank ?? 'novice');
+  const hasHistory = records !== null && records.maxWpm.value > 0;
+  const showRankBadge = hasHistory && effectiveRank !== 'novice';
+
   const { soundPackId } = useAudioStore();
   const { loadMidiPiece, disableMidiMode } = useAudioEngine();
   const { user, isPremium } = useUser();
 
   useSyncCloud(user?.id ?? null, isPremium);
 
-  // Charger les timings du record personnel pour le ghost mode
+  // Charger les records, le profil et les timings du ghost mode
   useEffect(() => {
-    async function loadGhostTimings() {
-      const records = await getPersonalRecords();
-      if (!records?.maxWpm?.sessionId) return;
-      const session = await getSessionById(records.maxWpm.sessionId);
+    async function loadData() {
+      const [fetchedRecords, fetchedProfile] = await Promise.all([
+        getPersonalRecords(),
+        getUserProfile(),
+      ]);
+      setRecords(fetchedRecords);
+      setProfile(fetchedProfile);
+      if (!fetchedRecords?.maxWpm?.sessionId) return;
+      const session = await getSessionById(fetchedRecords.maxWpm.sessionId);
       if (!session || session.keystrokeData.length === 0) return;
       setGhostTimings(session.keystrokeData.map((k) => k.deltaMs));
     }
-    void loadGhostTimings();
+    void loadData();
   }, []);
 
   // Charger la collection quand activeCollection change
@@ -216,6 +238,34 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
       {/* Zone 2 — ConfigBar */}
       <ConfigBar />
 
+      {/* Badge de rang — visible si historique + rang non-novice */}
+      {showRankBadge && (
+        <Link
+          href={`/${locale}/profil`}
+          aria-label={tRank('viewProfile')}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '4px 12px',
+            backgroundColor: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '20px',
+            color: 'var(--color-text-muted)',
+            fontFamily: 'var(--font-ui)',
+            fontSize: '0.75rem',
+            textDecoration: 'none',
+          }}
+          className="hover:text-[var(--color-text-primary)]"
+        >
+          <span style={{ color: 'var(--color-accent)' }}>
+            {tRanks(effectiveRank)}
+          </span>
+          <span aria-hidden="true">·</span>
+          <span>{records?.maxWpm.value ?? 0} WPM</span>
+        </Link>
+      )}
+
       {/* Sélecteur de pièce (mode Classiques uniquement) */}
       {activeMode === 'classics' && (
         <div
@@ -270,6 +320,22 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             ? `♩ ${MIDI_PIECES[selectedPieceId]?.title ?? selectedPieceId}`
             : source}
         </p>
+      )}
+
+      {/* Aperçu sonore — visible avant la première frappe */}
+      {!isTyping && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <AudioPreviewButton />
+          <span
+            style={{
+              color: 'var(--color-text-muted)',
+              fontFamily: 'var(--font-ui)',
+              fontSize: '0.8125rem',
+            }}
+          >
+            {tPreview('orStartTyping')}
+          </span>
+        </div>
       )}
 
       {/* Zone 4 — Zone de frappe */}
