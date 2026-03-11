@@ -6,7 +6,7 @@
  * Spec : docs/ARCHITECTURE.md — Zustand stores (responsabilités séparées)
  */
 
-import type { KeystrokeEntry, TypingMode } from '@typewav/types';
+import type { KeystrokeEntry, NoteEvent, TypingMode } from '@typewav/types';
 import { create } from 'zustand';
 
 interface SessionState {
@@ -22,6 +22,8 @@ interface SessionState {
   endedAt: number | null;
   /** Nombre d'erreurs accumulées */
   errorCount: number;
+  /** Événements note enregistrés pendant la session */
+  noteEvents: NoteEvent[];
   mode: TypingMode;
   collectionId: string | undefined;
   soundPackId: string;
@@ -43,6 +45,8 @@ interface SessionActions {
   recordKeystroke: (entry: KeystrokeEntry) => void;
   /** Recule d'une position et retire le dernier keystroke */
   moveBack: () => void;
+  /** Enregistre un événement note (frappe correcte) */
+  recordNoteEvent: (noteName: string, charIndex: number) => void;
   /** Termine la session */
   endSession: () => void;
   /** Remet à zéro pour un nouveau test */
@@ -56,6 +60,7 @@ const initialState: SessionState = {
   startedAt: null,
   endedAt: null,
   errorCount: 0,
+  noteEvents: [],
   mode: 'classic',
   collectionId: undefined,
   soundPackId: 'piano',
@@ -74,6 +79,7 @@ export const useSessionStore = create<SessionState & SessionActions>(
         startedAt: Date.now(),
         endedAt: null,
         errorCount: 0,
+        noteEvents: [],
         mode: options.mode ?? 'classic',
         collectionId: options.collectionId,
         soundPackId: options.soundPackId ?? 'piano',
@@ -108,6 +114,19 @@ export const useSessionStore = create<SessionState & SessionActions>(
           keystrokes: state.keystrokes.slice(0, -1),
         };
       }),
+
+    recordNoteEvent: (noteName, charIndex) =>
+      set((state) => ({
+        noteEvents: [
+          ...state.noteEvents,
+          {
+            noteName,
+            timestamp: Date.now() - (state.startedAt ?? Date.now()),
+            charIndex,
+            isError: false as const,
+          },
+        ],
+      })),
 
     reset: () => {
       set(initialState);

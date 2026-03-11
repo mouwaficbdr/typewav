@@ -136,3 +136,28 @@ describe('useSessionStore — moveBack', () => {
     expect(useSessionStore.getState().position).toBe(0);
   });
 });
+
+describe('useSessionStore — noteEvents', () => {
+  it('recordNoteEvent ajoute un événement au tableau', () => {
+    useSessionStore.getState().startSession('abc');
+    useSessionStore.getState().recordNoteEvent('C4', 0);
+    expect(useSessionStore.getState().noteEvents).toHaveLength(1);
+    expect(useSessionStore.getState().noteEvents[0]!.noteName).toBe('C4');
+    expect(useSessionStore.getState().noteEvents[0]!.charIndex).toBe(0);
+    expect(useSessionStore.getState().noteEvents[0]!.isError).toBe(false);
+  });
+
+  it('reset vide noteEvents', () => {
+    useSessionStore.getState().startSession('abc');
+    useSessionStore.getState().recordNoteEvent('G4', 1);
+    useSessionStore.getState().reset();
+    expect(useSessionStore.getState().noteEvents).toHaveLength(0);
+  });
+
+  it('startSession remet noteEvents à zéro', () => {
+    useSessionStore.getState().startSession('abc');
+    useSessionStore.getState().recordNoteEvent('E4', 0);
+    useSessionStore.getState().startSession('def');
+    expect(useSessionStore.getState().noteEvents).toHaveLength(0);
+  });
+});

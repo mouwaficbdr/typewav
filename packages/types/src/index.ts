@@ -20,6 +20,7 @@ export type {
   BigramStats,
   FatiguePattern,
   KeystrokeEntry,
+  NoteEvent,
   SessionResult,
   TypingMode,
 } from './session';
