@@ -223,7 +223,25 @@
     "punctuation": "Enable punctuation",
     "punctuationShort": "punctuation",
     "numbers": "Enable numbers",
-    "numbersShort": "numbers"
+    "numbersShort": "numbers",
+    "modes": {
+      "classic": "Time",
+      "sprint": "Words",
+      "quote": "Quote",
+      "zen": "Zen",
+      "code": "Code",
+      "learning": "Learning",
+      "ghost": "Ghost",
+      "classics": "Classics",
+      "custom": "Custom",
+      "challenge": "Challenge"
+    },
+    "collections": {
+      "litterature": "Literature",
+      "poesie": "Poetry",
+      "philosophie": "Philosophy",
+      "gaming": "Gaming"
+    }
   },
   "hint": {
     "restart": "Restart (Tab + Enter)",

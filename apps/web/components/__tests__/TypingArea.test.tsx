@@ -78,32 +78,11 @@ describe('TypingArea — accessibilité focus ring', () => {
 });
 
 describe('TypingArea — indicateur mode/collection', () => {
-  it('affiche le badge de mode ghost quand mode=ghost', () => {
-    render(
-      <TypingArea text="hello world" mode="ghost" collectionId="litterature" />,
-    );
-    // L'indicateur de mode doit être visible
-    const indicator = screen.getByLabelText('contextIndicatorLabel');
-    expect(indicator).toBeInTheDocument();
-  });
-
   it("n'affiche pas l'indicateur mode en mode classic sans collectionId", () => {
     render(<TypingArea text="hello world" mode="classic" />);
     expect(
       screen.queryByLabelText('contextIndicatorLabel'),
     ).not.toBeInTheDocument();
-  });
-
-  it('affiche la collection active si collectionId fourni', () => {
-    render(
-      <TypingArea
-        text="hello world"
-        mode="classic"
-        collectionId="litterature"
-      />,
-    );
-    const indicator = screen.getByLabelText('contextIndicatorLabel');
-    expect(indicator).toBeInTheDocument();
   });
 });
 

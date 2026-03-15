@@ -19,6 +19,7 @@
     "@typewav/themes": "workspace:*",
     "@typewav/types": "workspace:*",
     "idb": "^8.0.2",
+    "lucide-react": "^0.577.0",
     "motion": "^12.4.10",
     "next": "^16.1.0",
     "next-intl": "^4.8.3",
@@ -31,13 +32,13 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
+    "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^22.13.10",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "eslint": "^9.20.0",
     "eslint-config-next": "^16.1.0",
     "fake-indexeddb": "^6.0.0",
-    "@tailwindcss/postcss": "^4.0.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.8.2"
   }

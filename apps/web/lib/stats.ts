@@ -196,3 +196,49 @@ export function generateRecommendation(session: SessionResult): string {
 
   return `Bon test — ${session.wpm} WPM à ${session.accuracy} %. Continue à cette cadence sur des textes variés.`;
 }
+
+/** Données d'un point WPM pour le graphe de progression. Compatibles avec WpmChart. */
+export interface WpmPoint {
+  wordIndex: number;
+  wpmRaw: number;
+  wpmNet: number;
+  hasError: boolean;
+}
+
+/**
+ * Calcule les points WPM cumulatifs à chaque frontière de mot.
+ * Chaque point correspond au WPM global jusqu'au mot i.
+ */
+export function calculateWpmPoints(keystrokes: KeystrokeEntry[]): WpmPoint[] {
+  if (keystrokes.length < 2) return [];
+  const points: WpmPoint[] = [];
+  const startTime = keystrokes[0]!.timestamp;
+  let wordIndex = 0;
+  let wordStart = 0;
+
+  for (let i = 0; i < keystrokes.length; i++) {
+    const isSpace = keystrokes[i]!.char === ' ';
+    const isLast = i === keystrokes.length - 1;
+
+    if (isSpace || isLast) {
+      const elapsed = keystrokes[i]!.timestamp - startTime;
+      if (elapsed <= 0) {
+        wordStart = i + 1;
+        continue;
+      }
+
+      const allUpToHere = keystrokes.slice(0, i + 1);
+      const wpmRaw = calculateWPM(allUpToHere, elapsed);
+      const wpmNet = calculateWPMNet(allUpToHere, elapsed);
+      const hasError = keystrokes
+        .slice(wordStart, i + 1)
+        .some((k) => !k.correct);
+
+      points.push({ wordIndex, wpmRaw, wpmNet, hasError });
+      wordIndex++;
+      wordStart = i + 1;
+    }
+  }
+
+  return points;
+}

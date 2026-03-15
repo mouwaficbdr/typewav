@@ -15,6 +15,7 @@ import { useAudioStore } from '@/stores/useAudioStore';
 import { useSessionStore } from '@/stores/useSessionStore';
 import type { MusicPiece } from '@typewav/audio-engine';
 import {
+  MUSIC_LIBRARY,
   getRecommendedPiece,
   getRecommendedRegister,
   pickPiece,
@@ -72,6 +73,6 @@ export function useMusicRecommendation() {
     register,
     refresh,
     selectPiece,
-    allPieces: [] as MusicPiece[],
+    allPieces: MUSIC_LIBRARY,
   };
 }

@@ -10,7 +10,7 @@
  * - Lazy loading : uniquement le pack actif en mémoire
  *
  * Packs supportés : piano | synth-lofi | cinematic | jazz-piano
- * Mode MIDI : activePieceId !== null → joue la séquence classique
+ * Lecture : une seule logique de pièce musicale (plus de mode pentatonique séparé)
  *
  * Spec : docs/specs/01-audio-engine.md
  */
@@ -19,9 +19,7 @@ import { useAudioStore } from '@/stores/useAudioStore';
 import { useSessionStore } from '@/stores/useSessionStore';
 import {
   advanceAndGet,
-  getChordAtIndex,
   getCurrentDuration,
-  getPentatonicNote,
   loadPiece,
   type MidiPieceId,
 } from '@typewav/audio-engine';
@@ -88,8 +86,7 @@ const DEFAULT_PACK_CONFIG = PACK_CONFIGS['piano']!;
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useAudioEngine() {
-  const { initialized, themeId, soundPackId, activePieceId, setInitialized } =
-    useAudioStore();
+  const { initialized, soundPackId, setInitialized } = useAudioStore();
   const recordNoteEvent = useSessionStore((s) => s.recordNoteEvent);
   const sessionPosition = useSessionStore((s) => s.position);
 
@@ -161,13 +158,10 @@ export function useAudioEngine() {
   );
 
   /**
-   * Joue la note correspondant au caractère frappé.
-   *
-   * Mode génératif : note pentatonique × accord courant du thème.
-   * Mode MIDI (activePieceId !== null) : note suivante dans la séquence classique.
+   * Joue la prochaine note de la pièce musicale active.
    */
   const playNote = useCallback(
-    async (char: string, wordIndex: number) => {
+    async (_char: string, _wordIndex: number) => {
       if (!initialized) {
         await initialize();
       }
@@ -181,23 +175,10 @@ export function useAudioEngine() {
       const synth = synthRef.current;
       if (!synth) return;
 
-      let noteToPlay: string;
-
-      if (activePieceId !== null) {
-        // ── Mode Classiques MIDI ──────────────────────────────────────────────
-        const nextNote = advanceAndGet();
-        if (!nextNote || nextNote === 'rest') return;
-        noteToPlay = nextNote;
-      } else {
-        // ── Mode génératif pentatonique ───────────────────────────────────────
-        const chord = getChordAtIndex(themeId, wordIndex);
-        const baseNote = getPentatonicNote(char);
-        const basePitch = baseNote.replace(/\d/u, '');
-        // Si la note est dans l'accord, on la joue ; sinon, on prend la note pentatonique directement
-        noteToPlay = chord.notes.includes(basePitch) ? baseNote : baseNote;
-      }
-
-      const duration = activePieceId !== null ? getCurrentDuration() : '16n';
+      const nextNote = advanceAndGet();
+      if (!nextNote || nextNote === 'rest') return;
+      const noteToPlay = nextNote;
+      const duration = getCurrentDuration();
       synth.triggerAttackRelease(noteToPlay, duration, Tone.now());
 
       // Enregistrer l'événement note pour le visualiseur waveform
@@ -207,8 +188,6 @@ export function useAudioEngine() {
       initialized,
       initialize,
       soundPackId,
-      themeId,
-      activePieceId,
       buildSynth,
       recordNoteEvent,
       sessionPosition,
@@ -239,19 +218,11 @@ export function useAudioEngine() {
   }, [initialized]);
 
   /**
-   * Charge une pièce MIDI et active le mode Classiques.
-   * Appelé depuis le sélecteur de mode sur la page d'accueil.
+   * Charge la pièce musicale sélectionnée.
    */
   const loadMidiPiece = useCallback(async (pieceId: MidiPieceId) => {
     loadPiece(pieceId);
     useAudioStore.getState().setActivePiece(pieceId);
-  }, []);
-
-  /**
-   * Désactive le mode MIDI et revient au mode génératif.
-   */
-  const disableMidiMode = useCallback(() => {
-    useAudioStore.getState().setActivePiece(null);
   }, []);
 
   return {
@@ -261,6 +232,5 @@ export function useAudioEngine() {
     triggerResume,
     loadSoundPack,
     loadMidiPiece,
-    disableMidiMode,
   };
 }

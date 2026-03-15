@@ -12,10 +12,13 @@
 
 import { WpmChart } from '@/components/typing/WpmChart';
 import { useUser } from '@/hooks/useUser';
+import { getSessionById } from '@/lib/db';
+import { calculateWpmPoints, type WpmPoint } from '@/lib/stats';
 import type { NoteEvent, TypingMode } from '@typewav/types';
 import { motion, useReducedMotion } from 'motion/react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 interface ResultsPageProps {
   // ── Métriques core ────────────────────────────────────────────────────────
@@ -169,6 +172,17 @@ export function ResultsPage({
   const shouldReduceMotion = useReducedMotion();
   const animDur = shouldReduceMotion ? 0 : 0.4;
 
+  const [wpmPoints, setWpmPoints] = useState<WpmPoint[]>([]);
+
+  useEffect(() => {
+    if (!sessionId) return;
+    void getSessionById(sessionId).then((session) => {
+      if (session?.keystrokeData && session.keystrokeData.length > 1) {
+        setWpmPoints(calculateWpmPoints(session.keystrokeData));
+      }
+    });
+  }, [sessionId]);
+
   const handleShare = () => {
     if (!sessionId) return;
     const url = `${window.location.origin}/${locale}/replay?id=${sessionId}`;
@@ -203,7 +217,9 @@ export function ResultsPage({
         <StatPrimary
           label={t('wpm')}
           value={wpm}
-          {...(isNewWpmRecord !== undefined ? { isRecord: isNewWpmRecord } : {})}
+          {...(isNewWpmRecord !== undefined
+            ? { isRecord: isNewWpmRecord }
+            : {})}
           t={t}
         />
         <StatPrimary label={t('wpmNet')} value={wpmNet} t={t} />
@@ -245,7 +261,11 @@ export function ResultsPage({
         }}
       >
         {/* WpmChart */}
-        <WpmChart points={[]} noteEvents={noteEvents ?? []} durationMs={durationMs} />
+        <WpmChart
+          points={wpmPoints}
+          noteEvents={noteEvents ?? []}
+          durationMs={durationMs}
+        />
 
         {/* Stats secondaires */}
         <div

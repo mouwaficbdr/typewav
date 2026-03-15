@@ -5,16 +5,29 @@
  *
  * Client Component justifié : événements clavier, état interactif, Tone.js.
  * Spec : docs/ARCHITECTURE.md — Client Components ('use client')
+ *
+ * Refonte spec-29 :
+ * - Aucune boîte (no bg, no border) — texte flottant sur fond.
+ * - 3 lignes visibles, scroll translateY par ligne active.
+ * - Live stats overlay Option A (au-dessus, opacity 0→0.45 après première frappe).
+ * - WaveformBars extrait : onNoteChange pilote Zone 5 de HomeClient.
  */
 
 import { GhostCursor } from '@/components/typing/GhostCursor';
-import { WaveformBars } from '@/components/typing/WaveformBars';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useSession } from '@/hooks/useSession';
-import { useSessionStore } from '@/stores/useSessionStore';
 import type { TypingMode } from '@typewav/types';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+    useCallback,
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useState,
+} from 'react';
+
+/** Hauteur de ligne fixe = 3rem à 16px base = 48px */
+const LINE_HEIGHT_PX = 48;
 
 interface TypingAreaProps {
   text: string;
@@ -28,6 +41,11 @@ interface TypingAreaProps {
   ghostTimings?: number[];
   /** Callback appelé à la fin du test avec le WPM final (utile si autoNavigate=false) */
   onComplete?: (wpm: number) => void;
+  /**
+   * Callback appelé à chaque frappe — pilote WaveformBars en Zone 5.
+   * note = touche pressée (truthy) ou null si silence/erreur.
+   */
+  onNoteChange?: (note: string | null, isError: boolean) => void;
 }
 
 export function TypingArea({
@@ -38,6 +56,7 @@ export function TypingArea({
   onActiveKeyChange,
   ghostTimings,
   onComplete,
+  onNoteChange,
 }: TypingAreaProps) {
   const {
     position,
@@ -55,12 +74,11 @@ export function TypingArea({
   const { initialize, playNote, triggerSilence, triggerResume } =
     useAudioEngine();
   const t = useTranslations('typing');
-  const noteEvents = useSessionStore((s) => s.noteEvents);
-  const lastNoteEvent = noteEvents[noteEvents.length - 1];
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const wordsRef = useRef<HTMLParagraphElement>(null);
   const [isFocused, setIsFocused] = useState(false);
-  const [lastKeyWasError, setLastKeyWasError] = useState(false);
+  const [translateY, setTranslateY] = useState(0);
 
   // Focus automatique sur le conteneur au montage
   useEffect(() => {
@@ -82,6 +100,24 @@ export function TypingArea({
     // onComplete est stable — pas besoin de l'ajouter dans les deps
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isComplete, liveStats.wpm]);
+
+  // Scroll 3 lignes — translateY calculé via getBoundingClientRect
+  // Note : spanRect.top - wordsRect.top est indépendant du transform appliqué
+  // (les deux rects sont décalés par le même translateY → différence = offset naturel).
+  useLayoutEffect(() => {
+    if (!wordsRef.current) return;
+    const spans = wordsRef.current.getElementsByTagName('span');
+    const currentSpan = spans[position];
+    if (!currentSpan) return;
+
+    const wordsRect = wordsRef.current.getBoundingClientRect();
+    const spanRect = currentSpan.getBoundingClientRect();
+    const naturalRelTop = spanRect.top - wordsRect.top;
+    const currentLine = Math.floor(Math.round(naturalRelTop) / LINE_HEIGHT_PX);
+    const newTranslate = -Math.max(0, currentLine - 1) * LINE_HEIGHT_PX;
+
+    setTranslateY(newTranslate);
+  }, [position]);
 
   // Calcul du mot courant (pour l'accord musical)
   const wordIndex = text.slice(0, position).split(' ').length - 1;
@@ -107,11 +143,11 @@ export function TypingArea({
       handleKeystroke(e.key);
 
       if (isCorrect) {
-        setLastKeyWasError(false);
         await playNote(e.key, wordIndex);
+        onNoteChange?.(e.key, false);
       } else {
-        setLastKeyWasError(true);
         triggerSilence();
+        onNoteChange?.(null, true);
       }
 
       // Micro-reverb si c'est une correction (frappe juste après erreur)
@@ -132,113 +168,82 @@ export function TypingArea({
       playNote,
       triggerSilence,
       triggerResume,
+      onNoteChange,
     ],
   );
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full max-w-3xl">
-      {/* Indicateur mode/collection */}
-      {(mode !== 'classic' || collectionId) && (
-        <div
-          style={{
-            display: 'flex',
-            gap: '8px',
-            alignItems: 'center',
-            fontFamily: 'var(--font-ui)',
-            fontSize: '0.75rem',
-            color: 'var(--color-text-muted)',
-          }}
-          aria-label={t('contextIndicatorLabel')}
-        >
-          {collectionId && <span>{t(`collection.${collectionId}`)}</span>}
-          {collectionId && mode !== 'classic' && (
-            <span aria-hidden="true">·</span>
-          )}
-          {mode !== 'classic' && (
-            <span style={{ color: 'var(--color-accent)' }}>
-              {t(`mode.${mode}`)}
-            </span>
-          )}
-        </div>
-      )}
-      {/* Stats live */}
+    <div className="content-typing" style={{ position: 'relative' }}>
+      {/* Live stats overlay — Option A : au-dessus, opacity 0 avant la première frappe */}
       <div
-        className="flex gap-8 text-sm"
+        aria-hidden="true"
         style={{
+          position: 'absolute',
+          top: '-1.75rem',
+          left: 0,
+          right: 0,
+          textAlign: 'center',
+          opacity: position === 0 ? 0 : 0.45,
+          fontFamily: 'var(--font-mono)',
+          fontSize: '0.75rem',
           color: 'var(--color-text-muted)',
-          fontFamily: 'var(--font-ui)',
+          transition: 'opacity 0.3s',
+          letterSpacing: '0.04em',
+          userSelect: 'none',
+          zIndex: 2,
+          pointerEvents: 'none',
         }}
       >
-        <span>
-          <span
-            style={{
-              color: 'var(--color-accent)',
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            {Math.round(liveStats.wpm)}
-          </span>{' '}
-          WPM
+        <span
+          style={{
+            color: 'var(--color-accent)',
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          {Math.round(liveStats.wpm)}
         </span>
-        <span>
-          <span
-            style={{
-              color: 'var(--color-accent)',
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            {Math.round(liveStats.accuracy)}
-          </span>
-          % acc
+        {' wpm · '}
+        <span
+          style={{
+            color: 'var(--color-accent)',
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          {Math.round(liveStats.accuracy)}
         </span>
-        <span>
-          <span
-            style={{
-              color: 'var(--color-accent)',
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            {Math.round(liveStats.consistency)}
-          </span>
-          % const
-        </span>
+        {'% acc'}
       </div>
 
-      {/* Visualiseur waveform — barres réactives aux notes */}
-      <WaveformBars
-        lastNote={lastNoteEvent?.noteName}
-        isError={lastKeyWasError}
-      />
-
-      {/* Zone de frappe */}
+      {/* Zone de frappe — aérée, fluide, text muté pour l'attente */}
       <div
         ref={containerRef}
         role="textbox"
-        aria-label="Zone de frappe — tapez le texte affiché"
+        aria-label={t('hint')}
         aria-multiline="false"
         tabIndex={0}
         onKeyDown={handleKeyDown}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        className="relative cursor-text select-none rounded-md p-8 typing-focus-ring w-full"
+        className="cursor-text select-none w-full"
         style={{
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
+          position: 'relative',
+          height: `${LINE_HEIGHT_PX * 3}px`,
+          overflow: 'hidden',
           fontFamily: 'var(--font-mono)',
-          fontSize: '1.25rem',
-          lineHeight: '2',
+          fontSize: '1.75rem', /* MonkeyType scale */
+          lineHeight: `${LINE_HEIGHT_PX}px`,
+          letterSpacing: '0.02em',
+          outline: 'none', // Remove browser focus ring
         }}
       >
-        {/* Ghost cursor — mode ghost activé si ghostTimings fourni */}
         {ghostTimings && ghostTimings.length > 0 && (
           <GhostCursor
             ghostTimings={ghostTimings}
-            userPosition={position}
             textLength={text.length}
+            wordsRef={wordsRef}
           />
         )}
 
-        {/* Overlay d'activation — disparaît au focus */}
         {!isFocused && !isComplete && (
           <div
             aria-hidden="true"
@@ -251,49 +256,102 @@ export function TypingArea({
               justifyContent: 'center',
               background:
                 'color-mix(in srgb, var(--color-bg) 60%, transparent)',
-              borderRadius: 'var(--radius-lg)',
-              cursor: 'pointer',
               zIndex: 1,
               pointerEvents: 'none',
+              backdropFilter: 'blur(2px)',
             }}
           >
             <span
               style={{
                 fontFamily: 'var(--font-ui)',
-                fontSize: '0.875rem',
-                color: 'var(--color-text-muted)',
+                fontSize: '1rem',
+                color: 'var(--color-text-primary)',
                 letterSpacing: '0.05em',
               }}
             >
-              {t('hint')}
+              Click to focus
             </span>
           </div>
         )}
-        <p
-          aria-live="off"
-          className="m-0 flex flex-wrap gap-0"
-          data-testid="typing-area"
-        >
-          {text.split('').map((char, index) => {
-            let state: string;
-            if (index < position) {
-              state = keystrokes[index]?.correct
-                ? 'char-correct'
-                : 'char-error';
-            } else if (index === position) {
-              state = 'char-current';
-            } else {
-              state = 'char-pending';
-            }
 
-            return (
-              <span key={index} data-testid={`char-${index}`} className={state}>
-                {char === ' ' ? '\u00A0' : char}
-              </span>
-            );
-          })}
-        </p>
+        {/* Conteneur des mots — scroll par translateY, transition ultra douce */}
+        <div
+          ref={wordsRef}
+          aria-live="off"
+          className="m-0 flex flex-wrap"
+          data-testid="typing-area"
+          style={{
+            transform: `translateY(${translateY}px)`,
+            transition: 'transform 0.25s cubic-bezier(0.2, 0, 0, 1)',
+            userSelect: 'none',
+            columnGap: '0.6em', // Espace entre les mots façon MonkeyType
+            rowGap: '0', 
+          }}
+        >
+          {(() => {
+            let globalIndex = 0;
+            return text.split(' ').map((wordStr, wIndex, arr) => {
+              const isLastWord = wIndex === arr.length - 1;
+              const chars = wordStr.split('');
+
+              const wordNode = (
+                <div key={`word-${wIndex}`} className="word" style={{ display: 'flex' }}>
+                  {chars.map((char) => {
+                    const index = globalIndex++;
+                    let state: string;
+                    if (index < position) {
+                      state = keystrokes[index]?.correct ? 'char-correct' : 'char-error';
+                    } else if (index === position) {
+                      state = 'char-current';
+                    } else {
+                      state = 'char-pending';
+                    }
+
+                    return (
+                      <span key={`char-${index}`} data-testid={`char-${index}`} className={state}>
+                        {char}
+                      </span>
+                    );
+                  })}
+                  
+                  {/* Space element at the end of the word */}
+                  {!isLastWord && (() => {
+                    const spaceIndex = globalIndex++;
+                    let spaceState: string;
+                    if (spaceIndex < position) {
+                      spaceState = keystrokes[spaceIndex]?.correct ? 'char-correct' : 'char-error';
+                    } else if (spaceIndex === position) {
+                      spaceState = 'char-current';
+                    } else {
+                      spaceState = 'char-pending';
+                    }
+
+                    return (
+                      <span
+                        key={`char-${spaceIndex}`}
+                        data-testid={`char-${spaceIndex}`}
+                        className={`${spaceState} char-space`}
+                        style={{
+                          /* Render an actual space if needed for current focus, but we let columnGap do the spacing. 
+                             Setting width:0 ensures it doesn't add double spacing, but it exists in DOM for bounding rect. */
+                          width: spaceIndex === position ? '0.4em' : '0px',
+                          display: 'inline-block',
+                          color: 'transparent'
+                        }}
+                      >
+                        {spaceIndex === position ? '_' : ''}
+                      </span>
+                    );
+                  })()}
+                </div>
+              );
+
+              return wordNode;
+            });
+          })()}
+        </div>
       </div>
     </div>
   );
 }
+

@@ -12,16 +12,25 @@
  * Spec : docs/specs/33-music-recommendation.md
  */
 
+import {
+    FlowerIcon,
+    GlobeIcon,
+    MusicNoteIcon,
+    RefreshIcon,
+    VenetianMaskIcon,
+    WavesIcon,
+    ZapIcon,
+} from '@/components/ui/icons';
 import { useMusicRecommendation } from '@/hooks/useMusicRecommendation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
-const REGISTER_LABELS: Record<string, string> = {
-  energique: '⚡',
-  contemplatif: '🌊',
-  dramatique: '🎭',
-  romantique: '🌹',
-  folk: '🌍',
+const REGISTER_LABELS: Record<string, React.ReactNode> = {
+  energique: <ZapIcon size={10} />,
+  contemplatif: <WavesIcon size={10} />,
+  dramatique: <VenetianMaskIcon size={10} />,
+  romantique: <FlowerIcon size={10} />,
+  folk: <GlobeIcon size={10} />,
 };
 
 export function MusicChip() {
@@ -54,14 +63,14 @@ export function MusicChip() {
           padding: '2px 8px',
           display: 'flex',
           alignItems: 'center',
-          gap: 4,
+          gap: 6,
         }}
         aria-label={t('chipLabel', { piece: currentPiece.title })}
         aria-expanded={panelOpen}
       >
-        <span aria-hidden="true">♪</span>
+        <MusicNoteIcon size={12} />
         <span>{currentPiece.shortTitle ?? currentPiece.title}</span>
-        <span style={{ fontSize: '0.625rem', opacity: 0.7 }} aria-hidden="true">
+        <span style={{ display: 'flex', alignItems: 'center', opacity: 0.7 }} aria-hidden="true">
           {REGISTER_LABELS[register]}
         </span>
       </button>
@@ -85,7 +94,7 @@ export function MusicChip() {
         }}
         className="hover:opacity-100"
       >
-        ↺
+        <RefreshIcon size={12} />
       </button>
 
       {/* Panel de sélection complète */}
