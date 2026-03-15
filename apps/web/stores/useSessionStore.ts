@@ -90,7 +90,9 @@ export const useSessionStore = create<SessionState & SessionActions>(
     recordKeystroke: (entry) => {
       set((state) => ({
         keystrokes: [...state.keystrokes, entry],
-        position: entry.correct ? state.position + 1 : state.position,
+        // Le curseur avance sur chaque frappe (correcte ou incorrecte),
+        // ce qui permet d'avoir de vraies erreurs puis de corriger avec Backspace.
+        position: Math.min(state.text.length, state.position + 1),
         errorCount: entry.correct ? state.errorCount : state.errorCount + 1,
       }));
 
@@ -107,10 +109,10 @@ export const useSessionStore = create<SessionState & SessionActions>(
 
     moveBack: () =>
       set((state) => {
-        if (state.position === 0) return state; // déjà au début
         if (state.endedAt !== null) return state; // session terminée
+        if (state.keystrokes.length === 0) return state; // rien à effacer
         return {
-          position: state.position - 1,
+          position: Math.max(0, state.position - 1),
           keystrokes: state.keystrokes.slice(0, -1),
         };
       }),

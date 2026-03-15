@@ -179,6 +179,7 @@ describe('useSession — handleBackspace', () => {
 
   it('ne fait rien si position === 0', () => {
     mockSessionStore.position = 0;
+    mockSessionStore.keystrokes = [];
 
     const { result } = renderHook(() =>
       useSession({ text: 'hello', autoNavigate: false }),
@@ -189,6 +190,23 @@ describe('useSession — handleBackspace', () => {
     });
 
     expect(mockMoveBack).not.toHaveBeenCalled();
+  });
+
+  it('autorise Backspace si des frappes existent', () => {
+    mockSessionStore.position = 0;
+    mockSessionStore.keystrokes = [
+      { char: 'x', timestamp: Date.now(), correct: false, deltaMs: 0 },
+    ];
+
+    const { result } = renderHook(() =>
+      useSession({ text: 'hello', autoNavigate: false }),
+    );
+
+    act(() => {
+      result.current.handleBackspace();
+    });
+
+    expect(mockMoveBack).toHaveBeenCalledOnce();
   });
 
   it('ne fait rien si la session est terminée', () => {

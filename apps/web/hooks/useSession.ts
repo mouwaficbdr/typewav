@@ -181,9 +181,9 @@ export function useSession({
 
   const handleBackspace = useCallback(() => {
     if (endedAt !== null) return; // session terminée
-    if (position === 0) return; // début du texte
+    if (position === 0 && keystrokes.length === 0) return; // rien à effacer
     moveBack();
-  }, [endedAt, position, moveBack]);
+  }, [endedAt, position, keystrokes.length, moveBack]);
 
   return {
     position,
