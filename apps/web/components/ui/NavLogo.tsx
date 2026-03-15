@@ -1,102 +1,144 @@
 'use client';
 
 /**
- * NavLogo — composition [▁▃▅] TypeWav█
+ * NavLogo — Refonte Premium : Logo "W" Waveform + Typographie hybride
  */
 
 import Link from 'next/link';
-import { useEffect, useRef } from 'react';
 
 interface NavLogoProps {
   locale: string;
-  showCursor?: boolean;
 }
 
-export function NavLogo({ locale, showCursor = true }: NavLogoProps) {
-  const barsRef = useRef<SVGSVGElement>(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (barsRef.current) {
-        const rects = barsRef.current.querySelectorAll('rect');
-        rects.forEach((rect) => {
-          (rect as SVGElement).style.animationPlayState = 'paused';
-        });
-      }
-    }, 600);
-    return () => clearTimeout(timer);
-  }, []);
-
+export function NavLogo({ locale }: NavLogoProps) {
   return (
-    <Link
-      href={`/${locale}`}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 12,
-        textDecoration: 'none',
-        userSelect: 'none',
-      }}
-      className="group"
-    >
-      {/* SVG égaliseur [▁▃▅] */}
-      <svg
-        ref={barsRef}
-        width="20"
-        height="24"
-        viewBox="0 0 12 14"
-        fill="none"
-        aria-hidden="true"
-        className="nav-logo-bars transition-transform duration-300 group-hover:scale-110"
-        style={{ flexShrink: 0 }}
-      >
-        <rect
-          x="0"
-          y="10"
-          width="3"
-          height="4"
-          fill="var(--color-accent)"
-          rx="0.5"
-        />
-        <rect
-          x="4.5"
-          y="6"
-          width="3"
-          height="8"
-          fill="var(--color-accent)"
-          rx="0.5"
-        />
-        <rect
-          x="9"
-          y="2"
-          width="3"
-          height="12"
-          fill="var(--color-accent)"
-          rx="0.5"
-        />
-      </svg>
+    <>
+      <style>{`
+        @keyframes logo-wave-pulse {
+          0%, 100% { transform: scaleY(1); opacity: 0.8; }
+          50% { transform: scaleY(1.15); opacity: 1; }
+        }
+        .nav-logo-bar {
+          transform-origin: 50% 50%;
+          animation: logo-wave-pulse 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+      `}</style>
 
-      {/* TypeWav + curseur */}
-      <span
+      <Link
+        href={`/${locale}`}
         style={{
-          fontFamily: 'var(--font-display)',
-          fontWeight: 400,
-          fontSize: '1.75rem',
-          color: 'var(--color-text-primary)',
-          letterSpacing: '0.05em',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 14,
+          textDecoration: 'none',
+          userSelect: 'none',
         }}
+        className="group relative"
+        aria-label="Accueil TypeWav"
       >
-        TypeWav
-        {showCursor && (
+        {/* Glow ambient derrière le logo */}
+        <div
+          className="absolute left-[8px] top-1/2 -translate-y-1/2 w-[34px] h-[28px] rounded-full opacity-0 group-hover:opacity-40 transition-opacity duration-700 blur-md pointer-events-none"
+          style={{ backgroundColor: 'var(--color-accent)' }}
+        />
+
+        {/* SVG Waveform formant un "W" */}
+        <svg
+          width="36"
+          height="28"
+          viewBox="0 0 36 28"
+          fill="none"
+          aria-hidden="true"
+          className="relative transition-transform duration-500 group-hover:scale-105"
+          style={{ flexShrink: 0 }}
+        >
+          <rect
+            className="nav-logo-bar"
+            x="2"
+            y="2"
+            width="4"
+            height="24"
+            rx="2"
+            fill="var(--color-accent)"
+            style={{ animationDelay: '0s' }}
+          />
+          <rect
+            className="nav-logo-bar"
+            x="9"
+            y="9"
+            width="4"
+            height="10"
+            rx="2"
+            fill="var(--color-accent)"
+            style={{ animationDelay: '0.15s' }}
+          />
+          <rect
+            className="nav-logo-bar"
+            x="16"
+            y="5"
+            width="4"
+            height="18"
+            rx="2"
+            fill="var(--color-accent)"
+            style={{ animationDelay: '0.3s' }}
+          />
+          <rect
+            className="nav-logo-bar"
+            x="23"
+            y="9"
+            width="4"
+            height="10"
+            rx="2"
+            fill="var(--color-accent)"
+            style={{ animationDelay: '0.45s' }}
+          />
+          <rect
+            className="nav-logo-bar"
+            x="30"
+            y="2"
+            width="4"
+            height="24"
+            rx="2"
+            fill="var(--color-accent)"
+            style={{ animationDelay: '0.6s' }}
+          />
+        </svg>
+
+        {/* Typographie de la marque (Hybride) */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'baseline',
+          }}
+        >
+          {/* "Type" : Aspect Tech / Clavier (Sora - Bold) */}
           <span
-            aria-hidden="true"
-            className="cursor-blink"
-            style={{ color: 'var(--color-accent)', marginLeft: '2px' }}
+            style={{
+              fontFamily: 'var(--font-ui)',
+              color: 'var(--color-text-primary)',
+              fontWeight: 700,
+              fontSize: '1.75rem',
+              letterSpacing: '-0.04em',
+            }}
           >
-            █
+            type
           </span>
-        )}
-      </span>
-    </Link>
+          {/* "Wav" : Aspect Musique / Élégance (Cormorant - Italic) */}
+          <span
+            style={{
+              fontFamily: 'var(--font-display)',
+              color: 'var(--color-text-primary)',
+              fontWeight: 600,
+              fontStyle: 'italic',
+              fontSize: '2.5rem',
+              letterSpacing: '0.02em',
+              marginLeft: '-2px',
+            }}
+          >
+            wav
+          </span>
+        </div>
+      </Link>
+    </>
   );
 }

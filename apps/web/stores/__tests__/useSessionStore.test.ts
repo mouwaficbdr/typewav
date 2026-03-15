@@ -18,7 +18,7 @@ describe('useSessionStore — recordKeystroke', () => {
     expect(useSessionStore.getState().position).toBe(1);
   });
 
-  it("ne change pas position si la frappe n'est pas correcte", () => {
+  it("incrémente aussi position si la frappe n'est pas correcte", () => {
     useSessionStore.getState().startSession('abc');
     useSessionStore.getState().recordKeystroke({
       char: 'x',
@@ -26,7 +26,7 @@ describe('useSessionStore — recordKeystroke', () => {
       correct: false,
       deltaMs: 0,
     });
-    expect(useSessionStore.getState().position).toBe(0);
+    expect(useSessionStore.getState().position).toBe(1);
   });
 });
 
@@ -117,23 +117,19 @@ describe('useSessionStore — moveBack', () => {
 
   it('peut revenir sur une erreur', () => {
     useSessionStore.getState().startSession('abc');
-    // Frappe incorrecte (position reste à 0)
+    // Frappe incorrecte (position avance à 1)
     useSessionStore.getState().recordKeystroke({
       char: 'x',
       timestamp: 1000,
       correct: false,
       deltaMs: 0,
     });
-    expect(useSessionStore.getState().position).toBe(0);
+    expect(useSessionStore.getState().position).toBe(1);
     expect(useSessionStore.getState().keystrokes).toHaveLength(1);
 
-    // moveBack retire quand même le keystroke incorrect
-    // Note : position est déjà à 0, donc moveBack ne fait rien (garde-fou)
-    // Car le caractère incorrect n'avance pas la position
-    // Correction : moveBack agit sur la position, pas sur les keystrokes incorrects seuls
-    // Ce cas est acceptable : l'erreur sur place ne nécessite pas de moveBack
     useSessionStore.getState().moveBack();
     expect(useSessionStore.getState().position).toBe(0);
+    expect(useSessionStore.getState().keystrokes).toHaveLength(0);
   });
 });
 

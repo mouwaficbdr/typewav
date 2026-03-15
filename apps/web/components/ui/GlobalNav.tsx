@@ -36,7 +36,7 @@ export function GlobalNav() {
         justifyContent: 'space-between',
         padding: '36px 40px 24px', // Bigger padding for premium feel
         margin: '0 auto',
-        maxWidth: '1350px', // A bit wider to accommodate text
+        maxWidth: '1600px', // A bit wider to accommodate text
         width: '100%',
         background: 'transparent',
       }}

@@ -19,11 +19,12 @@ import { useSession } from '@/hooks/useSession';
 import type { TypingMode } from '@typewav/types';
 import { useTranslations } from 'next-intl';
 import {
-    useCallback,
-    useEffect,
-    useLayoutEffect,
-    useRef,
-    useState,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
 } from 'react';
 
 /** Hauteur de ligne fixe = 3rem à 16px base = 48px */
@@ -118,6 +119,25 @@ export function TypingArea({
 
     setTranslateY(newTranslate);
   }, [position]);
+
+  // Dérive l'état visuel de chaque caractère en rejouant les frappes.
+  // Le curseur avance à chaque frappe, donc l'index suit toujours l'ordre des saisies.
+  const charStates = useMemo(() => {
+    const states = Array.from({ length: text.length }, () => 'char-pending');
+    let cursor = 0;
+
+    for (const stroke of keystrokes) {
+      if (cursor >= text.length) break;
+      states[cursor] = stroke.correct ? 'char-correct' : 'char-error';
+      cursor += 1;
+    }
+
+    if (cursor < text.length) {
+      states[cursor] = 'char-current';
+    }
+
+    return states;
+  }, [keystrokes, text]);
 
   // Calcul du mot courant (pour l'accord musical)
   const wordIndex = text.slice(0, position).split(' ').length - 1;
@@ -230,7 +250,7 @@ export function TypingArea({
           height: `${LINE_HEIGHT_PX * 3}px`,
           overflow: 'hidden',
           fontFamily: 'var(--font-mono)',
-          fontSize: '1.75rem', /* MonkeyType scale */
+          fontSize: '1.75rem' /* MonkeyType scale */,
           lineHeight: `${LINE_HEIGHT_PX}px`,
           letterSpacing: '0.02em',
           outline: 'none', // Remove browser focus ring
@@ -284,8 +304,9 @@ export function TypingArea({
             transform: `translateY(${translateY}px)`,
             transition: 'transform 0.25s cubic-bezier(0.2, 0, 0, 1)',
             userSelect: 'none',
-            columnGap: '0.6em', // Espace entre les mots façon MonkeyType
-            rowGap: '0', 
+            columnGap: '0.6em',
+            justifyContent: mode === 'learning' ? 'center' : 'flex-start',
+            rowGap: '0',
           }}
         >
           {(() => {
@@ -295,54 +316,50 @@ export function TypingArea({
               const chars = wordStr.split('');
 
               const wordNode = (
-                <div key={`word-${wIndex}`} className="word" style={{ display: 'flex' }}>
+                <div
+                  key={`word-${wIndex}`}
+                  className="word"
+                  style={{ display: 'flex' }}
+                >
                   {chars.map((char) => {
                     const index = globalIndex++;
-                    let state: string;
-                    if (index < position) {
-                      state = keystrokes[index]?.correct ? 'char-correct' : 'char-error';
-                    } else if (index === position) {
-                      state = 'char-current';
-                    } else {
-                      state = 'char-pending';
-                    }
+                    const state = charStates[index] ?? 'char-pending';
 
                     return (
-                      <span key={`char-${index}`} data-testid={`char-${index}`} className={state}>
+                      <span
+                        key={`char-${index}`}
+                        data-testid={`char-${index}`}
+                        className={state}
+                      >
                         {char}
                       </span>
                     );
                   })}
-                  
-                  {/* Space element at the end of the word */}
-                  {!isLastWord && (() => {
-                    const spaceIndex = globalIndex++;
-                    let spaceState: string;
-                    if (spaceIndex < position) {
-                      spaceState = keystrokes[spaceIndex]?.correct ? 'char-correct' : 'char-error';
-                    } else if (spaceIndex === position) {
-                      spaceState = 'char-current';
-                    } else {
-                      spaceState = 'char-pending';
-                    }
 
-                    return (
-                      <span
-                        key={`char-${spaceIndex}`}
-                        data-testid={`char-${spaceIndex}`}
-                        className={`${spaceState} char-space`}
-                        style={{
-                          /* Render an actual space if needed for current focus, but we let columnGap do the spacing. 
+                  {/* Space element at the end of the word */}
+                  {!isLastWord &&
+                    (() => {
+                      const spaceIndex = globalIndex++;
+                      const spaceState =
+                        charStates[spaceIndex] ?? 'char-pending';
+
+                      return (
+                        <span
+                          key={`char-${spaceIndex}`}
+                          data-testid={`char-${spaceIndex}`}
+                          className={`${spaceState} char-space`}
+                          style={{
+                            /* Render an actual space if needed for current focus, but we let columnGap do the spacing. 
                              Setting width:0 ensures it doesn't add double spacing, but it exists in DOM for bounding rect. */
-                          width: spaceIndex === position ? '0.4em' : '0px',
-                          display: 'inline-block',
-                          color: 'transparent'
-                        }}
-                      >
-                        {spaceIndex === position ? '_' : ''}
-                      </span>
-                    );
-                  })()}
+                            width: spaceIndex === position ? '0.4em' : '0px',
+                            display: 'inline-block',
+                            color: 'transparent',
+                          }}
+                        >
+                          {spaceIndex === position ? '_' : ''}
+                        </span>
+                      );
+                    })()}
                 </div>
               );
 
@@ -354,4 +371,3 @@ export function TypingArea({
     </div>
   );
 }
-

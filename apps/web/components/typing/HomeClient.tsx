@@ -92,6 +92,15 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
   useSyncCloud(user?.id ?? null, isPremium);
 
+  // Empêcher fermement le défilement de la page entière (100vh)
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
   // Charger les records et les timings du ghost mode
   useEffect(() => {
     async function loadData() {
@@ -173,27 +182,42 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         flexDirection: 'column',
         alignItems: 'center',
         gap: 36, // Airy spacing
-        padding: '64px 32px 16px', // Pushed down to leave more space below the GlobalNav
-        minHeight: 'calc(100dvh - 100px)', // Account for nav height
-        maxWidth: '1250px',
+        padding: '32px 32px 16px',
+        height: 'calc(100dvh - 100px)',
+        overflow: 'hidden', // Account for nav height
+        maxWidth: '1600px',
         margin: '0 auto',
         width: '100%',
         backgroundColor: 'transparent',
       }}
     >
-      {/* Zone 2 — ConfigBar */}
-      <ConfigBar />
+      {/* En-tête de Configuration */}
+      {!isLearningMode ? (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 36,
+            minHeight: '166px', // Réservation stricte de l'espace pour éviter les sauts
+            width: '100%',
+          }}
+        >
+          {/* Zone 2 — ConfigBar */}
+          <ConfigBar />
 
-      {/* Zone 3 — Active Session Header */}
-      {!isLearningMode && (
-        <ActiveSessionHeader
-          selectedPieceId={selectedPieceId}
-          onPieceChange={handlePieceChange}
-        />
+          {/* Zone 3 — Active Session Header */}
+          <ActiveSessionHeader
+            selectedPieceId={selectedPieceId}
+            onPieceChange={handlePieceChange}
+          />
+
+          {/* Zone 3.5 — Context Selectors (Language) */}
+          <ContextSelectors />
+        </div>
+      ) : (
+        <ConfigBar />
       )}
-
-      {/* Zone 3.5 — Context Selectors (Language) */}
-      <ContextSelectors />
 
       <div
         style={{
@@ -202,6 +226,8 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           alignItems: 'flex-start',
           justifyContent: 'center',
           marginBottom: 'auto',
+          // On descend la zone de texte pour la centrer visuellement (sauf en mode apprentissage)
+          marginTop: isLearningMode ? '0' : '4vh',
         }}
       >
         {loadingCollection && !isLearningMode ? (
@@ -314,6 +340,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           justifyContent: 'space-between',
           width: '100%',
           marginTop: 'auto',
+          marginBottom: '14px',
           fontFamily: 'var(--font-ui)',
           fontSize: '0.75rem',
           color: 'var(--color-text-muted)',

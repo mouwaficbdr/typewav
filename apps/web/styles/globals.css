@@ -175,7 +175,7 @@ body {
 
 /* ---- Zone de frappe — largeur conteneur centré (MonkeyType-style) ---- */
 .content-typing {
-  max-width: 100%; /* Will be constrained by the parent container in HomeClient (1250px) */
+  max-width: 100%; /* Will be constrained by the parent container in HomeClient (1600px) */
   width: 100%;
   margin-inline: auto;
 }
