@@ -2,10 +2,6 @@
 
 /**
  * NavLogo — composition [▁▃▅] TypeWav█
- *
- * Utilisé dans GlobalNav et sur les pages /auth/*.
- * Client Component justifié : useEffect pour arrêter l'animation barRise après mount.
- * Spec : docs/specs/15-global-navigation.md (v2)
  */
 
 import Link from 'next/link';
@@ -13,7 +9,6 @@ import { useEffect, useRef } from 'react';
 
 interface NavLogoProps {
   locale: string;
-  /** Si false, le curseur clignotant est masqué (défaut : true) */
   showCursor?: boolean;
 }
 
@@ -21,7 +16,6 @@ export function NavLogo({ locale, showCursor = true }: NavLogoProps) {
   const barsRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
-    // Arrêter l'animation après 600ms (une seule montée, puis figé)
     const timer = setTimeout(() => {
       if (barsRef.current) {
         const rects = barsRef.current.querySelectorAll('rect');
@@ -39,20 +33,21 @@ export function NavLogo({ locale, showCursor = true }: NavLogoProps) {
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 6,
+        gap: 12,
         textDecoration: 'none',
         userSelect: 'none',
       }}
+      className="group"
     >
       {/* SVG égaliseur [▁▃▅] */}
       <svg
         ref={barsRef}
-        width="12"
-        height="14"
+        width="20"
+        height="24"
         viewBox="0 0 12 14"
         fill="none"
         aria-hidden="true"
-        className="nav-logo-bars"
+        className="nav-logo-bars transition-transform duration-300 group-hover:scale-110"
         style={{ flexShrink: 0 }}
       >
         <rect
@@ -85,8 +80,8 @@ export function NavLogo({ locale, showCursor = true }: NavLogoProps) {
       <span
         style={{
           fontFamily: 'var(--font-display)',
-          fontWeight: 300,
-          fontSize: '1.125rem',
+          fontWeight: 400,
+          fontSize: '1.75rem',
           color: 'var(--color-text-primary)',
           letterSpacing: '0.05em',
         }}
@@ -96,7 +91,7 @@ export function NavLogo({ locale, showCursor = true }: NavLogoProps) {
           <span
             aria-hidden="true"
             className="cursor-blink"
-            style={{ color: 'var(--color-accent)' }}
+            style={{ color: 'var(--color-accent)', marginLeft: '2px' }}
           >
             █
           </span>

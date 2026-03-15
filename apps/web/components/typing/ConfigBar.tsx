@@ -1,37 +1,52 @@
 'use client';
 
 /**
- * ConfigBar — barre de configuration 2 lignes, adaptée au mode actif.
+ * ConfigBar — barre de configuration 1 ligne, stricte et adaptative.
  *
- * Ligne 1 (toujours visible) : modificateurs + modes
- * Ligne 2 (contextuelle) : options secondaires du mode actif + chip ♪
+ * Refonte MonkeyType : 
+ * - Tient sur une seule ligne.
+ * - Supprime les modes non essentiels de l'affichage (classiques, libre, challenge).
+ * - Modificateurs (ponctuation, chiffres) | Modes | Options contextuelles | Chip
  *
- * Client Component justifié : état config (useConfigStore), interactions.
  * Spec : docs/specs/29-home-layout.md
  */
 
 import { useConfigStore } from '@/stores/useConfigStore';
 import { useTranslations } from 'next-intl';
-import { MusicChip } from './MusicChip';
+import {
+    AlignLeftIcon,
+    AtIcon,
+    ClockIcon,
+    CodeIcon,
+    GhostIcon,
+    GraduationIcon,
+    HashIcon,
+    PenIcon,
+    QuoteIcon,
+    ZenIcon,
+} from '../ui/icons';
 
+const MODE_ICONS = {
+  classic: ClockIcon,
+  sprint: AlignLeftIcon,
+  quote: QuoteIcon,
+  zen: ZenIcon,
+  code: CodeIcon,
+  learning: GraduationIcon,
+  ghost: GhostIcon,
+  custom: PenIcon,
+} as const;
+
+// On retire 'classics', 'challenge', potentiellement 'libre' si c'est un mode existant
 const MODES = [
-  { id: 'classic', label: 'Temps', icon: '●' },
-  { id: 'sprint', label: 'Mots', icon: 'A' },
-  { id: 'quote', label: 'Citation', icon: '""' },
-  { id: 'zen', label: 'Zen', icon: '△' },
-  { id: 'code', label: 'Code', icon: '⌨' },
-  { id: 'learning', label: 'Apprentissage', icon: '🎓' },
-  { id: 'ghost', label: 'Fantôme', icon: '👻' },
-  { id: 'classics', label: 'Classiques', icon: '♪' },
-  { id: 'custom', label: 'Libre', icon: '✏' },
-  { id: 'challenge', label: 'Challenge', icon: '🏆' },
-] as const;
-
-const COLLECTIONS = [
-  { id: 'litterature', label: 'Littérature' },
-  { id: 'poesie', label: 'Poésie' },
-  { id: 'philosophie', label: 'Philosophie' },
-  { id: 'gaming', label: 'Gaming' },
+  'classic',
+  'sprint',
+  'quote',
+  'zen',
+  'code',
+  'learning',
+  'ghost',
+  'custom',
 ] as const;
 
 const DURATIONS = [15, 30, 60, 120] as const;
@@ -39,6 +54,9 @@ const WORD_COUNTS = [10, 25, 50, 100] as const;
 
 export function ConfigBar() {
   const t = useTranslations('config');
+  const tModes = useTranslations('config.modes' as never) as (
+    k: string,
+  ) => string;
   const {
     activeMode,
     setMode,
@@ -46,10 +64,6 @@ export function ConfigBar() {
     togglePunctuation,
     numbersEnabled,
     toggleNumbers,
-    textLanguage,
-    setTextLanguage,
-    activeCollection,
-    setCollection,
     wordCount,
     setWordCount,
     durationSeconds,
@@ -64,21 +78,26 @@ export function ConfigBar() {
     cursor: 'pointer',
     fontFamily: 'var(--font-ui)',
     fontSize: '0.75rem',
-    padding: '3px 8px',
-    transition: 'color 0.1s',
+    padding: '0 8px', /* Removed vertical padding, relying on fixed height */
+    height: '26px', /* Strict height for buttons */
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.1s ease',
   });
 
   const separator = (
-    <span
+    <div
       aria-hidden="true"
       style={{
-        color: 'var(--color-border)',
-        fontSize: '0.75rem',
-        margin: '0 4px',
+        width: '2px',
+        height: '14px',
+        backgroundColor: 'var(--color-border)',
+        margin: '0 6px',
+        borderRadius: '2px',
+        opacity: 0.5,
       }}
-    >
-      |
-    </span>
+    />
   );
 
   // Modes qui supportent les modificateurs ponctuation/chiffres/langue
@@ -96,140 +115,106 @@ export function ConfigBar() {
       aria-label={t('label')}
       style={{
         display: 'flex',
-        flexDirection: 'column',
+        flexWrap: 'nowrap', /* Force la ligne unique */
+        overflowX: 'auto', /* Permet le scroll horizontal si l'écran est trop petit */
         alignItems: 'center',
-        gap: 4,
-        width: '100%',
-        maxWidth: 700,
+        justifyContent: 'center',
+        width: 'fit-content',
+        maxWidth: '1200px', 
+        height: '42px', /* Strict height */
         margin: '0 auto',
+        padding: '0 16px',
+        background: 'color-mix(in srgb, var(--color-text-muted) 10%, transparent)',
+        borderRadius: 'var(--radius-md)',
+        backdropFilter: 'blur(8px)',
+        gap: '4px',
       }}
+      className="hide-scrollbar"
     >
-      {/* ── Ligne 1 : modificateurs + modes ─────────────────────────────── */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 2,
-          flexWrap: 'nowrap',
-          overflowX: 'auto',
-        }}
-      >
-        {/* Modificateurs (visibles seulement si le mode les supporte) */}
-        {supportsModifiers && (
-          <>
-            <button
-              style={chipStyle(punctuationEnabled)}
-              onClick={togglePunctuation}
-              aria-pressed={punctuationEnabled}
-              title={t('punctuation')}
-            >
-              @ {t('punctuationShort')}
-            </button>
-            <button
-              style={chipStyle(numbersEnabled)}
-              onClick={toggleNumbers}
-              aria-pressed={numbersEnabled}
-              title={t('numbers')}
-            >
-              # {t('numbersShort')}
-            </button>
-            {/* Langue des textes */}
-            {(['fr', 'en', 'both'] as const).map((lang) => (
-              <button
-                key={lang}
-                style={chipStyle(textLanguage === lang)}
-                onClick={() => setTextLanguage(lang)}
-                aria-pressed={textLanguage === lang}
-              >
-                {lang === 'both' ? 'FR+EN' : lang.toUpperCase()}
-              </button>
-            ))}
-            {separator}
-          </>
-        )}
-
-        {/* Modes */}
-        {MODES.map(({ id, label, icon }) => (
+      {/* ── Modificateurs ─────────────────────────────── */}
+      {supportsModifiers && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
           <button
-            key={id}
-            style={chipStyle(activeMode === id)}
-            onClick={() => setMode(id as never)}
-            aria-pressed={activeMode === id}
-            title={label}
+            style={chipStyle(punctuationEnabled)}
+            onClick={togglePunctuation}
+            aria-pressed={punctuationEnabled}
+            title={t('punctuation')}
+            className="hover:text-[var(--color-text-primary)]"
           >
-            {icon} {label}
+            <AtIcon size={14} /> {t('punctuationShort')}
           </button>
-        ))}
+          <button
+            style={chipStyle(numbersEnabled)}
+            onClick={toggleNumbers}
+            aria-pressed={numbersEnabled}
+            title={t('numbers')}
+            className="hover:text-[var(--color-text-primary)]"
+          >
+            <HashIcon size={14} /> {t('numbersShort')}
+          </button>
+          
+          {separator}
+        </div>
+      )}
+
+      {/* ── Modes ─────────────────────────────── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+        {MODES.map((id) => {
+          const Icon = MODE_ICONS[id as keyof typeof MODE_ICONS];
+          const label = tModes(id);
+          return (
+            <button
+              key={id}
+              style={{
+                ...chipStyle(activeMode === id),
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+              onClick={() => setMode(id as never)}
+              aria-pressed={activeMode === id}
+              title={label}
+              className="hover:text-[var(--color-text-primary)]"
+            >
+              <Icon size={14} />
+              {label}
+            </button>
+          );
+        })}
       </div>
 
-      {/* ── Ligne 2 : options contextuelles + chip ♪ ─────────────────── */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 2,
-          width: '100%',
-          justifyContent: 'center',
-        }}
-      >
-        {/* Options selon mode actif */}
-        {activeMode === 'classic' && (
-          <>
-            {COLLECTIONS.map(({ id, label }) => (
-              <button
-                key={id}
-                style={chipStyle(activeCollection === id)}
-                onClick={() => setCollection(id)}
-                aria-pressed={activeCollection === id}
-              >
-                {label}
-              </button>
-            ))}
-            {separator}
-            {DURATIONS.map((d) => (
+      {/* ── Options Contextuelles ─────────────────── */}
+      {(activeMode === 'classic' || activeMode === 'sprint') && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+          {separator}
+          {
+            activeMode === 'classic' && DURATIONS.map((d) => (
               <button
                 key={d}
                 style={chipStyle(durationSeconds === d)}
                 onClick={() => setDuration(d)}
                 aria-pressed={durationSeconds === d}
+                className="hover:text-[var(--color-text-primary)]"
               >
-                {d}s
+                {d}
               </button>
-            ))}
-          </>
-        )}
-
-        {activeMode === 'sprint' && (
-          <>
-            {COLLECTIONS.map(({ id, label }) => (
-              <button
-                key={id}
-                style={chipStyle(activeCollection === id)}
-                onClick={() => setCollection(id)}
-                aria-pressed={activeCollection === id}
-              >
-                {label}
-              </button>
-            ))}
-            {separator}
-            {WORD_COUNTS.map((wc) => (
+            ))
+          }
+          {
+            activeMode === 'sprint' && WORD_COUNTS.map((wc) => (
               <button
                 key={wc}
                 style={chipStyle(wordCount === wc)}
                 onClick={() => setWordCount(wc)}
                 aria-pressed={wordCount === wc}
+                className="hover:text-[var(--color-text-primary)]"
               >
                 {wc}
               </button>
-            ))}
-          </>
-        )}
-
-        {/* Chip ♪ — toujours en fin de ligne 2 (spec-33) */}
-        <div style={{ marginLeft: 'auto' }}>
-          <MusicChip />
+            ))
+          }
         </div>
-      </div>
+      )}
     </div>
   );
 }

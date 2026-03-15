@@ -20,6 +20,8 @@ vi.mock('motion/react', () => ({
 
 import { GhostCursor } from '../typing/GhostCursor';
 
+const wordsRef = { current: null } as React.RefObject<HTMLDivElement | null>;
+
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('GhostCursor — Fix C (suppression label texte)', () => {
@@ -27,8 +29,8 @@ describe('GhostCursor — Fix C (suppression label texte)', () => {
     render(
       <GhostCursor
         ghostTimings={[100, 200, 150]}
-        userPosition={0}
         textLength={10}
+        wordsRef={wordsRef}
       />,
     );
     expect(screen.queryByText(/record/i)).not.toBeInTheDocument();
@@ -38,8 +40,8 @@ describe('GhostCursor — Fix C (suppression label texte)', () => {
     render(
       <GhostCursor
         ghostTimings={[100, 200]}
-        userPosition={1}
         textLength={10}
+        wordsRef={wordsRef}
       />,
     );
     expect(screen.queryByText(/👻\s*record/i)).not.toBeInTheDocument();

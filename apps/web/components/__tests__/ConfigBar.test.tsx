@@ -26,15 +26,15 @@ import { ConfigBar } from '../typing/ConfigBar';
 describe('ConfigBar', () => {
   it('affiche les modes principaux', () => {
     render(<ConfigBar />);
-    expect(screen.getByTitle('Temps')).toBeInTheDocument();
-    expect(screen.getByTitle('Mots')).toBeInTheDocument();
-    expect(screen.getByTitle('Code')).toBeInTheDocument();
+    expect(screen.getByTitle('classic')).toBeInTheDocument();
+    expect(screen.getByTitle('sprint')).toBeInTheDocument();
+    expect(screen.getByTitle('code')).toBeInTheDocument();
   });
 
   it('le mode actif (sprint) a aria-pressed="true"', () => {
     useConfigStore.setState({ activeMode: 'sprint' });
     render(<ConfigBar />);
-    expect(screen.getByTitle('Mots')).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTitle('sprint')).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('les modificateurs sont cachés sur les modes sans modificateurs (ghost)', () => {
@@ -52,9 +52,9 @@ describe('ConfigBar', () => {
   it('affiche les collections en mode classic (ligne 2)', () => {
     render(<ConfigBar />);
     expect(
-      screen.getByRole('button', { name: /littérature/i }),
+      screen.getByRole('button', { name: /litterature/i }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /poésie/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /poesie/i })).toBeInTheDocument();
   });
 
   it('affiche les durées en mode classic (ligne 2)', () => {

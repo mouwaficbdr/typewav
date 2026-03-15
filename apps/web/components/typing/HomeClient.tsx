@@ -8,7 +8,7 @@
  *   Zone 2 — ConfigBar
  *   Zone 3 — Source attribution
  *   Zone 4 — TypingArea
- *   Zone 5 — WaveformBars + ghost toggle + restart + hint
+ *   Zone 5 — WaveformBars + restart + hint
  *   Zone 6 — Footer minimal
  *
  * Client Component justifié : état interactif, TypingArea, audio.
@@ -20,25 +20,24 @@ import {
   fetchCollection,
 } from '@/app/[locale]/actions/collections';
 import { LearningMode } from '@/components/modes/LearningMode';
+import { ActiveSessionHeader } from '@/components/typing/ActiveSessionHeader';
 import { ConfigBar } from '@/components/typing/ConfigBar';
+import { ContextSelectors } from '@/components/typing/ContextSelectors';
 import { TypingArea } from '@/components/typing/TypingArea';
 import { WaveformBars } from '@/components/typing/WaveformBars';
+import { MusicNoteIcon, RepeatIcon } from '@/components/ui/icons';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useSyncCloud } from '@/hooks/useSyncCloud';
 import { useUser } from '@/hooks/useUser';
 import { getPersonalRecords, getSessionById } from '@/lib/db';
 import { useAudioStore } from '@/stores/useAudioStore';
 import { useConfigStore } from '@/stores/useConfigStore';
-import { MIDI_PIECES, type MidiPieceId } from '@typewav/audio-engine';
-import type { CollectionConfig, PersonalRecords, UserProfile } from '@typewav/types';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { type MidiPieceId } from '@typewav/audio-engine';
+import type { CollectionConfig } from '@typewav/types';
+import { useReducedMotion } from 'motion/react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AudioPreviewButton } from '@/components/typing/AudioPreviewButton';
-import { getUserProfile } from '@/lib/db';
-import { useProgressionStore } from '@/stores/useProgressionStore';
-import { useSessionStore } from '@/stores/useSessionStore';
-import Link from 'next/link';
+import webPackage from '../../package.json';
 
 interface HomeClientProps {
   initialCollection: CollectionConfig;
@@ -58,11 +57,7 @@ function getDailyIndex(length: number, offset = 0): number {
 }
 
 export function HomeClient({ initialCollection }: HomeClientProps) {
-  const tGhost = useTranslations('ghost');
   const tHint = useTranslations('hint');
-  const tRanks = useTranslations('ranks');
-  const tRank = useTranslations('rank');
-  const tPreview = useTranslations('preview');
   const locale = useLocale();
   const shouldReduceMotion = useReducedMotion();
 
@@ -75,8 +70,10 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     Partial<Record<CollectionId, CollectionConfig>>
   >({ litterature: initialCollection });
   const [loadingCollection, setLoadingCollection] = useState(false);
-  const [records, setRecords] = useState<PersonalRecords | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [lastNote, setLastNote] = useState<{
+    key: string | null;
+    isError: boolean;
+  }>({ key: null, isError: false });
 
   // Ref to avoid stale closure in useEffect (collections)
   const collectionsCacheRef = useRef(collectionsCache);
@@ -84,34 +81,21 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
   const activeCollection = useConfigStore((s) => s.activeCollection);
   const activeMode = useConfigStore((s) => s.activeMode);
-  const setMode = useConfigStore((s) => s.setMode);
 
   const isLearningMode = activeMode === 'learning';
   const hasGhostData = ghostTimings !== null && ghostTimings.length > 0;
   const ghostEnabled = activeMode === 'ghost' && hasGhostData;
 
-  const isTyping = useSessionStore((s) => s.startedAt !== null);
-  const storeRank = useProgressionStore((s) => s.rank);
-  const effectiveRank =
-    storeRank !== 'novice' ? storeRank : (profile?.currentRank ?? 'novice');
-  const hasHistory = records !== null && records.maxWpm.value > 0;
-  const showRankBadge = hasHistory && effectiveRank !== 'novice';
-
   const { soundPackId } = useAudioStore();
-  const { loadMidiPiece, disableMidiMode } = useAudioEngine();
+  const { loadMidiPiece } = useAudioEngine();
   const { user, isPremium } = useUser();
 
   useSyncCloud(user?.id ?? null, isPremium);
 
-  // Charger les records, le profil et les timings du ghost mode
+  // Charger les records et les timings du ghost mode
   useEffect(() => {
     async function loadData() {
-      const [fetchedRecords, fetchedProfile] = await Promise.all([
-        getPersonalRecords(),
-        getUserProfile(),
-      ]);
-      setRecords(fetchedRecords);
-      setProfile(fetchedProfile);
+      const fetchedRecords = await getPersonalRecords();
       if (!fetchedRecords?.maxWpm?.sessionId) return;
       const session = await getSessionById(fetchedRecords.maxWpm.sessionId);
       if (!session || session.keystrokeData.length === 0) return;
@@ -122,7 +106,6 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
   // Charger la collection quand activeCollection change
   useEffect(() => {
-    if (activeMode === 'classics') return;
     const collKey = activeCollection as CollectionId;
     if (collectionsCacheRef.current[collKey]) return;
     setLoadingCollection(true);
@@ -133,14 +116,10 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
       .finally(() => setLoadingCollection(false));
   }, [activeCollection, activeMode]);
 
-  // Mode MIDI quand activeMode === 'classics'
+  // La pièce musicale sélectionnée est toujours active.
   useEffect(() => {
-    if (activeMode === 'classics') {
-      void loadMidiPiece(selectedPieceId);
-    } else {
-      disableMidiMode();
-    }
-  }, [activeMode, selectedPieceId, loadMidiPiece, disableMidiMode]);
+    void loadMidiPiece(selectedPieceId);
+  }, [selectedPieceId, loadMidiPiece]);
 
   const handlePieceChange = useCallback(
     async (pieceId: MidiPieceId) => {
@@ -159,10 +138,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   }, []);
 
   const { text, source, collectionId } = useMemo(() => {
-    const collKey: CollectionId =
-      activeMode === 'classics'
-        ? 'litterature'
-        : (activeCollection as CollectionId);
+    const collKey: CollectionId = activeCollection as CollectionId;
     const collection = collectionsCache[collKey];
     if (!collection || collection.texts.length === 0) {
       return { text: '', source: '', collectionId: '' };
@@ -180,48 +156,15 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const typingAreaMode =
     ghostEnabled && ghostTimings
       ? 'ghost'
-      : activeMode === 'classics'
-        ? 'classics'
-        : activeMode === 'code'
-          ? 'code'
-          : activeMode === 'sprint'
-            ? 'sprint'
-            : 'classic';
+      : activeMode === 'code'
+        ? 'code'
+        : activeMode === 'sprint'
+          ? 'sprint'
+          : 'classic';
 
-  if (isLearningMode) {
-    return (
-      <main
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 32,
-          padding: 32,
-          minHeight: 'calc(100dvh - 48px)',
-          backgroundColor: 'var(--color-bg)',
-        }}
-      >
-        <button
-          onClick={() => setMode('classic')}
-          style={{
-            alignSelf: 'flex-start',
-            color: 'var(--color-text-muted)',
-            fontFamily: 'var(--font-ui)',
-            fontSize: '0.75rem',
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-          }}
-        >
-          ← Retour
-        </button>
-        <LearningMode />
-      </main>
-    );
-  }
+  // Le layout unifié supprime les "sauts" ou "jumps" de l'UI.
+  // LearningMode y est maintenant intégré de manière fluide.
+  const appVersion = webPackage.version;
 
   return (
     <main
@@ -229,303 +172,208 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 24,
-        padding: '24px 16px',
-        minHeight: 'calc(100dvh - 48px)',
-        backgroundColor: 'var(--color-bg)',
+        gap: 36, // Airy spacing
+        padding: '64px 32px 16px', // Pushed down to leave more space below the GlobalNav
+        minHeight: 'calc(100dvh - 100px)', // Account for nav height
+        maxWidth: '1250px',
+        margin: '0 auto',
+        width: '100%',
+        backgroundColor: 'transparent',
       }}
     >
       {/* Zone 2 — ConfigBar */}
       <ConfigBar />
 
-      {/* Badge de rang — visible si historique + rang non-novice */}
-      {showRankBadge && (
-        <Link
-          href={`/${locale}/profil`}
-          aria-label={tRank('viewProfile')}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '4px 12px',
-            backgroundColor: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '20px',
-            color: 'var(--color-text-muted)',
-            fontFamily: 'var(--font-ui)',
-            fontSize: '0.75rem',
-            textDecoration: 'none',
-          }}
-          className="hover:text-[var(--color-text-primary)]"
-        >
-          <span style={{ color: 'var(--color-accent)' }}>
-            {tRanks(effectiveRank)}
-          </span>
-          <span aria-hidden="true">·</span>
-          <span>{records?.maxWpm.value ?? 0} WPM</span>
-        </Link>
+      {/* Zone 3 — Active Session Header */}
+      {!isLearningMode && (
+        <ActiveSessionHeader
+          selectedPieceId={selectedPieceId}
+          onPieceChange={handlePieceChange}
+        />
       )}
 
-      {/* Sélecteur de pièce (mode Classiques uniquement) */}
-      {activeMode === 'classics' && (
+      {/* Zone 3.5 — Context Selectors (Language) */}
+      <ContextSelectors />
+
+      <div
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+          marginBottom: 'auto',
+        }}
+      >
+        {loadingCollection && !isLearningMode ? (
+          <div
+            role="status"
+            aria-label="Chargement de la collection"
+            className="content-typing"
+            style={{
+              height: 150,
+              backgroundColor: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-md)',
+            }}
+          />
+        ) : isLearningMode ? (
+          <div
+            style={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              animation: 'fadeIn 0.3s ease-out',
+            }}
+          >
+            <LearningMode />
+          </div>
+        ) : (
+          <TypingArea
+            key={`${activeCollection}-${shuffleOffset}-${selectedPieceId}-${restartKey}`}
+            text={text}
+            collectionId={collectionId}
+            mode={typingAreaMode}
+            onNoteChange={(note, isError) =>
+              setLastNote({ key: note, isError })
+            }
+            {...(ghostEnabled && ghostTimings ? { ghostTimings } : {})}
+          />
+        )}
+      </div>
+
+      {/* Zone 5 — Controls & Hints (Centered under TypingArea) - Masqué en mode apprentissage */}
+      {!isLearningMode && (
         <div
           style={{
             display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-            gap: 8,
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 16,
+            width: '100%',
+            marginTop: '16px',
           }}
         >
-          {Object.values(MIDI_PIECES).map((piece) => (
-            <button
-              key={piece.id}
-              onClick={() => void handlePieceChange(piece.id)}
-              style={{
-                fontFamily: 'var(--font-ui)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor:
-                  selectedPieceId === piece.id
-                    ? 'var(--color-border)'
-                    : 'transparent',
-                color:
-                  selectedPieceId === piece.id
-                    ? 'var(--color-text-primary)'
-                    : 'var(--color-text-muted)',
-                fontSize: '0.75rem',
-                padding: '2px 8px',
-                cursor: 'pointer',
-              }}
-            >
-              {piece.title} — {piece.composer}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Zone 3 — Source attribution */}
-      {source && (
-        <p
-          style={{
-            color: 'var(--color-text-muted)',
-            fontFamily: 'var(--font-ui)',
-            fontSize: '0.75rem',
-            letterSpacing: '0.03em',
-            textAlign: 'center',
-            margin: 0,
-            userSelect: 'none',
-          }}
-        >
-          {activeMode === 'classics'
-            ? `♩ ${MIDI_PIECES[selectedPieceId]?.title ?? selectedPieceId}`
-            : source}
-        </p>
-      )}
-
-      {/* Aperçu sonore — visible avant la première frappe */}
-      {!isTyping && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <AudioPreviewButton />
-          <span
+          <div
             style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 12,
               color: 'var(--color-text-muted)',
-              fontFamily: 'var(--font-ui)',
-              fontSize: '0.8125rem',
             }}
           >
-            {tPreview('orStartTyping')}
-          </span>
-        </div>
-      )}
-
-      {/* Zone 4 — Zone de frappe */}
-      {loadingCollection ? (
-        <div
-          role="status"
-          aria-label="Chargement de la collection"
-          style={{
-            width: '100%',
-            maxWidth: '70vw',
-            height: 200,
-            backgroundColor: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 6,
-          }}
-        />
-      ) : (
-        <TypingArea
-          key={`${activeCollection}-${shuffleOffset}-${selectedPieceId}-${restartKey}`}
-          text={text}
-          collectionId={collectionId}
-          mode={typingAreaMode}
-          {...(ghostEnabled && ghostTimings ? { ghostTimings } : {})}
-        />
-      )}
-
-      {/* Zone 5 — WaveformBars + ghost + restart + hint */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 16,
-          width: '100%',
-          maxWidth: '70vw',
-          margin: '12px auto 0',
-        }}
-      >
-        <WaveformBars
-          barCount={14}
-          maxHeightPx={10}
-          idlePulse
-          style={{ flex: 1, maxWidth: 120 }}
-        />
-
-        {/* Ghost toggle */}
-        {(() => {
-          return (
+            {/* Shuffle / Next Test (MonkeyType style, centered below text) */}
             <button
-              data-testid="ghost-toggle"
-              onClick={
-                hasGhostData
-                  ? () => setMode(ghostEnabled ? 'classic' : 'ghost')
-                  : undefined
-              }
-              aria-disabled={!hasGhostData ? true : undefined}
-              aria-label={
-                hasGhostData
-                  ? ghostEnabled
-                    ? tGhost('disable')
-                    : tGhost('enable')
-                  : tGhost('locked')
-              }
-              title={!hasGhostData ? tGhost('lockedTooltip') : undefined}
+              onClick={handleShuffle}
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: ghostEnabled
-                  ? 'var(--color-rank-ghost, #FFD700)'
-                  : 'var(--color-text-muted)',
-                cursor: hasGhostData ? 'pointer' : 'not-allowed',
-                fontFamily: 'var(--font-ui)',
-                fontSize: '0.75rem',
-                opacity: hasGhostData ? 1 : 0.45,
-                padding: '3px 6px',
+                color: 'inherit',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '8px',
+                opacity: 0.8,
               }}
+              className="hover:text-[var(--color-text-primary)] hover:rotate-90 transition-all duration-300"
+              title="Next test"
             >
-              <AnimatePresence>
-                {!hasGhostData && (
-                  <motion.span
-                    aria-hidden="true"
-                    style={{ marginRight: 4, display: 'inline-block' }}
-                    initial={{ opacity: 1 }}
-                    exit={{
-                      opacity: 0,
-                      scale: shouldReduceMotion ? 1 : 0,
-                    }}
-                    transition={{ duration: shouldReduceMotion ? 0 : 0.3 }}
-                  >
-                    🔒
-                  </motion.span>
-                )}
-              </AnimatePresence>
-              👻 {ghostEnabled ? tGhost('active') : tGhost('label')}
+              <RepeatIcon size={20} />
             </button>
-          );
-        })()}
 
-        {/* Restart */}
-        <button
-          onClick={handleRestart}
-          aria-label={tHint('restart')}
-          tabIndex={-1}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--color-text-muted)',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            fontFamily: 'var(--font-ui)',
-            opacity: 0.5,
-          }}
-          className="hover:opacity-100"
-        >
-          ᴄ
-        </button>
+            {/* Restart Hint */}
+            <button
+              onClick={handleRestart}
+              aria-label={tHint('restart')}
+              tabIndex={-1}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'inherit',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                fontFamily: 'var(--font-ui)',
+                padding: '4px 16px',
+                opacity: 0.6,
+              }}
+              className="hover:text-[var(--color-text-primary)] hover:opacity-100 transition-colors"
+              title="Restart Test"
+            >
+              Tab + Enter to restart
+            </button>
+          </div>
+        </div>
+      )}
 
-        {/* Hint tab + enter */}
-        <p
-          aria-hidden="true"
-          style={{
-            color: 'var(--color-text-muted)',
-            fontFamily: 'var(--font-ui)',
-            fontSize: '0.6875rem',
-            letterSpacing: '0.05em',
-            opacity: 0.5,
-            margin: 0,
-          }}
-        >
-          {tHint('tabEnter')}
-        </p>
-
-        {/* Shuffle */}
-        <button
-          onClick={handleShuffle}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--color-text-muted)',
-            cursor: 'pointer',
-            fontSize: '0.75rem',
-            fontFamily: 'var(--font-ui)',
-            opacity: 0.5,
-          }}
-          className="hover:opacity-100"
-        >
-          ↻
-        </button>
-      </div>
-
-      {/* Zone 6 — Footer minimal */}
+      {/* Zone 6 — Footer minimal avec les contrôles secondaires éparpillés */}
       <footer
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0 24px',
-          height: 32,
-          marginTop: 'auto',
           width: '100%',
+          marginTop: 'auto',
           fontFamily: 'var(--font-ui)',
-          fontSize: '0.6875rem',
+          fontSize: '0.75rem',
           color: 'var(--color-text-muted)',
-          opacity: 0.5,
+          paddingTop: '32px',
         }}
       >
-        <div style={{ display: 'flex', gap: 12 }}>
+        {/* === GAUCHE: Liens externes === */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <a
             href="https://github.com/mouwaficbdr/typewav"
-            style={{ color: 'inherit', textDecoration: 'none' }}
+            style={{
+              color: 'inherit',
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
             target="_blank"
             rel="noopener noreferrer"
+            className="hover:text-[var(--color-text-primary)] transition-colors"
           >
-            github
+            &lt;/&gt; github
           </a>
           <a
             href={`/${locale}/transparence`}
-            style={{ color: 'inherit', textDecoration: 'none' }}
+            style={{
+              color: 'inherit',
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+            className="hover:text-[var(--color-text-primary)] transition-colors"
           >
             terms
           </a>
-          <a
-            href={`/${locale}/transparence`}
-            style={{ color: 'inherit', textDecoration: 'none' }}
-          >
-            privacy
-          </a>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <span>♪ {soundPackId}</span>
+
+        {/* === DROITE: Musique, Outils contextuels et versioning === */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          {!isLearningMode && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <WaveformBars
+                lastNote={lastNote.key ?? undefined}
+                isError={lastNote.isError}
+                barCount={12}
+                maxHeightPx={20}
+                idlePulse
+                style={{ width: 80 }}
+              />
+            </div>
+          )}
+
+          <span
+            className="hover:text-[var(--color-text-primary)] cursor-pointer transition-colors"
+            style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+          >
+            <MusicNoteIcon size={12} /> {soundPackId}
+          </span>
+          <span>v{appVersion}</span>
         </div>
       </footer>
     </main>

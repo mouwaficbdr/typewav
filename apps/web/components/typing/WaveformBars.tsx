@@ -3,13 +3,10 @@
 /**
  * WaveformBars — visualiseur de barres réactif aux notes jouées.
  *
- * 12 barres verticales (configurable) qui pulsent à chaque frappe correcte.
+ * Barres verticales (configurable) qui pulsent à chaque frappe correcte.
  * La hauteur de la barre activée correspond à la position relative
  * de la note dans la gamme pentatonique (grave → aigu = gauche → droite).
  * Une erreur : flash rouge + toutes les barres reviennent à minimum.
- *
- * Client Component justifié : animation React state, réaction aux notes en temps réel.
- * Spec : docs/specs/27-waveform-visualizer.md, docs/specs/29-home-layout.md
  */
 
 import { useReducedMotion } from 'motion/react';
@@ -31,15 +28,10 @@ const PENTATONIC_NOTES = [
 ];
 
 interface WaveformBarsProps {
-  /** Dernière note jouée — undefined si silence/erreur */
   lastNote?: string | undefined;
-  /** true si la dernière frappe était une erreur */
   isError?: boolean;
-  /** Nombre de barres affichées (défaut : 12) */
   barCount?: number;
-  /** Hauteur max en px de la barre activée (défaut : 30) */
   maxHeightPx?: number;
-  /** Légère pulsation de repos si silence (défaut : false) */
   idlePulse?: boolean;
   className?: string;
   style?: React.CSSProperties;
@@ -57,9 +49,7 @@ export function WaveformBars({
   const shouldReduceMotion = useReducedMotion();
   const [activeBar, setActiveBar] = useState<number | null>(null);
   const [errorFlash, setErrorFlash] = useState(false);
-  const [idlePhase, setIdlePhase] = useState(0);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const idleRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (isError) {
@@ -84,76 +74,75 @@ export function WaveformBars({
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(
       () => setActiveBar(null),
-      shouldReduceMotion ? 0 : 200,
+      shouldReduceMotion ? 0 : 250,
     );
   }, [lastNote, isError, shouldReduceMotion, barCount]);
-
-  // Légère pulsation au repos (idlePulse)
-  useEffect(() => {
-    if (!idlePulse || shouldReduceMotion) return;
-    idleRef.current = setInterval(() => {
-      setIdlePhase((p) => p + 1);
-    }, 800);
-    return () => {
-      if (idleRef.current) clearInterval(idleRef.current);
-    };
-  }, [idlePulse, shouldReduceMotion]);
 
   const bars = Array.from({ length: barCount }, (_, i) => i);
 
   return (
-    <div
-      aria-hidden="true"
-      className={className}
-      style={{
-        display: 'flex',
-        alignItems: 'flex-end',
-        gap: 3,
-        height: maxHeightPx + 8,
-        width: '100%',
-        padding: '0 0 2px',
-        ...style,
-      }}
-    >
-      {bars.map((i) => {
-        const isActive = activeBar === i;
-        const ratio = barCount > 1 ? i / (barCount - 1) : 0;
-        const minH = Math.max(2, Math.round(maxHeightPx * 0.12));
-        const baseHeight = minH + Math.floor(ratio * maxHeightPx * 0.25);
-        const activeHeight =
-          Math.floor(maxHeightPx * 0.25) +
-          Math.floor(ratio * maxHeightPx * 0.75);
+    <>
+      <style>{`
+        @keyframes typewav-idle-pulse {
+          0%, 100% { transform: scaleY(1); }
+          50% { transform: scaleY(1.5); }
+        }
+      `}</style>
+      <div
+        aria-hidden="true"
+        className={className}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
+          height: maxHeightPx + 12,
+          width: '100%',
+          padding: '0 0 2px',
+          ...style,
+        }}
+      >
+        {bars.map((i) => {
+          const isActive = activeBar === i;
 
-        // Idle pulse: subtle sinusoidal height variation
-        const idleOffset =
-          idlePulse && !shouldReduceMotion && !isActive
-            ? Math.floor(
-                Math.sin((idlePhase + i) * 0.7) *
-                  Math.max(1, maxHeightPx * 0.1),
-              )
-            : 0;
+          const normalized = Math.sin((i / (barCount - 1)) * Math.PI);
+          const baseHeight = Math.round(
+            Math.max(3, maxHeightPx * 0.15 + normalized * maxHeightPx * 0.2),
+          );
 
-        return (
-          <div
-            key={i}
-            style={{
-              flex: 1,
-              height: isActive
-                ? activeHeight
-                : Math.max(2, baseHeight + idleOffset),
-              backgroundColor: errorFlash
-                ? 'var(--color-error)'
-                : isActive
-                  ? 'var(--color-accent)'
-                  : 'color-mix(in srgb, var(--color-accent) 20%, transparent)',
-              borderRadius: 'var(--radius-sm)',
-              transition: shouldReduceMotion
-                ? 'none'
-                : 'height 0.15s ease-out, background-color 0.1s ease',
-            }}
-          />
-        );
-      })}
-    </div>
+          const delay = (i * 0.12).toFixed(2);
+          const isIdle =
+            idlePulse && !shouldReduceMotion && !isActive && activeBar === null;
+
+          return (
+            <div
+              key={i}
+              style={{
+                flex: 1,
+                height: baseHeight,
+                transform: isActive
+                  ? 'scaleY(' + maxHeightPx / baseHeight + ')'
+                  : 'scaleY(1)',
+                backgroundColor: errorFlash
+                  ? 'var(--color-error)'
+                  : isActive
+                    ? 'var(--color-accent)'
+                    : 'color-mix(in srgb, var(--color-accent) 25%, transparent)',
+                boxShadow: isActive
+                  ? '0 0 10px 2px color-mix(in srgb, var(--color-accent) 70%, transparent)'
+                  : 'none',
+                borderRadius: 'var(--radius-sm)',
+                transformOrigin: '50% 50%',
+                animation: isIdle
+                  ? 'typewav-idle-pulse 2s ease-in-out ' + delay + 's infinite'
+                  : 'none',
+                transition: shouldReduceMotion
+                  ? 'none'
+                  : 'transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease, box-shadow 0.2s ease',
+              }}
+            />
+          );
+        })}
+      </div>
+    </>
   );
 }

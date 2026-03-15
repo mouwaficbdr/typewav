@@ -20,10 +20,7 @@ interface AudioState {
   themeId: ChordProgressionTheme;
   /** true si le chargement d'un pack est en cours */
   loading: boolean;
-  /**
-   * Pièce MIDI active (mode Classiques).
-   * null = mode génératif (gamme pentatonique).
-   */
+  /** Pièce musicale active pour la lecture séquencée. */
   activePieceId: MidiPieceId | null;
 }
 
