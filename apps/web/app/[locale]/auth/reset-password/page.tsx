@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import { ResetPasswordClient } from './ResetPasswordClient';
 
 export const metadata: Metadata = {
-  title: 'Réinitialiser le mot de passe — TypeWav',
+  title: 'Réinitialiser le mot de passe',
 };
 
 interface ResetPasswordPageProps {

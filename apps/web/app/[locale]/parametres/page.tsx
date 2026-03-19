@@ -5,7 +5,7 @@ import { ParametresClient } from './ParametresClient';
 export async function generateMetadata() {
   const t = await getTranslations('settings');
   return buildMetadata({
-    title: `${t('title')} — TypeWav`,
+    title: t('title'),
   });
 }
 

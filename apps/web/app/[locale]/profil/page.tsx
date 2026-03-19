@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { ProfilClient } from './ProfilClient';
 
 export const metadata: Metadata = {
-  title: 'Profil — TypeWav',
+  title: 'Profil',
   description: 'Ta progression, tes records et tes statistiques.',
 };
 

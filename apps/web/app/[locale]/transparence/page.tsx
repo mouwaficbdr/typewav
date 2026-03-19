@@ -4,7 +4,7 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Transparence — TypeWav',
+  title: 'Transparence',
   description:
     "Revenus, coûts d'infrastructure et modèle économique de TypeWav.",
 };
@@ -125,7 +125,8 @@ export default function TransparencePage() {
               className="flex items-start justify-between gap-4"
               style={{
                 padding: '12px 0',
-                borderBottom: '1px solid color-mix(in srgb, var(--color-border) 40%, transparent)',
+                borderBottom:
+                  '1px solid color-mix(in srgb, var(--color-border) 40%, transparent)',
               }}
             >
               <div>
