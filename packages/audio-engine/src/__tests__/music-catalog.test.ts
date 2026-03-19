@@ -11,34 +11,33 @@ import {
 } from '../music-catalog';
 
 describe('music-catalog bridge', () => {
-  it('mappe les 8 IDs MIDI vers des IDs de librairie', () => {
-    const midiIds = Object.keys(MIDI_PIECES);
-    expect(Object.keys(MIDI_TO_LIBRARY_ID)).toHaveLength(midiIds.length);
-    for (const midiId of midiIds) {
-      expect(MIDI_TO_LIBRARY_ID).toHaveProperty(midiId);
-    }
+  it('maintient les alias legacy nécessaires', () => {
+    expect(MIDI_TO_LIBRARY_ID['prelude-bwv846']).toBe('bwv846');
+    expect(MIDI_TO_LIBRARY_ID['gymnopedie-1']).toBe('gymnopedie1');
   });
 
   it('résout les correspondances aller-retour pour un ID MIDI', () => {
     const libraryId = getLibraryIdFromMidiPieceId('prelude-bwv846');
     expect(libraryId).toBe('bwv846');
-    expect(getMidiPieceIdFromLibraryId(libraryId)).toBe('prelude-bwv846');
+    expect(getMidiPieceIdFromLibraryId(libraryId)).toBe('bwv846');
   });
 
-  it('retourne null pour une pièce de librairie non jouable en MIDI', () => {
-    expect(getMidiPieceIdFromLibraryId('moonlight-sonata')).toBeNull();
+  it('retourne un ID MIDI pour toute pièce de librairie', () => {
+    expect(getMidiPieceIdFromLibraryId('moonlight-sonata')).toBe(
+      'moonlight-sonata',
+    );
   });
 
-  it('retourne une vue unifiée de 58 pièces avec 8 pièces jouables', () => {
+  it('retourne une vue unifiée de 58 pièces avec 58 pièces jouables', () => {
     const all = getUnifiedMusicLibrary();
     const playable = all.filter((piece) => piece.isPlayableNow);
     expect(all).toHaveLength(58);
-    expect(playable).toHaveLength(8);
+    expect(playable).toHaveLength(58);
   });
 
   it('expose directement la liste jouable', () => {
     const playable = getPlayableMusicLibrary();
-    expect(playable).toHaveLength(8);
+    expect(playable).toHaveLength(58);
     expect(playable.every((piece) => piece.midiPieceId !== null)).toBe(true);
   });
 

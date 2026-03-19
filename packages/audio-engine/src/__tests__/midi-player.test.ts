@@ -10,8 +10,8 @@ import {
 } from '../midi-player';
 
 describe('MIDI_PIECES', () => {
-  it('contient exactement 8 pièces', () => {
-    expect(Object.keys(MIDI_PIECES)).toHaveLength(8);
+  it('contient exactement 58 pièces', () => {
+    expect(Object.keys(MIDI_PIECES)).toHaveLength(58);
   });
 
   it('chaque pièce a un tableau de notes non vide', () => {
@@ -57,29 +57,33 @@ describe('loadPiece', () => {
     expect(getCurrentPosition()).toBe(0);
   });
 
-  it('charge les 4 nouvelles pièces sans erreur', () => {
-    const newPieces = [
-      'ode-to-joy',
-      'nocturne-op9-n2',
-      'rondo-alla-turca',
-      'canon-pachelbel',
-    ] as const;
-    for (const id of newPieces) {
+  it('charge des pièces hors noyau historique sans erreur', () => {
+    const samplePieces = [
+      'clair-de-lune',
+      'flight-of-bumblebee',
+      'amazing-grace',
+    ];
+    for (const id of samplePieces) {
       const piece = loadPiece(id);
       expect(piece.id).toBe(id);
       expect(piece.notes.length).toBeGreaterThan(0);
     }
   });
+
+  it('supporte les alias legacy', () => {
+    const piece = loadPiece('prelude-bwv846');
+    expect(piece.id).toBe('bwv846');
+  });
 });
 
 describe('advanceAndGet', () => {
   beforeEach(() => {
-    loadPiece('prelude-bwv846');
+    loadPiece('bwv846');
   });
 
   it('retourne la première note au premier appel', () => {
     const note = advanceAndGet();
-    expect(note).toBe(MIDI_PIECES['prelude-bwv846'].notes[0]);
+    expect(note).toBe(MIDI_PIECES['bwv846'].notes[0]);
   });
 
   it('avance la position à chaque appel', () => {
@@ -90,7 +94,7 @@ describe('advanceAndGet', () => {
   });
 
   it('boucle à la fin de la séquence', () => {
-    const piece = MIDI_PIECES['prelude-bwv846'];
+    const piece = MIDI_PIECES['bwv846'];
     // Avancer jusqu'à la dernière note
     for (let i = 0; i < piece.notes.length - 1; i++) {
       advanceAndGet();
@@ -113,7 +117,7 @@ describe('advanceAndGet', () => {
 
 describe('getCurrentDuration', () => {
   it('retourne la durée de la pièce chargée', () => {
-    loadPiece('gymnopedie-1');
+    loadPiece('gymnopedie1');
     expect(getCurrentDuration()).toBe('8n');
   });
 

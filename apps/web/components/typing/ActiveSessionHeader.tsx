@@ -57,6 +57,18 @@ export function ActiveSessionHeader({
     [filteredPieces],
   );
 
+  const formatRegisterLabel = (value: string) => {
+    const labels: Record<string, string> = {
+      energique: t('registerEnergique'),
+      contemplatif: t('registerContemplatif'),
+      dramatique: t('registerDramatique'),
+      romantique: t('registerRomantique'),
+      folk: t('registerFolk'),
+    };
+
+    return labels[value] ?? value;
+  };
+
   const selectedPiece = useMemo(
     () => allPieces.find((piece) => piece.midiPieceId === selectedPieceId),
     [allPieces, selectedPieceId],
@@ -316,7 +328,7 @@ export function ActiveSessionHeader({
                     <option value="all">{t('musicFilterAllRegisters')}</option>
                     {registerOptions.map((value) => (
                       <option key={value} value={value}>
-                        {value}
+                        {formatRegisterLabel(value)}
                       </option>
                     ))}
                   </select>
@@ -385,7 +397,7 @@ export function ActiveSessionHeader({
                       selectedPieceId === piece.midiPieceId
                         ? 'var(--color-text-primary)'
                         : 'var(--color-text-muted)',
-                    opacity: piece.midiPieceId ? 1 : 0.62,
+                    opacity: 1,
                   }}
                   className="hover:text-text-primary"
                 >
@@ -413,9 +425,7 @@ export function ActiveSessionHeader({
                           letterSpacing: '0.02em',
                         }}
                       >
-                        {piece.midiPieceId
-                          ? t('playableBadge')
-                          : t('comingSoonBadge')}
+                        {formatRegisterLabel(piece.register)}
                       </span>
                     </span>
                   </div>

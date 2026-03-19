@@ -92,4 +92,15 @@ describe('filterMusicPieces', () => {
     expect(result).toHaveLength(1);
     expect(result[0]?.id).toBe('ode-to-joy');
   });
+
+  it('priorise les résultats les plus pertinents en recherche texte', () => {
+    const result = filterMusicPieces(pieces, {
+      query: 'clair',
+      register: 'all',
+      composer: 'all',
+    });
+
+    expect(result).toHaveLength(1);
+    expect(result[0]?.id).toBe('clair-de-lune');
+  });
 });
