@@ -5,7 +5,9 @@
     "profile": "Mon profil",
     "leaderboard": "Classement",
     "premium": "Premium",
-    "login": "Se connecter"
+    "login": "Se connecter",
+    "typing": "Clavier",
+    "settings": "Paramètres"
   },
   "typing": {
     "start": "Commencez à taper pour démarrer…",
@@ -38,6 +40,31 @@
       "classics": "Classiques",
       "custom": "Personnalisé",
       "challenge": "Challenge"
+    },
+    "clickToFocus": "Cliquez pour activer",
+    "nextTest": "Test suivant",
+    "restartTestTooltip": "Recommencer le test",
+    "tabEnterToRestart": "Tab + Entrée pour recommencer",
+    "terms": "conditions",
+    "library": "Bibliothèque musicale",
+    "noPiece": "Aucun morceau",
+    "shuffleTrack": "Piste aléatoire",
+    "changeLanguage": "Changer la langue d entrée",
+    "ariaSessionWaveform": "Forme d onde de la session",
+    "ariaWpmChart": "Graphique WPM de la session",
+    "ariaKeyboardDiagram": "Clavier QWERTY interactif",
+    "ariaLoadingCollection": "Chargement de la collection",
+    "finger": {
+      "LP": "Auriculaire gauche",
+      "LR": "Annulaire gauche",
+      "LM": "Majeur gauche",
+      "LI": "Index gauche",
+      "LT": "Pouce gauche",
+      "RT": "Pouce droit",
+      "RI": "Index droit",
+      "RM": "Majeur droit",
+      "RR": "Annulaire droit",
+      "RP": "Auriculaire droit"
     }
   },
   "modes": {
@@ -82,14 +109,26 @@
     "invalidLink": "Lien de défi invalide.",
     "loading": "Chargement du défi…",
     "banner": "Challenge TypeWav",
-    "bannerWithTarget": "Objectif : battre {target} WPM"
+    "bannerWithTarget": "Objectif : battre {target} WPM",
+    "noChallengeInUrl": "Aucun challenge trouvé dans cette URL.",
+    "challengeTextAltered": "Le texte du challenge a été altéré.",
+    "invalidOrExpiredLink": "Lien de challenge invalide ou expiré.",
+    "backHome": "← Retour à l'accueil",
+    "wonWithWpm": "✓ Gagné — {wpm} WPM !",
+    "remainingToBeat": "{wpm} WPM — encore {remaining} WPM à gagner",
+    "retry": "Réessayer"
   },
   "replay": {
     "title": "Replay TypeWav",
     "launch": "Lancer",
     "watching": "Lecture en cours…",
     "invalidLink": "Lien de replay invalide.",
-    "loading": "Chargement du replay…"
+    "loading": "Chargement du replay…",
+    "missingReplayInUrl": "Aucun replay dans cette URL.",
+    "invalidOrCorruptedLink": "Lien de replay invalide ou corrompu.",
+    "banner": "Replay — {wpm} WPM · {accuracy}% · {theme}",
+    "preLaunchDescription": "Appuyez sur la première touche pour démarrer votre session. Le curseur fantôme rejoue le record partagé en temps réel.",
+    "backHome": "← Retour à l'accueil"
   },
   "leaderboard": {
     "title": "Classement de la semaine",
@@ -108,7 +147,15 @@
     "modeHeader": "Mode",
     "comingSoonMessage": "Classement mondial disponible dès la synchronisation cloud",
     "soon": "BIENTÔT",
-    "myBestSessions": "Mes meilleures sessions"
+    "myBestSessions": "Mes meilleures sessions",
+    "backToProfile": "← Profil",
+    "filters": {
+      "all": "Tous",
+      "classic": "Classique",
+      "sprint": "Sprint",
+      "endurance": "Endurance",
+      "code": "Code"
+    }
   },
   "profile": {
     "title": "Profil",
@@ -216,7 +263,18 @@
     "subscribe": "Souscrire",
     "financialTransparency": "Transparence financière →",
     "syncComingSoon": "Synchronisation cloud bientôt disponible",
-    "soon": "BIENTÔT"
+    "soon": "BIENTÔT",
+    "premiumBadge": "PREMIUM",
+    "freeBadge": "GRATUIT",
+    "featureCinematic": "Pack Cinematic — cordes + piano",
+    "featureLofi": "Pack Synth Lo-Fi",
+    "featureJazz": "Pack Jazz Piano",
+    "featureClassics": "Mode Classiques MIDI",
+    "featureAnalytics": "Dashboard analytics complet",
+    "featureGhost": "Mode Fantôme — record personnel",
+    "featureReplay": "Replay partageable",
+    "featureChallenge": "Challenge direct par lien",
+    "featureCloudSync": "Sync cloud tous appareils"
   },
   "config": {
     "label": "Configuration",
@@ -255,5 +313,11 @@
     "refreshPiece": "Nouvelle suggestion musicale",
     "selectPiece": "Sélectionner une pièce",
     "allPiecesComingSoon": "Sélection complète dans la config bar"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "description": "Personnalisez votre expérience de frappe.",
+    "themeTitle": "Thème",
+    "selectTheme": "Sélectionner le thème {name}"
   }
 }

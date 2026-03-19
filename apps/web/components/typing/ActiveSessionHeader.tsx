@@ -3,6 +3,7 @@
 import { MusicNoteIcon, RefreshIcon } from '@/components/ui/icons';
 import { MIDI_PIECES, type MidiPieceId } from '@typewav/audio-engine';
 import { AnimatePresence, motion } from 'motion/react';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
 interface ActiveSessionHeaderProps {
@@ -14,6 +15,7 @@ export function ActiveSessionHeader({
   selectedPieceId,
   onPieceChange,
 }: ActiveSessionHeaderProps) {
+  const t = useTranslations('typing');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const selectedPiece = MIDI_PIECES[selectedPieceId];
@@ -105,7 +107,7 @@ export function ActiveSessionHeader({
           className="hover:border-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
         >
           <MusicNoteIcon size={12} />
-          <span>{selectedPiece?.title ?? 'No Piece'}</span>
+          <span>{selectedPiece?.title ?? t('noPiece')}</span>
         </button>
 
         <button
@@ -113,7 +115,7 @@ export function ActiveSessionHeader({
             e.stopPropagation();
             handleShuffle();
           }}
-          title="Shuffle track"
+          title={t('shuffleTrack')}
           style={{
             background: 'transparent',
             border: 'none',
@@ -170,7 +172,7 @@ export function ActiveSessionHeader({
                   color: 'var(--color-text-muted)',
                 }}
               >
-                Library
+                {t('library')}
               </div>
 
               {allPieces.map((piece) => (

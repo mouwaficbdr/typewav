@@ -92,10 +92,10 @@ describe('GlobalNav', () => {
     );
   });
 
-  it('nav a un fond flottant (backdrop-filter)', () => {
+  it('nav utilise un fond transparent', () => {
     render(<GlobalNav />);
     const nav = screen.getByRole('navigation');
-    expect(nav).toHaveStyle({ backdropFilter: 'blur(8px)' });
+    expect(nav).toHaveStyle({ background: 'transparent' });
   });
 });
 
@@ -108,26 +108,21 @@ describe('NavLogo', () => {
     expect(link).toHaveAttribute('href', '/fr');
   });
 
-  it('affiche le texte TypeWav', () => {
+  it('affiche la signature de marque type/wav', () => {
     render(<NavLogo locale="fr" />);
-    expect(screen.getByText(/TypeWav/)).toBeInTheDocument();
+    expect(screen.getByText('type')).toBeInTheDocument();
+    expect(screen.getByText('wav')).toBeInTheDocument();
   });
 
-  it('affiche le curseur clignotant par défaut', () => {
+  it('n’affiche pas de curseur clignotant dans la nouvelle version du logo', () => {
     render(<NavLogo locale="fr" />);
-    const cursor = document.querySelector('.cursor-blink');
-    expect(cursor).toBeInTheDocument();
-  });
-
-  it('masque le curseur si showCursor=false', () => {
-    render(<NavLogo locale="fr" showCursor={false} />);
     const cursor = document.querySelector('.cursor-blink');
     expect(cursor).not.toBeInTheDocument();
   });
 
-  it('le texte TypeWav utilise --font-display', () => {
+  it('la partie wav utilise --font-display', () => {
     render(<NavLogo locale="fr" />);
-    const textSpan = screen.getByText(/TypeWav/);
+    const textSpan = screen.getByText('wav');
     expect(textSpan).toHaveStyle({ fontFamily: 'var(--font-display)' });
   });
 });

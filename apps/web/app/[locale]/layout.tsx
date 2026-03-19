@@ -2,6 +2,7 @@ import { MilestoneToast } from '@/components/progression/MilestoneToast';
 import { GlobalNav } from '@/components/ui/GlobalNav';
 import { routing } from '@/i18n/routing';
 import { APP_URL, buildMetadata } from '@/lib/seo';
+import { ThemeProvider } from '@/lib/theme/ThemeProvider';
 import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
@@ -43,9 +44,11 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <GlobalNav />
-      {children}
-      <MilestoneToast />
+      <ThemeProvider>
+        <GlobalNav />
+        {children}
+        <MilestoneToast />
+      </ThemeProvider>
     </NextIntlClientProvider>
   );
 }

@@ -50,6 +50,7 @@ vi.mock('next/link', () => ({
 }));
 
 vi.mock('next-intl', () => ({
+  useLocale: () => 'fr',
   useTranslations: () => (key: string, params?: Record<string, unknown>) => {
     if (params) return `${key}(${JSON.stringify(params)})`;
     return key;
@@ -73,8 +74,8 @@ describe('ChallengeClient', () => {
     });
 
     // L'écran post-complétion doit être visible
-    expect(screen.getByText(/85 WPM/)).toBeInTheDocument();
+    expect(screen.getByText(/wonWithWpm/)).toBeInTheDocument();
     // Le bouton "Contre-défier" doit être accessible
-    expect(screen.getByText('Contre-défier')).toBeInTheDocument();
+    expect(screen.getByText('counterChallenge')).toBeInTheDocument();
   });
 });

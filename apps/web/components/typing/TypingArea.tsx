@@ -289,7 +289,7 @@ export function TypingArea({
                 letterSpacing: '0.05em',
               }}
             >
-              Click to focus
+              {t('clickToFocus')}
             </span>
           </div>
         )}

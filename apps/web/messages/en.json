@@ -5,7 +5,9 @@
     "profile": "My profile",
     "leaderboard": "Leaderboard",
     "premium": "Premium",
-    "login": "Sign in"
+    "login": "Sign in",
+    "typing": "Typing",
+    "settings": "Settings"
   },
   "typing": {
     "start": "Start typing to begin…",
@@ -38,6 +40,31 @@
       "classics": "Classics",
       "custom": "Custom",
       "challenge": "Challenge"
+    },
+    "clickToFocus": "Click to focus",
+    "nextTest": "Next test",
+    "restartTestTooltip": "Restart Test",
+    "tabEnterToRestart": "Tab + Enter to restart",
+    "terms": "terms",
+    "library": "Music Library",
+    "noPiece": "No Piece",
+    "shuffleTrack": "Shuffle track",
+    "changeLanguage": "Change input language",
+    "ariaSessionWaveform": "Session waveform",
+    "ariaWpmChart": "Session WPM chart",
+    "ariaKeyboardDiagram": "Interactive QWERTY keyboard",
+    "ariaLoadingCollection": "Loading collection",
+    "finger": {
+      "LP": "Left Pinky",
+      "LR": "Left Ring",
+      "LM": "Left Middle",
+      "LI": "Left Index",
+      "LT": "Left Thumb",
+      "RT": "Right Thumb",
+      "RI": "Right Index",
+      "RM": "Right Middle",
+      "RR": "Right Ring",
+      "RP": "Right Pinky"
     }
   },
   "modes": {
@@ -82,14 +109,26 @@
     "invalidLink": "Invalid challenge link.",
     "loading": "Loading challenge…",
     "banner": "TypeWav Challenge",
-    "bannerWithTarget": "Beat {target} WPM"
+    "bannerWithTarget": "Beat {target} WPM",
+    "noChallengeInUrl": "No challenge found in this URL.",
+    "challengeTextAltered": "Challenge text integrity check failed.",
+    "invalidOrExpiredLink": "Invalid or expired challenge link.",
+    "backHome": "← Back to home",
+    "wonWithWpm": "✓ Won — {wpm} WPM!",
+    "remainingToBeat": "{wpm} WPM — {remaining} WPM left to beat",
+    "retry": "Retry"
   },
   "replay": {
     "title": "TypeWav Replay",
     "launch": "Play",
     "watching": "Playing…",
     "invalidLink": "Invalid replay link.",
-    "loading": "Loading replay…"
+    "loading": "Loading replay…",
+    "missingReplayInUrl": "No replay found in this URL.",
+    "invalidOrCorruptedLink": "Invalid or corrupted replay link.",
+    "banner": "Replay — {wpm} WPM · {accuracy}% · {theme}",
+    "preLaunchDescription": "Press the first key to start your session. The ghost cursor replays the shared record in real time.",
+    "backHome": "← Back to home"
   },
   "leaderboard": {
     "title": "Weekly Leaderboard",
@@ -108,7 +147,15 @@
     "modeHeader": "Mode",
     "comingSoonMessage": "Global leaderboard available when cloud sync launches",
     "soon": "COMING SOON",
-    "myBestSessions": "My best sessions"
+    "myBestSessions": "My best sessions",
+    "backToProfile": "← Profile",
+    "filters": {
+      "all": "All",
+      "classic": "Classic",
+      "sprint": "Sprint",
+      "endurance": "Endurance",
+      "code": "Code"
+    }
   },
   "profile": {
     "title": "Profile",
@@ -216,7 +263,18 @@
     "subscribe": "Subscribe",
     "financialTransparency": "Financial transparency →",
     "syncComingSoon": "Cloud sync coming soon",
-    "soon": "COMING SOON"
+    "soon": "COMING SOON",
+    "premiumBadge": "PREMIUM",
+    "freeBadge": "FREE",
+    "featureCinematic": "Cinematic pack — strings + piano",
+    "featureLofi": "Synth Lo-Fi pack",
+    "featureJazz": "Jazz Piano pack",
+    "featureClassics": "MIDI Classics mode",
+    "featureAnalytics": "Full analytics dashboard",
+    "featureGhost": "Ghost mode — personal best",
+    "featureReplay": "Shareable replay",
+    "featureChallenge": "Direct challenge by link",
+    "featureCloudSync": "Cloud sync across devices"
   },
   "config": {
     "label": "Configuration",
@@ -255,5 +313,11 @@
     "refreshPiece": "New music suggestion",
     "selectPiece": "Select a piece",
     "allPiecesComingSoon": "Full selection coming in config bar"
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Customize your typing experience.",
+    "themeTitle": "Theme",
+    "selectTheme": "Select theme {name}"
   }
 }

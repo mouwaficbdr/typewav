@@ -3,9 +3,11 @@
 import { LanguagesIcon } from '@/components/ui/icons';
 import { useConfigStore } from '@/stores/useConfigStore';
 import { AnimatePresence, motion } from 'motion/react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 export function ContextSelectors() {
+  const t = useTranslations('typing');
   const textLanguage = useConfigStore((s) => s.textLanguage);
   const setTextLanguage = useConfigStore((s) => s.setTextLanguage);
   const activeMode = useConfigStore((s) => s.activeMode);
@@ -46,7 +48,7 @@ export function ContextSelectors() {
             padding: 0,
           }}
           className="hover:text-[var(--color-text-primary)] transition-colors"
-          title="Change language"
+          title={t('changeLanguage')}
         >
           <LanguagesIcon size={12} className="opacity-70" />
           <AnimatePresence mode="popLayout">

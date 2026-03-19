@@ -1,5 +1,6 @@
 import { fontDisplay, fontMono, fontUi } from '@/lib/fonts';
 import { buildMetadata } from '@/lib/seo';
+import { ThemeScript } from '@/lib/theme/ThemeScript';
 import '@/styles/globals.css';
 import type { Viewport } from 'next';
 
@@ -26,6 +27,9 @@ export default function RootLayout({
       className={`${fontDisplay.variable} ${fontUi.variable} ${fontMono.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        <ThemeScript />
+      </head>
       <body>{children}</body>
     </html>
   );

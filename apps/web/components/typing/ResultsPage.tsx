@@ -13,8 +13,9 @@
 import { WpmChart } from '@/components/typing/WpmChart';
 import { useUser } from '@/hooks/useUser';
 import { getSessionById } from '@/lib/db';
+import { generateReplayLink } from '@/lib/replay';
 import { calculateWpmPoints, type WpmPoint } from '@/lib/stats';
-import type { NoteEvent, TypingMode } from '@typewav/types';
+import type { NoteEvent, SessionResult, TypingMode } from '@typewav/types';
 import { motion, useReducedMotion } from 'motion/react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
@@ -173,19 +174,34 @@ export function ResultsPage({
   const animDur = shouldReduceMotion ? 0 : 0.4;
 
   const [wpmPoints, setWpmPoints] = useState<WpmPoint[]>([]);
+  const [sessionForReplay, setSessionForReplay] =
+    useState<SessionResult | null>(null);
 
   useEffect(() => {
     if (!sessionId) return;
     void getSessionById(sessionId).then((session) => {
-      if (session?.keystrokeData && session.keystrokeData.length > 1) {
+      if (!session) return;
+      if (session.keystrokeData.length > 1) {
         setWpmPoints(calculateWpmPoints(session.keystrokeData));
       }
+      setSessionForReplay(session);
     });
   }, [sessionId]);
 
   const handleShare = () => {
-    if (!sessionId) return;
-    const url = `${window.location.origin}/${locale}/replay?id=${sessionId}`;
+    if (!sessionId || !sessionForReplay?.text) return;
+    const replayData = {
+      sessionId,
+      text: sessionForReplay.text,
+      keystrokeTimings: sessionForReplay.keystrokeData.map((k) => k.deltaMs),
+      wpm,
+      accuracy,
+      theme: sessionForReplay.themeId,
+      soundPack: sessionForReplay.soundPackId,
+      achievedAt: sessionForReplay.timestamp,
+    };
+    const relativePath = generateReplayLink(replayData);
+    const url = `${window.location.origin}/${locale}${relativePath}`;
     void navigator.clipboard.writeText(url).catch(() => null);
   };
 

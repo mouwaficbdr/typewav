@@ -18,13 +18,14 @@ import {
   hashText,
 } from '@/lib/challenge';
 import type { ChallengeParams } from '@typewav/types';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 export function ChallengeClient() {
   const t = useTranslations('challenge');
+  const locale = useLocale();
   const searchParams = useSearchParams();
   const encoded = searchParams.get('c');
 
@@ -35,20 +36,19 @@ export function ChallengeClient() {
     | { ok: true; params: ChallengeParams; text: string }
     | { ok: false; error: string }
   >(() => {
-    if (!encoded)
-      return { ok: false, error: 'Aucun challenge trouvé dans cette URL.' };
+    if (!encoded) return { ok: false, error: t('noChallengeInUrl') };
     try {
       const params = decodeChallenge(encoded);
       const text = getChallengeText(params);
       // Vérifier l'intégrité du texte
       if (hashText(text) !== params.textHash) {
-        return { ok: false, error: 'Le texte du challenge a été altéré.' };
+        return { ok: false, error: t('challengeTextAltered') };
       }
       return { ok: true, params, text };
     } catch {
-      return { ok: false, error: 'Lien de challenge invalide ou expiré.' };
+      return { ok: false, error: t('invalidOrExpiredLink') };
     }
-  }, [encoded]);
+  }, [encoded, t]);
 
   if (!result.ok) {
     return (
@@ -63,14 +63,14 @@ export function ChallengeClient() {
           {result.error}
         </p>
         <Link
-          href="/"
+          href={`/${locale}`}
           style={{
             color: 'var(--color-accent)',
             fontFamily: 'var(--font-ui)',
             fontSize: '0.85rem',
           }}
         >
-          ← Retour à l&apos;accueil
+          {t('backHome')}
         </Link>
       </main>
     );
@@ -134,12 +134,14 @@ export function ChallengeClient() {
             {params.creatorWpm !== undefined && userWpm !== null ? (
               userWpm >= params.creatorWpm ? (
                 <span style={{ color: 'var(--color-accent)' }}>
-                  ✓ Gagné — {userWpm} WPM !
+                  {t('wonWithWpm', { wpm: userWpm })}
                 </span>
               ) : (
                 <span style={{ color: 'var(--color-text-muted)' }}>
-                  {userWpm} WPM — encore {params.creatorWpm - userWpm} WPM à
-                  gagner
+                  {t('remainingToBeat', {
+                    wpm: userWpm,
+                    remaining: params.creatorWpm - userWpm,
+                  })}
                 </span>
               )
             ) : (
@@ -162,7 +164,7 @@ export function ChallengeClient() {
                 textTransform: 'uppercase',
               }}
             >
-              Réessayer
+              {t('retry')}
             </button>
 
             {challengeBackLink && (
@@ -179,20 +181,20 @@ export function ChallengeClient() {
                   textTransform: 'uppercase',
                 }}
               >
-                Contre-défier
+                {t('counterChallenge')}
               </Link>
             )}
           </div>
 
           <Link
-            href="/"
+            href={`/${locale}`}
             style={{
               color: 'var(--color-text-muted)',
               fontFamily: 'var(--font-ui)',
               fontSize: '0.75rem',
             }}
           >
-            ← Retour à l&apos;accueil
+            {t('backHome')}
           </Link>
         </div>
       )}

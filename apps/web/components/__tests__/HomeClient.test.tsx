@@ -96,7 +96,11 @@ vi.mock('motion/react', () => ({
       children?: React.ReactNode;
       whileTap?: unknown;
       [key: string]: unknown;
-    }) => <button {...(props as React.ButtonHTMLAttributes<HTMLButtonElement>)}>{children}</button>,
+    }) => (
+      <button {...(props as React.ButtonHTMLAttributes<HTMLButtonElement>)}>
+        {children}
+      </button>
+    ),
   },
   useReducedMotion: () => false,
 }));
@@ -127,7 +131,10 @@ vi.mock('next/link', () => ({
     href: string;
     [key: string]: unknown;
   }) => (
-    <a href={href} {...(props as React.AnchorHTMLAttributes<HTMLAnchorElement>)}>
+    <a
+      href={href}
+      {...(props as React.AnchorHTMLAttributes<HTMLAnchorElement>)}
+    >
       {children}
     </a>
   ),
@@ -214,38 +221,14 @@ describe('HomeClient — lazy loading collections', () => {
   });
 });
 
-describe('HomeClient — ghost mode button', () => {
-  it('affiche le bouton ghost verrouillé si aucun record personnel', async () => {
+describe('HomeClient — structure Zone 5', () => {
+  it('n’affiche plus de bouton ghost dédié', async () => {
     const { HomeClient } = await import('../typing/HomeClient');
     render(<HomeClient initialCollection={mockLitterature as never} />);
 
     await waitFor(() => {
-      const ghostBtn = screen.getByTestId('ghost-toggle');
-      expect(ghostBtn).toBeInTheDocument();
-      expect(ghostBtn).toHaveAttribute('aria-disabled', 'true');
+      expect(screen.queryByTestId('ghost-toggle')).not.toBeInTheDocument();
+      expect(screen.getByTestId('waveform-bars')).toBeInTheDocument();
     });
-  });
-
-  it('le bouton ghost verrouillé affiche un titre tooltip', async () => {
-    const { HomeClient } = await import('../typing/HomeClient');
-    render(<HomeClient initialCollection={mockLitterature as never} />);
-
-    await waitFor(() => {
-      const ghostBtn = screen.getByTestId('ghost-toggle');
-      expect(ghostBtn).toHaveAttribute('title', 'lockedTooltip');
-    });
-  });
-
-  it('ne lance pas le ghost mode si le bouton est verrouillé', async () => {
-    const { default: userEvent } = await import('@testing-library/user-event');
-    const user = userEvent.setup();
-    const { HomeClient } = await import('../typing/HomeClient');
-    render(<HomeClient initialCollection={mockLitterature as never} />);
-
-    await waitFor(() => screen.getByTestId('ghost-toggle'));
-    const ghostBtn = screen.getByTestId('ghost-toggle');
-
-    await user.click(ghostBtn);
-    expect(ghostBtn).toHaveAttribute('aria-disabled', 'true');
   });
 });

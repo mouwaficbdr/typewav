@@ -10,62 +10,71 @@
 import { useUser } from '@/hooks/useUser';
 import { SYNC_IS_COMING_SOON } from '@/lib/featureFlags';
 import { STRIPE_PLANS } from '@/lib/stripe';
+import {
+  AudioLines,
+  BarChart3,
+  Cloud,
+  Ghost,
+  Link2,
+  Music,
+  Swords,
+} from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useState } from 'react';
 
 const PREMIUM_FEATURES = [
   {
-    emoji: '🎹',
-    label: 'Pack Cinematic — cordes + piano',
+    Icon: Music,
+    labelKey: 'featureCinematic',
     premium: true,
     comingSoon: false,
   },
   {
-    emoji: '🎸',
-    label: 'Pack Phonk — synthés sombres',
+    Icon: Music,
+    labelKey: 'featureLofi',
     premium: true,
     comingSoon: false,
   },
   {
-    emoji: '🎷',
-    label: 'Pack Jazz Piano — swing',
+    Icon: Music,
+    labelKey: 'featureJazz',
     premium: true,
     comingSoon: false,
   },
   {
-    emoji: '🎵',
-    label: 'Mode Classiques MIDI',
+    Icon: AudioLines,
+    labelKey: 'featureClassics',
     premium: false,
     comingSoon: false,
   },
   {
-    emoji: '📊',
-    label: 'Dashboard analytics complet',
+    Icon: BarChart3,
+    labelKey: 'featureAnalytics',
     premium: false,
     comingSoon: false,
   },
   {
-    emoji: '👻',
-    label: 'Ghost mode — record personnel',
+    Icon: Ghost,
+    labelKey: 'featureGhost',
     premium: false,
     comingSoon: false,
   },
   {
-    emoji: '🔗',
-    label: 'Replay partageable',
+    Icon: Link2,
+    labelKey: 'featureReplay',
     premium: false,
     comingSoon: false,
   },
   {
-    emoji: '⚔️',
-    label: 'Challenge direct par lien',
+    Icon: Swords,
+    labelKey: 'featureChallenge',
     premium: false,
     comingSoon: false,
   },
   {
-    emoji: '☁️',
-    label: 'Sync cloud tous appareils',
+    Icon: Cloud,
+    labelKey: 'featureCloudSync',
     premium: true,
     comingSoon: true,
   },
@@ -237,7 +246,7 @@ export function PremiumPageClient() {
       >
         {PREMIUM_FEATURES.map((f) => (
           <li
-            key={f.label}
+            key={f.labelKey}
             className="flex items-center gap-3"
             style={{
               color: f.premium
@@ -247,8 +256,8 @@ export function PremiumPageClient() {
               fontSize: '0.9375rem',
             }}
           >
-            <span>{f.emoji}</span>
-            <span>{f.label}</span>
+            <f.Icon size={16} aria-hidden="true" style={{ flexShrink: 0 }} />
+            <span>{tPremium(f.labelKey)}</span>
             {f.premium && !f.comingSoon && (
               <span
                 style={{
@@ -262,7 +271,24 @@ export function PremiumPageClient() {
                   padding: '2px 6px',
                 }}
               >
-                PREMIUM
+                {tPremium('premiumBadge')}
+              </span>
+            )}
+            {!f.premium && !f.comingSoon && (
+              <span
+                style={{
+                  backgroundColor: 'transparent',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--color-border)',
+                  color: 'var(--color-text-muted)',
+                  fontSize: '0.625rem',
+                  fontWeight: '700',
+                  letterSpacing: '0.05em',
+                  marginLeft: 'auto',
+                  padding: '2px 6px',
+                }}
+              >
+                {tPremium('freeBadge')}
               </span>
             )}
             {f.comingSoon && SYNC_IS_COMING_SOON && (

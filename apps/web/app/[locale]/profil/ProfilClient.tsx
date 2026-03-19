@@ -11,12 +11,19 @@
 import { ContributionHeatmap } from '@/components/charts/ContributionHeatmap';
 import { WpmProgressChart } from '@/components/charts/WpmProgressChart';
 import { useUser } from '@/hooks/useUser';
-import { getPersonalRecords, getSessions, getUserProfile } from '@/lib/db';
+import {
+  getPersonalRecords,
+  getSessionById,
+  getSessions,
+  getUserProfile,
+} from '@/lib/db';
 import { SYNC_IS_COMING_SOON } from '@/lib/featureFlags';
+import { generateReplayLink } from '@/lib/replay';
 import { useProgressionStore } from '@/stores/useProgressionStore';
 import type { PersonalRecords, RankTier, SessionResult } from '@typewav/types';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 type ChartDays = 7 | 30 | 90;
@@ -29,6 +36,7 @@ export function ProfilClient() {
   const tCommon = useTranslations('common');
   const tRanks = useTranslations('ranks');
   const locale = useLocale();
+  const router = useRouter();
 
   const [sessions, setSessions] = useState<SessionResult[]>([]);
   const [records, setRecords] = useState<PersonalRecords | null>(null);
@@ -119,6 +127,23 @@ export function ProfilClient() {
       : 0;
 
   const recentReplays = sessions.slice(0, 5);
+
+  const handleOpenReplay = async (sessionId: string) => {
+    const session = await getSessionById(sessionId);
+    if (!session?.text) return;
+    const replayData = {
+      sessionId: session.id,
+      text: session.text,
+      keystrokeTimings: session.keystrokeData.map((k) => k.deltaMs),
+      wpm: session.wpm,
+      accuracy: session.accuracy,
+      theme: session.themeId,
+      soundPack: session.soundPackId,
+      achievedAt: session.timestamp,
+    };
+    const relativePath = generateReplayLink(replayData);
+    router.push(`/${locale}${relativePath}`);
+  };
 
   return (
     <main
@@ -386,13 +411,20 @@ export function ProfilClient() {
                   month: 'short',
                 })}
               </span>
-              <Link
-                href={`/${locale}/replay?id=${session.id}`}
+              <button
+                onClick={() => void handleOpenReplay(session.id)}
                 aria-label={tProfile('openReplay')}
-                style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', textDecoration: 'none' }}
+                style={{
+                  color: 'var(--color-text-muted)',
+                  fontSize: '0.875rem',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
               >
                 |◄
-              </Link>
+              </button>
             </div>
           ))
         )}

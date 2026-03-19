@@ -57,7 +57,7 @@ function getDailyIndex(length: number, offset = 0): number {
 }
 
 export function HomeClient({ initialCollection }: HomeClientProps) {
-  const tHint = useTranslations('hint');
+  const tHint = useTranslations('typing');
   const locale = useLocale();
   const shouldReduceMotion = useReducedMotion();
 
@@ -233,7 +233,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         {loadingCollection && !isLearningMode ? (
           <div
             role="status"
-            aria-label="Chargement de la collection"
+            aria-label={tHint('ariaLoadingCollection')}
             className="content-typing"
             style={{
               height: 150,
@@ -303,7 +303,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
                 opacity: 0.8,
               }}
               className="hover:text-[var(--color-text-primary)] hover:rotate-90 transition-all duration-300"
-              title="Next test"
+              title={tHint('nextTest')}
             >
               <RepeatIcon size={20} />
             </button>
@@ -324,9 +324,9 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
                 opacity: 0.6,
               }}
               className="hover:text-[var(--color-text-primary)] hover:opacity-100 transition-colors"
-              title="Restart Test"
+              title={tHint('restartTestTooltip')}
             >
-              Tab + Enter to restart
+              {tHint('tabEnterToRestart')}
             </button>
           </div>
         </div>
@@ -375,7 +375,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             }}
             className="hover:text-[var(--color-text-primary)] transition-colors"
           >
-            terms
+            {tHint('terms')}
           </a>
         </div>
 

@@ -7,10 +7,17 @@
  */
 
 import { useUser } from '@/hooks/useUser';
+import {
+  Crown,
+  Keyboard,
+  LogIn,
+  Settings,
+  Trophy,
+  UserCircle,
+} from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Trophy, Star, UserCircle, LogIn, Crown } from 'lucide-react';
 import { NavLogo } from './NavLogo';
 
 export function GlobalNav() {
@@ -20,8 +27,20 @@ export function GlobalNav() {
   const { user } = useUser();
 
   const NAV_ITEMS = [
-    { key: 'leaderboard', label: t('leaderboard'), Icon: Trophy, path: 'classement' },
+    { key: 'typing', label: t('typing'), Icon: Keyboard, path: '' },
+    {
+      key: 'leaderboard',
+      label: t('leaderboard'),
+      Icon: Trophy,
+      path: 'classement',
+    },
     { key: 'premium', label: t('premium'), Icon: Crown, path: 'premium' },
+    {
+      key: 'settings',
+      label: t('settings'),
+      Icon: Settings,
+      path: 'parametres',
+    },
   ] as const;
 
   return (
@@ -49,8 +68,11 @@ export function GlobalNav() {
         {/* Menu principal */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
           {NAV_ITEMS.map(({ key, label, Icon, path }) => {
-            const href = `/${locale}/${path}`;
-            const isActive = pathname.startsWith(`/${locale}/${path}`);
+            const href = path === '' ? `/${locale}` : `/${locale}/${path}`;
+            const isActive =
+              path === ''
+                ? pathname === `/${locale}` || pathname === `/${locale}/`
+                : pathname.startsWith(`/${locale}/${path}`);
 
             return (
               <Link
@@ -78,35 +100,25 @@ export function GlobalNav() {
                   size={20}
                   strokeWidth={isActive ? 2.5 : 2}
                   className={`transition-all duration-300 ${
-                    isActive 
-                      ? 'text-[var(--color-accent)] drop-shadow-[0_0_8px_color-mix(in_srgb,var(--color-accent)_60%,transparent)]' 
+                    isActive
+                      ? 'text-[var(--color-accent)] drop-shadow-[0_0_8px_color-mix(in_srgb,var(--color-accent)_60%,transparent)]'
                       : 'group-hover:text-[var(--color-accent)]'
                   }`}
                 />
-                <span className="tracking-wide">{label}</span>
-                
-                {/* Active Indicator Underline */}
-                {isActive && (
-                  <span
-                    style={{
-                      position: 'absolute',
-                      bottom: '-8px',
-                      left: '0',
-                      width: '100%',
-                      height: '2px',
-                      backgroundColor: 'var(--color-accent)',
-                      borderRadius: '2px',
-                      boxShadow: '0 0 8px 1px color-mix(in srgb, var(--color-accent) 60%, transparent)',
-                    }}
-                  />
-                )}
               </Link>
             );
           })}
         </div>
 
         {/* Separator */}
-        <div style={{ width: '2px', height: '24px', backgroundColor: 'var(--color-surface)', borderRadius: '2px' }} />
+        <div
+          style={{
+            width: '2px',
+            height: '24px',
+            backgroundColor: 'var(--color-surface)',
+            borderRadius: '2px',
+          }}
+        />
 
         {/* Auth / Avatar */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -114,7 +126,9 @@ export function GlobalNav() {
             <Link
               href={`/${locale}/profil`}
               aria-label={t('profile')}
-              aria-current={pathname.startsWith(`/${locale}/profil`) ? 'page' : undefined}
+              aria-current={
+                pathname.startsWith(`/${locale}/profil`) ? 'page' : undefined
+              }
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -135,26 +149,11 @@ export function GlobalNav() {
                 size={22}
                 strokeWidth={pathname.startsWith(`/${locale}/profil`) ? 2.5 : 2}
                 className={`transition-all duration-300 ${
-                  pathname.startsWith(`/${locale}/profil`) 
-                    ? 'text-[var(--color-accent)] drop-shadow-[0_0_8px_color-mix(in_srgb,var(--color-accent)_60%,transparent)]' 
+                  pathname.startsWith(`/${locale}/profil`)
+                    ? 'text-[var(--color-accent)] drop-shadow-[0_0_8px_color-mix(in_srgb,var(--color-accent)_60%,transparent)]'
                     : 'group-hover:text-[var(--color-accent)]'
                 }`}
               />
-              <span className="tracking-wide">{t('profile')}</span>
-              {pathname.startsWith(`/${locale}/profil`) && (
-                <span
-                  style={{
-                    position: 'absolute',
-                    bottom: '-8px',
-                    left: '0',
-                    width: '100%',
-                    height: '2px',
-                    backgroundColor: 'var(--color-accent)',
-                    borderRadius: '2px',
-                    boxShadow: '0 0 8px 1px color-mix(in srgb, var(--color-accent) 60%, transparent)',
-                  }}
-                />
-              )}
             </Link>
           ) : (
             <Link
@@ -173,12 +172,11 @@ export function GlobalNav() {
               }}
               className="group hover:text-[var(--color-text-primary)] hover:-translate-y-0.5"
             >
-              <LogIn 
-                size={20} 
+              <LogIn
+                size={20}
                 strokeWidth={2}
-                className="transition-colors duration-300 group-hover:text-[var(--color-accent)]" 
+                className="transition-colors duration-300 group-hover:text-[var(--color-accent)]"
               />
-              <span className="tracking-wide">{t('login')}</span>
             </Link>
           )}
         </div>

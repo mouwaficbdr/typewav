@@ -15,7 +15,7 @@
 import { LeaderboardTable } from '@/components/social/LeaderboardTable';
 import { getSessions, getUserProfile } from '@/lib/db';
 import type { LeaderboardEntry, SessionResult } from '@typewav/types';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -39,6 +39,7 @@ function sessionToEntry(
 export function ClassementClient() {
   const t = useTranslations('leaderboard');
   const tCommon = useTranslations('common');
+  const locale = useLocale();
 
   const [sessions, setSessions] = useState<SessionResult[]>([]);
   const [pseudo, setPseudo] = useState('');
@@ -69,11 +70,11 @@ export function ClassementClient() {
   }, [sessions, pseudo, modeFilter]);
 
   const filterButtons: { label: string; value: FilterMode }[] = [
-    { label: 'Tous', value: 'all' },
-    { label: 'Classique', value: 'classic' },
-    { label: 'Sprint', value: 'sprint' },
-    { label: 'Endurance', value: 'endurance' },
-    { label: 'Code', value: 'code' },
+    { label: t('filters.all'), value: 'all' },
+    { label: t('filters.classic'), value: 'classic' },
+    { label: t('filters.sprint'), value: 'sprint' },
+    { label: t('filters.endurance'), value: 'endurance' },
+    { label: t('filters.code'), value: 'code' },
   ];
 
   return (
@@ -121,7 +122,7 @@ export function ClassementClient() {
 
       <header className="w-full">
         <Link
-          href="/profil"
+          href={`/${locale}/profil`}
           className="transition-colors duration-150 hover:text-[var(--color-text-primary)] hover:underline"
           style={{
             color: 'var(--color-text-muted)',
@@ -132,7 +133,7 @@ export function ClassementClient() {
             textDecoration: 'none',
           }}
         >
-          ← Profil
+          {t('backToProfile')}
         </Link>
       </header>
 

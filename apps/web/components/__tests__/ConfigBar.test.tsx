@@ -49,18 +49,16 @@ describe('ConfigBar', () => {
     expect(screen.getByTitle('punctuation')).toBeInTheDocument();
   });
 
-  it('affiche les collections en mode classic (ligne 2)', () => {
+  it('n’affiche pas de chips collection en mode classic', () => {
     render(<ConfigBar />);
-    expect(
-      screen.getByRole('button', { name: /litterature/i }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /poesie/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /litterature/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /poesie/i })).toBeNull();
   });
 
   it('affiche les durées en mode classic (ligne 2)', () => {
     render(<ConfigBar />);
-    expect(screen.getByRole('button', { name: '30s' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '60s' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '30' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '60' })).toBeInTheDocument();
   });
 
   it('affiche les word counts en mode sprint (ligne 2)', () => {
