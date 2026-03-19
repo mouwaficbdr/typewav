@@ -2,6 +2,7 @@
 
 import { MusicNoteIcon, RefreshIcon } from '@/components/ui/icons';
 import { useMusicRecommendation } from '@/hooks/useMusicRecommendation';
+import { filterMusicPieces } from '@/lib/music-filters';
 import type { MidiPieceId } from '@typewav/audio-engine';
 import { AnimatePresence, motion } from 'motion/react';
 import { useTranslations } from 'next-intl';
@@ -26,7 +27,36 @@ export function ActiveSessionHeader({
     recommendedPlayablePieceId,
   } = useMusicRecommendation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [registerFilter, setRegisterFilter] = useState('all');
+  const [composerFilter, setComposerFilter] = useState('all');
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const registerOptions = useMemo(
+    () => Array.from(new Set(allPieces.map((piece) => piece.register))).sort(),
+    [allPieces],
+  );
+
+  const composerOptions = useMemo(
+    () => Array.from(new Set(allPieces.map((piece) => piece.composer))).sort(),
+    [allPieces],
+  );
+
+  const filteredPieces = useMemo(
+    () =>
+      filterMusicPieces(allPieces, {
+        query,
+        register: registerFilter,
+        composer: composerFilter,
+      }),
+    [allPieces, query, registerFilter, composerFilter],
+  );
+
+  const filteredPlayableCount = useMemo(
+    () => filteredPieces.filter((piece) => piece.midiPieceId !== null).length,
+    [filteredPieces],
+  );
+
   const selectedPiece = useMemo(
     () => allPieces.find((piece) => piece.midiPieceId === selectedPieceId),
     [allPieces, selectedPieceId],
@@ -229,7 +259,107 @@ export function ActiveSessionHeader({
                 {t('playableNowCount', { count: playablePieces.length })}
               </div>
 
-              {allPieces.map((piece) => (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr',
+                  gap: 6,
+                  padding: '0 6px 8px',
+                  borderBottom: '1px solid var(--color-border)',
+                  marginBottom: 4,
+                }}
+              >
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={t('musicSearchPlaceholder')}
+                  aria-label={t('musicSearchPlaceholder')}
+                  style={{
+                    width: '100%',
+                    height: 28,
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--color-border)',
+                    background:
+                      'color-mix(in srgb, var(--color-bg) 45%, transparent)',
+                    color: 'var(--color-text-primary)',
+                    padding: '0 8px',
+                    fontFamily: 'var(--font-ui)',
+                    fontSize: '0.74rem',
+                  }}
+                />
+
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: 6,
+                  }}
+                >
+                  <select
+                    value={registerFilter}
+                    onChange={(e) => setRegisterFilter(e.target.value)}
+                    aria-label={t('musicRegisterFilter')}
+                    style={{
+                      width: '100%',
+                      height: 28,
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--color-border)',
+                      background:
+                        'color-mix(in srgb, var(--color-bg) 45%, transparent)',
+                      color: 'var(--color-text-primary)',
+                      padding: '0 8px',
+                      fontFamily: 'var(--font-ui)',
+                      fontSize: '0.72rem',
+                    }}
+                  >
+                    <option value="all">{t('musicFilterAllRegisters')}</option>
+                    {registerOptions.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={composerFilter}
+                    onChange={(e) => setComposerFilter(e.target.value)}
+                    aria-label={t('musicComposerFilter')}
+                    style={{
+                      width: '100%',
+                      height: 28,
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--color-border)',
+                      background:
+                        'color-mix(in srgb, var(--color-bg) 45%, transparent)',
+                      color: 'var(--color-text-primary)',
+                      padding: '0 8px',
+                      fontFamily: 'var(--font-ui)',
+                      fontSize: '0.72rem',
+                    }}
+                  >
+                    <option value="all">{t('musicFilterAllComposers')}</option>
+                    {composerOptions.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div
+                  style={{
+                    fontSize: '0.68rem',
+                    color: 'var(--color-text-muted)',
+                    paddingLeft: 2,
+                  }}
+                >
+                  {filteredPieces.length} {t('musicResults')} ·{' '}
+                  {t('playableNowCount', { count: filteredPlayableCount })}
+                </div>
+              </div>
+
+              {filteredPieces.map((piece) => (
                 <button
                   key={piece.id}
                   onClick={() => {
@@ -291,6 +421,19 @@ export function ActiveSessionHeader({
                   </div>
                 </button>
               ))}
+
+              {filteredPieces.length === 0 && (
+                <div
+                  style={{
+                    padding: '10px 8px',
+                    fontSize: '0.74rem',
+                    color: 'var(--color-text-muted)',
+                    textAlign: 'center',
+                  }}
+                >
+                  {t('musicNoResults')}
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
