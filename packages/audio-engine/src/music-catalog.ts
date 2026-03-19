@@ -1,5 +1,5 @@
 /**
- * music-catalog.ts — unification catalogue musical (58 pièces) et lecture MIDI (8 pièces).
+ * music-catalog.ts — unification catalogue musical (58 pièces) et lecture MIDI.
  */
 
 import { MUSIC_LIBRARY, type MusicPiece } from './library';
@@ -11,16 +11,12 @@ export interface UnifiedMusicPiece extends MusicPiece {
 }
 
 /**
- * Pont explicite entre les IDs MIDI historiques et les IDs de la librairie unifiée.
+ * Pont explicite entre les IDs legacy et les IDs de la librairie.
  */
-export const MIDI_TO_LIBRARY_ID: Record<MidiPieceId, string> = {
-  'fur-elise': 'fur-elise',
+export const MIDI_TO_LIBRARY_ID: Record<string, string> = {
   'prelude-bwv846': 'bwv846',
   'gymnopedie-1': 'gymnopedie1',
-  korobeiniki: 'korobeiniki',
-  'ode-to-joy': 'ode-to-joy',
   'nocturne-op9-n2': 'nocturne-op9-2',
-  'rondo-alla-turca': 'rondo-alla-turca',
   'canon-pachelbel': 'canon-in-d',
 };
 
@@ -34,11 +30,12 @@ const LIBRARY_TO_MIDI_ID = new Map<string, MidiPieceId>(
 export function getMidiPieceIdFromLibraryId(
   libraryId: string,
 ): MidiPieceId | null {
+  if (MIDI_PIECES[libraryId]) return libraryId;
   return LIBRARY_TO_MIDI_ID.get(libraryId) ?? null;
 }
 
 export function getLibraryIdFromMidiPieceId(pieceId: MidiPieceId): string {
-  return MIDI_TO_LIBRARY_ID[pieceId];
+  return MIDI_TO_LIBRARY_ID[pieceId] ?? pieceId;
 }
 
 export function getUnifiedMusicLibrary(): UnifiedMusicPiece[] {
@@ -47,7 +44,7 @@ export function getUnifiedMusicLibrary(): UnifiedMusicPiece[] {
     return {
       ...piece,
       midiPieceId,
-      isPlayableNow: midiPieceId !== null,
+      isPlayableNow: midiPieceId !== null && Boolean(MIDI_PIECES[midiPieceId]),
     };
   });
 }
@@ -71,5 +68,6 @@ export function getUnifiedPieceByMidiId(
 }
 
 export function isMidiPieceMapped(pieceId: MidiPieceId): boolean {
-  return Boolean(MIDI_PIECES[pieceId] && MIDI_TO_LIBRARY_ID[pieceId]);
+  const libraryId = getLibraryIdFromMidiPieceId(pieceId);
+  return Boolean(MIDI_PIECES[libraryId]);
 }
