@@ -224,3 +224,29 @@ describe('useSession — handleBackspace', () => {
     expect(mockMoveBack).not.toHaveBeenCalled();
   });
 });
+
+describe('useSession — duration timeout', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSessionStore.position = 0;
+    mockSessionStore.keystrokes = [];
+    mockSessionStore.startedAt = Date.now();
+    mockSessionStore.endedAt = null;
+  });
+
+  it('termine automatiquement la session en mode classic quand la durée est atteinte', () => {
+    vi.useFakeTimers();
+
+    renderHook(() =>
+      useSession({ text: 'hello world', mode: 'classic', durationSeconds: 1 }),
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(mockSessionStore.endSession).toHaveBeenCalledTimes(1);
+
+    vi.useRealTimers();
+  });
+});
