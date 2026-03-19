@@ -62,6 +62,10 @@ vi.mock('@/components/typing/WaveformBars', () => ({
   WaveformBars: () => <div data-testid="waveform-bars" />,
 }));
 
+vi.mock('@/components/typing/ActiveSessionHeader', () => ({
+  ActiveSessionHeader: () => <div data-testid="active-session-header" />,
+}));
+
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
   useLocale: () => 'fr',

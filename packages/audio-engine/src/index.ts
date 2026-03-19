@@ -37,6 +37,18 @@ export type { EmotionalRegister, MusicPiece } from './library';
 
 export { MUSIC_LIBRARY, MUSIC_LIBRARY_MAP } from './library';
 
+export type { UnifiedMusicPiece } from './music-catalog';
+
+export {
+  MIDI_TO_LIBRARY_ID,
+  getLibraryIdFromMidiPieceId,
+  getMidiPieceIdFromLibraryId,
+  getPlayableMusicLibrary,
+  getUnifiedMusicLibrary,
+  getUnifiedPieceByMidiId,
+  isMidiPieceMapped,
+} from './music-catalog';
+
 export type { CollectionId } from './recommendation';
 
 export {
