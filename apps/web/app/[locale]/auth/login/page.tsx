@@ -1,7 +1,14 @@
 import { AuthForm } from '@/components/ui/AuthForm';
+import { NavLogo } from '@/components/ui/NavLogo';
 import Link from 'next/link';
 
-export default function LoginPage() {
+interface LoginPageProps {
+  params: Promise<{ locale: string }>;
+}
+
+export default async function LoginPage({ params }: LoginPageProps) {
+  const { locale } = await params;
+
   return (
     <main
       className="flex flex-col items-center justify-center p-8"
@@ -10,6 +17,10 @@ export default function LoginPage() {
         backgroundColor: 'var(--color-bg)',
       }}
     >
+      <div style={{ marginBottom: '2rem' }}>
+        <NavLogo locale={locale} />
+      </div>
+
       <AuthForm mode="login" />
 
       <p
@@ -22,7 +33,7 @@ export default function LoginPage() {
       >
         Pas encore de compte ?{' '}
         <Link
-          href="/auth/signup"
+          href={`/${locale}/auth/signup`}
           style={{ color: 'var(--color-accent)', textDecoration: 'underline' }}
         >
           Créer un compte

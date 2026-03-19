@@ -14,6 +14,7 @@ vi.mock('@/components/social/LeaderboardTable', () => ({
 }));
 
 vi.mock('next-intl', () => ({
+  useLocale: () => 'fr',
   useTranslations: () => (key: string) => key,
 }));
 

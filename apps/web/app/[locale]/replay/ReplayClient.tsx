@@ -13,11 +13,14 @@
 import { TypingArea } from '@/components/typing/TypingArea';
 import { decodeReplay } from '@/lib/replay';
 import type { ReplayData } from '@typewav/types';
+import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 export function ReplayClient() {
+  const t = useTranslations('replay');
+  const locale = useLocale();
   const searchParams = useSearchParams();
   const encoded = searchParams.get('d');
 
@@ -26,14 +29,14 @@ export function ReplayClient() {
   const result = useMemo<
     { ok: true; data: ReplayData } | { ok: false; error: string }
   >(() => {
-    if (!encoded) return { ok: false, error: 'Aucun replay dans cette URL.' };
+    if (!encoded) return { ok: false, error: t('missingReplayInUrl') };
     try {
       const data = decodeReplay(encoded);
       return { ok: true, data };
     } catch {
-      return { ok: false, error: 'Lien de replay invalide ou corrompu.' };
+      return { ok: false, error: t('invalidOrCorruptedLink') };
     }
-  }, [encoded]);
+  }, [encoded, t]);
 
   if (!result.ok) {
     return (
@@ -48,14 +51,14 @@ export function ReplayClient() {
           {result.error}
         </p>
         <Link
-          href="/"
+          href={`/${locale}`}
           style={{
             color: 'var(--color-accent)',
             fontFamily: 'var(--font-ui)',
             fontSize: '0.85rem',
           }}
         >
-          ← Retour à l&apos;accueil
+          {t('backHome')}
         </Link>
       </main>
     );
@@ -75,7 +78,11 @@ export function ReplayClient() {
           marginBottom: 8,
         }}
       >
-        Replay — {data.wpm} WPM · {data.accuracy.toFixed(1)}% · {data.theme}
+        {t('banner', {
+          wpm: data.wpm,
+          accuracy: data.accuracy.toFixed(1),
+          theme: data.theme,
+        })}
       </div>
 
       {!started ? (
@@ -89,8 +96,7 @@ export function ReplayClient() {
               maxWidth: '480px',
             }}
           >
-            Appuyez sur la première touche pour démarrer votre session. Le
-            curseur fantôme rejoue le record partagé en temps réel.
+            {t('preLaunchDescription')}
           </p>
           <button
             onClick={() => setStarted(true)}
@@ -106,7 +112,7 @@ export function ReplayClient() {
               textTransform: 'uppercase',
             }}
           >
-            Lancer
+            {t('launch')}
           </button>
         </div>
       ) : (
@@ -118,14 +124,14 @@ export function ReplayClient() {
       )}
 
       <Link
-        href="/"
+        href={`/${locale}`}
         style={{
           color: 'var(--color-text-muted)',
           fontFamily: 'var(--font-ui)',
           fontSize: '0.75rem',
         }}
       >
-        ← Retour à l&apos;accueil
+        {t('backHome')}
       </Link>
     </main>
   );

@@ -1,7 +1,14 @@
 import { AuthForm } from '@/components/ui/AuthForm';
+import { NavLogo } from '@/components/ui/NavLogo';
 import Link from 'next/link';
 
-export default function SignupPage() {
+interface SignupPageProps {
+  params: Promise<{ locale: string }>;
+}
+
+export default async function SignupPage({ params }: SignupPageProps) {
+  const { locale } = await params;
+
   return (
     <main
       className="flex flex-col items-center justify-center p-8"
@@ -10,6 +17,10 @@ export default function SignupPage() {
         backgroundColor: 'var(--color-bg)',
       }}
     >
+      <div style={{ marginBottom: '2rem' }}>
+        <NavLogo locale={locale} />
+      </div>
+
       <AuthForm mode="signup" />
 
       <p
@@ -22,7 +33,7 @@ export default function SignupPage() {
       >
         Déjà un compte ?{' '}
         <Link
-          href="/auth/login"
+          href={`/${locale}/auth/login`}
           style={{ color: 'var(--color-accent)', textDecoration: 'underline' }}
         >
           Se connecter

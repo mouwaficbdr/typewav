@@ -14,6 +14,7 @@
 
 import { SessionWaveform } from '@/components/typing/SessionWaveform';
 import type { NoteEvent } from '@typewav/types';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
 export interface WpmPoint {
@@ -36,6 +37,7 @@ export function WpmChart({
   durationMs,
   height = 200,
 }: WpmChartProps) {
+  const t = useTranslations('typing');
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(600);
 
@@ -107,7 +109,7 @@ export function WpmChart({
         viewBox={`0 0 ${effectiveWidth} ${height}`}
         style={{ width: '100%', height, display: 'block' }}
         role="img"
-        aria-label="Graphique WPM de la session"
+        aria-label={t('ariaWpmChart')}
       >
         {/* Axe Y */}
         <line

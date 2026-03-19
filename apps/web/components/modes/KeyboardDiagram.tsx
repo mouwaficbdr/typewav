@@ -6,6 +6,8 @@
  * Spec : docs/specs/03-training-modes.md — Mode Apprentissage
  */
 
+import { useTranslations } from 'next-intl';
+
 interface KeyData {
   key: string;
   x: number;
@@ -28,18 +30,7 @@ const FINGER_COLORS: Record<KeyData['finger'], string> = {
   RP: '#C44569', // Auriculaire droit
 };
 
-const FINGER_LABELS: Record<KeyData['finger'], string> = {
-  LP: 'Auriculaire G',
-  LR: 'Annulaire G',
-  LM: 'Majeur G',
-  LI: 'Index G',
-  LT: 'Pouce G',
-  RT: 'Pouce D',
-  RI: 'Index D',
-  RM: 'Majeur D',
-  RR: 'Annulaire D',
-  RP: 'Auriculaire D',
-};
+// Les labels sont maintenant gérés via next-intl dans le composant
 
 // Disposition QWERTY — coordonnées normalisées
 const KEYS: KeyData[] = [
@@ -87,18 +78,20 @@ export function KeyboardDiagram({
   activeKey,
   allowedKeys,
 }: KeyboardDiagramProps) {
+  const t = useTranslations('typing');
+
   const activeKeyData = activeKey
     ? KEYS.find((k) => k.key === activeKey.toLowerCase())
     : undefined;
 
   const activeFinger = activeKeyData?.finger;
-  const fingerLabel = activeFinger ? FINGER_LABELS[activeFinger] : '';
+  const fingerLabel = activeFinger ? t(`finger.${activeFinger}`) : '';
 
   return (
     <div className="flex flex-col items-center gap-3 select-none">
       <svg
         viewBox="0 0 330 172"
-        aria-label="Clavier QWERTY interactif"
+        aria-label={t('ariaKeyboardDiagram')}
         style={{ width: '100%', maxWidth: 500 }}
       >
         {KEYS.map((keyData) => {

@@ -53,6 +53,8 @@ export interface SessionResult {
   collectionId?: string;
   soundPackId: string;
   keystrokeData: KeystrokeEntry[];
+  /** Texte original de la session — utilisé pour la génération de replays partageables */
+  text?: string;
   /** Événements note enregistrés pendant la session — optional pour backward compat */
   noteEvents?: NoteEvent[];
 }

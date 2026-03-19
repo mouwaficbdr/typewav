@@ -99,20 +99,24 @@ body {
 
 /* ---- Zones de frappe ---- */
 .char-pending {
-  color: color-mix(in srgb, var(--color-text-muted) 50%, transparent); /* text muté pour l'attente façon MonkeyType */
+  color: var(
+    --color-char-pending,
+    color-mix(in srgb, var(--color-text-muted) 50%, transparent)
+  );
 }
 
 .char-correct {
-  color: var(--color-text-primary);
+  color: var(--color-char-correct, var(--color-text-primary));
 }
 
 .char-error {
-  color: var(--color-error);
-  text-decoration: none; /* MonkeyType typically doesn't underline error characters by default, it just changes color */
+  color: var(--color-char-error, var(--color-error));
+  text-decoration: none;
 }
 
 .char-current {
   position: relative;
+  color: var(--color-char-current, inherit);
 }
 
 .char-current::after {
@@ -121,8 +125,8 @@ body {
   left: -0.1em;
   bottom: 0.1em;
   width: 0.12em;
-  height: 1.2em; /* Blinking cursor block style */
-  background-color: var(--color-accent);
+  height: 1.2em;
+  background-color: var(--color-cursor, var(--color-accent));
   animation: blink 1s step-end infinite;
   border-radius: 2px;
 }

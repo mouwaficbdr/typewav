@@ -13,6 +13,7 @@
  */
 
 import type { NoteEvent } from '@typewav/types';
+import { useTranslations } from 'next-intl';
 
 const PENTATONIC_NOTES = [
   'C3',
@@ -43,6 +44,8 @@ export function SessionWaveform({
   width = 600,
   height = 48,
 }: SessionWaveformProps) {
+  const t = useTranslations('typing');
+
   if (noteEvents.length === 0) {
     return (
       <div
@@ -78,7 +81,7 @@ export function SessionWaveform({
         preserveAspectRatio="none"
         style={{ width: '100%', height, display: 'block' }}
         role="img"
-        aria-label="Session waveform"
+        aria-label={t('ariaSessionWaveform')}
       >
         {/* Background */}
         <rect

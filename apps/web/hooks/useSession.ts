@@ -132,6 +132,7 @@ export function useSession({
       ...(collectionId !== undefined ? { collectionId } : {}),
       soundPackId,
       keystrokeData: keystrokes,
+      text,
     };
 
     const recommendation = generateRecommendation(sessionResult);

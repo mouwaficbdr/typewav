@@ -18,7 +18,9 @@ const mockSessions = Array.from({ length: 10 }, (_, i) => ({
 
 vi.mock('@/lib/db', () => ({
   getSessions: vi.fn().mockResolvedValue([]),
-  getUserProfile: vi.fn().mockResolvedValue({ currentRank: 'novice', pseudo: '' }),
+  getUserProfile: vi
+    .fn()
+    .mockResolvedValue({ currentRank: 'novice', pseudo: '' }),
   getPersonalRecords: vi.fn().mockResolvedValue(null),
 }));
 
@@ -45,6 +47,10 @@ vi.mock('next-intl', () => ({
   useLocale: () => 'fr',
 }));
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}));
+
 vi.mock('next/link', () => ({
   default: ({
     children,
@@ -54,7 +60,11 @@ vi.mock('next/link', () => ({
     children: React.ReactNode;
     href: string;
     [key: string]: unknown;
-  }) => <a href={href} {...rest}>{children}</a>,
+  }) => (
+    <a href={href} {...rest}>
+      {children}
+    </a>
+  ),
 }));
 
 vi.mock('@/components/charts/ContributionHeatmap', () => ({
@@ -123,12 +133,13 @@ describe('ProfilClient — structure spec-31', () => {
     mockIsPremium.mockReturnValue(false);
     const { unmount } = await renderProfilClient();
     await waitFor(() => {
-      const replayLinks = screen.getAllByRole('link', { name: 'openReplay' });
-      expect(replayLinks).toHaveLength(5);
+      const replayButtons = screen.getAllByRole('button', {
+        name: 'openReplay',
+      });
+      expect(replayButtons).toHaveLength(5);
     });
     // restore
     (getSessions as ReturnType<typeof vi.fn>).mockResolvedValue([]);
     unmount();
   });
 });
-

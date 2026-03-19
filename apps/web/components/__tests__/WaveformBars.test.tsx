@@ -18,9 +18,8 @@ import { WaveformBars } from '../typing/WaveformBars';
 describe('WaveformBars', () => {
   it('rend 12 barres', () => {
     const { container } = render(<WaveformBars />);
-    // Le conteneur root est la div flex, ses enfants sont les barres
-    const rootDiv = container.firstElementChild;
-    expect(rootDiv?.children).toHaveLength(12);
+    const bars = container.querySelectorAll('div[aria-hidden="true"] > div');
+    expect(bars).toHaveLength(12);
   });
 
   it('rend sans crash avec une note active', () => {

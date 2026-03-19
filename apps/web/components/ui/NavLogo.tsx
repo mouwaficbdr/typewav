@@ -29,7 +29,7 @@ export function NavLogo({ locale }: NavLogoProps) {
         style={{
           display: 'inline-flex',
           alignItems: 'center',
-          gap: 14,
+          gap: 8,
           textDecoration: 'none',
           userSelect: 'none',
         }}
@@ -38,14 +38,14 @@ export function NavLogo({ locale }: NavLogoProps) {
       >
         {/* Glow ambient derrière le logo */}
         <div
-          className="absolute left-[8px] top-1/2 -translate-y-1/2 w-[34px] h-[28px] rounded-full opacity-0 group-hover:opacity-40 transition-opacity duration-700 blur-md pointer-events-none"
+          className="absolute left-[4px] top-1/2 -translate-y-1/2 w-[28px] h-[22px] rounded-full opacity-0 group-hover:opacity-40 transition-opacity duration-700 blur-md pointer-events-none"
           style={{ backgroundColor: 'var(--color-accent)' }}
         />
 
         {/* SVG Waveform formant un "W" */}
         <svg
-          width="36"
-          height="28"
+          width="28"
+          height="22"
           viewBox="0 0 36 28"
           fill="none"
           aria-hidden="true"
