@@ -150,6 +150,10 @@ const mockLitterature = {
       id: 'lit-01',
       content: 'Texte de littérature initial.',
       source: 'Victor Hugo',
+      language: 'fr',
+      difficulty: 2,
+      wordCount: 4,
+      charCount: 30,
     },
   ],
 };
@@ -157,7 +161,33 @@ const mockLitterature = {
 const mockPoesie = {
   id: 'poesie',
   name: 'Poésie',
-  texts: [{ id: 'poe-01', content: 'Un poème.', source: 'Baudelaire' }],
+  texts: [
+    {
+      id: 'poe-01',
+      content: 'Un poème.',
+      source: 'Baudelaire',
+      language: 'fr',
+      difficulty: 2,
+      wordCount: 2,
+      charCount: 9,
+    },
+  ],
+};
+
+const mockConfigFiltersCollection = {
+  id: 'litterature',
+  name: 'Littérature',
+  texts: [
+    {
+      id: 'cfg-01',
+      content: 'Hello, world! 2026 test rapide complet.',
+      source: 'Test Source',
+      language: 'en',
+      difficulty: 1,
+      wordCount: 6,
+      charCount: 38,
+    },
+  ],
 };
 
 // Reset config store before each test
@@ -230,5 +260,50 @@ describe('HomeClient — structure Zone 5', () => {
       expect(screen.queryByTestId('ghost-toggle')).not.toBeInTheDocument();
       expect(screen.getByTestId('waveform-bars')).toBeInTheDocument();
     });
+  });
+});
+
+describe('HomeClient — application des filtres config', () => {
+  it('applique les filtres ponctuation/chiffres en mode classic', async () => {
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({
+        activeMode: 'classic',
+        punctuationEnabled: false,
+        numbersEnabled: false,
+      });
+    });
+
+    render(
+      <HomeClient initialCollection={mockConfigFiltersCollection as never} />,
+    );
+
+    expect(screen.getByTestId('typing-area')).toHaveTextContent(
+      'Hello world test rapide complet',
+    );
+  });
+
+  it('tronque le texte selon wordCount en mode sprint', async () => {
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({
+        activeMode: 'sprint',
+        punctuationEnabled: true,
+        numbersEnabled: true,
+        wordCount: 3,
+      });
+    });
+
+    render(
+      <HomeClient initialCollection={mockConfigFiltersCollection as never} />,
+    );
+
+    expect(screen.getByTestId('typing-area')).toHaveTextContent(
+      'Hello, world! 2026',
+    );
   });
 });

@@ -34,6 +34,7 @@ interface TypingAreaProps {
   text: string;
   mode?: TypingMode;
   collectionId?: string;
+  durationSeconds?: number;
   /** Si false, ne navigue pas vers /results automatiquement (ex: LearningMode) */
   autoNavigate?: boolean;
   /** Callback : touche attendue actuellement (pour KeyboardDiagram) */
@@ -53,6 +54,7 @@ export function TypingArea({
   text,
   mode = 'classic',
   collectionId,
+  durationSeconds,
   autoNavigate = true,
   onActiveKeyChange,
   ghostTimings,
@@ -70,6 +72,7 @@ export function TypingArea({
     text,
     mode,
     ...(collectionId !== undefined ? { collectionId } : {}),
+    ...(durationSeconds !== undefined ? { durationSeconds } : {}),
     autoNavigate,
   });
   const { initialize, playNote, triggerSilence, triggerResume } =
@@ -193,7 +196,15 @@ export function TypingArea({
   );
 
   return (
-    <div className="content-typing" style={{ position: 'relative' }}>
+    <div
+      className="content-typing"
+      style={{
+        position: 'relative',
+        opacity: isComplete ? 0 : 1,
+        transform: isComplete ? 'translateY(10px)' : 'translateY(0)',
+        transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+      }}
+    >
       {/* Live stats overlay — Option A : au-dessus, opacity 0 avant la première frappe */}
       <div
         aria-hidden="true"
@@ -264,35 +275,37 @@ export function TypingArea({
           />
         )}
 
-        {!isFocused && !isComplete && (
-          <div
-            aria-hidden="true"
-            data-testid="typing-activation-overlay"
+        {/* Focus Overlay — Seamless glass effect */}
+        <div
+          aria-hidden="true"
+          data-testid="typing-activation-overlay"
+          style={{
+            position: 'absolute',
+            inset: -20, // stretch over edges for cleaner blur
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'color-mix(in srgb, var(--color-bg) 75%, transparent)',
+            zIndex: 1,
+            pointerEvents: 'none',
+            backdropFilter: 'blur(8px)',
+            opacity: !isFocused && !isComplete ? 1 : 0,
+            transition: 'opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+            borderRadius: 'var(--radius-lg)',
+          }}
+        >
+          <span
             style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background:
-                'color-mix(in srgb, var(--color-bg) 60%, transparent)',
-              zIndex: 1,
-              pointerEvents: 'none',
-              backdropFilter: 'blur(2px)',
+              fontFamily: 'var(--font-ui)',
+              fontSize: '1rem',
+              color: 'var(--color-text-primary)',
+              letterSpacing: '0.05em',
+              fontWeight: 500,
             }}
           >
-            <span
-              style={{
-                fontFamily: 'var(--font-ui)',
-                fontSize: '1rem',
-                color: 'var(--color-text-primary)',
-                letterSpacing: '0.05em',
-              }}
-            >
-              {t('clickToFocus')}
-            </span>
-          </div>
-        )}
+            {t('clickToFocus')}
+          </span>
+        </div>
 
         {/* Conteneur des mots — scroll par translateY, transition ultra douce */}
         <div

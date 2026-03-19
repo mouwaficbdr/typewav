@@ -30,6 +30,7 @@ import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useSyncCloud } from '@/hooks/useSyncCloud';
 import { useUser } from '@/hooks/useUser';
 import { getPersonalRecords, getSessionById } from '@/lib/db';
+import { applyTextFilters } from '@/lib/text-filters';
 import { useAudioStore } from '@/stores/useAudioStore';
 import { useConfigStore } from '@/stores/useConfigStore';
 import { type MidiPieceId } from '@typewav/audio-engine';
@@ -81,6 +82,11 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
   const activeCollection = useConfigStore((s) => s.activeCollection);
   const activeMode = useConfigStore((s) => s.activeMode);
+  const punctuationEnabled = useConfigStore((s) => s.punctuationEnabled);
+  const numbersEnabled = useConfigStore((s) => s.numbersEnabled);
+  const wordCount = useConfigStore((s) => s.wordCount);
+  const textLanguage = useConfigStore((s) => s.textLanguage);
+  const durationSeconds = useConfigStore((s) => s.durationSeconds);
 
   const isLearningMode = activeMode === 'learning';
   const hasGhostData = ghostTimings !== null && ghostTimings.length > 0;
@@ -152,14 +158,40 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     if (!collection || collection.texts.length === 0) {
       return { text: '', source: '', collectionId: '' };
     }
-    const idx = getDailyIndex(collection.texts.length, shuffleOffset);
-    const entry = collection.texts[idx]!;
+
+    const languageScopedTexts =
+      textLanguage === 'both'
+        ? collection.texts
+        : collection.texts.filter((entry) => entry.language === textLanguage);
+
+    const candidateTexts =
+      languageScopedTexts.length > 0 ? languageScopedTexts : collection.texts;
+
+    const idx = getDailyIndex(candidateTexts.length, shuffleOffset);
+    const entry = candidateTexts[idx]!;
+
+    const filteredText = applyTextFilters(entry.content, {
+      punctuationEnabled,
+      numbersEnabled,
+      mode: activeMode,
+      wordCount,
+    });
+
     return {
-      text: entry.content,
+      text: filteredText,
       source: entry.source,
       collectionId: collection.id,
     };
-  }, [activeCollection, activeMode, shuffleOffset, collectionsCache]);
+  }, [
+    activeCollection,
+    activeMode,
+    shuffleOffset,
+    collectionsCache,
+    textLanguage,
+    punctuationEnabled,
+    numbersEnabled,
+    wordCount,
+  ]);
 
   // Mode effectif pour TypingArea
   const typingAreaMode =
@@ -169,7 +201,11 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         ? 'code'
         : activeMode === 'sprint'
           ? 'sprint'
-          : 'classic';
+          : activeMode === 'quote'
+            ? 'quote'
+            : activeMode === 'zen'
+              ? 'zen'
+              : 'classic';
 
   // Le layout unifié supprime les "sauts" ou "jumps" de l'UI.
   // LearningMode y est maintenant intégré de manière fluide.
@@ -259,6 +295,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             text={text}
             collectionId={collectionId}
             mode={typingAreaMode}
+            durationSeconds={durationSeconds}
             onNoteChange={(note, isError) =>
               setLastNote({ key: note, isError })
             }
@@ -302,7 +339,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
                 padding: '8px',
                 opacity: 0.8,
               }}
-              className="hover:text-[var(--color-text-primary)] hover:rotate-90 transition-all duration-300"
+              className="hover:text-text-primary hover:rotate-90 transition-all duration-300"
               title={tHint('nextTest')}
             >
               <RepeatIcon size={20} />
@@ -323,7 +360,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
                 padding: '4px 16px',
                 opacity: 0.6,
               }}
-              className="hover:text-[var(--color-text-primary)] hover:opacity-100 transition-colors"
+              className="hover:text-text-primary hover:opacity-100 transition-colors"
               title={tHint('restartTestTooltip')}
             >
               {tHint('tabEnterToRestart')}
@@ -360,7 +397,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             }}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-[var(--color-text-primary)] transition-colors"
+            className="hover:text-text-primary transition-colors"
           >
             &lt;/&gt; github
           </a>
@@ -373,7 +410,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               alignItems: 'center',
               gap: 6,
             }}
-            className="hover:text-[var(--color-text-primary)] transition-colors"
+            className="hover:text-text-primary transition-colors"
           >
             {tHint('terms')}
           </a>
@@ -395,7 +432,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           )}
 
           <span
-            className="hover:text-[var(--color-text-primary)] cursor-pointer transition-colors"
+            className="hover:text-text-primary cursor-pointer transition-colors"
             style={{ display: 'flex', alignItems: 'center', gap: 6 }}
           >
             <MusicNoteIcon size={12} /> {soundPackId}

@@ -36,6 +36,7 @@ interface UseSessionOptions {
   text: string;
   mode?: TypingMode | undefined;
   collectionId?: string | undefined;
+  durationSeconds?: number | undefined;
   /** Si true, navigue automatiquement vers /results en fin de session */
   autoNavigate?: boolean | undefined;
 }
@@ -44,6 +45,7 @@ export function useSession({
   text,
   mode = 'classic',
   collectionId,
+  durationSeconds = 60,
   autoNavigate = true,
 }: UseSessionOptions) {
   const router = useRouter();
@@ -109,6 +111,26 @@ export function useSession({
     };
   }, [startedAt, endedAt, keystrokes]);
 
+  // Durée de session: appliquer un timeout pour les modes chronométrés.
+  useEffect(() => {
+    if (mode !== 'classic') return;
+    if (startedAt === null || endedAt !== null) return;
+
+    const deadline = startedAt + durationSeconds * 1000;
+    const remainingMs = Math.max(0, deadline - Date.now());
+
+    if (remainingMs === 0) {
+      endSession();
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      endSession();
+    }, remainingMs);
+
+    return () => clearTimeout(timeout);
+  }, [mode, durationSeconds, startedAt, endedAt, endSession]);
+
   // Fin de session : sauvegarder + naviguer
   useEffect(() => {
     if (endedAt === null || startedAt === null) return;
@@ -152,7 +174,11 @@ export function useSession({
         consistency: String(Math.round(consistency)),
         recommendation,
       });
-      router.push(`/results?${params.toString()}`);
+
+      // UX Premium : Petit délai avant navigation pour laisser l'animation de fin (fade-out) se faire.
+      setTimeout(() => {
+        router.push(`/results?${params.toString()}`);
+      }, 800); // 800ms match avec le CSS transition 'all 0.8s'
     });
   }, [endedAt]); // eslint-disable-line react-hooks/exhaustive-deps
 
