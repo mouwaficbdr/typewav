@@ -1,10 +1,11 @@
 'use client';
 
 import { MusicNoteIcon, RefreshIcon } from '@/components/ui/icons';
-import { MIDI_PIECES, type MidiPieceId } from '@typewav/audio-engine';
+import { useMusicRecommendation } from '@/hooks/useMusicRecommendation';
+import type { MidiPieceId } from '@typewav/audio-engine';
 import { AnimatePresence, motion } from 'motion/react';
 import { useTranslations } from 'next-intl';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface ActiveSessionHeaderProps {
   selectedPieceId: MidiPieceId;
@@ -16,10 +17,20 @@ export function ActiveSessionHeader({
   onPieceChange,
 }: ActiveSessionHeaderProps) {
   const t = useTranslations('typing');
+  const {
+    currentPiece,
+    register,
+    refresh,
+    allPieces,
+    playablePieces,
+    recommendedPlayablePieceId,
+  } = useMusicRecommendation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const selectedPiece = MIDI_PIECES[selectedPieceId];
-  const allPieces = Object.values(MIDI_PIECES);
+  const selectedPiece = useMemo(
+    () => allPieces.find((piece) => piece.midiPieceId === selectedPieceId),
+    [allPieces, selectedPieceId],
+  );
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -34,13 +45,29 @@ export function ActiveSessionHeader({
   }, [isMenuOpen]);
 
   const handleShuffle = () => {
-    const candidates = allPieces.filter(
-      (piece) => piece.id !== selectedPieceId,
+    const candidates = playablePieces.filter(
+      (piece) => piece.midiPieceId !== selectedPieceId,
     );
     if (candidates.length === 0) return;
     const next = candidates[Math.floor(Math.random() * candidates.length)];
-    if (!next) return;
-    onPieceChange(next.id);
+    if (!next?.midiPieceId) return;
+    onPieceChange(next.midiPieceId);
+  };
+
+  const handleRefreshRecommendation = () => {
+    refresh();
+
+    if (recommendedPlayablePieceId) {
+      onPieceChange(recommendedPlayablePieceId);
+      return;
+    }
+
+    const fallback = playablePieces.find(
+      (piece) => piece.register === register,
+    );
+    if (fallback?.midiPieceId) {
+      onPieceChange(fallback.midiPieceId);
+    }
   };
 
   return (
@@ -70,10 +97,34 @@ export function ActiveSessionHeader({
             }}
           >
             {selectedPiece.composer} - {selectedPiece.title}
-            {selectedPiece.year ? ` (${selectedPiece.year})` : ''}
           </span>
         </div>
       )}
+
+      <button
+        onClick={handleRefreshRecommendation}
+        title={t('recommendationCta')}
+        style={{
+          background:
+            'color-mix(in srgb, var(--color-accent) 10%, transparent)',
+          border:
+            '1px solid color-mix(in srgb, var(--color-accent) 35%, transparent)',
+          borderRadius: 'var(--radius-sm)',
+          color: 'var(--color-text-primary)',
+          cursor: 'pointer',
+          fontFamily: 'var(--font-ui)',
+          fontSize: '0.72rem',
+          padding: '4px 10px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          transition: 'all 0.2s cubic-bezier(0.2, 0, 0, 1)',
+        }}
+        className="hover:scale-[1.03]"
+      >
+        <MusicNoteIcon size={11} />
+        <span>{t('registerRecommendation', { register })}</span>
+      </button>
 
       {/* Selecteur de Musique */}
       <div
@@ -104,10 +155,12 @@ export function ActiveSessionHeader({
               ? 'var(--color-surface)'
               : 'color-mix(in srgb, var(--color-bg) 50%, transparent)',
           }}
-          className="hover:border-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+          className="hover:text-text-primary"
         >
           <MusicNoteIcon size={12} />
-          <span>{selectedPiece?.title ?? t('noPiece')}</span>
+          <span>
+            {selectedPiece?.shortTitle ?? selectedPiece?.title ?? t('noPiece')}
+          </span>
         </button>
 
         <button
@@ -172,19 +225,22 @@ export function ActiveSessionHeader({
                   color: 'var(--color-text-muted)',
                 }}
               >
-                {t('library')}
+                {t('library')}: {allPieces.length} ·{' '}
+                {t('playableNowCount', { count: playablePieces.length })}
               </div>
 
               {allPieces.map((piece) => (
                 <button
                   key={piece.id}
                   onClick={() => {
-                    onPieceChange(piece.id);
+                    if (!piece.midiPieceId) return;
+                    onPieceChange(piece.midiPieceId);
                     setIsMenuOpen(false);
                   }}
+                  disabled={!piece.midiPieceId}
                   style={{
                     background:
-                      selectedPieceId === piece.id
+                      selectedPieceId === piece.midiPieceId
                         ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
                         : 'transparent',
                     border: 'none',
@@ -196,19 +252,41 @@ export function ActiveSessionHeader({
                     cursor: 'pointer',
                     textAlign: 'left',
                     color:
-                      selectedPieceId === piece.id
+                      selectedPieceId === piece.midiPieceId
                         ? 'var(--color-text-primary)'
                         : 'var(--color-text-muted)',
+                    opacity: piece.midiPieceId ? 1 : 0.62,
                   }}
-                  className="hover:bg-[color-mix(in_srgb,var(--color-border)_50%,transparent)] hover:text-[var(--color-text-primary)]"
+                  className="hover:text-text-primary"
                 >
                   <MusicNoteIcon size={14} className="opacity-50" />
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
                     <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>
                       {piece.title}
                     </span>
-                    <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>
-                      {piece.composer}
+                    <span
+                      style={{
+                        fontSize: '0.7rem',
+                        opacity: 0.7,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                      }}
+                    >
+                      <span>{piece.composer}</span>
+                      <span
+                        style={{
+                          border: '1px solid var(--color-border)',
+                          borderRadius: '999px',
+                          padding: '1px 6px',
+                          fontSize: '0.62rem',
+                          letterSpacing: '0.02em',
+                        }}
+                      >
+                        {piece.midiPieceId
+                          ? t('playableBadge')
+                          : t('comingSoonBadge')}
+                      </span>
                     </span>
                   </div>
                 </button>

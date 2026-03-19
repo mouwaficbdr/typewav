@@ -100,10 +100,10 @@ describe('TypingArea — affordance activation (Fix D)', () => {
     render(<TypingArea text="hello world" />);
     const area = screen.getByRole('textbox');
     await user.click(area);
-    // L'overlay ne doit plus être présent après focus
-    expect(
-      screen.queryByTestId('typing-activation-overlay'),
-    ).not.toBeInTheDocument();
+    // L'overlay reste monté pour une transition fluide, mais devient invisible.
+    expect(screen.getByTestId('typing-activation-overlay')).toHaveStyle({
+      opacity: '0',
+    });
   });
 });
 
