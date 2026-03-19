@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     });
   }
   return buildMetadata({
-    title: 'TypeWav — Musicothérapie du clavier',
+    title: 'Musicothérapie du clavier',
     description:
       'Tapez en musique. Chaque frappe correcte produit une note. Entraînement au typing avec une expérience audio immersive.',
     alternates: { canonical: APP_URL },

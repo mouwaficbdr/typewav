@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { ReplayClient } from './ReplayClient';
 
 export const metadata: Metadata = {
-  title: 'Replay — TypeWav',
+  title: 'Replay',
   description: "Lecture d'un replay TypeWav.",
 };
 

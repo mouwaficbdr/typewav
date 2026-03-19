@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { ClassementClient } from './ClassementClient';
 
 export const metadata: Metadata = {
-  title: 'Classement — TypeWav',
+  title: 'Classement',
   description: 'Leaderboard hebdomadaire TypeWav.',
 };
 

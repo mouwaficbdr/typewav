@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { ChallengeClient } from './ChallengeClient';
 
 export const metadata: Metadata = {
-  title: 'Challenge — TypeWav',
+  title: 'Challenge',
   description: 'Relevez un défi de typing partagé.',
 };
 

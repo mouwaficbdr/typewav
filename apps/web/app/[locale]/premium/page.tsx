@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import { PremiumPageClient } from './PremiumPageClient';
 
 export const metadata = {
-  title: 'Premium — TypeWav',
+  title: 'Premium',
   description:
     'Débloquez les packs sonores cinématiques et la synchronisation cloud.',
 };

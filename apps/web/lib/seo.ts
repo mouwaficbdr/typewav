@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-export const DEFAULT_TITLE = 'TypeWav — Musical Typing Trainer';
+export const DEFAULT_TITLE = 'TypeWav | Musical Typing Trainer';
 export const DEFAULT_DESCRIPTION =
   'Type in rhythm. Every correct keystroke plays a musical note. ' +
   'Improve your typing speed with an immersive audio experience. Free, open source.';
@@ -10,7 +10,7 @@ export function buildMetadata(overrides: Partial<Metadata> = {}): Metadata {
   return {
     title: {
       default: DEFAULT_TITLE,
-      template: '%s — TypeWav',
+      template: 'TypeWav | %s',
     },
     description: DEFAULT_DESCRIPTION,
     keywords: [
