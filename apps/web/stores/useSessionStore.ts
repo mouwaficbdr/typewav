@@ -76,7 +76,8 @@ export const useSessionStore = create<SessionState & SessionActions>(
         text,
         position: 0,
         keystrokes: [],
-        startedAt: Date.now(),
+        // Le timer démarre à la première frappe réelle.
+        startedAt: null,
         endedAt: null,
         errorCount: 0,
         noteEvents: [],
@@ -94,12 +95,13 @@ export const useSessionStore = create<SessionState & SessionActions>(
         // ce qui permet d'avoir de vraies erreurs puis de corriger avec Backspace.
         position: Math.min(state.text.length, state.position + 1),
         errorCount: entry.correct ? state.errorCount : state.errorCount + 1,
+        startedAt: state.startedAt ?? entry.timestamp,
       }));
 
       // Session terminée quand tout le texte est tapé
-      const { position, text } = get();
-      if (position >= text.length) {
-        set({ endedAt: Date.now() });
+      const { position, text, endedAt } = get();
+      if (position >= text.length && endedAt === null) {
+        set({ endedAt: entry.timestamp });
       }
     },
 
@@ -107,15 +109,16 @@ export const useSessionStore = create<SessionState & SessionActions>(
       set({ endedAt: Date.now() });
     },
 
-    moveBack: () =>
-      set((state) => {
-        if (state.endedAt !== null) return state; // session terminée
-        if (state.keystrokes.length === 0) return state; // rien à effacer
-        return {
-          position: Math.max(0, state.position - 1),
-          keystrokes: state.keystrokes.slice(0, -1),
-        };
-      }),
+    moveBack: () => {
+      const state = get();
+      if (state.endedAt !== null) return; // session terminée
+      if (state.keystrokes.length === 0) return; // rien à effacer
+
+      set({
+        position: Math.max(0, state.position - 1),
+        keystrokes: state.keystrokes.slice(0, -1),
+      });
+    },
 
     recordNoteEvent: (noteName, charIndex) =>
       set((state) => ({

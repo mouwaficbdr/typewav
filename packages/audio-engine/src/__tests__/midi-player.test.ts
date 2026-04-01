@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   advanceAndGet,
+  advanceAndGetWithDuration,
   getCurrentDuration,
   getCurrentPiece,
   getCurrentPosition,
@@ -83,7 +84,9 @@ describe('advanceAndGet', () => {
 
   it('retourne la première note au premier appel', () => {
     const note = advanceAndGet();
-    expect(note).toBe(MIDI_PIECES['bwv846'].notes[0]);
+    const piece = getCurrentPiece();
+    expect(piece).not.toBeNull();
+    expect(note).toBe(piece!.notes[0]);
   });
 
   it('avance la position à chaque appel', () => {
@@ -94,7 +97,7 @@ describe('advanceAndGet', () => {
   });
 
   it('boucle à la fin de la séquence', () => {
-    const piece = MIDI_PIECES['bwv846'];
+    const piece = loadPiece('bwv846');
     // Avancer jusqu'à la dernière note
     for (let i = 0; i < piece.notes.length - 1; i++) {
       advanceAndGet();
@@ -112,6 +115,19 @@ describe('advanceAndGet', () => {
     // Même sans pièce nulle, advanceAndGet doit fonctionner
     const note = advanceAndGet();
     expect(note).toBeDefined();
+  });
+});
+
+describe('advanceAndGetWithDuration', () => {
+  beforeEach(() => {
+    loadPiece('bwv846');
+  });
+
+  it('retourne la note et la duree de la meme piece', () => {
+    const step = advanceAndGetWithDuration();
+    expect(step).not.toBeNull();
+    expect(step?.note).toBe(MIDI_PIECES['bwv846']?.notes[0]);
+    expect(step?.duration).toBe(MIDI_PIECES['bwv846']?.noteDuration);
   });
 });
 

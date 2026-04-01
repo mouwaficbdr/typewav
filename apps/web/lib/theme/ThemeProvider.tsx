@@ -8,7 +8,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const themeId = useThemeStore((s) => s.themeId);
 
   useEffect(() => {
-    const theme = APP_THEMES[themeId] || APP_THEMES['terminal'];
+    const theme = APP_THEMES[themeId] ?? APP_THEMES['terminal']!;
     const root = document.documentElement;
 
     root.style.setProperty('--color-bg', theme.colors.bg);

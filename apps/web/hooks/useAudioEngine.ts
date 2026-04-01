@@ -15,15 +15,18 @@
  * Spec : docs/specs/01-audio-engine.md
  */
 
+import {
+  MidiAssetLoadError,
+  loadMidiPieceWithAssets,
+} from '@/lib/midi-asset-loader';
 import { useAudioStore } from '@/stores/useAudioStore';
 import { useSessionStore } from '@/stores/useSessionStore';
 import {
-  advanceAndGet,
-  getCurrentDuration,
-  loadPiece,
+  advanceAndGetWithDuration,
+  clearLoadedPiece,
   type MidiPieceId,
 } from '@typewav/audio-engine';
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 // Import de type uniquement — pas d'impact runtime (Tone.js reste lazy)
 import type { Reverb as ToneReverb, Synth as ToneSynth } from 'tone';
 
@@ -94,6 +97,14 @@ export function useAudioEngine() {
   const synthRef = useRef<ToneSynth | null>(null);
   const reverbRef = useRef<ToneReverb | null>(null);
   const loadedPackRef = useRef<string>('');
+  const midiLoadRequestIdRef = useRef(0);
+  const midiLoadAbortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      midiLoadAbortControllerRef.current?.abort();
+    };
+  }, []);
 
   /**
    * Crée un nouveau synthétiseur Tone.js selon la config du pack actif.
@@ -161,7 +172,7 @@ export function useAudioEngine() {
    * Joue la prochaine note de la pièce musicale active.
    */
   const playNote = useCallback(
-    async (_char: string, _wordIndex: number) => {
+    async (_char: string, _wordIndex: number): Promise<string | null> => {
       if (!initialized) {
         await initialize();
       }
@@ -173,16 +184,17 @@ export function useAudioEngine() {
 
       const Tone = await import('tone');
       const synth = synthRef.current;
-      if (!synth) return;
+      if (!synth) return null;
 
-      const nextNote = advanceAndGet();
-      if (!nextNote || nextNote === 'rest') return;
-      const noteToPlay = nextNote;
-      const duration = getCurrentDuration();
+      const nextStep = advanceAndGetWithDuration();
+      if (!nextStep || nextStep.note === 'rest') return null;
+      const noteToPlay = nextStep.note;
+      const duration = nextStep.duration;
       synth.triggerAttackRelease(noteToPlay, duration, Tone.now());
 
       // Enregistrer l'événement note pour le visualiseur waveform
       recordNoteEvent(noteToPlay, sessionPosition);
+      return noteToPlay;
     },
     [
       initialized,
@@ -221,8 +233,52 @@ export function useAudioEngine() {
    * Charge la pièce musicale sélectionnée.
    */
   const loadMidiPiece = useCallback(async (pieceId: MidiPieceId) => {
-    loadPiece(pieceId);
-    useAudioStore.getState().setActivePiece(pieceId);
+    const requestId = midiLoadRequestIdRef.current + 1;
+    midiLoadRequestIdRef.current = requestId;
+
+    midiLoadAbortControllerRef.current?.abort();
+    const controller = new AbortController();
+    midiLoadAbortControllerRef.current = controller;
+
+    const audioStore = useAudioStore.getState();
+    audioStore.setLoading(true);
+    audioStore.setMidiLoadError(null);
+
+    try {
+      await loadMidiPieceWithAssets(pieceId, { signal: controller.signal });
+
+      // Last-write-wins : ignorer les réponses obsolètes.
+      if (
+        requestId !== midiLoadRequestIdRef.current ||
+        controller.signal.aborted
+      ) {
+        return;
+      }
+
+      audioStore.setActivePiece(pieceId);
+      audioStore.setMidiLoadError(null);
+    } catch (error) {
+      if (requestId !== midiLoadRequestIdRef.current) {
+        return;
+      }
+
+      const isAborted =
+        controller.signal.aborted ||
+        (error instanceof MidiAssetLoadError &&
+          error.code === 'MIDI_ASSET_ABORTED');
+
+      if (isAborted) return;
+
+      const message =
+        error instanceof Error ? error.message : 'Unknown MIDI loading error.';
+      clearLoadedPiece();
+      audioStore.setActivePiece(null);
+      audioStore.setMidiLoadError(message);
+    } finally {
+      if (requestId === midiLoadRequestIdRef.current) {
+        audioStore.setLoading(false);
+      }
+    }
   }, []);
 
   return {

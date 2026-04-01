@@ -19,6 +19,11 @@ export interface MidiPiece {
   noteDuration: string;
 }
 
+export interface SequencedMidiNote {
+  note: string;
+  duration: string;
+}
+
 /**
  * MidiPieceId est ouvert pour supporter la librairie complète + alias legacy.
  */
@@ -83,6 +88,22 @@ const _state: MidiSequencerState = {
   position: 0,
 };
 
+function setStatePiece(piece: MidiPiece): MidiPiece {
+  const normalizedPiece: MidiPiece = {
+    ...piece,
+    notes: [...piece.notes],
+    noteDuration: normalizeDuration(piece.noteDuration),
+  };
+
+  if (normalizedPiece.notes.length === 0) {
+    throw new Error(`MIDI piece has no playable notes: ${piece.id}`);
+  }
+
+  _state.piece = normalizedPiece;
+  _state.position = 0;
+  return normalizedPiece;
+}
+
 /**
  * Charge une pièce MIDI et réinitialise la position.
  */
@@ -94,19 +115,40 @@ export function loadPiece(pieceId: MidiPieceId): MidiPiece {
     throw new Error(`Unknown MIDI piece id: ${pieceId}`);
   }
 
-  _state.piece = piece;
-  _state.position = 0;
-  return piece;
+  return setStatePiece(piece);
+}
+
+/**
+ * Charge une pièce construite dynamiquement (ex: parsing d'un .mid externe).
+ */
+export function loadPieceFromData(piece: MidiPiece): MidiPiece {
+  return setStatePiece(piece);
 }
 
 /**
  * Retourne la note courante et avance d'un cran, en boucle.
  */
 export function advanceAndGet(): string | null {
+  const step = advanceAndGetWithDuration();
+  return step?.note ?? null;
+}
+
+/**
+ * Retourne atomiquement la note et sa durée, issues de la même version de pièce.
+ */
+export function advanceAndGetWithDuration(): SequencedMidiNote | null {
   if (!_state.piece) return null;
-  const note = _state.piece.notes[_state.position] ?? null;
-  _state.position = (_state.position + 1) % _state.piece.notes.length;
-  return note;
+
+  const pieceSnapshot = _state.piece;
+  const note = pieceSnapshot.notes[_state.position] ?? null;
+  _state.position = (_state.position + 1) % pieceSnapshot.notes.length;
+
+  if (!note) return null;
+
+  return {
+    note,
+    duration: pieceSnapshot.noteDuration,
+  };
 }
 
 /**
@@ -134,5 +176,13 @@ export function getCurrentDuration(): string {
  * Réinitialise la position à 0 sans changer la pièce.
  */
 export function resetSequence(): void {
+  _state.position = 0;
+}
+
+/**
+ * Supprime la pièce chargée pour empêcher toute lecture implicite.
+ */
+export function clearLoadedPiece(): void {
+  _state.piece = null;
   _state.position = 0;
 }
