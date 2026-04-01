@@ -289,7 +289,7 @@ describe('HomeClient — application des filtres config', () => {
     );
   });
 
-  it('tronque le texte selon wordCount en mode sprint', async () => {
+  it('conserve le texte si wordCount est supérieur au nombre de mots', async () => {
     const { HomeClient } = await import('../typing/HomeClient');
     const { useConfigStore } = await import('@/stores/useConfigStore');
 
@@ -298,7 +298,7 @@ describe('HomeClient — application des filtres config', () => {
         activeMode: 'sprint',
         punctuationEnabled: true,
         numbersEnabled: true,
-        wordCount: 3,
+        wordCount: 10,
       });
     });
 

@@ -22,6 +22,8 @@ interface AudioState {
   loading: boolean;
   /** Pièce musicale active pour la lecture séquencée. */
   activePieceId: MidiPieceId | null;
+  /** Erreur de chargement MIDI affichable dans l'UI. */
+  midiLoadError: string | null;
 }
 
 interface AudioActions {
@@ -31,6 +33,7 @@ interface AudioActions {
   setTheme: (themeId: ChordProgressionTheme) => void;
   setLoading: (loading: boolean) => void;
   setActivePiece: (pieceId: MidiPieceId | null) => void;
+  setMidiLoadError: (error: string | null) => void;
 }
 
 export const useAudioStore = create<AudioState & AudioActions>((set) => ({
@@ -40,6 +43,7 @@ export const useAudioStore = create<AudioState & AudioActions>((set) => ({
   themeId: 'terminal',
   loading: false,
   activePieceId: null,
+  midiLoadError: null,
 
   setInitialized: (value) => set({ initialized: value }),
   setSoundPack: (packId) => set({ soundPackId: packId }),
@@ -47,4 +51,5 @@ export const useAudioStore = create<AudioState & AudioActions>((set) => ({
   setTheme: (themeId) => set({ themeId }),
   setLoading: (loading) => set({ loading }),
   setActivePiece: (pieceId) => set({ activePieceId: pieceId }),
+  setMidiLoadError: (error) => set({ midiLoadError: error }),
 }));

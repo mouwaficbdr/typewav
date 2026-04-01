@@ -44,8 +44,17 @@ interface TypingAreaProps {
   /** Callback appelé à la fin du test avec le WPM final (utile si autoNavigate=false) */
   onComplete?: (wpm: number) => void;
   /**
+   * Callback riche de fin de session (utile pour le mode Learning).
+   */
+  onSessionComplete?: (stats: {
+    wpm: number;
+    accuracy: number;
+    correct: number;
+    total: number;
+  }) => void;
+  /**
    * Callback appelé à chaque frappe — pilote WaveformBars en Zone 5.
-   * note = touche pressée (truthy) ou null si silence/erreur.
+   * note = note réellement jouée (ou null si silence/erreur).
    */
   onNoteChange?: (note: string | null, isError: boolean) => void;
 }
@@ -59,6 +68,7 @@ export function TypingArea({
   onActiveKeyChange,
   ghostTimings,
   onComplete,
+  onSessionComplete,
   onNoteChange,
 }: TypingAreaProps) {
   const {
@@ -81,6 +91,7 @@ export function TypingArea({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const wordsRef = useRef<HTMLParagraphElement>(null);
+  const completionNotifiedRef = useRef(false);
   const [isFocused, setIsFocused] = useState(false);
   const [translateY, setTranslateY] = useState(0);
 
@@ -96,14 +107,28 @@ export function TypingArea({
     onActiveKeyChange(isComplete ? undefined : expected);
   }, [position, text, isComplete, onActiveKeyChange]);
 
-  // Callback onComplete quand le test se termine
+  // Callback(s) de fin quand le test se termine
   useEffect(() => {
-    if (isComplete && onComplete) {
-      onComplete(liveStats.wpm);
+    if (!isComplete) {
+      completionNotifiedRef.current = false;
+      return;
     }
-    // onComplete est stable — pas besoin de l'ajouter dans les deps
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isComplete, liveStats.wpm]);
+
+    if (completionNotifiedRef.current) return;
+    completionNotifiedRef.current = true;
+
+    const total = keystrokes.length;
+    const correct = keystrokes.filter((entry) => entry.correct).length;
+    const accuracy = total === 0 ? 100 : (correct / total) * 100;
+
+    onComplete?.(liveStats.wpm);
+    onSessionComplete?.({
+      wpm: liveStats.wpm,
+      accuracy,
+      correct,
+      total,
+    });
+  }, [isComplete, liveStats.wpm, keystrokes, onComplete, onSessionComplete]);
 
   // Scroll 3 lignes — translateY calculé via getBoundingClientRect
   // Note : spanRect.top - wordsRect.top est indépendant du transform appliqué
@@ -166,8 +191,8 @@ export function TypingArea({
       handleKeystroke(e.key);
 
       if (isCorrect) {
-        await playNote(e.key, wordIndex);
-        onNoteChange?.(e.key, false);
+        const playedNote = await playNote(e.key, wordIndex);
+        onNoteChange?.(playedNote, false);
       } else {
         triggerSilence();
         onNoteChange?.(null, true);

@@ -39,7 +39,7 @@ export function filterMusicPieces(
 
   // Sans requête: ordre catalogue pour rester stable et lisible.
   if (!normalizedNeedle) {
-    return filtered.toSorted((a, b) => a.catalogNumber - b.catalogNumber);
+    return [...filtered].sort((a, b) => a.catalogNumber - b.catalogNumber);
   }
 
   const scored = filtered.map((piece) => {
@@ -70,8 +70,8 @@ export function filterMusicPieces(
     return { piece, score };
   });
 
-  return scored
-    .toSorted((a, b) => {
+  return [...scored]
+    .sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
       return a.piece.catalogNumber - b.piece.catalogNumber;
     })

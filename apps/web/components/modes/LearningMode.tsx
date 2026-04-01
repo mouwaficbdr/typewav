@@ -12,11 +12,13 @@ import { TypingArea } from '@/components/typing/TypingArea';
 import { generateLearningText } from '@/lib/words';
 import { LEARNING_LEVELS } from '@typewav/types';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface LearningSessionStats {
   correct: number;
   total: number;
+  accuracy: number;
+  wpm: number;
 }
 
 interface LevelProgress {
@@ -41,6 +43,9 @@ export function LearningMode() {
   );
   const [activeKey, setActiveKey] = useState<string | undefined>(undefined);
   const [text, setText] = useState(() => generateLearningText(1));
+  const [runIndex, setRunIndex] = useState(0);
+  const [lastSessionStats, setLastSessionStats] =
+    useState<LearningSessionStats | null>(null);
 
   const currentLevel = LEARNING_LEVELS.find((l) => l.id === currentLevelId)!;
   const currentProgress = levelProgress.find(
@@ -61,10 +66,21 @@ export function LearningMode() {
     );
   }, [currentProgress, currentLevel]);
 
+  const remainingSamples = Math.max(
+    0,
+    currentLevel.minSamples - currentProgress.samples,
+  );
+  const remainingAccuracy = Math.max(
+    0,
+    currentLevel.minAccuracy - currentProgress.accuracy,
+  );
+
   function handleLevelSelect(levelId: number) {
     const progress = levelProgress.find((p) => p.levelId === levelId);
     if (!progress?.unlocked) return;
     setCurrentLevelId(levelId);
+    setLastSessionStats(null);
+    setRunIndex((prev) => prev + 1);
     setText(generateLearningText(levelId));
   }
 
@@ -77,8 +93,49 @@ export function LearningMode() {
       prev.map((p) => (p.levelId === nextId ? { ...p, unlocked: true } : p)),
     );
     setCurrentLevelId(nextId);
+    setLastSessionStats(null);
+    setRunIndex((prev) => prev + 1);
     setText(generateLearningText(nextId));
   }
+
+  const handleLearningSessionComplete = useCallback(
+    (stats: {
+      wpm: number;
+      accuracy: number;
+      correct: number;
+      total: number;
+    }) => {
+      setLastSessionStats({
+        correct: stats.correct,
+        total: stats.total,
+        accuracy: stats.accuracy,
+        wpm: stats.wpm,
+      });
+
+      setLevelProgress((prev) =>
+        prev.map((progress) => {
+          if (progress.levelId !== currentLevelId) return progress;
+
+          const previousCorrect = (progress.accuracy / 100) * progress.samples;
+          const nextSamples = progress.samples + stats.total;
+          const nextCorrect = previousCorrect + stats.correct;
+          const nextAccuracy =
+            nextSamples === 0 ? 0 : (nextCorrect / nextSamples) * 100;
+
+          return {
+            ...progress,
+            samples: nextSamples,
+            accuracy: nextAccuracy,
+          };
+        }),
+      );
+
+      // Redémarre une session d'entraînement immédiatement sur le même niveau.
+      setText(generateLearningText(currentLevelId));
+      setRunIndex((prev) => prev + 1);
+    },
+    [currentLevelId],
+  );
 
   // Régénérer le texte quand le niveau change
   useEffect(() => {
@@ -170,11 +227,42 @@ export function LearningMode() {
 
       {/* Zone de frappe */}
       <TypingArea
+        key={`learning-${currentLevelId}-${runIndex}`}
         text={text}
         mode="learning"
         autoNavigate={false}
         onActiveKeyChange={setActiveKey}
+        onSessionComplete={handleLearningSessionComplete}
       />
+
+      <div
+        style={{
+          fontFamily: 'var(--font-ui)',
+          fontSize: 13,
+          color: 'var(--color-text-muted)',
+          textAlign: 'center',
+          lineHeight: 1.4,
+        }}
+      >
+        {lastSessionStats ? (
+          <>
+            Dernière session: {Math.round(lastSessionStats.wpm)} WPM ·{' '}
+            {Math.round(lastSessionStats.accuracy)}% ({lastSessionStats.correct}
+            /{lastSessionStats.total})
+          </>
+        ) : (
+          <>
+            Objectif: {currentLevel.minAccuracy}% de précision sur{' '}
+            {currentLevel.minSamples} frappes.
+          </>
+        )}
+        {!canUnlockNext && currentProgress.samples > 0 && (
+          <div>
+            Reste {remainingSamples} frappes et ~{Math.ceil(remainingAccuracy)}%
+            de précision à atteindre.
+          </div>
+        )}
+      </div>
 
       {/* Schéma clavier */}
       <div style={{ width: '100%' }}>

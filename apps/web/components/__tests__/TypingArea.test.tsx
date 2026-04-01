@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -129,5 +129,25 @@ describe('TypingArea — Backspace', () => {
 
     expect(mockPlayNote).not.toHaveBeenCalled();
     expect(mockTriggerSilence).not.toHaveBeenCalled();
+  });
+});
+
+describe('TypingArea — waveform note source', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('envoie la note jouee (pas la touche brute) a onNoteChange', async () => {
+    mockPlayNote.mockResolvedValueOnce('C4');
+    const onNoteChange = vi.fn();
+    const user = userEvent.setup();
+
+    render(<TypingArea text="hello world" onNoteChange={onNoteChange} />);
+
+    const container = screen.getByRole('textbox');
+    await user.click(container);
+    await user.keyboard('e');
+
+    expect(onNoteChange).toHaveBeenCalledWith('C4', false);
   });
 });

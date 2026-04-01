@@ -30,32 +30,34 @@ export function useMusicRecommendation() {
   const mode = useSessionStore((s) => s.mode);
   const collectionId = useSessionStore((s) => s.collectionId);
   const activePieceId = useAudioStore((s) => s.activePieceId);
+  const durationSeconds = 60;
 
   const [currentPiece, setCurrentPiece] = useState<UnifiedMusicPiece | null>(
     null,
   );
-  const [register, setRegister] = useState<EmotionalRegister>('romantique');
   const [recentIds, setRecentIds] = useState<string[]>([]);
   const allPieces = useMemo(() => getUnifiedMusicLibrary(), []);
   const playablePieces = useMemo(() => getPlayableMusicLibrary(), []);
+  const register = useMemo<EmotionalRegister>(
+    () => getRecommendedRegister(mode, collectionId as never, durationSeconds),
+    [mode, collectionId, durationSeconds],
+  );
 
   // Recalculer la recommandation quand le contexte change
   useEffect(() => {
-    const durationSeconds = 60;
-    const rec = getRecommendedRegister(
-      mode,
-      collectionId as never,
-      durationSeconds,
-    );
-    setRegister(rec);
+    let cancelled = false;
+    const schedulePieceUpdate = (piece: UnifiedMusicPiece | null) => {
+      queueMicrotask(() => {
+        if (!cancelled) {
+          setCurrentPiece(piece);
+        }
+      });
+    };
 
     if (activePieceId) {
       const active = getUnifiedPieceByMidiId(activePieceId);
-      if (active) setCurrentPiece(active);
-      return;
-    }
-
-    if (!activePieceId) {
+      schedulePieceUpdate(active ?? null);
+    } else {
       const piece = getRecommendedPiece(
         mode,
         collectionId as never,
@@ -63,15 +65,19 @@ export function useMusicRecommendation() {
         recentIds,
       );
       if (!piece) {
-        setCurrentPiece(null);
-        return;
+        schedulePieceUpdate(null);
+      } else {
+        schedulePieceUpdate({
+          ...piece,
+          midiPieceId: getMidiPieceIdFromLibraryId(piece.id),
+          isPlayableNow: getMidiPieceIdFromLibraryId(piece.id) !== null,
+        });
       }
-      setCurrentPiece({
-        ...piece,
-        midiPieceId: getMidiPieceIdFromLibraryId(piece.id),
-        isPlayableNow: getMidiPieceIdFromLibraryId(piece.id) !== null,
-      });
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, [mode, collectionId, activePieceId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /** Demande une nouvelle suggestion dans le même registre */

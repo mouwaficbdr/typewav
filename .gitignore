@@ -52,6 +52,10 @@ Thumbs.db
 # TypeScript build info
 *.tsbuildinfo
 
+# MIDI hygiene: keep MIDI assets out of repo root
+/*.mid
+!/apps/web/public/midi/*.mid
+
 # AI tooling — local only, never push
 .github/copilot-instructions.md
 CLAUDE.md

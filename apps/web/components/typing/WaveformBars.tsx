@@ -52,30 +52,54 @@ export function WaveformBars({
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+    const scheduleStateUpdate = (update: () => void) => {
+      queueMicrotask(() => {
+        if (!cancelled) update();
+      });
+    };
+
     if (isError) {
       if (!shouldReduceMotion) {
-        setErrorFlash(true);
-        setActiveBar(null);
+        scheduleStateUpdate(() => {
+          setErrorFlash(true);
+          setActiveBar(null);
+        });
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(() => setErrorFlash(false), 300);
       }
-      return;
+      return () => {
+        cancelled = true;
+      };
     }
 
-    if (!lastNote) return;
+    if (!lastNote) {
+      return () => {
+        cancelled = true;
+      };
+    }
 
     const noteIdx = PENTATONIC_NOTES.indexOf(lastNote);
-    if (noteIdx === -1) return;
+    if (noteIdx === -1) {
+      return () => {
+        cancelled = true;
+      };
+    }
 
     const barIdx = Math.round(
       (noteIdx / (PENTATONIC_NOTES.length - 1)) * (barCount - 1),
     );
-    setActiveBar(barIdx);
+    scheduleStateUpdate(() => setActiveBar(barIdx));
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(
       () => setActiveBar(null),
       shouldReduceMotion ? 0 : 250,
     );
+
+    return () => {
+      cancelled = true;
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
   }, [lastNote, isError, shouldReduceMotion, barCount]);
 
   const bars = Array.from({ length: barCount }, (_, i) => i);

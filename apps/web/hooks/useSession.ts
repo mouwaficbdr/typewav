@@ -82,7 +82,7 @@ export function useSession({
       soundPackId,
       themeId: audioThemeId,
     });
-  }, [text]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [text, mode, collectionId, soundPackId, audioThemeId, startSession]);
 
   // Mettre à jour les stats live toutes les secondes
   useEffect(() => {
@@ -113,7 +113,8 @@ export function useSession({
 
   // Durée de session: appliquer un timeout pour les modes chronométrés.
   useEffect(() => {
-    if (mode !== 'classic') return;
+    const isTimedMode = mode === 'classic' || mode === 'challenge';
+    if (!isTimedMode) return;
     if (startedAt === null || endedAt !== null) return;
 
     const deadline = startedAt + durationSeconds * 1000;
@@ -172,13 +173,15 @@ export function useSession({
         wpmNet: String(Math.round(wpmNet)),
         accuracy: String(Math.round(accuracy)),
         consistency: String(Math.round(consistency)),
+        mode,
+        duration: String(duration),
         recommendation,
       });
+      if (collectionId !== undefined) {
+        params.set('collection', collectionId);
+      }
 
-      // UX Premium : Petit délai avant navigation pour laisser l'animation de fin (fade-out) se faire.
-      setTimeout(() => {
-        router.push(`/results?${params.toString()}`);
-      }, 800); // 800ms match avec le CSS transition 'all 0.8s'
+      router.push(`/results?${params.toString()}`);
     });
   }, [endedAt]); // eslint-disable-line react-hooks/exhaustive-deps
 

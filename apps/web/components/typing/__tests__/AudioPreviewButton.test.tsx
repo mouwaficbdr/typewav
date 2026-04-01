@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import type { ComponentProps } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Hoisted mocks (exécutés avant les imports de modules) ───────────────────
@@ -21,11 +22,14 @@ vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 vi.mock('motion/react', () => ({
   motion: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    button: ({ whileTap: _wt, ...props }: any) => <button {...props} />,
+    button: ({
+      whileTap: _wt,
+      ...props
+    }: ComponentProps<'button'> & { whileTap?: unknown }) => (
+      <button {...props} />
+    ),
   },
   useReducedMotion: () => false,
 }));

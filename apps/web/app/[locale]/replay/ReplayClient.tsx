@@ -11,18 +11,20 @@
  */
 
 import { TypingArea } from '@/components/typing/TypingArea';
+import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { decodeReplay } from '@/lib/replay';
 import type { ReplayData } from '@typewav/types';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 export function ReplayClient() {
   const t = useTranslations('replay');
   const locale = useLocale();
   const searchParams = useSearchParams();
   const encoded = searchParams.get('d');
+  const { loadMidiPiece } = useAudioEngine();
 
   const [started, setStarted] = useState(false);
 
@@ -37,6 +39,11 @@ export function ReplayClient() {
       return { ok: false, error: t('invalidOrCorruptedLink') };
     }
   }, [encoded, t]);
+
+  useEffect(() => {
+    if (!result.ok) return;
+    void loadMidiPiece('fur-elise');
+  }, [loadMidiPiece, result.ok]);
 
   if (!result.ok) {
     return (

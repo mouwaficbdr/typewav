@@ -7,6 +7,23 @@ beforeEach(() => {
 });
 
 describe('useSessionStore — recordKeystroke', () => {
+  it('la session démarre avec startedAt à null', () => {
+    useSessionStore.getState().startSession('abc');
+    expect(useSessionStore.getState().startedAt).toBeNull();
+  });
+
+  it('initialise startedAt à la première frappe', () => {
+    useSessionStore.getState().startSession('abc');
+    useSessionStore.getState().recordKeystroke({
+      char: 'a',
+      timestamp: 1234,
+      correct: true,
+      deltaMs: 0,
+    });
+
+    expect(useSessionStore.getState().startedAt).toBe(1234);
+  });
+
   it('incrémente position si la frappe est correcte', () => {
     useSessionStore.getState().startSession('abc');
     useSessionStore.getState().recordKeystroke({

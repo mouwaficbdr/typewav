@@ -11,23 +11,36 @@
  */
 
 import { TypingArea } from '@/components/typing/TypingArea';
+import { useAudioEngine } from '@/hooks/useAudioEngine';
 import {
   decodeChallenge,
   generateChallengeLink,
   getChallengeText,
   hashText,
 } from '@/lib/challenge';
-import type { ChallengeParams } from '@typewav/types';
+import type { ChallengeParams, TypingMode } from '@typewav/types';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+
+const SUPPORTED_CHALLENGE_MODES: readonly TypingMode[] = [
+  'classic',
+  'sprint',
+  'quote',
+  'zen',
+  'code',
+  'custom',
+  'ghost',
+  'challenge',
+];
 
 export function ChallengeClient() {
   const t = useTranslations('challenge');
   const locale = useLocale();
   const searchParams = useSearchParams();
   const encoded = searchParams.get('c');
+  const { loadMidiPiece } = useAudioEngine();
 
   const [completed, setCompleted] = useState(false);
   const [userWpm, setUserWpm] = useState<number | null>(null);
@@ -39,6 +52,9 @@ export function ChallengeClient() {
     if (!encoded) return { ok: false, error: t('noChallengeInUrl') };
     try {
       const params = decodeChallenge(encoded);
+      if (!SUPPORTED_CHALLENGE_MODES.includes(params.mode)) {
+        return { ok: false, error: t('invalidOrExpiredLink') };
+      }
       const text = getChallengeText(params);
       // Vérifier l'intégrité du texte
       if (hashText(text) !== params.textHash) {
@@ -49,6 +65,11 @@ export function ChallengeClient() {
       return { ok: false, error: t('invalidOrExpiredLink') };
     }
   }, [encoded, t]);
+
+  useEffect(() => {
+    if (!result.ok) return;
+    void loadMidiPiece('fur-elise');
+  }, [loadMidiPiece, result.ok]);
 
   if (!result.ok) {
     return (
@@ -116,6 +137,7 @@ export function ChallengeClient() {
         <TypingArea
           text={text}
           mode={params.mode}
+          durationSeconds={params.duration}
           onComplete={handleComplete}
           autoNavigate={false}
         />

@@ -78,7 +78,10 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
   // Ref to avoid stale closure in useEffect (collections)
   const collectionsCacheRef = useRef(collectionsCache);
-  collectionsCacheRef.current = collectionsCache;
+
+  useEffect(() => {
+    collectionsCacheRef.current = collectionsCache;
+  }, [collectionsCache]);
 
   const activeCollection = useConfigStore((s) => s.activeCollection);
   const activeMode = useConfigStore((s) => s.activeMode);
@@ -92,7 +95,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const hasGhostData = ghostTimings !== null && ghostTimings.length > 0;
   const ghostEnabled = activeMode === 'ghost' && hasGhostData;
 
-  const { soundPackId } = useAudioStore();
+  const { soundPackId, midiLoadError } = useAudioStore();
   const { loadMidiPiece } = useAudioEngine();
   const { user, isPremium } = useUser();
 
@@ -123,7 +126,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   useEffect(() => {
     const collKey = activeCollection as CollectionId;
     if (collectionsCacheRef.current[collKey]) return;
-    setLoadingCollection(true);
+    queueMicrotask(() => setLoadingCollection(true));
     fetchCollection(collKey)
       .then((collection) => {
         setCollectionsCache((prev) => ({ ...prev, [collKey]: collection }));
@@ -136,13 +139,9 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     void loadMidiPiece(selectedPieceId);
   }, [selectedPieceId, loadMidiPiece]);
 
-  const handlePieceChange = useCallback(
-    async (pieceId: MidiPieceId) => {
-      setSelectedPieceId(pieceId);
-      await loadMidiPiece(pieceId);
-    },
-    [loadMidiPiece],
-  );
+  const handlePieceChange = useCallback((pieceId: MidiPieceId) => {
+    setSelectedPieceId(pieceId);
+  }, []);
 
   const handleShuffle = useCallback(() => {
     setShuffleOffset((prev) => prev + 1);
@@ -151,6 +150,13 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const handleRestart = useCallback(() => {
     setRestartKey((k) => k + 1);
   }, []);
+
+  const handleNoteChange = useCallback(
+    (note: string | null, isError: boolean) => {
+      setLastNote({ key: note, isError });
+    },
+    [],
+  );
 
   const { text, source, collectionId } = useMemo(() => {
     const collKey: CollectionId = activeCollection as CollectionId;
@@ -250,6 +256,27 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
           {/* Zone 3.5 — Context Selectors (Language) */}
           <ContextSelectors />
+
+          {midiLoadError && (
+            <div
+              role="alert"
+              style={{
+                width: '100%',
+                maxWidth: '980px',
+                fontSize: '0.78rem',
+                color: 'var(--color-error)',
+                border:
+                  '1px solid color-mix(in srgb, var(--color-error) 40%, transparent)',
+                background:
+                  'color-mix(in srgb, var(--color-error) 10%, transparent)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '8px 10px',
+                textAlign: 'left',
+              }}
+            >
+              MIDI error: {midiLoadError}
+            </div>
+          )}
         </div>
       ) : (
         <ConfigBar />
@@ -296,9 +323,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             collectionId={collectionId}
             mode={typingAreaMode}
             durationSeconds={durationSeconds}
-            onNoteChange={(note, isError) =>
-              setLastNote({ key: note, isError })
-            }
+            onNoteChange={handleNoteChange}
             {...(ghostEnabled && ghostTimings ? { ghostTimings } : {})}
           />
         )}
@@ -349,7 +374,6 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             <button
               onClick={handleRestart}
               aria-label={tHint('restart')}
-              tabIndex={-1}
               style={{
                 background: 'transparent',
                 border: 'none',
