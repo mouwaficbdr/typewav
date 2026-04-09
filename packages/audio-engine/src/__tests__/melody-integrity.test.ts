@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { MUSIC_LIBRARY } from '../library';
-import { getLibraryIdFromMidiPieceId } from '../music-catalog';
 import { loadPiece, MIDI_PIECES } from '../midi-player';
+import { getLibraryIdFromMidiPieceId } from '../music-catalog';
 
 const VALID_DURATIONS = new Set(['1n', '2n', '4n', '8n', '16n', '32n']);
 
@@ -19,12 +19,7 @@ describe('melody integrity guardrails', () => {
   });
 
   it('garantit que les alias legacy pointent vers la même mélodie canonique', () => {
-    const aliases = [
-      'prelude-bwv846',
-      'gymnopedie-1',
-      'nocturne-op9-n2',
-      'canon-pachelbel',
-    ] as const;
+    const aliases = ['gymnopedie-1', 'canon-pachelbel'] as const;
 
     for (const alias of aliases) {
       const canonicalId = getLibraryIdFromMidiPieceId(alias);
@@ -36,8 +31,8 @@ describe('melody integrity guardrails', () => {
     }
   });
 
-  it('valide la cohérence globale du catalogue: 58 pièces, notes non vides, durées valides', () => {
-    expect(Object.keys(MIDI_PIECES)).toHaveLength(58);
+  it('valide la cohérence globale du catalogue: 24 pièces, notes non vides, durées valides', () => {
+    expect(Object.keys(MIDI_PIECES)).toHaveLength(24);
 
     for (const piece of Object.values(MIDI_PIECES)) {
       expect(piece.notes.length).toBeGreaterThan(0);

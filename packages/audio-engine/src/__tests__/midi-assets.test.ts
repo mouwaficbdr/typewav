@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { MUSIC_LIBRARY } from '../library';
 import {
   MIDI_ASSET_INTEGRATIONS,
   ROOT_MIDI_ASSET_INTEGRATIONS,
@@ -8,17 +9,26 @@ import {
 } from '../midi-assets';
 
 describe('midi-assets integration', () => {
-  it('référence les 10 fichiers .mid servis en public', () => {
-    expect(MIDI_ASSET_INTEGRATIONS).toHaveLength(10);
+  it('référence les 25 fichiers .mid servis en public', () => {
+    expect(MIDI_ASSET_INTEGRATIONS).toHaveLength(25);
   });
 
   it('retourne le chemin public pour une pièce mappée', () => {
     expect(getMidiAssetPath('fur-elise')).toBe('/midi/fur_Elise_WoO59.mid');
     expect(getMidiAssetPath('canon-in-d')).toBe('/midi/CanonInD.mid');
+    expect(getMidiAssetPath('saitama-theme')).toBe('/midi/saitama_theme.mid');
   });
 
   it('retourne null pour une pièce sans asset dédié', () => {
     expect(getMidiAssetPath('korobeiniki')).toBeNull();
+  });
+
+  it('mappe toutes les pièces de la librairie active vers un asset public', () => {
+    const missing = MUSIC_LIBRARY.map((piece) => piece.id).filter(
+      (pieceId) => getMidiAssetPath(pieceId) === null,
+    );
+
+    expect(missing).toEqual([]);
   });
 
   it('expose les fichiers non mappés', () => {

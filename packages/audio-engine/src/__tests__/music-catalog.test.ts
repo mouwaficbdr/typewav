@@ -12,32 +12,30 @@ import {
 
 describe('music-catalog bridge', () => {
   it('maintient les alias legacy nécessaires', () => {
-    expect(MIDI_TO_LIBRARY_ID['prelude-bwv846']).toBe('bwv846');
     expect(MIDI_TO_LIBRARY_ID['gymnopedie-1']).toBe('gymnopedie1');
+    expect(MIDI_TO_LIBRARY_ID['canon-pachelbel']).toBe('canon-in-d');
   });
 
   it('résout les correspondances aller-retour pour un ID MIDI', () => {
-    const libraryId = getLibraryIdFromMidiPieceId('prelude-bwv846');
-    expect(libraryId).toBe('bwv846');
-    expect(getMidiPieceIdFromLibraryId(libraryId)).toBe('bwv846');
+    const libraryId = getLibraryIdFromMidiPieceId('canon-pachelbel');
+    expect(libraryId).toBe('canon-in-d');
+    expect(getMidiPieceIdFromLibraryId(libraryId)).toBe('canon-in-d');
   });
 
   it('retourne un ID MIDI pour toute pièce de librairie', () => {
-    expect(getMidiPieceIdFromLibraryId('moonlight-sonata')).toBe(
-      'moonlight-sonata',
-    );
+    expect(getMidiPieceIdFromLibraryId('ave-maria')).toBe('ave-maria');
   });
 
-  it('retourne une vue unifiée de 58 pièces avec 58 pièces jouables', () => {
+  it('retourne une vue unifiée de 24 pièces avec 24 pièces jouables', () => {
     const all = getUnifiedMusicLibrary();
     const playable = all.filter((piece) => piece.isPlayableNow);
-    expect(all).toHaveLength(58);
-    expect(playable).toHaveLength(58);
+    expect(all).toHaveLength(24);
+    expect(playable).toHaveLength(24);
   });
 
   it('expose directement la liste jouable', () => {
     const playable = getPlayableMusicLibrary();
-    expect(playable).toHaveLength(58);
+    expect(playable).toHaveLength(24);
     expect(playable.every((piece) => piece.midiPieceId !== null)).toBe(true);
   });
 

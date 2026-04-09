@@ -11,8 +11,8 @@ import {
 } from '../midi-player';
 
 describe('MIDI_PIECES', () => {
-  it('contient exactement 58 pièces', () => {
-    expect(Object.keys(MIDI_PIECES)).toHaveLength(58);
+  it('contient exactement 24 pièces', () => {
+    expect(Object.keys(MIDI_PIECES)).toHaveLength(24);
   });
 
   it('chaque pièce a un tableau de notes non vide', () => {
@@ -53,17 +53,13 @@ describe('loadPiece', () => {
 
   it('charge une pièce différente sans laisser de résidus', () => {
     loadPiece('fur-elise');
-    loadPiece('korobeiniki');
-    expect(getCurrentPiece()?.id).toBe('korobeiniki');
+    loadPiece('canon-in-d');
+    expect(getCurrentPiece()?.id).toBe('canon-in-d');
     expect(getCurrentPosition()).toBe(0);
   });
 
   it('charge des pièces hors noyau historique sans erreur', () => {
-    const samplePieces = [
-      'clair-de-lune',
-      'flight-of-bumblebee',
-      'amazing-grace',
-    ];
+    const samplePieces = ['toccata-fugue', 'mountain-king', 'symphony-5-theme'];
     for (const id of samplePieces) {
       const piece = loadPiece(id);
       expect(piece.id).toBe(id);
@@ -72,14 +68,14 @@ describe('loadPiece', () => {
   });
 
   it('supporte les alias legacy', () => {
-    const piece = loadPiece('prelude-bwv846');
-    expect(piece.id).toBe('bwv846');
+    const piece = loadPiece('canon-pachelbel');
+    expect(piece.id).toBe('canon-in-d');
   });
 });
 
 describe('advanceAndGet', () => {
   beforeEach(() => {
-    loadPiece('bwv846');
+    loadPiece('canon-in-d');
   });
 
   it('retourne la première note au premier appel', () => {
@@ -97,7 +93,7 @@ describe('advanceAndGet', () => {
   });
 
   it('boucle à la fin de la séquence', () => {
-    const piece = loadPiece('bwv846');
+    const piece = loadPiece('canon-in-d');
     // Avancer jusqu'à la dernière note
     for (let i = 0; i < piece.notes.length - 1; i++) {
       advanceAndGet();
@@ -120,14 +116,14 @@ describe('advanceAndGet', () => {
 
 describe('advanceAndGetWithDuration', () => {
   beforeEach(() => {
-    loadPiece('bwv846');
+    loadPiece('canon-in-d');
   });
 
   it('retourne la note et la duree de la meme piece', () => {
     const step = advanceAndGetWithDuration();
     expect(step).not.toBeNull();
-    expect(step?.note).toBe(MIDI_PIECES['bwv846']?.notes[0]);
-    expect(step?.duration).toBe(MIDI_PIECES['bwv846']?.noteDuration);
+    expect(step?.note).toBe(MIDI_PIECES['canon-in-d']?.notes[0]);
+    expect(step?.duration).toBe(MIDI_PIECES['canon-in-d']?.noteDuration);
   });
 });
 
@@ -146,12 +142,12 @@ describe('getCurrentDuration', () => {
 
 describe('resetSequence', () => {
   it('remet la position à 0 sans changer la pièce', () => {
-    loadPiece('korobeiniki');
+    loadPiece('ode-to-joy');
     advanceAndGet();
     advanceAndGet();
     expect(getCurrentPosition()).toBe(2);
     resetSequence();
     expect(getCurrentPosition()).toBe(0);
-    expect(getCurrentPiece()?.id).toBe('korobeiniki');
+    expect(getCurrentPiece()?.id).toBe('ode-to-joy');
   });
 });

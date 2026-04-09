@@ -1,7 +1,7 @@
 /**
- * midi-player.ts — Séquenceur MIDI pour la bibliothèque complète.
+ * midi-player.ts — Séquenceur MIDI pour la bibliothèque active.
  *
- * Source de vérité: MUSIC_LIBRARY (58 pièces).
+ * Source de vérité: MUSIC_LIBRARY.
  * Compatibilité legacy: anciens IDs conservés via alias dans loadPiece().
  */
 
@@ -44,9 +44,7 @@ function toPlayableNotes(notes: Array<string | 'rest'>): string[] {
 
 // Alias historiques pour ne pas casser les anciens appels/API/tests.
 const LEGACY_ID_ALIASES: Record<string, string> = {
-  'prelude-bwv846': 'bwv846',
   'gymnopedie-1': 'gymnopedie1',
-  'nocturne-op9-n2': 'nocturne-op9-2',
   'canon-pachelbel': 'canon-in-d',
 };
 

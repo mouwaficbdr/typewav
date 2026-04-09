@@ -1,8 +1,9 @@
 /**
- * music-catalog.ts — unification catalogue musical (58 pièces) et lecture MIDI.
+ * music-catalog.ts — unification catalogue musical et lecture MIDI.
  */
 
 import { MUSIC_LIBRARY, type MusicPiece } from './library';
+import { getMidiAssetPath } from './midi-assets';
 import { MIDI_PIECES, type MidiPieceId } from './midi-player';
 
 export interface UnifiedMusicPiece extends MusicPiece {
@@ -14,9 +15,7 @@ export interface UnifiedMusicPiece extends MusicPiece {
  * Pont explicite entre les IDs legacy et les IDs de la librairie.
  */
 export const MIDI_TO_LIBRARY_ID: Record<string, string> = {
-  'prelude-bwv846': 'bwv846',
   'gymnopedie-1': 'gymnopedie1',
-  'nocturne-op9-n2': 'nocturne-op9-2',
   'canon-pachelbel': 'canon-in-d',
 };
 
@@ -41,10 +40,16 @@ export function getLibraryIdFromMidiPieceId(pieceId: MidiPieceId): string {
 export function getUnifiedMusicLibrary(): UnifiedMusicPiece[] {
   return MUSIC_LIBRARY.map((piece) => {
     const midiPieceId = getMidiPieceIdFromLibraryId(piece.id);
+    const hasMappedAsset =
+      midiPieceId !== null && getMidiAssetPath(midiPieceId) !== null;
+
     return {
       ...piece,
       midiPieceId,
-      isPlayableNow: midiPieceId !== null && Boolean(MIDI_PIECES[midiPieceId]),
+      isPlayableNow:
+        midiPieceId !== null &&
+        Boolean(MIDI_PIECES[midiPieceId]) &&
+        hasMappedAsset,
     };
   });
 }
@@ -60,14 +65,24 @@ export function getUnifiedPieceByMidiId(
   const piece = MUSIC_LIBRARY.find((entry) => entry.id === libraryId);
   if (!piece) return null;
 
+  const canonicalMidiId = getMidiPieceIdFromLibraryId(libraryId);
+  const hasMappedAsset =
+    canonicalMidiId !== null && getMidiAssetPath(canonicalMidiId) !== null;
+
   return {
     ...piece,
     midiPieceId: pieceId,
-    isPlayableNow: true,
+    isPlayableNow: hasMappedAsset,
   };
 }
 
 export function isMidiPieceMapped(pieceId: MidiPieceId): boolean {
   const libraryId = getLibraryIdFromMidiPieceId(pieceId);
-  return Boolean(MIDI_PIECES[libraryId]);
+  const canonicalMidiId = getMidiPieceIdFromLibraryId(libraryId);
+
+  return (
+    Boolean(MIDI_PIECES[libraryId]) &&
+    canonicalMidiId !== null &&
+    getMidiAssetPath(canonicalMidiId) !== null
+  );
 }
