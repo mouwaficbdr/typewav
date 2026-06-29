@@ -2,22 +2,17 @@ import { Midi } from '@tonejs/midi';
 import {
   MIDI_PIECES,
   getLibraryIdFromMidiPieceId,
+  getMidiAssetCacheVersion,
   getMidiAssetPath,
   loadPieceFromData,
-  type MidiPiece,
   type MidiPieceId,
+  type ParsedNote,
+  type ParsedPiece,
 } from '@typewav/audio-engine';
+import { getCachedMidiPiece, setCachedMidiPiece } from './midi-piece-cache';
 
-const DURATION_CANDIDATES = [
-  { label: '1n', beats: 4 },
-  { label: '2n', beats: 2 },
-  { label: '4n', beats: 1 },
-  { label: '8n', beats: 0.5 },
-  { label: '16n', beats: 0.25 },
-  { label: '32n', beats: 0.125 },
-] as const;
-
-const parsedMidiCache = new Map<string, MidiPiece>();
+const PIANO_PROGRAMS = new Set([0, 1, 2, 3, 4, 5, 6, 7]);
+const PHRASE_BOUNDARY_THRESHOLD_MS = 150;
 
 export type MidiAssetLoadErrorCode =
   | 'MIDI_ASSET_NOT_MAPPED'
@@ -60,52 +55,78 @@ interface LoadMidiPieceWithAssetsOptions {
   signal?: AbortSignal;
 }
 
-function inferToneDurationFromTicks(
-  durationTicks: number | null,
+function ticksToSeconds(ticks: number, bpm: number, ppq: number): number {
+  return (ticks / ppq) * (60 / bpm);
+}
+
+function markPhraseBoundaries(
+  notes: ParsedNote[],
+  bpmReference: number,
   ppq: number,
-): MidiPiece['noteDuration'] {
-  if (!durationTicks || durationTicks <= 0 || ppq <= 0) return '16n';
+): ParsedNote[] {
+  if (notes.length <= 1) return notes;
 
-  const beats = durationTicks / ppq;
-  let closest: (typeof DURATION_CANDIDATES)[number] = DURATION_CANDIDATES[4]!;
-  let smallestDelta = Number.POSITIVE_INFINITY;
+  return notes.map((note, index) => {
+    if (index >= notes.length - 1) return note;
 
-  for (const candidate of DURATION_CANDIDATES) {
-    const delta = Math.abs(candidate.beats - beats);
-    if (delta < smallestDelta) {
-      smallestDelta = delta;
-      closest = candidate;
-    }
-  }
+    const next = notes[index + 1]!;
+    const currentEndTick = note.startTick + note.durationTicks;
+    const gapTicks = Math.max(0, next.startTick - currentEndTick);
+    const gapMs = ticksToSeconds(gapTicks, bpmReference, ppq) * 1000;
 
-  return closest.label;
+    return {
+      ...note,
+      isPhraseBoundary: gapMs > PHRASE_BOUNDARY_THRESHOLD_MS,
+    };
+  });
+}
+
+function selectTracksForParsing(midi: Midi): Midi['tracks'] {
+  const pianoTracks = midi.tracks.filter((track) => {
+    if (track.channel === 9) return false;
+    const programNumber = track.instrument?.number ?? 0;
+    return PIANO_PROGRAMS.has(programNumber);
+  });
+
+  if (pianoTracks.length > 0) return pianoTracks;
+  if (midi.tracks.length > 0) return [midi.tracks[0]!];
+  return [];
 }
 
 function buildPieceFromMidi(
-  basePiece: MidiPiece,
+  basePiece: ParsedPiece,
   rawBuffer: ArrayBuffer,
   pieceId: MidiPieceId,
   canonicalPieceId: string,
   assetPath: string,
-): MidiPiece {
+): ParsedPiece {
   const midi = new Midi(rawBuffer);
   const ppq = midi.header.ppq || 480;
+  const bpmReference = midi.header.tempos[0]?.bpm ?? 120;
 
-  const events = midi.tracks
+  const tracksToUse = selectTracksForParsing(midi);
+
+  const events = tracksToUse
     .flatMap((track) =>
-      track.notes.map((note) => ({
-        name: note.name,
-        time: note.time,
-        durationTicks: note.durationTicks,
-      })),
+      track.notes.map((midiNote) => {
+        const durationTicks = Math.max(
+          1,
+          Math.round(midiNote.durationTicks || 1),
+        );
+        return {
+          pitch: midiNote.midi,
+          durationTicks,
+          startTick: Math.max(0, Math.round(midiNote.ticks || 0)),
+          velocity: Math.max(
+            0,
+            Math.min(127, Math.round((midiNote.velocity ?? 0.8) * 127)),
+          ),
+        } satisfies Omit<ParsedNote, 'durationSec' | 'isPhraseBoundary'>;
+      }),
     )
-    .sort((a, b) => a.time - b.time);
+    .sort((a, b) => a.startTick - b.startTick || a.pitch - b.pitch);
 
-  const notes = events
-    .map((event) => event.name)
-    .filter((name): name is string => Boolean(name));
-
-  if (notes.length === 0) {
+  if (events.length === 0) {
     throw new MidiAssetLoadError('MIDI_ASSET_EMPTY_SEQUENCE', {
       pieceId,
       canonicalPieceId,
@@ -114,20 +135,36 @@ function buildPieceFromMidi(
     });
   }
 
-  const nonZeroDurations = events
-    .map((event) => event.durationTicks)
-    .filter((value): value is number => typeof value === 'number' && value > 0)
-    .sort((a, b) => a - b);
+  const parsedNotes = events.map(
+    (event) =>
+      ({
+        pitch: event.pitch,
+        durationSec: ticksToSeconds(event.durationTicks, bpmReference, ppq),
+        durationTicks: event.durationTicks,
+        startTick: event.startTick,
+        velocity: event.velocity,
+        isPhraseBoundary: false,
+      }) satisfies ParsedNote,
+  );
 
-  const medianDurationTicks: number | null =
-    nonZeroDurations.length > 0
-      ? (nonZeroDurations[Math.floor(nonZeroDurations.length / 2)] ?? null)
-      : null;
+  const notesWithBoundaries = markPhraseBoundaries(
+    parsedNotes,
+    bpmReference,
+    ppq,
+  );
+  const last = notesWithBoundaries[notesWithBoundaries.length - 1]!;
+  const totalDurationSec = ticksToSeconds(
+    last.startTick + last.durationTicks,
+    bpmReference,
+    ppq,
+  );
 
   return {
     ...basePiece,
-    notes,
-    noteDuration: inferToneDurationFromTicks(medianDurationTicks, ppq),
+    notes: notesWithBoundaries,
+    bpmReference,
+    ppq,
+    totalDurationSec,
   };
 }
 
@@ -138,7 +175,7 @@ function buildPieceFromMidi(
 export async function loadMidiPieceWithAssets(
   pieceId: MidiPieceId,
   options: LoadMidiPieceWithAssetsOptions = {},
-): Promise<MidiPiece> {
+): Promise<ParsedPiece> {
   const { signal } = options;
   const canonicalPieceId = getLibraryIdFromMidiPieceId(pieceId);
   const basePiece = MIDI_PIECES[canonicalPieceId];
@@ -163,6 +200,9 @@ export async function loadMidiPieceWithAssets(
     });
   }
 
+  const assetCacheVersion =
+    getMidiAssetCacheVersion(canonicalPieceId) ?? assetPath;
+
   const abortedError = (detail: string, cause?: unknown) =>
     new MidiAssetLoadError(
       'MIDI_ASSET_ABORTED',
@@ -179,7 +219,7 @@ export async function loadMidiPieceWithAssets(
     throw abortedError('MIDI asset load aborted before request start.');
   }
 
-  const cached = parsedMidiCache.get(canonicalPieceId);
+  const cached = await getCachedMidiPiece(canonicalPieceId, assetCacheVersion);
   if (cached) {
     if (signal?.aborted) {
       throw abortedError('MIDI asset load aborted while reading cache.');
@@ -229,7 +269,7 @@ export async function loadMidiPieceWithAssets(
       assetPath,
     );
 
-    parsedMidiCache.set(canonicalPieceId, parsedPiece);
+    await setCachedMidiPiece(canonicalPieceId, assetCacheVersion, parsedPiece);
 
     if (signal?.aborted) {
       throw abortedError('MIDI asset load aborted before sequencer update.');

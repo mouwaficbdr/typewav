@@ -3,7 +3,7 @@
  */
 
 import { MUSIC_LIBRARY, type MusicPiece } from './library';
-import { getMidiAssetPath } from './midi-assets';
+import { MIDI_ASSET_MAP } from './midi-assets';
 import { MIDI_PIECES, type MidiPieceId } from './midi-player';
 
 export interface UnifiedMusicPiece extends MusicPiece {
@@ -41,7 +41,7 @@ export function getUnifiedMusicLibrary(): UnifiedMusicPiece[] {
   return MUSIC_LIBRARY.map((piece) => {
     const midiPieceId = getMidiPieceIdFromLibraryId(piece.id);
     const hasMappedAsset =
-      midiPieceId !== null && getMidiAssetPath(midiPieceId) !== null;
+      midiPieceId !== null && MIDI_ASSET_MAP.has(midiPieceId);
 
     return {
       ...piece,
@@ -67,7 +67,7 @@ export function getUnifiedPieceByMidiId(
 
   const canonicalMidiId = getMidiPieceIdFromLibraryId(libraryId);
   const hasMappedAsset =
-    canonicalMidiId !== null && getMidiAssetPath(canonicalMidiId) !== null;
+    canonicalMidiId !== null && MIDI_ASSET_MAP.has(canonicalMidiId);
 
   return {
     ...piece,
@@ -83,6 +83,6 @@ export function isMidiPieceMapped(pieceId: MidiPieceId): boolean {
   return (
     Boolean(MIDI_PIECES[libraryId]) &&
     canonicalMidiId !== null &&
-    getMidiAssetPath(canonicalMidiId) !== null
+    MIDI_ASSET_MAP.has(canonicalMidiId)
   );
 }

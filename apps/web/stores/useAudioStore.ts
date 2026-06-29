@@ -24,6 +24,10 @@ interface AudioState {
   activePieceId: MidiPieceId | null;
   /** Erreur de chargement MIDI affichable dans l'UI. */
   midiLoadError: string | null;
+  /** true si le sampler piano est chargé (ou fallback prêt). */
+  isSamplerLoaded: boolean;
+  /** Message d'erreur du chargement sampler (fallback éventuel). */
+  samplerLoadError: string | null;
 }
 
 interface AudioActions {
@@ -34,6 +38,8 @@ interface AudioActions {
   setLoading: (loading: boolean) => void;
   setActivePiece: (pieceId: MidiPieceId | null) => void;
   setMidiLoadError: (error: string | null) => void;
+  setSamplerLoaded: (loaded: boolean) => void;
+  setSamplerLoadError: (error: string | null) => void;
 }
 
 export const useAudioStore = create<AudioState & AudioActions>((set) => ({
@@ -44,6 +50,8 @@ export const useAudioStore = create<AudioState & AudioActions>((set) => ({
   loading: false,
   activePieceId: null,
   midiLoadError: null,
+  isSamplerLoaded: false,
+  samplerLoadError: null,
 
   setInitialized: (value) => set({ initialized: value }),
   setSoundPack: (packId) => set({ soundPackId: packId }),
@@ -52,4 +60,6 @@ export const useAudioStore = create<AudioState & AudioActions>((set) => ({
   setLoading: (loading) => set({ loading }),
   setActivePiece: (pieceId) => set({ activePieceId: pieceId }),
   setMidiLoadError: (error) => set({ midiLoadError: error }),
+  setSamplerLoaded: (loaded) => set({ isSamplerLoaded: loaded }),
+  setSamplerLoadError: (error) => set({ samplerLoadError: error }),
 }));

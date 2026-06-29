@@ -30,6 +30,7 @@ import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useSyncCloud } from '@/hooks/useSyncCloud';
 import { useUser } from '@/hooks/useUser';
 import { getPersonalRecords, getSessionById } from '@/lib/db';
+import { noteNameToMidi } from '@/lib/note-visualization';
 import { applyTextFilters } from '@/lib/text-filters';
 import { useAudioStore } from '@/stores/useAudioStore';
 import { useConfigStore } from '@/stores/useConfigStore';
@@ -72,9 +73,9 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   >({ litterature: initialCollection });
   const [loadingCollection, setLoadingCollection] = useState(false);
   const [lastNote, setLastNote] = useState<{
-    key: string | null;
+    pitch: number | null;
     isError: boolean;
-  }>({ key: null, isError: false });
+  }>({ pitch: null, isError: false });
 
   // Ref to avoid stale closure in useEffect (collections)
   const collectionsCacheRef = useRef(collectionsCache);
@@ -95,7 +96,13 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const hasGhostData = ghostTimings !== null && ghostTimings.length > 0;
   const ghostEnabled = activeMode === 'ghost' && hasGhostData;
 
-  const { soundPackId, midiLoadError } = useAudioStore();
+  const {
+    initialized,
+    soundPackId,
+    midiLoadError,
+    isSamplerLoaded,
+    samplerLoadError,
+  } = useAudioStore();
   const { loadMidiPiece } = useAudioEngine();
   const { user, isPremium } = useUser();
 
@@ -153,7 +160,8 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
   const handleNoteChange = useCallback(
     (note: string | null, isError: boolean) => {
-      setLastNote({ key: note, isError });
+      const pitch = note ? noteNameToMidi(note) : null;
+      setLastNote({ pitch, isError });
     },
     [],
   );
@@ -256,6 +264,48 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
           {/* Zone 3.5 — Context Selectors (Language) */}
           <ContextSelectors />
+
+          {initialized && soundPackId === 'piano' && !isSamplerLoaded && (
+            <div
+              role="status"
+              style={{
+                width: '100%',
+                maxWidth: '980px',
+                fontSize: '0.78rem',
+                color: 'var(--color-text-muted)',
+                border:
+                  '1px solid color-mix(in srgb, var(--color-accent) 35%, transparent)',
+                background:
+                  'color-mix(in srgb, var(--color-accent) 8%, transparent)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '8px 10px',
+                textAlign: 'left',
+              }}
+            >
+              Loading piano sampler...
+            </div>
+          )}
+
+          {initialized && samplerLoadError && (
+            <div
+              role="alert"
+              style={{
+                width: '100%',
+                maxWidth: '980px',
+                fontSize: '0.78rem',
+                color: 'var(--color-warning, var(--color-text-muted))',
+                border:
+                  '1px solid color-mix(in srgb, var(--color-text-muted) 35%, transparent)',
+                background:
+                  'color-mix(in srgb, var(--color-text-muted) 10%, transparent)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '8px 10px',
+                textAlign: 'left',
+              }}
+            >
+              Sampler fallback: {samplerLoadError}
+            </div>
+          )}
 
           {midiLoadError && (
             <div
@@ -445,9 +495,9 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           {!isLearningMode && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <WaveformBars
-                lastNote={lastNote.key ?? undefined}
+                pitch={lastNote.pitch}
                 isError={lastNote.isError}
-                barCount={12}
+                numBars={12}
                 maxHeightPx={20}
                 idlePulse
                 style={{ width: 80 }}

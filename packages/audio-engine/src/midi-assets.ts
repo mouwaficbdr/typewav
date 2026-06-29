@@ -5,6 +5,11 @@ export interface MidiAssetIntegration {
   /** null = fichier présent mais non mappé à une pièce canonique. */
   pieceId: MidiPieceId | null;
   publicPath: string;
+  /**
+   * Version de cache optionnelle (hash, version build...).
+   * Fallback implicite: sourceFileName.
+   */
+  cacheVersion?: string;
 }
 
 /**
@@ -138,11 +143,21 @@ export const MIDI_ASSET_INTEGRATIONS: readonly MidiAssetIntegration[] = [
   },
 ];
 
-const MIDI_ASSET_BY_PIECE_ID = new Map<MidiPieceId, string>(
+const MIDI_ASSET_ENTRY_BY_PIECE_ID = new Map<
+  MidiPieceId,
+  MidiAssetIntegration & { pieceId: MidiPieceId }
+>(
   MIDI_ASSET_INTEGRATIONS.filter(
     (entry): entry is MidiAssetIntegration & { pieceId: MidiPieceId } =>
       entry.pieceId !== null,
-  ).map((entry) => [entry.pieceId, entry.publicPath]),
+  ).map((entry) => [entry.pieceId, entry]),
+);
+
+export const MIDI_ASSET_MAP = new Map<MidiPieceId, string>(
+  Array.from(MIDI_ASSET_ENTRY_BY_PIECE_ID.values()).map((entry) => [
+    entry.pieceId,
+    entry.publicPath,
+  ]),
 );
 
 export const UNMAPPED_MIDI_ASSET_FILES = MIDI_ASSET_INTEGRATIONS.filter(
@@ -156,5 +171,12 @@ export const ROOT_MIDI_ASSET_INTEGRATIONS = MIDI_ASSET_INTEGRATIONS;
 export const UNMAPPED_ROOT_MIDI_FILES = UNMAPPED_MIDI_ASSET_FILES;
 
 export function getMidiAssetPath(pieceId: MidiPieceId): string | null {
-  return MIDI_ASSET_BY_PIECE_ID.get(pieceId) ?? null;
+  return MIDI_ASSET_MAP.get(pieceId) ?? null;
+}
+
+export function getMidiAssetCacheVersion(pieceId: MidiPieceId): string | null {
+  const entry = MIDI_ASSET_ENTRY_BY_PIECE_ID.get(pieceId);
+  if (!entry) return null;
+
+  return entry.cacheVersion ?? entry.sourceFileName;
 }

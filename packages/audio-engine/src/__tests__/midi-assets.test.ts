@@ -5,6 +5,7 @@ import {
   ROOT_MIDI_ASSET_INTEGRATIONS,
   UNMAPPED_MIDI_ASSET_FILES,
   UNMAPPED_ROOT_MIDI_FILES,
+  getMidiAssetCacheVersion,
   getMidiAssetPath,
 } from '../midi-assets';
 
@@ -21,6 +22,14 @@ describe('midi-assets integration', () => {
 
   it('retourne null pour une pièce sans asset dédié', () => {
     expect(getMidiAssetPath('korobeiniki')).toBeNull();
+  });
+
+  it('retourne une version de cache stable pour une pièce mappée', () => {
+    expect(getMidiAssetCacheVersion('fur-elise')).toBe('fur_Elise_WoO59.mid');
+  });
+
+  it('retourne null pour une pièce non mappée', () => {
+    expect(getMidiAssetCacheVersion('korobeiniki')).toBeNull();
   });
 
   it('mappe toutes les pièces de la librairie active vers un asset public', () => {
