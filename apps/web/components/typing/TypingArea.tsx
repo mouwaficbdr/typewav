@@ -77,6 +77,7 @@ export function TypingArea({
     position,
     keystrokes,
     liveStats,
+    finalStats,
     isComplete,
     handleKeystroke,
     handleBackspace,
@@ -121,12 +122,17 @@ export function TypingArea({
     onActiveKeyChange(isComplete ? undefined : expected);
   }, [position, text, isComplete, onActiveKeyChange]);
 
-  // Callback(s) de fin quand le test se termine
+  // Callback(s) de fin quand le test se termine.
+  // Attend finalStats plutôt que de lire liveStats.wpm : liveStats n'est
+  // rafraîchi qu'au mieux toutes les 1s pendant la frappe, donc un exercice
+  // qui se termine plus vite que ce premier tick (fréquent sur un texte
+  // court) le laisserait à sa valeur initiale de 0.
   useEffect(() => {
     if (!isComplete) {
       completionNotifiedRef.current = false;
       return;
     }
+    if (!finalStats) return;
 
     if (completionNotifiedRef.current) return;
     completionNotifiedRef.current = true;
@@ -135,14 +141,14 @@ export function TypingArea({
     const correct = keystrokes.filter((entry) => entry.correct).length;
     const accuracy = total === 0 ? 100 : (correct / total) * 100;
 
-    onComplete?.(liveStats.wpm);
+    onComplete?.(finalStats.wpm);
     onSessionComplete?.({
-      wpm: liveStats.wpm,
+      wpm: finalStats.wpm,
       accuracy,
       correct,
       total,
     });
-  }, [isComplete, liveStats.wpm, keystrokes, onComplete, onSessionComplete]);
+  }, [isComplete, finalStats, keystrokes, onComplete, onSessionComplete]);
 
   // Scroll 3 lignes — translateY calculé via getBoundingClientRect
   // Note : spanRect.top - wordsRect.top est indépendant du transform appliqué

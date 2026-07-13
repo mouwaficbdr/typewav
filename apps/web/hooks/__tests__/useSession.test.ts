@@ -305,6 +305,46 @@ describe('useSession — changement de thème audio en cours de session', () => 
   });
 });
 
+describe('useSession — finalStats', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSessionStore.position = 0;
+    mockSessionStore.keystrokes = [];
+    mockSessionStore.startedAt = null;
+    mockSessionStore.endedAt = null;
+  });
+
+  it("expose un wpm final correct dès la fin de session, même si le tick périodique (1s) n'a jamais eu le temps de se déclencher", () => {
+    // Session très courte : 10 frappes correctes en 300ms — bien en dessous
+    // du délai de 1s du tick périodique de liveStats.
+    const start = Date.now();
+    const keystrokes = Array.from({ length: 10 }, (_, i) => ({
+      char: 'a',
+      timestamp: start + i * 30,
+      correct: true,
+      deltaMs: 30,
+    }));
+
+    mockSessionStore.startedAt = start;
+    mockSessionStore.keystrokes = keystrokes;
+
+    const { result, rerender } = renderHook(() =>
+      useSession({ text: 'hello world', autoNavigate: false }),
+    );
+
+    // liveStats n'a jamais été mis à jour (aucun tick périodique déclenché) —
+    // il reste à sa valeur initiale.
+    expect(result.current.liveStats.wpm).toBe(0);
+
+    // La session se termine 300ms après le début.
+    mockSessionStore.endedAt = start + 300;
+    rerender();
+
+    expect(result.current.finalStats).not.toBeNull();
+    expect(result.current.finalStats?.wpm).toBeGreaterThan(0);
+  });
+});
+
 describe('useSession — duration timeout', () => {
   beforeEach(() => {
     vi.clearAllMocks();
