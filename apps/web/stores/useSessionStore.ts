@@ -106,6 +106,11 @@ export const useSessionStore = create<SessionState & SessionActions>(
     },
 
     endSession: () => {
+      // Idempotent : plusieurs appels (deadline du mode chronométré + arrêt
+      // manuel + auto-complétion) ne doivent produire qu'une seule fin de
+      // séance, sinon l'effet de sauvegarde de useSession se redéclenche
+      // avec un nouvel identifiant et enregistre la séance deux fois.
+      if (get().endedAt !== null) return;
       set({ endedAt: Date.now() });
     },
 

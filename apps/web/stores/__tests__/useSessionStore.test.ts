@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useSessionStore } from '../useSessionStore';
 
 // Réccupérer l'état initial du store avant chaque test
@@ -147,6 +147,25 @@ describe('useSessionStore — moveBack', () => {
     useSessionStore.getState().moveBack();
     expect(useSessionStore.getState().position).toBe(0);
     expect(useSessionStore.getState().keystrokes).toHaveLength(0);
+  });
+});
+
+describe('useSessionStore — endSession', () => {
+  it("ne modifie pas endedAt si endSession est appelée une seconde fois", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1_000);
+
+    useSessionStore.getState().startSession('abcdef');
+    useSessionStore.getState().endSession();
+    const firstEndedAt = useSessionStore.getState().endedAt;
+    expect(firstEndedAt).toBe(1_000);
+
+    vi.setSystemTime(5_000);
+    useSessionStore.getState().endSession();
+
+    expect(useSessionStore.getState().endedAt).toBe(firstEndedAt);
+
+    vi.useRealTimers();
   });
 });
 
