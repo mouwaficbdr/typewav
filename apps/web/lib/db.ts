@@ -241,7 +241,12 @@ const DEFAULT_PROFILE: UserProfile = {
 
 export async function getUserProfile(): Promise<UserProfile> {
   const db = await getDB();
-  return (await db.get('user_profile', 'profile')) ?? DEFAULT_PROFILE;
+  const stored = await db.get('user_profile', 'profile');
+  // Cloner : les appelants mutent le profil retourné avant de le
+  // sauvegarder (voir useProgressionCheck) — sans clone, le premier
+  // utilisateur sans profil enregistré corromprait DEFAULT_PROFILE pour
+  // tous les appels suivants.
+  return stored ?? (JSON.parse(JSON.stringify(DEFAULT_PROFILE)) as UserProfile);
 }
 
 export async function saveUserProfile(profile: UserProfile): Promise<void> {
