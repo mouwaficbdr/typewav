@@ -1,0 +1,239 @@
+import { act, renderHook, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+// ─── Mocks ────────────────────────────────────────────────────────────────────
+
+interface MockReverb {
+  wet: { rampTo: ReturnType<typeof vi.fn> };
+  dispose: ReturnType<typeof vi.fn>;
+  toDestination: () => MockReverb;
+}
+interface MockVoice {
+  volume: { value: number; rampTo: ReturnType<typeof vi.fn> };
+  triggerAttackRelease: ReturnType<typeof vi.fn>;
+  dispose: ReturnType<typeof vi.fn>;
+  connect: () => MockVoice;
+  toDestination?: () => MockVoice;
+}
+
+let reverbInstances: MockReverb[] = [];
+let samplerInstances: MockVoice[] = [];
+let synthInstances: MockVoice[] = [];
+const samplerConstructor = vi.fn();
+
+vi.mock('tone', () => {
+  class Reverb implements MockReverb {
+    wet = { rampTo: vi.fn() };
+    dispose = vi.fn();
+    toDestination() {
+      return this;
+    }
+    constructor() {
+      reverbInstances.push(this);
+    }
+  }
+
+  class Sampler implements MockVoice {
+    volume = { value: 0, rampTo: vi.fn() };
+    triggerAttackRelease = vi.fn();
+    dispose = vi.fn();
+    connect() {
+      return this;
+    }
+    constructor(opts: { onload?: () => void }) {
+      samplerConstructor(opts);
+      samplerInstances.push(this);
+      queueMicrotask(() => opts.onload?.());
+    }
+  }
+
+  class Synth implements MockVoice {
+    volume = { value: 0, rampTo: vi.fn() };
+    triggerAttackRelease = vi.fn();
+    dispose = vi.fn();
+    connect() {
+      return this;
+    }
+    toDestination() {
+      return this;
+    }
+    constructor() {
+      synthInstances.push(this);
+    }
+  }
+
+  return {
+    start: vi.fn().mockResolvedValue(undefined),
+    now: vi.fn().mockReturnValue(0),
+    Frequency: vi.fn().mockReturnValue({ toNote: () => 'C4' }),
+    Sampler: vi.fn(function (this: unknown, opts: { onload?: () => void }) {
+      return new Sampler(opts);
+    }),
+    Synth: vi.fn(function (this: unknown) {
+      return new Synth();
+    }),
+    Reverb: vi.fn(function (this: unknown) {
+      return new Reverb();
+    }),
+  };
+});
+
+vi.mock('@/lib/harmonic-drone', () => ({
+  harmonicDrone: {
+    start: vi.fn().mockResolvedValue(undefined),
+    stop: vi.fn().mockResolvedValue(undefined),
+  },
+}));
+
+vi.mock('@/lib/warp-engine', () => ({
+  warpEngine: {
+    reset: vi.fn(),
+    onKeystroke: vi.fn(),
+    getNoteDuration: vi.fn().mockReturnValue('8n'),
+  },
+}));
+
+vi.mock('@/lib/midi-asset-loader', () => ({
+  MidiAssetLoadError: class MidiAssetLoadError extends Error {
+    code = 'MIDI_ASSET_ABORTED';
+  },
+  loadMidiPieceWithAssets: vi.fn(),
+}));
+
+vi.mock('@/lib/note-expression', () => ({
+  applyTypingExpression: (note: string) => note,
+}));
+
+import { harmonicDrone } from '@/lib/harmonic-drone';
+import { useAudioStore } from '@/stores/useAudioStore';
+import { useSessionStore } from '@/stores/useSessionStore';
+import { loadPieceFromData } from '@typewav/audio-engine';
+import { useAudioEngine } from '../useAudioEngine';
+
+const TEST_PIECE = {
+  id: 'test-piece',
+  title: 'Test',
+  composer: 'Test',
+  year: 2000,
+  bpmReference: 120,
+  ppq: 480,
+  totalDurationSec: 1,
+  notes: [
+    {
+      pitch: 60,
+      durationSec: 0.5,
+      durationTicks: 240,
+      startTick: 0,
+      velocity: 96,
+      isPhraseBoundary: false,
+    },
+  ],
+};
+
+const INITIAL_AUDIO_STATE = {
+  initialized: false,
+  soundPackId: 'piano',
+  volume: 0.8,
+  themeId: 'terminal' as const,
+  loading: false,
+  activePieceId: null,
+  midiLoadError: null,
+  isSamplerLoaded: false,
+  samplerLoadError: null,
+};
+
+beforeEach(() => {
+  reverbInstances = [];
+  samplerInstances = [];
+  synthInstances = [];
+  samplerConstructor.mockClear();
+  vi.clearAllMocks();
+  useAudioStore.setState(INITIAL_AUDIO_STATE);
+  useSessionStore.getState().reset();
+});
+
+describe('useAudioEngine — triggerResume', () => {
+  it('ramène le reverb au niveau du pack, jamais à zéro', async () => {
+    const { result, unmount } = renderHook(() => useAudioEngine());
+
+    await act(async () => {
+      await result.current.initialize();
+    });
+    await waitFor(() => expect(samplerInstances.length).toBe(1));
+
+    await act(async () => {
+      await result.current.triggerResume();
+    });
+
+    const reverb = reverbInstances[0]!;
+    const rampCalls = reverb.wet.rampTo.mock.calls;
+    expect(rampCalls[0]?.[0]).toBe(0.4); // pic de correction
+    expect(rampCalls[1]?.[0]).toBe(0.25); // retour au wet du pack piano, pas 0
+
+    unmount();
+  });
+});
+
+describe('useAudioEngine — pas de double initialisation', () => {
+  it('deux appels concurrents à initialize() ne construisent le graphe audio qu’une fois', async () => {
+    const { result, unmount } = renderHook(() => useAudioEngine());
+
+    await act(async () => {
+      await Promise.all([result.current.initialize(), result.current.initialize()]);
+    });
+
+    expect(samplerConstructor).toHaveBeenCalledTimes(1);
+    expect(reverbInstances.length).toBe(1);
+    expect(useAudioStore.getState().initialized).toBe(true);
+
+    unmount();
+  });
+
+  it('deux instances distinctes du hook partagent le même graphe audio', async () => {
+    loadPieceFromData(TEST_PIECE);
+    const instanceA = renderHook(() => useAudioEngine());
+    const instanceB = renderHook(() => useAudioEngine());
+
+    await act(async () => {
+      await Promise.all([
+        instanceA.result.current.initialize(),
+        instanceB.result.current.initialize(),
+      ]);
+    });
+
+    expect(samplerConstructor).toHaveBeenCalledTimes(1);
+
+    // La deuxième instance peut jouer une note bien qu'elle n'ait jamais
+    // construit son propre sampler — la preuve que l'état est partagé.
+    await act(async () => {
+      await instanceB.result.current.playNote('a', 0);
+    });
+    expect(samplerInstances[0]!.triggerAttackRelease).toHaveBeenCalled();
+
+    instanceA.unmount();
+    instanceB.unmount();
+  });
+});
+
+describe('useAudioEngine — cycle de vie partagé', () => {
+  it("ne dispose le graphe audio que lorsque la dernière instance montée se démonte", async () => {
+    const instanceA = renderHook(() => useAudioEngine());
+    const instanceB = renderHook(() => useAudioEngine());
+
+    await act(async () => {
+      await instanceA.result.current.initialize();
+    });
+    await waitFor(() => expect(samplerInstances.length).toBe(1));
+
+    instanceA.unmount();
+    // instanceB est toujours montée : le moteur ne doit pas être disposé.
+    expect(samplerInstances[0]!.dispose).not.toHaveBeenCalled();
+    expect(useAudioStore.getState().initialized).toBe(true);
+
+    instanceB.unmount();
+    // Plus aucune instance montée : le moteur (et le bourdon) se ferment.
+    expect(samplerInstances[0]!.dispose).toHaveBeenCalled();
+    expect(useAudioStore.getState().initialized).toBe(false);
+    expect(harmonicDrone.stop).toHaveBeenCalled();
+  });
+});

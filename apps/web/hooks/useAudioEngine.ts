@@ -12,6 +12,15 @@
  * Packs supportés : piano | synth-lofi | cinematic | jazz-piano
  * Lecture : une seule logique de pièce musicale (plus de mode pentatonique séparé)
  *
+ * Le graphe Tone.js (sampler/reverb/synth) vit dans un singleton de module
+ * (`engine`), pas dans des useRef par instance de hook : TypingArea,
+ * HomeClient, ReplayClient, ChallengeClient et useAudioPreview appellent
+ * tous useAudioEngine() indépendamment, alors que le flag `initialized`
+ * (Zustand) est déjà global. Avec des refs par instance, la première à
+ * s'initialiser rendait les autres silencieuses (leurs propres refs
+ * restaient vides, sans jamais lever d'erreur). Voir
+ * TypeWav-Etat-des-lieux.docx §1.
+ *
  * Spec : docs/specs/01-audio-engine.md
  */
 
@@ -164,160 +173,216 @@ async function createPianoSampler(
   });
 }
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
+// ─── Moteur partagé (singleton de module) ────────────────────────────────────
 
-export function useAudioEngine() {
-  const { initialized, soundPackId, setInitialized } = useAudioStore();
-  const recordNoteEvent = useSessionStore((s) => s.recordNoteEvent);
-  const sessionPosition = useSessionStore((s) => s.position);
+class VoiceEngine {
+  fallbackSynth: ToneSynth | null = null;
+  sampler: ToneSampler | null = null;
+  reverb: ToneReverb | null = null;
+  loadedPack = '';
+  pendingDronePitch: number | null = null;
+  midiLoadRequestId = 0;
+  midiLoadAbortController: AbortController | null = null;
 
-  // Refs Tone.js — initialisées paresseusement après le premier keydown.
-  const fallbackSynthRef = useRef<ToneSynth | null>(null);
-  const samplerRef = useRef<ToneSampler | null>(null);
-  const reverbRef = useRef<ToneReverb | null>(null);
-  const loadedPackRef = useRef<string>('');
-  const pendingDronePitchRef = useRef<number | null>(null);
-  const midiLoadRequestIdRef = useRef(0);
-  const midiLoadAbortControllerRef = useRef<AbortController | null>(null);
+  private mountedCount = 0;
+  private initializingPromise: Promise<void> | null = null;
+  private buildingPromise: Promise<void> | null = null;
 
-  const disposeVoices = useCallback(() => {
-    if (samplerRef.current) {
-      samplerRef.current.dispose();
-      samplerRef.current = null;
-    }
+  mount(): void {
+    this.mountedCount += 1;
+  }
 
-    if (fallbackSynthRef.current) {
-      fallbackSynthRef.current.dispose();
-      fallbackSynthRef.current = null;
-    }
-
-    if (reverbRef.current) {
-      reverbRef.current.dispose();
-      reverbRef.current = null;
-    }
-  }, []);
-
-  const applyVolumeToVoices = useCallback((nextVolume: number) => {
-    const targetDb = toDecibels(nextVolume);
-
-    if (fallbackSynthRef.current) {
-      fallbackSynthRef.current.volume.rampTo(targetDb, 0.03);
-    }
-
-    if (samplerRef.current) {
-      samplerRef.current.volume.rampTo(targetDb, 0.03);
-    }
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      midiLoadAbortControllerRef.current?.abort();
+  /** Ne dispose le moteur que quand la dernière instance montée se démonte. */
+  unmount(): void {
+    this.mountedCount = Math.max(0, this.mountedCount - 1);
+    if (this.mountedCount === 0) {
+      this.midiLoadAbortController?.abort();
       warpEngine.reset();
-      pendingDronePitchRef.current = null;
+      this.pendingDronePitch = null;
       void harmonicDrone.stop();
-      disposeVoices();
-    };
-  }, [disposeVoices]);
+      this.disposeVoices();
+      this.loadedPack = '';
+      // Sans ce reset, une instance qui remonte ensuite verrait
+      // `initialized` toujours vrai côté Zustand et ne reconstruirait
+      // jamais un graphe pourtant disposé — silence total.
+      useAudioStore.getState().setInitialized(false);
+    }
+  }
 
-  useEffect(() => {
-    const unsubscribe = useAudioStore.subscribe((state, previousState) => {
-      if (state.volume === previousState.volume) return;
-      applyVolumeToVoices(state.volume);
-    });
+  disposeVoices(): void {
+    if (this.sampler) {
+      this.sampler.dispose();
+      this.sampler = null;
+    }
+    if (this.fallbackSynth) {
+      this.fallbackSynth.dispose();
+      this.fallbackSynth = null;
+    }
+    if (this.reverb) {
+      this.reverb.dispose();
+      this.reverb = null;
+    }
+  }
 
-    return () => {
-      unsubscribe();
-    };
-  }, [applyVolumeToVoices]);
+  applyVolume(nextVolume: number): void {
+    const targetDb = toDecibels(nextVolume);
+    this.fallbackSynth?.volume.rampTo(targetDb, 0.03);
+    this.sampler?.volume.rampTo(targetDb, 0.03);
+  }
 
   /**
-   * Construit le graphe audio du pack actif:
-   * - fallback synth (immédiatement disponible)
-   * - sampler piano asynchrone (si pack piano)
+   * Construit le graphe audio du pack actif. Sérialisé : un appel pendant
+   * qu'une construction est déjà en cours attend celle-ci au lieu de créer
+   * un second graphe qui dispose le premier en plein vol.
    */
-  const buildVoices = useCallback(
-    async (packId: string) => {
-      const Tone = await import('tone');
-      const config = PACK_CONFIGS[packId] ?? DEFAULT_PACK_CONFIG;
-      const audioStore = useAudioStore.getState();
+  async buildVoices(packId: string): Promise<void> {
+    if (this.buildingPromise) {
+      await this.buildingPromise.catch(() => {
+        // L'échec de la construction en cours ne doit pas faire échouer
+        // celle-ci — on retente juste normalement ci-dessous.
+      });
+      if (this.loadedPack === packId) return;
+    }
 
-      disposeVoices();
+    const promise = this.buildVoicesInner(packId);
+    this.buildingPromise = promise;
+    try {
+      await promise;
+    } finally {
+      if (this.buildingPromise === promise) this.buildingPromise = null;
+    }
+  }
 
-      audioStore.setSamplerLoadError(null);
-      audioStore.setSamplerLoaded(packId !== 'piano');
+  private async buildVoicesInner(packId: string): Promise<void> {
+    const Tone = await import('tone');
+    const config = PACK_CONFIGS[packId] ?? DEFAULT_PACK_CONFIG;
+    const audioStore = useAudioStore.getState();
 
-      const reverb = new Tone.Reverb({
-        decay: 0.3,
-        wet: config.reverbWet,
-      }).toDestination() as ToneReverb;
+    this.disposeVoices();
 
-      const fallbackSynth = new Tone.Synth({
-        oscillator: { type: config.oscillatorType },
-        envelope: {
-          attack: config.attack,
-          decay: config.decay,
-          sustain: config.sustain,
-          release: config.release,
-        },
-      }).connect(reverb) as ToneSynth;
+    audioStore.setSamplerLoadError(null);
+    audioStore.setSamplerLoaded(packId !== 'piano');
 
-      const currentVolumeDb = toDecibels(audioStore.volume);
-      fallbackSynth.volume.value = currentVolumeDb;
+    const reverb = new Tone.Reverb({
+      decay: 0.3,
+      wet: config.reverbWet,
+    }).toDestination() as ToneReverb;
 
-      fallbackSynthRef.current = fallbackSynth;
-      samplerRef.current = null;
-      reverbRef.current = reverb;
-      loadedPackRef.current = packId;
+    const fallbackSynth = new Tone.Synth({
+      oscillator: { type: config.oscillatorType },
+      envelope: {
+        attack: config.attack,
+        decay: config.decay,
+        sustain: config.sustain,
+        release: config.release,
+      },
+    }).connect(reverb) as ToneSynth;
 
-      if (packId !== 'piano') return;
+    const currentVolumeDb = toDecibels(audioStore.volume);
+    fallbackSynth.volume.value = currentVolumeDb;
 
-      try {
-        const sampler = await createPianoSampler(Tone, reverb);
+    this.fallbackSynth = fallbackSynth;
+    this.sampler = null;
+    this.reverb = reverb;
+    this.loadedPack = packId;
 
-        if (loadedPackRef.current !== packId) {
-          sampler.dispose();
-          return;
-        }
+    if (packId !== 'piano') return;
 
-        sampler.volume.value = currentVolumeDb;
-        samplerRef.current = sampler;
-        audioStore.setSamplerLoaded(true);
-      } catch (error) {
-        if (loadedPackRef.current !== packId) return;
-        audioStore.setSamplerLoadError(
-          getErrorMessage(error, 'Piano sampler unavailable.'),
-        );
-        // Fallback synth déjà prêt.
-        audioStore.setSamplerLoaded(true);
+    try {
+      const sampler = await createPianoSampler(Tone, reverb);
+
+      if (this.loadedPack !== packId) {
+        sampler.dispose();
+        return;
       }
-    },
-    [disposeVoices],
-  );
+
+      sampler.volume.value = currentVolumeDb;
+      this.sampler = sampler;
+      audioStore.setSamplerLoaded(true);
+    } catch (error) {
+      if (this.loadedPack !== packId) return;
+      audioStore.setSamplerLoadError(
+        getErrorMessage(error, 'Piano sampler unavailable.'),
+      );
+      // Fallback synth déjà prêt.
+      audioStore.setSamplerLoaded(true);
+    }
+  }
 
   /**
-   * Initialise Tone.js.
-   * DOIT être appelé uniquement après un événement keydown (contrainte navigateur).
+   * Initialise Tone.js. Sérialisé comme buildVoices : deux instances (ou
+   * deux frappes rapides sur la même instance) qui appellent initialize()
+   * avant la résolution du premier appel n'exécutent la séquence qu'une fois.
    */
-  const initialize = useCallback(async () => {
-    if (initialized) return;
+  async initialize(soundPackId: string): Promise<void> {
+    if (useAudioStore.getState().initialized) return;
+    if (this.initializingPromise) {
+      await this.initializingPromise;
+      return;
+    }
 
+    const promise = this.initializeInner(soundPackId);
+    this.initializingPromise = promise;
+    try {
+      await promise;
+    } finally {
+      this.initializingPromise = null;
+    }
+  }
+
+  private async initializeInner(soundPackId: string): Promise<void> {
     const Tone = await import('tone');
     await Tone.start();
 
-    await buildVoices(soundPackId);
+    await this.buildVoices(soundPackId);
 
     const currentPiece = getCurrentPiece();
     if (currentPiece) {
       warpEngine.reset(currentPiece.bpmReference);
     }
 
-    const pendingPitch = pendingDronePitchRef.current;
-    if (pendingPitch !== null) {
-      await harmonicDrone.start(pendingPitch);
+    if (this.pendingDronePitch !== null) {
+      await harmonicDrone.start(this.pendingDronePitch);
     }
 
-    setInitialized(true);
-  }, [initialized, soundPackId, buildVoices, setInitialized]);
+    useAudioStore.getState().setInitialized(true);
+  }
+}
+
+const engine = new VoiceEngine();
+
+// ─── Hook ─────────────────────────────────────────────────────────────────────
+
+export function useAudioEngine() {
+  const { initialized, soundPackId } = useAudioStore();
+  const recordNoteEvent = useSessionStore((s) => s.recordNoteEvent);
+  const sessionPosition = useSessionStore((s) => s.position);
+
+  useEffect(() => {
+    engine.mount();
+    return () => {
+      engine.unmount();
+    };
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = useAudioStore.subscribe((state, previousState) => {
+      if (state.volume === previousState.volume) return;
+      engine.applyVolume(state.volume);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  /**
+   * Initialise Tone.js.
+   * DOIT être appelé uniquement après un événement keydown (contrainte navigateur).
+   */
+  const initialize = useCallback(async () => {
+    await engine.initialize(soundPackId);
+  }, [soundPackId]);
 
   /**
    * Charge un pack sonore (lazy loading — recrée le synth si changement de pack).
@@ -325,10 +390,10 @@ export function useAudioEngine() {
   const loadSoundPack = useCallback(
     async (packId: string) => {
       if (!initialized) return;
-      if (loadedPackRef.current === packId) return;
-      await buildVoices(packId);
+      if (engine.loadedPack === packId) return;
+      await engine.buildVoices(packId);
     },
-    [initialized, buildVoices],
+    [initialized],
   );
 
   const playParsedNote = useCallback(
@@ -346,15 +411,15 @@ export function useAudioEngine() {
       const velocity = normalizeVelocity(parsedNote.velocity);
       const playTime = Tone.now();
 
-      if (samplerRef.current) {
-        samplerRef.current.triggerAttackRelease(
+      if (engine.sampler) {
+        engine.sampler.triggerAttackRelease(
           noteToPlay,
           duration,
           playTime,
           velocity,
         );
-      } else if (fallbackSynthRef.current) {
-        fallbackSynthRef.current.triggerAttackRelease(
+      } else if (engine.fallbackSynth) {
+        engine.fallbackSynth.triggerAttackRelease(
           noteToPlay,
           duration,
           playTime,
@@ -375,13 +440,13 @@ export function useAudioEngine() {
    */
   const playNote = useCallback(
     async (char: string, wordIndex: number): Promise<string | null> => {
-      if (!initialized) {
-        await initialize();
+      if (!useAudioStore.getState().initialized) {
+        await engine.initialize(soundPackId);
       }
 
       // Re-créer le synth si le pack a changé depuis la dernière frappe
-      if (loadedPackRef.current !== soundPackId) {
-        await buildVoices(soundPackId);
+      if (engine.loadedPack !== soundPackId) {
+        await engine.buildVoices(soundPackId);
       }
 
       const nextNote = advanceAndGetNote();
@@ -391,12 +456,12 @@ export function useAudioEngine() {
 
       return await playParsedNote(nextNote, char, wordIndex);
     },
-    [initialized, initialize, soundPackId, buildVoices, playParsedNote],
+    [soundPackId, playParsedNote],
   );
 
   const refreshDroneForCurrentPiece = useCallback(async () => {
     const tonicPitch = getPieceTonicPitch(getCurrentPiece());
-    pendingDronePitchRef.current = tonicPitch;
+    engine.pendingDronePitch = tonicPitch;
 
     if (tonicPitch === null) {
       await harmonicDrone.stop();
@@ -420,30 +485,36 @@ export function useAudioEngine() {
 
   /**
    * Reprend après correction avec micro-reverb.
+   * Le wet revient au niveau normal du pack, jamais à 0 — sinon la
+   * réverbération reste coupée pour le reste de la séance.
    */
   const triggerResume = useCallback(async () => {
-    if (!initialized) return;
+    if (!useAudioStore.getState().initialized) return;
 
     const Tone = await import('tone');
-    const reverb = reverbRef.current;
+    const reverb = engine.reverb;
     if (!reverb) return;
 
-    // Active brièvement le reverb pour signaler la correction
+    const baselineWet = (PACK_CONFIGS[soundPackId] ?? DEFAULT_PACK_CONFIG)
+      .reverbWet;
+
+    // Active brièvement le reverb pour signaler la correction, puis
+    // revient au niveau normal du pack.
     reverb.wet.rampTo(0.4, 0.05, Tone.now());
-    reverb.wet.rampTo(0, 0.3, Tone.now() + 0.3);
-  }, [initialized]);
+    reverb.wet.rampTo(baselineWet, 0.3, Tone.now() + 0.3);
+  }, [soundPackId]);
 
   /**
    * Charge la pièce musicale sélectionnée.
    */
   const loadMidiPiece = useCallback(
     async (pieceId: MidiPieceId) => {
-      const requestId = midiLoadRequestIdRef.current + 1;
-      midiLoadRequestIdRef.current = requestId;
+      const requestId = engine.midiLoadRequestId + 1;
+      engine.midiLoadRequestId = requestId;
 
-      midiLoadAbortControllerRef.current?.abort();
+      engine.midiLoadAbortController?.abort();
       const controller = new AbortController();
-      midiLoadAbortControllerRef.current = controller;
+      engine.midiLoadAbortController = controller;
 
       const audioStore = useAudioStore.getState();
       audioStore.setLoading(true);
@@ -456,7 +527,7 @@ export function useAudioEngine() {
 
         // Last-write-wins : ignorer les réponses obsolètes.
         if (
-          requestId !== midiLoadRequestIdRef.current ||
+          requestId !== engine.midiLoadRequestId ||
           controller.signal.aborted
         ) {
           return;
@@ -467,7 +538,7 @@ export function useAudioEngine() {
         warpEngine.reset(parsedPiece.bpmReference);
         await refreshDroneForCurrentPiece();
       } catch (error) {
-        if (requestId !== midiLoadRequestIdRef.current) {
+        if (requestId !== engine.midiLoadRequestId) {
           return;
         }
 
@@ -483,13 +554,13 @@ export function useAudioEngine() {
             ? error.message
             : 'Unknown MIDI loading error.';
         clearLoadedPiece();
-        pendingDronePitchRef.current = null;
+        engine.pendingDronePitch = null;
         warpEngine.reset();
         await harmonicDrone.stop();
         audioStore.setActivePiece(null);
         audioStore.setMidiLoadError(message);
       } finally {
-        if (requestId === midiLoadRequestIdRef.current) {
+        if (requestId === engine.midiLoadRequestId) {
           audioStore.setLoading(false);
         }
       }
