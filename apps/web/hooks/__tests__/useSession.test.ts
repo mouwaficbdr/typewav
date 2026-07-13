@@ -60,8 +60,10 @@ vi.mock('@/stores/useSessionStore', () => ({
   useSessionStore: () => mockSessionStore,
 }));
 
+const mockAudioStore = { themeId: 'terminal' };
+
 vi.mock('@/stores/useAudioStore', () => ({
-  useAudioStore: () => ({ themeId: 'terminal' }),
+  useAudioStore: () => mockAudioStore,
 }));
 
 import { useSession } from '../useSession';
@@ -222,6 +224,84 @@ describe('useSession — handleBackspace', () => {
     });
 
     expect(mockMoveBack).not.toHaveBeenCalled();
+  });
+});
+
+describe('useSession — live stats interval', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSessionStore.position = 0;
+    mockSessionStore.keystrokes = [];
+    mockSessionStore.startedAt = null;
+    mockSessionStore.endedAt = null;
+  });
+
+  it('met à jour le WPM live après 1s même si des frappes arrivent plus vite que le tick', () => {
+    vi.useFakeTimers();
+    const start = Date.now();
+    mockSessionStore.startedAt = start;
+
+    const { result, rerender } = renderHook(() =>
+      useSession({ text: 'hello world', autoNavigate: false }),
+    );
+
+    // Frappes toutes les 100ms — largement plus rapide que le tick d'1s.
+    for (let i = 1; i <= 5; i++) {
+      act(() => {
+        vi.advanceTimersByTime(100);
+      });
+      mockSessionStore.keystrokes = [
+        ...mockSessionStore.keystrokes,
+        { char: 'a', timestamp: start + i * 100, correct: true, deltaMs: 100 },
+      ];
+      rerender();
+    }
+
+    act(() => {
+      vi.advanceTimersByTime(600); // total écoulé : 1100ms
+    });
+
+    expect(result.current.liveStats.wpm).toBeGreaterThan(0);
+
+    vi.useRealTimers();
+  });
+});
+
+describe('useSession — changement de thème audio en cours de session', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSessionStore.position = 0;
+    mockSessionStore.keystrokes = [];
+    mockSessionStore.startedAt = null;
+    mockSessionStore.endedAt = null;
+    mockAudioStore.themeId = 'terminal';
+  });
+
+  it("ne redémarre pas la session quand le thème audio change en cours de frappe", () => {
+    const { rerender } = renderHook(() =>
+      useSession({ text: 'hello world', autoNavigate: false }),
+    );
+
+    expect(mockSessionStore.startSession).toHaveBeenCalledTimes(1);
+
+    // Changement de thème audio en pleine frappe — ne doit pas redémarrer.
+    mockAudioStore.themeId = 'nightclub';
+    rerender();
+
+    expect(mockSessionStore.startSession).toHaveBeenCalledTimes(1);
+  });
+
+  it('redémarre bien la session quand le texte change (nouveau test)', () => {
+    const { rerender } = renderHook(
+      ({ text }) => useSession({ text, autoNavigate: false }),
+      { initialProps: { text: 'hello world' } },
+    );
+
+    expect(mockSessionStore.startSession).toHaveBeenCalledTimes(1);
+
+    rerender({ text: 'a whole new text' });
+
+    expect(mockSessionStore.startSession).toHaveBeenCalledTimes(2);
   });
 });
 
