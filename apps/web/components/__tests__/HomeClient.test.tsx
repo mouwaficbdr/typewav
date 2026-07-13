@@ -49,8 +49,29 @@ vi.mock('@/components/typing/TypingArea', () => ({
   ),
 }));
 
+const learningModePropsRef: {
+  current: null | {
+    isOnboarding?: boolean;
+    onExitTutorial: () => void;
+  };
+} = { current: null };
+
 vi.mock('@/components/modes/LearningMode', () => ({
-  LearningMode: () => <div data-testid="learning-mode" />,
+  LearningMode: (props: {
+    isOnboarding?: boolean;
+    onExitTutorial: () => void;
+  }) => {
+    learningModePropsRef.current = props;
+    return <div data-testid="learning-mode" />;
+  },
+}));
+
+const mockHasCompletedOnboarding = vi.fn().mockResolvedValue(true);
+const mockMarkOnboardingComplete = vi.fn().mockResolvedValue(undefined);
+
+vi.mock('@/lib/onboarding', () => ({
+  hasCompletedOnboarding: () => mockHasCompletedOnboarding(),
+  markOnboardingComplete: () => mockMarkOnboardingComplete(),
 }));
 
 // ConfigBar stub — rend les boutons de collection pour les tests d'intégration
@@ -203,6 +224,9 @@ beforeEach(async () => {
   });
   localStorage.clear();
   mockFetchCollection.mockClear();
+  learningModePropsRef.current = null;
+  mockHasCompletedOnboarding.mockClear().mockResolvedValue(true);
+  mockMarkOnboardingComplete.mockClear().mockResolvedValue(undefined);
 });
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -309,5 +333,50 @@ describe('HomeClient — application des filtres config', () => {
     expect(screen.getByTestId('typing-area')).toHaveTextContent(
       'Hello, world! 2026',
     );
+  });
+});
+
+describe('HomeClient — onboarding première visite', () => {
+  it('force le mode apprentissage et masque ConfigBar quand onboarding non complété', async () => {
+    mockHasCompletedOnboarding.mockResolvedValue(false);
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(learningModePropsRef.current?.isOnboarding).toBe(true);
+    });
+    expect(screen.getByTestId('learning-mode')).toBeInTheDocument();
+    expect(screen.queryByTestId('config-bar')).not.toBeInTheDocument();
+  });
+
+  it("n'affiche pas le mode apprentissage quand l'onboarding est déjà complété", async () => {
+    mockHasCompletedOnboarding.mockResolvedValue(true);
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => expect(mockHasCompletedOnboarding).toHaveBeenCalled());
+    expect(screen.getByTestId('config-bar')).toBeInTheDocument();
+    expect(screen.queryByTestId('learning-mode')).not.toBeInTheDocument();
+  });
+
+  it("marque l'onboarding comme terminé et repasse en mode classique à la sortie du tutoriel", async () => {
+    mockHasCompletedOnboarding.mockResolvedValue(false);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(learningModePropsRef.current?.onExitTutorial).toBeInstanceOf(
+        Function,
+      );
+    });
+
+    act(() => {
+      learningModePropsRef.current?.onExitTutorial();
+    });
+
+    expect(mockMarkOnboardingComplete).toHaveBeenCalledOnce();
+    expect(useConfigStore.getState().activeMode).toBe('classic');
+    expect(screen.getByTestId('config-bar')).toBeInTheDocument();
   });
 });

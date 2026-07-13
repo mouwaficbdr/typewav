@@ -79,18 +79,21 @@ vi.mock('motion/react', () => ({
 
 import { LearningMode } from '../LearningMode';
 
+const mockOnExitTutorial = vi.fn();
+
 describe('LearningMode — mode développement', () => {
   beforeEach(() => {
     typingAreaPropsRef.current = null;
+    mockOnExitTutorial.mockClear();
   });
 
   it('affiche un bandeau explicite signalant le mode développement', () => {
-    render(<LearningMode />);
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
     expect(screen.getByText(/mode d.veloppement/i)).toBeInTheDocument();
   });
 
   it('rend tous les niveaux sélectionnables sans avoir à les débloquer', () => {
-    render(<LearningMode />);
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
 
     const level5Button = screen.getByRole('button', {
       name: /Niveau 5.*Shift & Punctuation/i,
@@ -102,8 +105,8 @@ describe('LearningMode — mode développement', () => {
     expect(screen.getByText(/Niveau 5.*Shift & Punctuation/i)).toBeInTheDocument();
   });
 
-  it('affiche un message de fin de tutoriel une fois le dernier niveau réussi', () => {
-    render(<LearningMode />);
+  it('affiche un message de fin de tutoriel une fois le dernier niveau réussi, et appelle onExitTutorial en cliquant dessus', () => {
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
 
     fireEvent.click(
       screen.getByRole('button', { name: /Niveau 5.*Shift & Punctuation/i }),
@@ -122,5 +125,30 @@ describe('LearningMode — mode développement', () => {
       screen.queryByRole('button', { name: /Débloquer le niveau 6/i }),
     ).not.toBeInTheDocument();
     expect(screen.getByText(/tutoriel termin/i)).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /passer en mode classique/i }),
+    );
+    expect(mockOnExitTutorial).toHaveBeenCalledOnce();
+  });
+});
+
+describe('LearningMode — isOnboarding', () => {
+  beforeEach(() => {
+    typingAreaPropsRef.current = null;
+    mockOnExitTutorial.mockClear();
+  });
+
+  it('affiche le bouton "Passer le tutoriel" et appelle onExitTutorial au clic', () => {
+    render(
+      <LearningMode isOnboarding onExitTutorial={mockOnExitTutorial} />,
+    );
+
+    const skipButton = screen.getByRole('button', {
+      name: /passer le tutoriel/i,
+    });
+    fireEvent.click(skipButton);
+
+    expect(mockOnExitTutorial).toHaveBeenCalledOnce();
   });
 });

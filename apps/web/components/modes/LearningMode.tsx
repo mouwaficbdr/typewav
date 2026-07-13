@@ -21,7 +21,6 @@ import {
   type LevelProgress,
 } from '@/lib/learning-progress';
 import { generateLearningText } from '@/lib/words';
-import { useConfigStore } from '@/stores/useConfigStore';
 import { LEARNING_LEVELS } from '@typewav/types';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -33,10 +32,25 @@ interface LearningSessionStats {
   wpm: number;
 }
 
-export function LearningMode() {
+interface LearningModeProps {
+  /** true seulement quand déclenché automatiquement à la première visite. */
+  isOnboarding?: boolean;
+  /**
+   * Appelé quand l'utilisateur passe explicitement le tutoriel (isOnboarding
+   * uniquement) OU le termine réellement (toujours, onboarding ou sélection
+   * manuelle). LearningMode ne sait pas lequel des deux s'est produit — il
+   * appelle juste ce callback, à charge de l'appelant de marquer l'onboarding
+   * comme fait et de changer de mode.
+   */
+  onExitTutorial: () => void;
+}
+
+export function LearningMode({
+  isOnboarding = false,
+  onExitTutorial,
+}: LearningModeProps) {
   const shouldReduceMotion = useReducedMotion();
   const duration = shouldReduceMotion ? 0 : 0.3;
-  const setActiveMode = useConfigStore((s) => s.setMode);
 
   const [currentLevelId, setCurrentLevelId] = useState(1);
   const [levelProgress, setLevelProgress] = useState<LevelProgress[]>(() =>
@@ -174,6 +188,25 @@ export function LearningMode() {
           validation des critères d&apos;accuracy/frappes. Cette vue ne
           reflète pas l&apos;expérience réelle d&apos;un nouvel utilisateur.
         </div>
+      )}
+
+      {isOnboarding && (
+        <button
+          onClick={onExitTutorial}
+          style={{
+            alignSelf: 'flex-end',
+            background: 'transparent',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-md)',
+            color: 'var(--color-text-muted)',
+            fontFamily: 'var(--font-ui)',
+            fontSize: 12,
+            padding: '6px 12px',
+            cursor: 'pointer',
+          }}
+        >
+          Passer le tutoriel
+        </button>
       )}
 
       {/* Titre du niveau */}
@@ -334,7 +367,7 @@ export function LearningMode() {
               🎉 Tutoriel terminé ! Tu maîtrises les bases du clavier.
             </span>
             <button
-              onClick={() => setActiveMode('classic')}
+              onClick={onExitTutorial}
               style={{
                 padding: '10px 24px',
                 background: 'var(--color-accent)',

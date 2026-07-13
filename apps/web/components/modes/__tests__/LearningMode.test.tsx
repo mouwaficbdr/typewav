@@ -76,15 +76,18 @@ vi.mock('motion/react', () => ({
 
 import { LearningMode } from '../LearningMode';
 
+const mockOnExitTutorial = vi.fn();
+
 describe('LearningMode progression wiring', () => {
   beforeEach(() => {
     typingAreaPropsRef.current = null;
     mockLoadLearningProgress.mockClear().mockResolvedValue(undefined);
     mockSaveLearningProgress.mockClear().mockResolvedValue(undefined);
+    mockOnExitTutorial.mockClear();
   });
 
   it('met a jour les stats de progression apres une session terminee', () => {
-    render(<LearningMode />);
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
 
     expect(screen.getByText(/0\/50 frappes/i)).toBeInTheDocument();
 
@@ -105,7 +108,7 @@ describe('LearningMode progression wiring', () => {
   });
 
   it('affiche le deblocage du niveau suivant quand les objectifs sont atteints', () => {
-    render(<LearningMode />);
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
 
     act(() => {
       typingAreaPropsRef.current?.onSessionComplete?.({
@@ -132,10 +135,11 @@ describe('LearningMode — persistance de la progression', () => {
     typingAreaPropsRef.current = null;
     mockLoadLearningProgress.mockClear().mockResolvedValue(undefined);
     mockSaveLearningProgress.mockClear().mockResolvedValue(undefined);
+    mockOnExitTutorial.mockClear();
   });
 
   it('charge la progression sauvegardée au montage', async () => {
-    render(<LearningMode />);
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
     await waitFor(() => expect(mockLoadLearningProgress).toHaveBeenCalled());
   });
 
@@ -148,13 +152,13 @@ describe('LearningMode — persistance de la progression', () => {
       { levelId: 5, accuracy: 0, samples: 0, unlocked: false },
     ]);
 
-    render(<LearningMode />);
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
 
     expect(await screen.findByText(/30\/50 frappes/i)).toBeInTheDocument();
   });
 
   it('sauvegarde la progression mise à jour après une session terminée', async () => {
-    render(<LearningMode />);
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
     await waitFor(() => expect(mockLoadLearningProgress).toHaveBeenCalled());
 
     act(() => {
@@ -178,5 +182,61 @@ describe('LearningMode — persistance de la progression', () => {
       );
       expect(matched).toBe(true);
     });
+  });
+});
+
+describe('LearningMode — sélection manuelle (pas d’onboarding)', () => {
+  beforeEach(() => {
+    typingAreaPropsRef.current = null;
+    mockLoadLearningProgress.mockClear().mockResolvedValue(undefined);
+    mockSaveLearningProgress.mockClear().mockResolvedValue(undefined);
+    mockOnExitTutorial.mockClear();
+  });
+
+  it("n'affiche pas de bouton \"Passer le tutoriel\" quand isOnboarding n'est pas passé", () => {
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
+    expect(
+      screen.queryByRole('button', { name: /passer le tutoriel/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('appelle tout de même onExitTutorial en terminant réellement le tutoriel', () => {
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
+
+    act(() => {
+      typingAreaPropsRef.current?.onSessionComplete?.({
+        wpm: 55,
+        accuracy: 100,
+        correct: 50,
+        total: 50,
+      });
+    });
+    fireEvent.click(screen.getByRole('button', { name: /D.bloquer le niveau 2/i }));
+
+    for (let level = 2; level <= 4; level++) {
+      act(() => {
+        typingAreaPropsRef.current?.onSessionComplete?.({
+          wpm: 55,
+          accuracy: 100,
+          correct: 100,
+          total: 100,
+        });
+      });
+      fireEvent.click(
+        screen.getByRole('button', { name: new RegExp(`D.bloquer le niveau ${level + 1}`, 'i') }),
+      );
+    }
+
+    act(() => {
+      typingAreaPropsRef.current?.onSessionComplete?.({
+        wpm: 55,
+        accuracy: 100,
+        correct: 100,
+        total: 100,
+      });
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /passer en mode classique/i }));
+    expect(mockOnExitTutorial).toHaveBeenCalledOnce();
   });
 });

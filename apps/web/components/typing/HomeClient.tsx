@@ -31,6 +31,10 @@ import { useSyncCloud } from '@/hooks/useSyncCloud';
 import { useUser } from '@/hooks/useUser';
 import { getPersonalRecords, getSessionById } from '@/lib/db';
 import { noteNameToMidi } from '@/lib/note-visualization';
+import {
+  hasCompletedOnboarding,
+  markOnboardingComplete,
+} from '@/lib/onboarding';
 import { applyTextFilters } from '@/lib/text-filters';
 import { useAudioStore } from '@/stores/useAudioStore';
 import { useConfigStore } from '@/stores/useConfigStore';
@@ -76,6 +80,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     pitch: number | null;
     isError: boolean;
   }>({ pitch: null, isError: false });
+  const [isOnboarding, setIsOnboarding] = useState(false);
 
   // Ref to avoid stale closure in useEffect (collections)
   const collectionsCacheRef = useRef(collectionsCache);
@@ -86,6 +91,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
   const activeCollection = useConfigStore((s) => s.activeCollection);
   const activeMode = useConfigStore((s) => s.activeMode);
+  const setActiveMode = useConfigStore((s) => s.setMode);
   const punctuationEnabled = useConfigStore((s) => s.punctuationEnabled);
   const numbersEnabled = useConfigStore((s) => s.numbersEnabled);
   const wordCount = useConfigStore((s) => s.wordCount);
@@ -145,6 +151,29 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   useEffect(() => {
     void loadMidiPiece(selectedPieceId);
   }, [selectedPieceId, loadMidiPiece]);
+
+  // Déclenche le tutoriel d'onboarding uniquement à la toute première visite.
+  useEffect(() => {
+    let cancelled = false;
+    hasCompletedOnboarding()
+      .then((done) => {
+        if (cancelled || done) return;
+        setIsOnboarding(true);
+        setActiveMode('learning');
+      })
+      .catch(() => {
+        // Fail open : ne jamais forcer l'onboarding si on ne peut pas confirmer son état.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [setActiveMode]);
+
+  const handleExitTutorial = useCallback(() => {
+    setIsOnboarding(false);
+    void markOnboardingComplete();
+    setActiveMode('classic');
+  }, [setActiveMode]);
 
   const handlePieceChange = useCallback((pieceId: MidiPieceId) => {
     setSelectedPieceId(pieceId);
@@ -328,9 +357,9 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             </div>
           )}
         </div>
-      ) : (
+      ) : !isOnboarding ? (
         <ConfigBar />
-      )}
+      ) : null}
 
       <div
         style={{
@@ -364,7 +393,10 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               animation: 'fadeIn 0.3s ease-out',
             }}
           >
-            <LearningMode />
+            <LearningMode
+              isOnboarding={isOnboarding}
+              onExitTutorial={handleExitTutorial}
+            />
           </div>
         ) : (
           <TypingArea
