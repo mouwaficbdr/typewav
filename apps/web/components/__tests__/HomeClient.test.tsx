@@ -30,9 +30,12 @@ vi.mock('@/stores/useAudioStore', () => ({
   useAudioStore: () => ({ setSoundPack: vi.fn(), soundPackId: 'piano' }),
 }));
 
+const mockGetPersonalRecords = vi.fn().mockResolvedValue(null);
+const mockGetSessionById = vi.fn().mockResolvedValue(null);
+
 vi.mock('@/lib/db', () => ({
-  getPersonalRecords: vi.fn().mockResolvedValue(null),
-  getSessionById: vi.fn().mockResolvedValue(null),
+  getPersonalRecords: (...args: unknown[]) => mockGetPersonalRecords(...args),
+  getSessionById: (...args: unknown[]) => mockGetSessionById(...args),
   getUserProfile: vi.fn().mockResolvedValue({
     currentRank: 'novice',
     pseudo: '',
@@ -227,6 +230,8 @@ beforeEach(async () => {
   learningModePropsRef.current = null;
   mockHasCompletedOnboarding.mockClear().mockResolvedValue(true);
   mockMarkOnboardingComplete.mockClear().mockResolvedValue(undefined);
+  mockGetPersonalRecords.mockClear().mockResolvedValue(null);
+  mockGetSessionById.mockClear().mockResolvedValue(null);
 });
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -313,6 +318,27 @@ describe('HomeClient — application des filtres config', () => {
     );
   });
 
+  it('force ponctuation/chiffres en mode code, même si désactivés dans la config', async () => {
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({
+        activeMode: 'code',
+        punctuationEnabled: false,
+        numbersEnabled: false,
+      });
+    });
+
+    render(
+      <HomeClient initialCollection={mockConfigFiltersCollection as never} />,
+    );
+
+    expect(screen.getByTestId('typing-area')).toHaveTextContent(
+      'Hello, world! 2026 test rapide complet.',
+    );
+  });
+
   it('conserve le texte si wordCount est supérieur au nombre de mots', async () => {
     const { HomeClient } = await import('../typing/HomeClient');
     const { useConfigStore } = await import('@/stores/useConfigStore');
@@ -333,6 +359,87 @@ describe('HomeClient — application des filtres config', () => {
     expect(screen.getByTestId('typing-area')).toHaveTextContent(
       'Hello, world! 2026',
     );
+  });
+});
+
+describe('HomeClient — attribution mode citation', () => {
+  it('affiche la source du texte en mode citation', async () => {
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+    act(() => {
+      useConfigStore.setState({ activeMode: 'quote' });
+    });
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    expect(await screen.findByText(/Victor Hugo/)).toBeInTheDocument();
+  });
+
+  it("n'affiche pas de source en mode classic", async () => {
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('typing-area')).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/Victor Hugo/)).not.toBeInTheDocument();
+  });
+});
+
+describe('HomeClient — mode Fantôme', () => {
+  it("affiche une notice explicite quand aucun record personnel n'existe", async () => {
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'ghost' });
+    });
+
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    expect(
+      await screen.findByText(/aucun record personnel/i),
+    ).toBeInTheDocument();
+  });
+
+  it('rejoue le texte original de la session enregistrée (pas un texte indépendant)', async () => {
+    mockGetPersonalRecords.mockResolvedValue({
+      maxWpm: { value: 80, sessionId: 'session-1', achievedAt: Date.now() },
+    });
+    mockGetSessionById.mockResolvedValue({
+      id: 'session-1',
+      timestamp: Date.now(),
+      wpm: 80,
+      wpmNet: 78,
+      accuracy: 98,
+      consistency: 90,
+      duration: 30_000,
+      mode: 'classic',
+      themeId: 'terminal',
+      soundPackId: 'piano',
+      keystrokeData: [
+        { char: 'x', timestamp: 1000, correct: true, deltaMs: 0 },
+        { char: 'y', timestamp: 1100, correct: true, deltaMs: 100 },
+      ],
+      text: 'Texte original du record — distinct du texte du jour.',
+    });
+
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'ghost' });
+    });
+
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    expect(
+      await screen.findByText(
+        'Texte original du record — distinct du texte du jour.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/aucun record personnel/i),
+    ).not.toBeInTheDocument();
   });
 });
 

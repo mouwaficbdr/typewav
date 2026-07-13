@@ -251,45 +251,50 @@ export function TypingArea({
         transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
-      {/* Live stats overlay — Option A : au-dessus, opacity 0 avant la première frappe */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          top: '-1.75rem',
-          left: 0,
-          right: 0,
-          textAlign: 'center',
-          opacity: position === 0 ? 0 : 0.45,
-          fontFamily: 'var(--font-mono)',
-          fontSize: '0.75rem',
-          color: 'var(--color-text-muted)',
-          transition: 'opacity 0.3s',
-          letterSpacing: '0.04em',
-          userSelect: 'none',
-          zIndex: 2,
-          pointerEvents: 'none',
-        }}
-      >
-        <span
+      {/* Live stats overlay — Option A : au-dessus, opacity 0 avant la première frappe.
+          Masqué en mode zen : « sans pression, sans timer » veut dire sans métrique
+          affichée en direct non plus, sinon zen == quote avec juste un timer en moins. */}
+      {mode !== 'zen' && (
+        <div
+          data-testid="live-stats-overlay"
+          aria-hidden="true"
           style={{
-            color: 'var(--color-accent)',
-            fontVariantNumeric: 'tabular-nums',
+            position: 'absolute',
+            top: '-1.75rem',
+            left: 0,
+            right: 0,
+            textAlign: 'center',
+            opacity: position === 0 ? 0 : 0.45,
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.75rem',
+            color: 'var(--color-text-muted)',
+            transition: 'opacity 0.3s',
+            letterSpacing: '0.04em',
+            userSelect: 'none',
+            zIndex: 2,
+            pointerEvents: 'none',
           }}
         >
-          {Math.round(liveStats.wpm)}
-        </span>
-        {' wpm · '}
-        <span
-          style={{
-            color: 'var(--color-accent)',
-            fontVariantNumeric: 'tabular-nums',
-          }}
-        >
-          {Math.round(liveStats.accuracy)}
-        </span>
-        {'% acc'}
-      </div>
+          <span
+            style={{
+              color: 'var(--color-accent)',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {Math.round(liveStats.wpm)}
+          </span>
+          {' wpm · '}
+          <span
+            style={{
+              color: 'var(--color-accent)',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {Math.round(liveStats.accuracy)}
+          </span>
+          {'% acc'}
+        </div>
+      )}
 
       {/* Zone de frappe — aérée, fluide, text muté pour l'attente */}
       <div

@@ -71,7 +71,10 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const [restartKey, setRestartKey] = useState(0);
   const [selectedPieceId, setSelectedPieceId] =
     useState<MidiPieceId>('fur-elise');
-  const [ghostTimings, setGhostTimings] = useState<number[] | null>(null);
+  const [ghostData, setGhostData] = useState<{
+    timings: number[];
+    text: string;
+  } | null>(null);
   const [collectionsCache, setCollectionsCache] = useState<
     Partial<Record<CollectionId, CollectionConfig>>
   >({ litterature: initialCollection });
@@ -99,7 +102,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const durationSeconds = useConfigStore((s) => s.durationSeconds);
 
   const isLearningMode = activeMode === 'learning';
-  const hasGhostData = ghostTimings !== null && ghostTimings.length > 0;
+  const hasGhostData = ghostData !== null;
   const ghostEnabled = activeMode === 'ghost' && hasGhostData;
 
   const {
@@ -123,14 +126,22 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     };
   }, []);
 
-  // Charger les records et les timings du ghost mode
+  // Charger le record personnel : timings ET texte original de cette
+  // session — le curseur fantôme positionne ses timings par index de
+  // caractère, donc rejouer un texte différent le désynchroniserait
+  // entièrement.
   useEffect(() => {
     async function loadData() {
       const fetchedRecords = await getPersonalRecords();
       if (!fetchedRecords?.maxWpm?.sessionId) return;
       const session = await getSessionById(fetchedRecords.maxWpm.sessionId);
-      if (!session || session.keystrokeData.length === 0) return;
-      setGhostTimings(session.keystrokeData.map((k) => k.deltaMs));
+      if (!session || session.keystrokeData.length === 0 || !session.text) {
+        return;
+      }
+      setGhostData({
+        timings: session.keystrokeData.map((k) => k.deltaMs),
+        text: session.text,
+      });
     }
     void loadData();
   }, []);
@@ -213,9 +224,12 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     const idx = getDailyIndex(candidateTexts.length, shuffleOffset);
     const entry = candidateTexts[idx]!;
 
+    // Le mode Code force ponctuation/chiffres — un extrait sans parenthèses,
+    // points-virgules ou chiffres n'est plus du code, quel que soit l'état
+    // (masqué dans ce mode) des bascules ponctuation/chiffres.
     const filteredText = applyTextFilters(entry.content, {
-      punctuationEnabled,
-      numbersEnabled,
+      punctuationEnabled: activeMode === 'code' ? true : punctuationEnabled,
+      numbersEnabled: activeMode === 'code' ? true : numbersEnabled,
       mode: activeMode,
       wordCount,
     });
@@ -238,7 +252,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
   // Mode effectif pour TypingArea
   const typingAreaMode =
-    ghostEnabled && ghostTimings
+    ghostEnabled && ghostData
       ? 'ghost'
       : activeMode === 'code'
         ? 'code'
@@ -356,6 +370,29 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               MIDI error: {midiLoadError}
             </div>
           )}
+
+          {activeMode === 'ghost' && !hasGhostData && (
+            <div
+              role="status"
+              style={{
+                width: '100%',
+                maxWidth: '980px',
+                fontSize: '0.78rem',
+                color: 'var(--color-text-muted)',
+                border:
+                  '1px solid color-mix(in srgb, var(--color-accent) 35%, transparent)',
+                background:
+                  'color-mix(in srgb, var(--color-accent) 8%, transparent)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '8px 10px',
+                textAlign: 'left',
+              }}
+            >
+              Aucun record personnel pour l&apos;instant — terminez une
+              session pour débloquer le mode Fantôme. Cette session se
+              déroule en mode Classic.
+            </div>
+          )}
         </div>
       ) : !isOnboarding ? (
         <ConfigBar />
@@ -399,15 +436,40 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             />
           </div>
         ) : (
-          <TypingArea
-            key={`${activeCollection}-${shuffleOffset}-${selectedPieceId}-${restartKey}`}
-            text={text}
-            collectionId={collectionId}
-            mode={typingAreaMode}
-            durationSeconds={durationSeconds}
-            onNoteChange={handleNoteChange}
-            {...(ghostEnabled && ghostTimings ? { ghostTimings } : {})}
-          />
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              width: '100%',
+              gap: 10,
+            }}
+          >
+            <TypingArea
+              key={`${activeCollection}-${shuffleOffset}-${selectedPieceId}-${restartKey}`}
+              text={ghostEnabled && ghostData ? ghostData.text : text}
+              collectionId={collectionId}
+              mode={typingAreaMode}
+              durationSeconds={durationSeconds}
+              onNoteChange={handleNoteChange}
+              {...(ghostEnabled && ghostData
+                ? { ghostTimings: ghostData.timings }
+                : {})}
+            />
+            {activeMode === 'quote' && source && (
+              <p
+                style={{
+                  fontFamily: 'var(--font-ui)',
+                  fontSize: '0.8rem',
+                  fontStyle: 'italic',
+                  color: 'var(--color-text-muted)',
+                  margin: 0,
+                }}
+              >
+                — {source}
+              </p>
+            )}
+          </div>
         )}
       </div>
 

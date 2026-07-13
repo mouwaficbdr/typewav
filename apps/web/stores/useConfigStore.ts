@@ -3,13 +3,14 @@
 /**
  * useConfigStore — état de configuration de la barre config (Zone 2).
  *
- * Persisté dans localStorage ('typewav-config').
+ * Persisté dans IndexedDB (store user_preferences, clé 'typewav-config').
  * Spec : docs/specs/29-home-layout.md
  */
 
+import { deletePreference, getPreference, setPreference } from '@/lib/db';
 import type { TypingMode } from '@typewav/types';
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 
 export type TextLanguageFilter = 'fr' | 'en' | 'both';
 
@@ -41,6 +42,34 @@ interface ConfigActions {
   setTextLanguage: (lang: TextLanguageFilter) => void;
 }
 
+// Un environnement sans IndexedDB (SSR, tests sans fake-indexeddb) ne doit
+// jamais empêcher le store de fonctionner en mémoire — on dégrade
+// silencieusement plutôt que de laisser une promesse rejetée remonter dans
+// le middleware persist (comportement interne non garanti dans ce cas).
+const indexedDBStorage: StateStorage = {
+  getItem: async (name) => {
+    try {
+      return (await getPreference<string>(name)) ?? null;
+    } catch {
+      return null;
+    }
+  },
+  setItem: async (name, value) => {
+    try {
+      await setPreference(name, value);
+    } catch {
+      // best-effort
+    }
+  },
+  removeItem: async (name) => {
+    try {
+      await deletePreference(name);
+    } catch {
+      // best-effort
+    }
+  },
+};
+
 export const DEFAULT_CONFIG: ConfigState = {
   activeMode: 'classic',
   punctuationEnabled: false,
@@ -64,6 +93,9 @@ export const useConfigStore = create<ConfigState & ConfigActions>()(
       toggleNumbers: () => set((s) => ({ numbersEnabled: !s.numbersEnabled })),
       setTextLanguage: (lang) => set({ textLanguage: lang }),
     }),
-    { name: 'typewav-config' },
+    {
+      name: 'typewav-config',
+      storage: createJSONStorage(() => indexedDBStorage),
+    },
   ),
 );

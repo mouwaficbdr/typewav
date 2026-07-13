@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import 'fake-indexeddb/auto';
+import { act, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -13,10 +14,19 @@ vi.mock('@/stores/useAudioStore', () => ({
 
 import { DEFAULT_CONFIG, useConfigStore } from '@/stores/useConfigStore';
 
+// Storage IndexedDB asynchrone : réhydratation déterministe avant chaque
+// test (voir useConfigStore.test.ts pour le détail de la course évitée).
+beforeEach(async () => {
+  await act(async () => {
+    await useConfigStore.persist.rehydrate();
+  });
+});
+
 // Reset store between tests
-afterEach(() => {
-  useConfigStore.setState(DEFAULT_CONFIG);
-  localStorage.clear();
+afterEach(async () => {
+  await act(async () => {
+    useConfigStore.setState(DEFAULT_CONFIG);
+  });
 });
 
 import { ConfigBar } from '../typing/ConfigBar';

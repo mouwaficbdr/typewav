@@ -182,6 +182,18 @@ describe('TypingArea — waveform note source', () => {
   });
 });
 
+describe('TypingArea — mode zen', () => {
+  it('masque le bandeau de stats live en mode zen ("sans pression")', () => {
+    render(<TypingArea text="hello world" mode="zen" />);
+    expect(screen.queryByTestId('live-stats-overlay')).not.toBeInTheDocument();
+  });
+
+  it('affiche le bandeau de stats live dans les autres modes', () => {
+    render(<TypingArea text="hello world" mode="classic" />);
+    expect(screen.getByTestId('live-stats-overlay')).toBeInTheDocument();
+  });
+});
+
 describe('TypingArea — fin de session', () => {
   it('reporte finalStats.wpm, pas liveStats.wpm (qui peut être resté à 0)', () => {
     mockSessionState.isComplete = true;

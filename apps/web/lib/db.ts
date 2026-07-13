@@ -228,6 +228,14 @@ export async function getPreference<T>(key: string): Promise<T | undefined> {
   return db.get('user_preferences', key) as Promise<T | undefined>;
 }
 
+/**
+ * Supprime une préférence utilisateur.
+ */
+export async function deletePreference(key: string): Promise<void> {
+  const db = await getDB();
+  await db.delete('user_preferences', key);
+}
+
 // ─── Profil utilisateur ───────────────────────────────────────────────────────
 
 const DEFAULT_PROFILE: UserProfile = {
