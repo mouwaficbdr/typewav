@@ -32,7 +32,8 @@ import {
   Flower2,
   Repeat,
   Languages,
-  RotateCw
+  RotateCw,
+  BookOpen,
 } from 'lucide-react';
 
 type IconProps = { size?: number; className?: string };
@@ -74,3 +75,4 @@ export const FlowerIcon = withProps(Flower2);
 export const RepeatIcon = withProps(Repeat);
 export const LanguagesIcon = withProps(Languages);
 export const RotateCwIcon = withProps(RotateCw);
+export const BookIcon = withProps(BookOpen);

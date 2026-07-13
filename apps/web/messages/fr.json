@@ -67,6 +67,7 @@
     "registerRomantique": "Romantique",
     "registerFolk": "Folk",
     "changeLanguage": "Changer la langue d entrée",
+    "changeCollection": "Changer la collection de textes",
     "ariaSessionWaveform": "Forme d onde de la session",
     "ariaWpmChart": "Graphique WPM de la session",
     "ariaKeyboardDiagram": "Clavier QWERTY interactif",

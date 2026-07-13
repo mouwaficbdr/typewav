@@ -22,6 +22,7 @@ import {
 import { LearningMode } from '@/components/modes/LearningMode';
 import { ActiveSessionHeader } from '@/components/typing/ActiveSessionHeader';
 import { ConfigBar } from '@/components/typing/ConfigBar';
+import { CollectionSelector } from '@/components/typing/CollectionSelector';
 import { ContextSelectors } from '@/components/typing/ContextSelectors';
 import { TypingArea } from '@/components/typing/TypingArea';
 import { WaveformBars } from '@/components/typing/WaveformBars';
@@ -95,6 +96,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const activeCollection = useConfigStore((s) => s.activeCollection);
   const activeMode = useConfigStore((s) => s.activeMode);
   const setActiveMode = useConfigStore((s) => s.setMode);
+  const setCollection = useConfigStore((s) => s.setCollection);
   const punctuationEnabled = useConfigStore((s) => s.punctuationEnabled);
   const numbersEnabled = useConfigStore((s) => s.numbersEnabled);
   const wordCount = useConfigStore((s) => s.wordCount);
@@ -162,6 +164,16 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   useEffect(() => {
     void loadMidiPiece(selectedPieceId);
   }, [selectedPieceId, loadMidiPiece]);
+
+  // Défaut sensé à l'entrée en mode Code — pas un verrou : l'utilisateur
+  // reste libre de changer la collection ensuite via CollectionSelector.
+  // Ne se déclenche qu'à la transition vers 'code' (dépendance activeMode),
+  // jamais à chaque rendu.
+  useEffect(() => {
+    if (activeMode === 'code') {
+      setCollection('code');
+    }
+  }, [activeMode, setCollection]);
 
   // Déclenche le tutoriel d'onboarding uniquement à la toute première visite.
   useEffect(() => {
@@ -305,8 +317,9 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             onPieceChange={handlePieceChange}
           />
 
-          {/* Zone 3.5 — Context Selectors (Language) */}
+          {/* Zone 3.5 — Context Selectors (Language + Collection) */}
           <ContextSelectors />
+          <CollectionSelector />
 
           {initialized && soundPackId === 'piano' && !isSamplerLoaded && (
             <div

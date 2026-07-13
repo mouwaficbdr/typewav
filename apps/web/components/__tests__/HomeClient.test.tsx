@@ -319,6 +319,12 @@ describe('HomeClient — application des filtres config', () => {
   });
 
   it('force ponctuation/chiffres en mode code, même si désactivés dans la config', async () => {
+    // Le mode Code bascule automatiquement la collection sur 'code' (voir
+    // B2) — le cache initial ne la connaît que sous la clé 'litterature',
+    // donc un fetch est déclenché ; on le mocke pour qu'il retourne ce même
+    // fixture sous l'id 'code'.
+    mockFetchCollection.mockResolvedValueOnce(mockConfigFiltersCollection);
+
     const { HomeClient } = await import('../typing/HomeClient');
     const { useConfigStore } = await import('@/stores/useConfigStore');
 
@@ -334,9 +340,11 @@ describe('HomeClient — application des filtres config', () => {
       <HomeClient initialCollection={mockConfigFiltersCollection as never} />,
     );
 
-    expect(screen.getByTestId('typing-area')).toHaveTextContent(
-      'Hello, world! 2026 test rapide complet.',
-    );
+    await waitFor(() => {
+      expect(screen.getByTestId('typing-area')).toHaveTextContent(
+        'Hello, world! 2026 test rapide complet.',
+      );
+    });
   });
 
   it('conserve le texte si wordCount est supérieur au nombre de mots', async () => {
@@ -382,6 +390,51 @@ describe('HomeClient — attribution mode citation', () => {
       expect(screen.getByTestId('typing-area')).toBeInTheDocument();
     });
     expect(screen.queryByText(/Victor Hugo/)).not.toBeInTheDocument();
+  });
+});
+
+describe('HomeClient — bascule automatique de collection', () => {
+  it("bascule la collection sur 'code' en passant en mode Code", async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+    expect(useConfigStore.getState().activeCollection).toBe('litterature');
+
+    await act(async () => {
+      useConfigStore.setState({ activeMode: 'code' });
+    });
+
+    await waitFor(() => {
+      expect(useConfigStore.getState().activeCollection).toBe('code');
+    });
+  });
+
+  it("ne force pas la collection à chaque rendu — l'utilisateur peut la changer ensuite", async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'code' });
+    });
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(useConfigStore.getState().activeCollection).toBe('code');
+    });
+
+    act(() => {
+      useConfigStore.setState({ activeCollection: 'poesie' });
+    });
+
+    // Un re-rendu (ex: shuffle) ne doit pas re-forcer 'code'.
+    act(() => {
+      useConfigStore.setState({ punctuationEnabled: true });
+    });
+
+    expect(useConfigStore.getState().activeCollection).toBe('poesie');
   });
 });
 
