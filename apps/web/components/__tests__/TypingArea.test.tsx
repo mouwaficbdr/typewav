@@ -49,6 +49,11 @@ vi.mock('@/components/typing/GhostCursor', () => ({
   GhostCursor: () => null,
 }));
 
+const mockResetSequence = vi.fn();
+vi.mock('@typewav/audio-engine', () => ({
+  resetSequence: (...args: unknown[]) => mockResetSequence(...args),
+}));
+
 import { TypingArea } from '../typing/TypingArea';
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -129,6 +134,14 @@ describe('TypingArea — Backspace', () => {
 
     expect(mockPlayNote).not.toHaveBeenCalled();
     expect(mockTriggerSilence).not.toHaveBeenCalled();
+  });
+});
+
+describe('TypingArea — nouvelle tentative', () => {
+  it('remet le séquenceur MIDI à zéro au montage (nouveau test/restart)', () => {
+    mockResetSequence.mockClear();
+    render(<TypingArea text="hello world" />);
+    expect(mockResetSequence).toHaveBeenCalledOnce();
   });
 });
 

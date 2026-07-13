@@ -16,6 +16,8 @@
 import { GhostCursor } from '@/components/typing/GhostCursor';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useSession } from '@/hooks/useSession';
+import { CorrectionEchoTracker } from '@/lib/correction-echo';
+import { resetSequence } from '@typewav/audio-engine';
 import type { TypingMode } from '@typewav/types';
 import { useTranslations } from 'next-intl';
 import {
@@ -92,12 +94,24 @@ export function TypingArea({
   const containerRef = useRef<HTMLDivElement>(null);
   const wordsRef = useRef<HTMLParagraphElement>(null);
   const completionNotifiedRef = useRef(false);
+  const correctionEchoRef = useRef<CorrectionEchoTracker>(
+    new CorrectionEchoTracker(),
+  );
   const [isFocused, setIsFocused] = useState(false);
   const [translateY, setTranslateY] = useState(0);
 
   // Focus automatique sur le conteneur au montage
   useEffect(() => {
     containerRef.current?.focus();
+  }, []);
+
+  // Remettre le séquenceur MIDI à zéro pour chaque nouvelle tentative.
+  // TypingArea remonte entièrement à chaque nouveau test (restart, shuffle,
+  // changement de collection/pièce — via la key React côté HomeClient),
+  // mais le séquenceur est un singleton de module qui, sans ce reset,
+  // garde la position laissée par la tentative précédente.
+  useEffect(() => {
+    resetSequence();
   }, []);
 
   // Notifier la touche actuellement attendue (pour KeyboardDiagram)
@@ -179,6 +193,7 @@ export function TypingArea({
       await initialize();
 
       if (e.key === 'Backspace') {
+        correctionEchoRef.current.onBackspace(keystrokes[keystrokes.length - 1]);
         handleBackspace();
         return;
       }
@@ -198,9 +213,9 @@ export function TypingArea({
         onNoteChange?.(null, true);
       }
 
-      // Micro-reverb si c'est une correction (frappe juste après erreur)
-      const prevKeystroke = keystrokes[keystrokes.length - 1];
-      if (isCorrect && prevKeystroke && !prevKeystroke.correct) {
+      // Micro-reverb uniquement si cette frappe correcte complète une
+      // correction amorcée par Backspace (pas juste "la frappe d'avant était fausse").
+      if (correctionEchoRef.current.onKeystroke(isCorrect)) {
         await triggerResume();
       }
     },
