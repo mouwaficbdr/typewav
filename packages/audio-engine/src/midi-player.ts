@@ -184,7 +184,15 @@ function markPhraseBoundaries(
   });
 }
 
-function normalizeNote(note: ParsedNote): ParsedNote {
+/**
+ * Retourne null pour un pitch non fini (NaN/Infinity) plutôt que de le
+ * clamper silencieusement — Math.round/clamp propagent NaN sans jamais le
+ * signaler, et une note ainsi corrompue finit par crasher le scheduler
+ * Tone.js en aval (Tone.Frequency(NaN, 'midi').toNote() === "undefinedNaN").
+ */
+function normalizeNote(note: ParsedNote): ParsedNote | null {
+  if (!Number.isFinite(note.pitch)) return null;
+
   return {
     pitch: clamp(Math.round(note.pitch), 0, 127),
     durationSec: Math.max(0.01, note.durationSec),
@@ -259,6 +267,7 @@ function normalizePiece(piece: ParsedPiece): ParsedPiece {
     piece.bpmReference > 0 ? piece.bpmReference : DEFAULT_BPM;
   const sorted = [...piece.notes]
     .map(normalizeNote)
+    .filter((note): note is ParsedNote => note !== null)
     .sort((a, b) => a.startTick - b.startTick || a.pitch - b.pitch);
 
   if (sorted.length === 0) {

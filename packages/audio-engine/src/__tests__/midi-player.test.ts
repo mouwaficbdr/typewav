@@ -139,6 +139,42 @@ describe('loadPieceFromData', () => {
     expect(getCurrentPiece()?.id).toBe('custom');
     expect(getCurrentPosition()).toBe(0);
   });
+
+  it('rejette les notes avec un pitch non fini (NaN/Infinity) plutôt que de le propager', () => {
+    const piece: ParsedPiece = {
+      id: 'corrupted',
+      title: 'Corrupted',
+      composer: 'TypeWav',
+      year: 1900,
+      bpmReference: 110,
+      ppq: 480,
+      totalDurationSec: 1,
+      notes: [
+        {
+          pitch: NaN,
+          durationSec: 0.5,
+          durationTicks: 240,
+          startTick: 0,
+          velocity: 100,
+          isPhraseBoundary: false,
+        },
+        {
+          pitch: 64,
+          durationSec: 0.5,
+          durationTicks: 240,
+          startTick: 240,
+          velocity: 96,
+          isPhraseBoundary: true,
+        },
+      ],
+    };
+
+    loadPieceFromData(piece);
+    const loaded = getCurrentPiece();
+
+    expect(loaded?.notes).toHaveLength(1);
+    expect(loaded?.notes.every((n) => Number.isFinite(n.pitch))).toBe(true);
+  });
 });
 
 describe('resetSequence', () => {
