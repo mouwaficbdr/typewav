@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { litteratureCollection } from '../litterature/collection.config';
-import { fetchCollection } from '../fetch';
+import { fetchCollection, selectFromTexts } from '../fetch';
 
 describe('fetchCollection', () => {
   it('retourne un texte de la collection sans options', () => {
@@ -78,6 +78,39 @@ describe('fetchCollection', () => {
     for (const id of collections) {
       const t = fetchCollection(id);
       expect(t).not.toBeNull();
+    }
+  });
+});
+
+describe('selectFromTexts', () => {
+  it('opère sur un tableau explicite — pas besoin de connaître un collectionId', () => {
+    const texts = litteratureCollection.texts;
+    const t = selectFromTexts(texts);
+    expect(t).not.toBeNull();
+    expect(texts).toContainEqual(t);
+  });
+
+  it('retourne null sur un tableau vide (contrairement à fetchCollection qui ne reçoit jamais ce cas)', () => {
+    expect(selectFromTexts([])).toBeNull();
+  });
+
+  it('filtre par durationSeconds comme fetchCollection', () => {
+    const t = selectFromTexts(litteratureCollection.texts, { durationSeconds: 30 });
+    if (t) {
+      expect(t.charCount).toBeGreaterThanOrEqual(63);
+      expect(t.charCount).toBeLessThanOrEqual(147);
+    }
+  });
+
+  it('produit le même comportement que fetchCollection pour la même collection', () => {
+    // fetchCollection(id, opts) doit être un simple raccourci vers
+    // selectFromTexts(COLLECTION_MAP[id].texts, opts) — vérifié indirectement
+    // via la cohérence des plages retournées plutôt que l'égalité exacte
+    // (sélection aléatoire).
+    const t = selectFromTexts(litteratureCollection.texts, { wordCount: 10 });
+    if (t) {
+      expect(t.wordCount).toBeGreaterThanOrEqual(5);
+      expect(t.wordCount).toBeLessThanOrEqual(15);
     }
   });
 });

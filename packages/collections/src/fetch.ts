@@ -54,6 +54,52 @@ const COLLECTION_MAP: Record<CollectionId, { texts: TextEntry[] }> = {
 };
 
 /**
+ * Retourne un texte aléatoire parmi un tableau de textes déjà en mémoire,
+ * filtré selon les options.
+ *
+ * Ne retourne jamais null si le tableau n'est pas vide. Si les filtres
+ * réduisent le pool à zéro, ils sont relâchés progressivement.
+ *
+ * Pure et sans dépendance aux collections statiques du package — c'est ce
+ * qui permet à un client (déjà en possession d'un tableau de textes, par ex.
+ * chargé via Server Action) de réutiliser exactement cette logique de
+ * ciblage sans jamais importer les données des 5 collections.
+ */
+export function selectFromTexts(
+  texts: TextEntry[],
+  options: FetchOptions = {},
+): TextEntry | null {
+  if (texts.length === 0) return null;
+
+  let pool = _applyFilters(texts, options);
+
+  // Relâchement 1 : si pool vide, essayer sans filtre de longueur
+  if (pool.length === 0) {
+    const opts: FetchOptions = {};
+    if (options.language) opts.language = options.language;
+    if (options.difficulty !== undefined) opts.difficulty = options.difficulty;
+    if (options.difficultyMin !== undefined) opts.difficultyMin = options.difficultyMin;
+    if (options.excludeIds) opts.excludeIds = options.excludeIds;
+    pool = _applyFilters(texts, opts);
+  }
+
+  // Relâchement 2 : si encore vide, essayer seulement langue + exclusions
+  if (pool.length === 0) {
+    const opts: FetchOptions = {};
+    if (options.language) opts.language = options.language;
+    if (options.excludeIds) opts.excludeIds = options.excludeIds;
+    pool = _applyFilters(texts, opts);
+  }
+
+  // Fallback total : tout le tableau
+  if (pool.length === 0) {
+    pool = texts;
+  }
+
+  return pool[Math.floor(Math.random() * pool.length)]!;
+}
+
+/**
  * Retourne un texte aléatoire depuis une collection, filtré selon les options.
  *
  * Ne retourne jamais null si la collection n'est pas vide.
@@ -63,35 +109,7 @@ export function fetchCollection(
   collectionId: CollectionId,
   options: FetchOptions = {},
 ): TextEntry | null {
-  const allTexts = COLLECTION_MAP[collectionId].texts;
-  if (allTexts.length === 0) return null;
-
-  let pool = _applyFilters(allTexts, options);
-
-  // Relâchement 1 : si pool vide, essayer sans filtre de longueur
-  if (pool.length === 0) {
-    const opts: FetchOptions = {};
-    if (options.language) opts.language = options.language;
-    if (options.difficulty !== undefined) opts.difficulty = options.difficulty;
-    if (options.difficultyMin !== undefined) opts.difficultyMin = options.difficultyMin;
-    if (options.excludeIds) opts.excludeIds = options.excludeIds;
-    pool = _applyFilters(allTexts, opts);
-  }
-
-  // Relâchement 2 : si encore vide, essayer seulement langue + exclusions
-  if (pool.length === 0) {
-    const opts: FetchOptions = {};
-    if (options.language) opts.language = options.language;
-    if (options.excludeIds) opts.excludeIds = options.excludeIds;
-    pool = _applyFilters(allTexts, opts);
-  }
-
-  // Fallback total : toute la collection
-  if (pool.length === 0) {
-    pool = allTexts;
-  }
-
-  return pool[Math.floor(Math.random() * pool.length)]!;
+  return selectFromTexts(COLLECTION_MAP[collectionId].texts, options);
 }
 
 /**

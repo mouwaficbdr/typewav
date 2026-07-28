@@ -218,6 +218,31 @@ const mockConfigFiltersCollection = {
   ],
 };
 
+const mockTargetCollection = {
+  id: 'litterature',
+  name: 'Littérature',
+  texts: [
+    {
+      id: 'short-01',
+      content: 'Un texte court ici.',
+      source: 'Auteur A',
+      language: 'fr',
+      difficulty: 1,
+      wordCount: 5,
+      charCount: 20,
+    },
+    {
+      id: 'long-01',
+      content: 'Un texte nettement plus long, pensé pour représenter un extrait proche de quatre-vingt-dix mots, utile pour vérifier que la sélection cible bien la bonne tranche de longueur selon le nombre de mots demandé par le mode Sprint.',
+      source: 'Auteur B',
+      language: 'fr',
+      difficulty: 3,
+      wordCount: 90,
+      charCount: 500,
+    },
+  ],
+};
+
 // Reset config store before each test
 beforeEach(async () => {
   const { DEFAULT_CONFIG, useConfigStore } =
@@ -345,6 +370,29 @@ describe('HomeClient — application des filtres config', () => {
         'Hello, world! 2026 test rapide complet.',
       );
     });
+  });
+
+  it('sélectionne un texte de la bonne tranche de longueur (mode Mots · 100)', async () => {
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'sprint', wordCount: 100 });
+    });
+
+    render(<HomeClient initialCollection={mockTargetCollection as never} />);
+
+    // Sur 2 entrées (5 mots / 90 mots), seule celle à 90 mots tombe dans la
+    // tranche 80-130 attendue pour "Mots · 100" — la sélection doit donc
+    // toujours retourner ce texte-là, jamais le texte court.
+    await waitFor(() => {
+      expect(screen.getByTestId('typing-area')).toHaveTextContent(
+        /nettement plus long/,
+      );
+    });
+    expect(screen.getByTestId('typing-area')).not.toHaveTextContent(
+      'Un texte court ici.',
+    );
   });
 
   it('conserve le texte si wordCount est supérieur au nombre de mots', async () => {

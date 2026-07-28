@@ -40,6 +40,7 @@ import { applyTextFilters } from '@/lib/text-filters';
 import { useAudioStore } from '@/stores/useAudioStore';
 import { useConfigStore } from '@/stores/useConfigStore';
 import { type MidiPieceId } from '@typewav/audio-engine';
+import { selectFromTexts } from '@typewav/collections';
 import type { CollectionConfig } from '@typewav/types';
 import { useReducedMotion } from 'motion/react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -85,6 +86,23 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     isError: boolean;
   }>({ pitch: null, isError: false });
   const [isOnboarding, setIsOnboarding] = useState(false);
+
+  // Dernier texte sélectionné — passé comme excludeIds à selectFromTexts
+  // pour éviter une répétition immédiate au shuffle ou à un changement de
+  // réglage.
+  const lastEntryIdRef = useRef<string | undefined>(undefined);
+  const [selectedEntry, setSelectedEntry] = useState<{
+    content: string;
+    source: string;
+  } | null>(() => {
+    // Amorce le tout premier rendu avec un texte déjà là (évite un skeleton
+    // de chargement) ; l'effet de sélection ci-dessous corrige aussitôt vers
+    // la sélection consciente de la cible réelle (durée/nombre de mots).
+    if (initialCollection.texts.length === 0) return null;
+    const idx = getDailyIndex(initialCollection.texts.length, 0);
+    const entry = initialCollection.texts[idx]!;
+    return { content: entry.content, source: entry.source ?? '' };
+  });
 
   // Ref to avoid stale closure in useEffect (collections)
   const collectionsCacheRef = useRef(collectionsCache);
@@ -160,6 +178,53 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
       .finally(() => setLoadingCollection(false));
   }, [activeCollection, activeMode]);
 
+  // Sélectionne un texte conscient de la cible réelle (durée en mode Temps,
+  // nombre de mots en mode Mots) via selectFromTexts (@typewav/collections,
+  // déjà testé) — remplace l'ancien index déterministe par jour, qui
+  // ignorait totalement la durée/le nombre de mots demandés. Tourne dans un
+  // effet (jamais dans le rendu) : selectFromTexts utilise Math.random(),
+  // qui provoquerait un mismatch d'hydratation SSR/client sinon.
+  // Libre/Fantôme ont leur propre source de texte (voir plus bas) ;
+  // Apprentissage ne consomme pas ce texte du tout.
+  useEffect(() => {
+    if (
+      activeMode === 'custom' ||
+      activeMode === 'ghost' ||
+      activeMode === 'learning'
+    ) {
+      return;
+    }
+
+    const collKey = activeCollection as CollectionId;
+    const collection = collectionsCache[collKey];
+    if (!collection || collection.texts.length === 0) return;
+
+    // Différé en microtâche : la sélection (et le setState qui en découle)
+    // ne doit pas s'exécuter de façon synchrone dans le corps de l'effet.
+    queueMicrotask(() => {
+      const entry = selectFromTexts(collection.texts, {
+        ...(textLanguage !== 'both' ? { language: textLanguage } : {}),
+        ...(activeMode === 'sprint' ? { wordCount } : {}),
+        ...(activeMode === 'classic' ? { durationSeconds } : {}),
+        ...(lastEntryIdRef.current
+          ? { excludeIds: [lastEntryIdRef.current] }
+          : {}),
+      });
+      if (!entry) return;
+
+      lastEntryIdRef.current = entry.id;
+      setSelectedEntry({ content: entry.content, source: entry.source ?? '' });
+    });
+  }, [
+    activeCollection,
+    activeMode,
+    shuffleOffset,
+    collectionsCache,
+    textLanguage,
+    wordCount,
+    durationSeconds,
+  ]);
+
   // La pièce musicale sélectionnée est toujours active.
   useEffect(() => {
     void loadMidiPiece(selectedPieceId);
@@ -219,27 +284,12 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   );
 
   const { text, source, collectionId } = useMemo(() => {
-    const collKey: CollectionId = activeCollection as CollectionId;
-    const collection = collectionsCache[collKey];
-    if (!collection || collection.texts.length === 0) {
-      return { text: '', source: '', collectionId: '' };
-    }
-
-    const languageScopedTexts =
-      textLanguage === 'both'
-        ? collection.texts
-        : collection.texts.filter((entry) => entry.language === textLanguage);
-
-    const candidateTexts =
-      languageScopedTexts.length > 0 ? languageScopedTexts : collection.texts;
-
-    const idx = getDailyIndex(candidateTexts.length, shuffleOffset);
-    const entry = candidateTexts[idx]!;
+    if (!selectedEntry) return { text: '', source: '', collectionId: '' };
 
     // Le mode Code force ponctuation/chiffres — un extrait sans parenthèses,
     // points-virgules ou chiffres n'est plus du code, quel que soit l'état
     // (masqué dans ce mode) des bascules ponctuation/chiffres.
-    const filteredText = applyTextFilters(entry.content, {
+    const filteredText = applyTextFilters(selectedEntry.content, {
       punctuationEnabled: activeMode === 'code' ? true : punctuationEnabled,
       numbersEnabled: activeMode === 'code' ? true : numbersEnabled,
       mode: activeMode,
@@ -248,18 +298,16 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
     return {
       text: filteredText,
-      source: entry.source,
-      collectionId: collection.id,
+      source: selectedEntry.source,
+      collectionId: activeCollection,
     };
   }, [
-    activeCollection,
+    selectedEntry,
     activeMode,
-    shuffleOffset,
-    collectionsCache,
-    textLanguage,
     punctuationEnabled,
     numbersEnabled,
     wordCount,
+    activeCollection,
   ]);
 
   // Mode effectif pour TypingArea
