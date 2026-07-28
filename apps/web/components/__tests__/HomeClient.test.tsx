@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
@@ -32,10 +32,16 @@ vi.mock('@/stores/useAudioStore', () => ({
 
 const mockGetPersonalRecords = vi.fn().mockResolvedValue(null);
 const mockGetSessionById = vi.fn().mockResolvedValue(null);
+const mockGetPersonalTexts = vi.fn().mockResolvedValue([]);
+const mockSavePersonalText = vi.fn().mockResolvedValue(undefined);
+const mockDeletePersonalText = vi.fn().mockResolvedValue(undefined);
 
 vi.mock('@/lib/db', () => ({
   getPersonalRecords: (...args: unknown[]) => mockGetPersonalRecords(...args),
   getSessionById: (...args: unknown[]) => mockGetSessionById(...args),
+  getPersonalTexts: (...args: unknown[]) => mockGetPersonalTexts(...args),
+  savePersonalText: (...args: unknown[]) => mockSavePersonalText(...args),
+  deletePersonalText: (...args: unknown[]) => mockDeletePersonalText(...args),
   getUserProfile: vi.fn().mockResolvedValue({
     currentRank: 'novice',
     pseudo: '',
@@ -257,6 +263,13 @@ beforeEach(async () => {
   mockMarkOnboardingComplete.mockClear().mockResolvedValue(undefined);
   mockGetPersonalRecords.mockClear().mockResolvedValue(null);
   mockGetSessionById.mockClear().mockResolvedValue(null);
+  mockGetPersonalTexts.mockClear().mockResolvedValue([]);
+  mockSavePersonalText.mockClear().mockResolvedValue(undefined);
+  mockDeletePersonalText.mockClear().mockResolvedValue(undefined);
+  const { useCustomTextStore } = await import('@/stores/useCustomTextStore');
+  act(() => {
+    useCustomTextStore.setState({ activePersonalTextId: null });
+  });
 });
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -541,6 +554,94 @@ describe('HomeClient — mode Fantôme', () => {
     expect(
       screen.queryByText(/aucun record personnel/i),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe('HomeClient — mode Libre (textes personnels)', () => {
+  it("affiche un message explicite quand aucun texte personnel n'est actif", async () => {
+    mockGetPersonalTexts.mockResolvedValue([]);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'custom' });
+    });
+
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    expect(
+      await screen.findByText('noPersonalTextSelected'),
+    ).toBeInTheDocument();
+  });
+
+  it('affiche le texte personnel actif sans filtrage ponctuation/chiffres', async () => {
+    mockGetPersonalTexts.mockResolvedValue([
+      {
+        id: 'pt-1',
+        title: 'Mon texte',
+        content: 'Un texte avec, ponctuation! et 123 chiffres.',
+        createdAt: 1,
+        lastUsed: 1,
+        isFavorite: false,
+      },
+    ]);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+    const { useCustomTextStore } = await import(
+      '@/stores/useCustomTextStore'
+    );
+
+    act(() => {
+      useConfigStore.setState({
+        activeMode: 'custom',
+        punctuationEnabled: false,
+        numbersEnabled: false,
+      });
+      useCustomTextStore.setState({ activePersonalTextId: 'pt-1' });
+    });
+
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('typing-area')).toHaveTextContent(
+        'Un texte avec, ponctuation! et 123 chiffres.',
+      );
+    });
+  });
+
+  it("le bouton \"Mes textes\" n'apparaît qu'en mode Libre", async () => {
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    const { rerender } = render(
+      <HomeClient initialCollection={mockLitterature as never} />,
+    );
+    expect(screen.queryByTestId('my-texts-button')).not.toBeInTheDocument();
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'custom' });
+    });
+    rerender(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('my-texts-button')).toBeInTheDocument();
+    });
+  });
+
+  it('cliquer "Mes textes" ouvre le panneau de gestion', async () => {
+    mockGetPersonalTexts.mockResolvedValue([]);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'custom' });
+    });
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => screen.getByTestId('my-texts-button'));
+    fireEvent.click(screen.getByTestId('my-texts-button'));
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 });
 

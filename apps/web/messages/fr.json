@@ -72,6 +72,17 @@
     "ariaWpmChart": "Graphique WPM de la session",
     "ariaKeyboardDiagram": "Clavier QWERTY interactif",
     "ariaLoadingCollection": "Chargement de la collection",
+    "myTexts": "Mes textes",
+    "noPersonalTextSelected": "Aucun texte personnel sélectionné. Ouvrez « Mes textes » pour en ajouter ou en choisir un.",
+    "personalTexts": {
+      "title": "Mes textes",
+      "empty": "Aucun texte pour l'instant. Ajoutez-en un pour commencer à taper votre propre contenu.",
+      "addPlaceholder": "Collez ou écrivez votre texte ici…",
+      "add": "Ajouter",
+      "use": "Utiliser",
+      "delete": "Supprimer",
+      "close": "Fermer"
+    },
     "finger": {
       "LP": "Auriculaire gauche",
       "LR": "Annulaire gauche",

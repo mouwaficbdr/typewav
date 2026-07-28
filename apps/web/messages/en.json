@@ -72,6 +72,17 @@
     "ariaWpmChart": "Session WPM chart",
     "ariaKeyboardDiagram": "Interactive QWERTY keyboard",
     "ariaLoadingCollection": "Loading collection",
+    "myTexts": "My texts",
+    "noPersonalTextSelected": "No personal text selected. Open \"My texts\" to add or pick one.",
+    "personalTexts": {
+      "title": "My texts",
+      "empty": "No texts yet. Add one to start typing your own content.",
+      "addPlaceholder": "Paste or write your text here…",
+      "add": "Add",
+      "use": "Use",
+      "delete": "Delete",
+      "close": "Close"
+    },
     "finger": {
       "LP": "Left Pinky",
       "LR": "Left Ring",

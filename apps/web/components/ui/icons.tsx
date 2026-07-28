@@ -34,6 +34,9 @@ import {
   Languages,
   RotateCw,
   BookOpen,
+  Trash2,
+  X,
+  Plus,
 } from 'lucide-react';
 
 type IconProps = { size?: number; className?: string };
@@ -76,3 +79,6 @@ export const RepeatIcon = withProps(Repeat);
 export const LanguagesIcon = withProps(Languages);
 export const RotateCwIcon = withProps(RotateCw);
 export const BookIcon = withProps(BookOpen);
+export const TrashIcon = withProps(Trash2);
+export const CloseIcon = withProps(X);
+export const PlusIcon = withProps(Plus);

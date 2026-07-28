@@ -24,13 +24,19 @@ import { ActiveSessionHeader } from '@/components/typing/ActiveSessionHeader';
 import { ConfigBar } from '@/components/typing/ConfigBar';
 import { CollectionSelector } from '@/components/typing/CollectionSelector';
 import { ContextSelectors } from '@/components/typing/ContextSelectors';
+import { PersonalTextsPanel } from '@/components/typing/PersonalTextsPanel';
 import { TypingArea } from '@/components/typing/TypingArea';
 import { WaveformBars } from '@/components/typing/WaveformBars';
-import { MusicNoteIcon, RepeatIcon } from '@/components/ui/icons';
+import { MusicNoteIcon, PenIcon, RepeatIcon } from '@/components/ui/icons';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useSyncCloud } from '@/hooks/useSyncCloud';
 import { useUser } from '@/hooks/useUser';
-import { getPersonalRecords, getSessionById } from '@/lib/db';
+import {
+  getPersonalRecords,
+  getPersonalTexts,
+  getSessionById,
+  type PersonalText,
+} from '@/lib/db';
 import { noteNameToMidi } from '@/lib/note-visualization';
 import {
   hasCompletedOnboarding,
@@ -39,6 +45,7 @@ import {
 import { applyTextFilters } from '@/lib/text-filters';
 import { useAudioStore } from '@/stores/useAudioStore';
 import { useConfigStore } from '@/stores/useConfigStore';
+import { useCustomTextStore } from '@/stores/useCustomTextStore';
 import { type MidiPieceId } from '@typewav/audio-engine';
 import { selectFromTexts } from '@typewav/collections';
 import type { CollectionConfig } from '@typewav/types';
@@ -86,6 +93,9 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     isError: boolean;
   }>({ pitch: null, isError: false });
   const [isOnboarding, setIsOnboarding] = useState(false);
+  const [personalTexts, setPersonalTexts] = useState<PersonalText[]>([]);
+  const [isPersonalTextsPanelOpen, setIsPersonalTextsPanelOpen] =
+    useState(false);
 
   // Dernier texte sélectionné — passé comme excludeIds à selectFromTexts
   // pour éviter une répétition immédiate au shuffle ou à un changement de
@@ -120,6 +130,14 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const wordCount = useConfigStore((s) => s.wordCount);
   const textLanguage = useConfigStore((s) => s.textLanguage);
   const durationSeconds = useConfigStore((s) => s.durationSeconds);
+  const activePersonalTextId = useCustomTextStore(
+    (s) => s.activePersonalTextId,
+  );
+
+  const activePersonalText = useMemo(
+    () => personalTexts.find((t) => t.id === activePersonalTextId) ?? null,
+    [personalTexts, activePersonalTextId],
+  );
 
   const isLearningMode = activeMode === 'learning';
   const hasGhostData = ghostData !== null;
@@ -145,6 +163,17 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
       document.body.style.overflow = originalOverflow;
     };
   }, []);
+
+  const refreshPersonalTexts = useCallback(() => {
+    void getPersonalTexts().then(setPersonalTexts);
+  }, []);
+
+  // Charger les textes personnels (mode Libre) une fois au montage ; rechargé
+  // à chaque mutation (ajout/suppression) via refreshPersonalTexts, passé au
+  // panneau de gestion.
+  useEffect(() => {
+    refreshPersonalTexts();
+  }, [refreshPersonalTexts]);
 
   // Charger le record personnel : timings ET texte original de cette
   // session — le curseur fantôme positionne ses timings par index de
@@ -284,6 +313,16 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   );
 
   const { text, source, collectionId } = useMemo(() => {
+    // Mode Libre : texte personnel affiché tel quel, jamais filtré (A3) —
+    // l'utilisateur a écrit ce texte lui-même, le dénaturer n'a pas de sens.
+    if (activeMode === 'custom') {
+      return {
+        text: activePersonalText?.content ?? '',
+        source: '',
+        collectionId: 'custom',
+      };
+    }
+
     if (!selectedEntry) return { text: '', source: '', collectionId: '' };
 
     // Le mode Code force ponctuation/chiffres — un extrait sans parenthèses,
@@ -308,6 +347,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     numbersEnabled,
     wordCount,
     activeCollection,
+    activePersonalText,
   ]);
 
   // Mode effectif pour TypingArea
@@ -322,7 +362,9 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             ? 'quote'
             : activeMode === 'zen'
               ? 'zen'
-              : 'classic';
+              : activeMode === 'custom'
+                ? 'custom'
+                : 'classic';
 
   // Le layout unifié supprime les "sauts" ou "jumps" de l'UI.
   // LearningMode y est maintenant intégré de manière fluide.
@@ -368,6 +410,29 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           {/* Zone 3.5 — Context Selectors (Language + Collection) */}
           <ContextSelectors />
           <CollectionSelector />
+
+          {activeMode === 'custom' && (
+            <button
+              data-testid="my-texts-button"
+              onClick={() => setIsPersonalTextsPanelOpen(true)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--color-text-muted)',
+                fontFamily: 'var(--font-ui)',
+                fontSize: '0.85rem',
+                padding: 0,
+              }}
+              className="hover:text-[var(--color-text-primary)] transition-colors"
+            >
+              <PenIcon size={12} className="opacity-70" />
+              {tHint('myTexts')}
+            </button>
+          )}
 
           {initialized && soundPackId === 'piano' && !isSamplerLoaded && (
             <div
@@ -454,6 +519,47 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               déroule en mode Classic.
             </div>
           )}
+
+          {activeMode === 'custom' && !activePersonalText && (
+            <div
+              role="status"
+              style={{
+                width: '100%',
+                maxWidth: '980px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12,
+                fontSize: '0.78rem',
+                color: 'var(--color-text-muted)',
+                border:
+                  '1px solid color-mix(in srgb, var(--color-accent) 35%, transparent)',
+                background:
+                  'color-mix(in srgb, var(--color-accent) 8%, transparent)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '8px 10px',
+                textAlign: 'left',
+              }}
+            >
+              <span>{tHint('noPersonalTextSelected')}</span>
+              <button
+                onClick={() => setIsPersonalTextsPanelOpen(true)}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--color-accent)',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  fontFamily: 'var(--font-ui)',
+                  fontSize: '0.75rem',
+                  padding: '4px 8px',
+                }}
+              >
+                {tHint('myTexts')}
+              </button>
+            </div>
+          )}
         </div>
       ) : !isOnboarding ? (
         <ConfigBar />
@@ -507,7 +613,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             }}
           >
             <TypingArea
-              key={`${activeCollection}-${shuffleOffset}-${selectedPieceId}-${restartKey}`}
+              key={`${activeCollection}-${shuffleOffset}-${selectedPieceId}-${restartKey}-${activePersonalTextId ?? ''}`}
               text={ghostEnabled && ghostData ? ghostData.text : text}
               collectionId={collectionId}
               mode={typingAreaMode}
@@ -669,6 +775,13 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           <span>v{appVersion}</span>
         </div>
       </footer>
+
+      <PersonalTextsPanel
+        isOpen={isPersonalTextsPanelOpen}
+        onClose={() => setIsPersonalTextsPanelOpen(false)}
+        personalTexts={personalTexts}
+        onChange={refreshPersonalTexts}
+      />
     </main>
   );
 }
