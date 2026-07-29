@@ -737,5 +737,15 @@ export const philosophieCollection: CollectionConfig = {
       charCount: 518,
       tags: ["emerson", "individualism", "transcendentalism"],
     },
+    {
+      id: 'phi-en-37',
+      content: `Near the end of March, 1845, I borrowed an axe and went down to the woods by Walden Pond, nearest to where I intended to build my house.`,
+      source: 'Henry David Thoreau — Walden (1854)',
+      language: 'en',
+      difficulty: 2,
+      wordCount: 28,
+      charCount: 136,
+      tags: ["thoreau", "transcendentalism", "chiffre"],
+    },
   ],
 };
