@@ -89,4 +89,10 @@ describe('CollectionSelector', () => {
     const { container } = render(<CollectionSelector />);
     expect(container).toBeEmptyDOMElement();
   });
+
+  it("reste masqué en mode Code — la collection ne doit jamais pouvoir dériver de 'code'", () => {
+    useConfigStore.setState({ activeMode: 'code' });
+    const { container } = render(<CollectionSelector />);
+    expect(container).toBeEmptyDOMElement();
+  });
 });

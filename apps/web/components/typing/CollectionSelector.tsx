@@ -22,12 +22,15 @@ const COLLECTIONS = [
   'code',
 ] as const;
 
+// 'code' est volontairement absent : ce mode garantit du vrai code (voir
+// l'effet d'auto-bascule dans HomeClient) et rien ne doit permettre à
+// l'utilisateur de faire dériver la collection ailleurs pendant qu'il est
+// actif — sinon "Code" reste affiché tout en montrant un texte quelconque.
 const MODES_WITH_COLLECTION: readonly TypingMode[] = [
   'classic',
   'sprint',
   'zen',
   'quote',
-  'code',
 ];
 
 export function CollectionSelector() {
