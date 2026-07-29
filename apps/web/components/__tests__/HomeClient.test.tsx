@@ -239,12 +239,46 @@ const mockTargetCollection = {
     },
     {
       id: 'long-01',
-      content: 'Un texte nettement plus long, pensé pour représenter un extrait proche de quatre-vingt-dix mots, utile pour vérifier que la sélection cible bien la bonne tranche de longueur selon le nombre de mots demandé par le mode Sprint.',
+      content: 'Un texte nettement plus long, pensé pour représenter un extrait de plus de cent mots, utile pour vérifier que la sélection cible bien la bonne tranche de longueur selon le nombre de mots demandé par le mode Sprint. Il continue encore un peu afin de dépasser confortablement le seuil des cent mots requis par ce test, avec quelques phrases supplémentaires ajoutées ici uniquement pour allonger le compte total de mots jusqu\'à la cible attendue par ce scénario précis de vérification automatisée du comportement exact de troncature en mode Mots, sans quoi le test ne serait pas assez long pour couvrir correctement ce cas de figure précis.',
       source: 'Auteur B',
       language: 'fr',
       difficulty: 3,
-      wordCount: 90,
-      charCount: 500,
+      wordCount: 106,
+      charCount: 637,
+    },
+  ],
+};
+
+const mockDigitPreferenceCollection = {
+  id: 'litterature',
+  name: 'Littérature',
+  texts: [
+    {
+      id: 'no-digit-01',
+      content: 'Un texte sans le moindre chiffre nulle part.',
+      source: 'Auteur A',
+      language: 'fr',
+      difficulty: 1,
+      wordCount: 8,
+      charCount: 45,
+    },
+    {
+      id: 'no-digit-02',
+      content: 'Encore un autre texte qui ne contient aucun nombre.',
+      source: 'Auteur B',
+      language: 'fr',
+      difficulty: 1,
+      wordCount: 9,
+      charCount: 52,
+    },
+    {
+      id: 'has-digit-01',
+      content: 'En 1815 ce texte contient bel et bien un chiffre.',
+      source: 'Auteur C',
+      language: 'fr',
+      difficulty: 1,
+      wordCount: 9,
+      charCount: 50,
     },
   ],
 };
@@ -395,9 +429,10 @@ describe('HomeClient — application des filtres config', () => {
 
     render(<HomeClient initialCollection={mockTargetCollection as never} />);
 
-    // Sur 2 entrées (5 mots / 90 mots), seule celle à 90 mots tombe dans la
-    // tranche 80-130 attendue pour "Mots · 100" — la sélection doit donc
-    // toujours retourner ce texte-là, jamais le texte court.
+    // Sur 2 entrées (5 mots / 106 mots), seule celle à 106 mots a assez de
+    // mots réels pour que la troncature en aval produise exactement 100 —
+    // la sélection doit donc toujours retourner ce texte-là, jamais le
+    // texte court (qui donnerait seulement 5 mots au lieu des 100 promis).
     await waitFor(() => {
       expect(screen.getByTestId('typing-area')).toHaveTextContent(
         /nettement plus long/,
@@ -406,6 +441,23 @@ describe('HomeClient — application des filtres config', () => {
     expect(screen.getByTestId('typing-area')).not.toHaveTextContent(
       'Un texte court ici.',
     );
+  });
+
+  it('le mode Mots · 100 affiche exactement 100 mots, jamais moins', async () => {
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'sprint', wordCount: 100 });
+    });
+
+    render(<HomeClient initialCollection={mockTargetCollection as never} />);
+
+    await waitFor(() => {
+      const rendered = screen.getByTestId('typing-area').textContent ?? '';
+      const actualWordCount = rendered.split(/\s+/).filter(Boolean).length;
+      expect(actualWordCount).toBe(100);
+    });
   });
 
   it('conserve le texte si wordCount est supérieur au nombre de mots', async () => {
@@ -428,6 +480,28 @@ describe('HomeClient — application des filtres config', () => {
     expect(screen.getByTestId('typing-area')).toHaveTextContent(
       'Hello, world! 2026',
     );
+  });
+
+  it('privilégie un texte contenant un chiffre quand chiffres est activé', async () => {
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({
+        activeMode: 'classic',
+        numbersEnabled: true,
+      });
+    });
+
+    render(
+      <HomeClient initialCollection={mockDigitPreferenceCollection as never} />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('typing-area')).toHaveTextContent(
+        /1815/,
+      );
+    });
   });
 });
 

@@ -1395,5 +1395,95 @@ fn run_parallel_counter(worker_count: usize, increments_per_worker: usize) -> us
       tags: ["rust", "concurrency", "mutex"],
       codeLanguage: 'rust',
     },
+    {
+      id: 'code-ts-fr-09',
+      content: `// File d'attente de priorité générique avec réévaluation des clés
+class FileDePrioriteAvecMiseAJour<T> {
+  private tas: Array<{ cle: number; valeur: T }> = [];
+
+  inserer(cle: number, valeur: T): void {
+    this.tas.push({ cle, valeur });
+    this.tas.sort((a, b) => a.cle - b.cle);
+  }
+
+  extraireMinimum(): T | undefined {
+    const entree = this.tas.shift();
+    return entree?.valeur;
+  }
+
+  mettreAJourCle(valeur: T, nouvelleCle: number): boolean {
+    const index = this.tas.findIndex((e) => e.valeur === valeur);
+    if (index === -1) return false;
+    this.tas[index]!.cle = nouvelleCle;
+    this.tas.sort((a, b) => a.cle - b.cle);
+    return true;
+  }
+
+  contient(valeur: T): boolean {
+    return this.tas.some((e) => e.valeur === valeur);
+  }
+
+  taille(): number {
+    return this.tas.length;
+  }
+
+  estVide(): boolean {
+    return this.tas.length === 0;
+  }
+
+  vider(): void {
+    this.tas = [];
+  }
+}`,
+      source: 'TypeScript — file de priorité avec réévaluation',
+      language: 'fr',
+      difficulty: 4,
+      wordCount: 117,
+      charCount: 913,
+      tags: ["typescript", "file-priorite", "structure-de-donnees"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-ts-18',
+      content: `// Rate limiter using a sliding window of request timestamps
+class SlidingWindowRateLimiter {
+  private timestamps: number[] = [];
+
+  constructor(private maxRequests: number, private windowMs: number) {}
+
+  allow(now: number): boolean {
+    const cutoff = now - this.windowMs;
+    this.timestamps = this.timestamps.filter((t) => t > cutoff);
+    if (this.timestamps.length >= this.maxRequests) {
+      return false;
+    }
+    this.timestamps.push(now);
+    return true;
+  }
+
+  remaining(now: number): number {
+    const cutoff = now - this.windowMs;
+    const active = this.timestamps.filter((t) => t > cutoff);
+    return Math.max(0, this.maxRequests - active.length);
+  }
+
+  retryAfterMs(now: number): number {
+    if (this.timestamps.length === 0) return 0;
+    const oldest = Math.min(...this.timestamps);
+    return Math.max(0, oldest + this.windowMs - now);
+  }
+
+  reset(): void {
+    this.timestamps = [];
+  }
+}`,
+      source: 'TypeScript — sliding window rate limiter',
+      language: 'en',
+      difficulty: 4,
+      wordCount: 108,
+      charCount: 918,
+      tags: ["typescript", "rate-limiter", "sliding-window"],
+      codeLanguage: 'typescript',
+    },
   ],
 };

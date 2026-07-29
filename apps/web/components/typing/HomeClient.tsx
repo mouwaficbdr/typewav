@@ -235,6 +235,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         ...(textLanguage !== 'both' ? { language: textLanguage } : {}),
         ...(activeMode === 'sprint' ? { wordCount } : {}),
         ...(activeMode === 'classic' ? { durationSeconds } : {}),
+        ...(numbersEnabled ? { numbersEnabled: true } : {}),
         ...(lastEntryIdRef.current
           ? { excludeIds: [lastEntryIdRef.current] }
           : {}),
@@ -252,6 +253,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     textLanguage,
     wordCount,
     durationSeconds,
+    numbersEnabled,
   ]);
 
   // La pièce musicale sélectionnée est toujours active.
