@@ -720,7 +720,7 @@ describe('HomeClient — mode Libre (textes personnels)', () => {
 });
 
 describe('HomeClient — onboarding première visite', () => {
-  it('force le mode apprentissage et masque ConfigBar quand onboarding non complété', async () => {
+  it("force le mode apprentissage mais garde la ConfigBar visible — la navigation doit toujours rester possible", async () => {
     mockHasCompletedOnboarding.mockResolvedValue(false);
     const { HomeClient } = await import('../typing/HomeClient');
     render(<HomeClient initialCollection={mockLitterature as never} />);
@@ -729,7 +729,28 @@ describe('HomeClient — onboarding première visite', () => {
       expect(learningModePropsRef.current?.isOnboarding).toBe(true);
     });
     expect(screen.getByTestId('learning-mode')).toBeInTheDocument();
-    expect(screen.queryByTestId('config-bar')).not.toBeInTheDocument();
+    expect(screen.getByTestId('config-bar')).toBeInTheDocument();
+  });
+
+  it("changer de mode depuis la ConfigBar pendant l'onboarding marque le tutoriel comme terminé (le piège ne doit pas revenir au prochain chargement)", async () => {
+    mockHasCompletedOnboarding.mockResolvedValue(false);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(learningModePropsRef.current?.isOnboarding).toBe(true);
+    });
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'classic' });
+    });
+
+    await waitFor(() => {
+      expect(mockMarkOnboardingComplete).toHaveBeenCalledOnce();
+    });
+    expect(screen.getByTestId('config-bar')).toBeInTheDocument();
+    expect(screen.queryByTestId('learning-mode')).not.toBeInTheDocument();
   });
 
   it("n'affiche pas le mode apprentissage quand l'onboarding est déjà complété", async () => {

@@ -294,6 +294,22 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     setActiveMode('classic');
   }, [setActiveMode]);
 
+  // Si l'utilisateur quitte le mode Apprentissage via la ConfigBar pendant
+  // l'onboarding (plutôt que via le bouton "Passer le tutoriel"), c'est tout
+  // aussi explicite : on considère le tutoriel terminé pour de bon, sinon
+  // hasCompletedOnboarding() resterait faux et le piège onboarding reviendrait
+  // au prochain chargement.
+  useEffect(() => {
+    if (!isOnboarding || activeMode === 'learning') return;
+    let cancelled = false;
+    void markOnboardingComplete().then(() => {
+      if (!cancelled) setIsOnboarding(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOnboarding, activeMode]);
+
   const handlePieceChange = useCallback((pieceId: MidiPieceId) => {
     setSelectedPieceId(pieceId);
   }, []);
@@ -563,9 +579,12 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             </div>
           )}
         </div>
-      ) : !isOnboarding ? (
+      ) : (
+        // La ConfigBar reste visible même pendant l'onboarding : sans elle,
+        // le mode Apprentissage devient un piège sans issue de navigation
+        // (le logo ne fait rien tant qu'on est déjà sur la même route).
         <ConfigBar />
-      ) : null}
+      )}
 
       <div
         style={{
