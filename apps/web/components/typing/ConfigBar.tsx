@@ -127,6 +127,12 @@ export function ConfigBar() {
         width: 'fit-content',
         maxWidth: '1200px',
         height: '42px' /* Strict height */,
+        // Élément de chrome permanent : ne doit jamais être écrasé par du
+        // contenu voisin trop haut (ex. mode Apprentissage). Sans ça, le
+        // parent flex-column à hauteur fixe (overflow: hidden) le réduit à
+        // 0px — la barre reste dans le DOM mais devient invisible, et donc
+        // impossible de changer de mode depuis là.
+        flexShrink: 0,
         margin: '0 auto',
         padding: '0 16px',
         background:
