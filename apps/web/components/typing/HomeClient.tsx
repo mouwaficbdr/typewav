@@ -46,6 +46,7 @@ import { applyTextFilters } from '@/lib/text-filters';
 import { useAudioStore } from '@/stores/useAudioStore';
 import { useConfigStore } from '@/stores/useConfigStore';
 import { useCustomTextStore } from '@/stores/useCustomTextStore';
+import { useSessionStore } from '@/stores/useSessionStore';
 import { type MidiPieceId } from '@typewav/audio-engine';
 import { selectFromTexts } from '@typewav/collections';
 import type { CollectionConfig } from '@typewav/types';
@@ -226,6 +227,18 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     // Différé en microtâche : la sélection (et le setState qui en découle)
     // ne doit pas s'exécuter de façon synchrone dans le corps de l'effet.
     queueMicrotask(() => {
+      // Cet effet peut se redéclencher plusieurs fois dans les premières
+      // centaines de ms après le montage (réhydratation asynchrone de
+      // useConfigStore depuis IndexedDB, fetch de collection, etc.) — sans
+      // jamais remonter TypingArea puisque `text` ne fait pas partie de sa
+      // key. Si l'utilisateur a déjà tapé au moins une frappe sur le texte
+      // affiché, changer `text` sous ses pieds réinitialiserait la session
+      // (position, keystrokes) sans réinitialiser le séquenceur MIDI — un
+      // curseur et une musique qui se désynchronisent, jusqu'à une frappe
+      // pourtant correcte affichée en erreur. Une fois la frappe commencée,
+      // le texte reste figé jusqu'au prochain essai (restart/shuffle).
+      if (useSessionStore.getState().keystrokes.length > 0) return;
+
       const entry = selectFromTexts(collection.texts, {
         ...(textLanguage !== 'both' ? { language: textLanguage } : {}),
         ...(activeMode === 'sprint' ? { wordCount } : {}),

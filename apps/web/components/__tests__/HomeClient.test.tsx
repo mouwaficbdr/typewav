@@ -151,8 +151,11 @@ vi.mock('@/stores/useProgressionStore', () => ({
 }));
 
 vi.mock('@/stores/useSessionStore', () => ({
-  useSessionStore: (selector: (s: { startedAt: null }) => unknown) =>
-    selector({ startedAt: null }),
+  useSessionStore: Object.assign(
+    (selector: (s: { startedAt: null }) => unknown) =>
+      selector({ startedAt: null }),
+    { getState: () => ({ keystrokes: [] }) },
+  ),
 }));
 
 vi.mock('next/link', () => ({
