@@ -381,7 +381,14 @@ const engine = new VoiceEngine();
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useAudioEngine() {
-  const { initialized, soundPackId } = useAudioStore();
+  // `soundPackId` seul, volontairement : s'abonner aussi à `initialized`
+  // ici forcerait un re-render de CHAQUE composant utilisant ce hook
+  // (TypingArea, HomeClient, ReplayClient, ChallengeClient, useAudioPreview,
+  // simultanément montés) au moment précis où l'utilisateur tape sa première
+  // touche — juste avant que la première note ne joue. loadSoundPack lit
+  // `initialized` via getState() ci-dessous, une lecture tout aussi fraîche
+  // sans l'abonnement réactif.
+  const { soundPackId } = useAudioStore();
   const recordNoteEvent = useSessionStore((s) => s.recordNoteEvent);
   const sessionPosition = useSessionStore((s) => s.position);
 
@@ -425,14 +432,11 @@ export function useAudioEngine() {
   /**
    * Charge un pack sonore (lazy loading — recrée le synth si changement de pack).
    */
-  const loadSoundPack = useCallback(
-    async (packId: string) => {
-      if (!initialized) return;
-      if (engine.loadedPack === packId) return;
-      await engine.buildVoices(packId);
-    },
-    [initialized],
-  );
+  const loadSoundPack = useCallback(async (packId: string) => {
+    if (!useAudioStore.getState().initialized) return;
+    if (engine.loadedPack === packId) return;
+    await engine.buildVoices(packId);
+  }, []);
 
   const playParsedNote = useCallback(
     async (

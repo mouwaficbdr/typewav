@@ -144,8 +144,12 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const hasGhostData = ghostData !== null;
   const ghostEnabled = activeMode === 'ghost' && hasGhostData;
 
-  const { initialized, soundPackId, midiLoadError, samplerLoadError } =
-    useAudioStore();
+  // `initialized` volontairement absent de cet abonnement : le sampler est
+  // préchargé au montage (indépendant du geste utilisateur), et s'abonner
+  // ici forcerait un re-render de tout HomeClient au moment précis où
+  // l'utilisateur tape sa première touche — juste avant que la première
+  // note ne joue.
+  const { soundPackId, midiLoadError, samplerLoadError } = useAudioStore();
   const { loadMidiPiece } = useAudioEngine();
   const { user, isPremium } = useUser();
 
@@ -460,7 +464,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             </button>
           )}
 
-          {initialized && samplerLoadError && (
+          {samplerLoadError && (
             <div
               role="alert"
               style={{
