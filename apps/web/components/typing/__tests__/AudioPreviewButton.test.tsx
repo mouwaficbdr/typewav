@@ -79,4 +79,9 @@ describe('AudioPreviewButton', () => {
     render(<AudioPreviewButton />);
     expect(screen.getByRole('button')).toBeDisabled();
   });
+
+  it('a un aria-label accessible', () => {
+    render(<AudioPreviewButton />);
+    expect(screen.getByRole('button')).toHaveAttribute('aria-label', 'ariaLabel');
+  });
 });
