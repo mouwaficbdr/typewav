@@ -143,13 +143,8 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const hasGhostData = ghostData !== null;
   const ghostEnabled = activeMode === 'ghost' && hasGhostData;
 
-  const {
-    initialized,
-    soundPackId,
-    midiLoadError,
-    isSamplerLoaded,
-    samplerLoadError,
-  } = useAudioStore();
+  const { initialized, soundPackId, midiLoadError, samplerLoadError } =
+    useAudioStore();
   const { loadMidiPiece } = useAudioEngine();
   const { user, isPremium } = useUser();
 
@@ -450,27 +445,6 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               <PenIcon size={12} className="opacity-70" />
               {tHint('myTexts')}
             </button>
-          )}
-
-          {initialized && soundPackId === 'piano' && !isSamplerLoaded && (
-            <div
-              role="status"
-              style={{
-                width: '100%',
-                maxWidth: '980px',
-                fontSize: '0.78rem',
-                color: 'var(--color-text-muted)',
-                border:
-                  '1px solid color-mix(in srgb, var(--color-accent) 35%, transparent)',
-                background:
-                  'color-mix(in srgb, var(--color-accent) 8%, transparent)',
-                borderRadius: 'var(--radius-sm)',
-                padding: '8px 10px',
-                textAlign: 'left',
-              }}
-            >
-              Loading piano sampler...
-            </div>
           )}
 
           {initialized && samplerLoadError && (

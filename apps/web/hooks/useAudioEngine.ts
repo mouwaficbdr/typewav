@@ -244,6 +244,14 @@ class VoiceEngine {
    * un second graphe qui dispose le premier en plein vol.
    */
   async buildVoices(packId: string): Promise<void> {
+    // Le pack demandé est déjà actif et aucune construction n'est en cours
+    // (buildVoicesInner résout dès le synth de repli prêt, avant même que le
+    // sampler ait fini de charger en tâche de fond) : rien à refaire. Sans ce
+    // court-circuit, deux appels espacés dans le temps (préchargement au
+    // montage de plusieurs composants, puis un initialize() explicite)
+    // reconstruisent inutilement tout le graphe pour le même pack.
+    if (!this.buildingPromise && this.loadedPack === packId) return;
+
     if (this.buildingPromise) {
       await this.buildingPromise.catch(() => {
         // L'échec de la construction en cours ne doit pas faire échouer
@@ -370,6 +378,17 @@ export function useAudioEngine() {
 
   useEffect(() => {
     engine.mount();
+    // Précharge le sampler piano dès le montage, sans attendre un geste
+    // utilisateur : décoder des échantillons (fetch + décodage audio) ne
+    // nécessite pas un AudioContext démarré, seule la lecture en a besoin
+    // (Tone.start(), gesture-gated dans initialize() ci-dessous). Le temps
+    // que l'utilisateur tape sa première touche, le vrai piano est déjà prêt
+    // dans l'immense majorité des cas — plus besoin d'un synth de repli
+    // audible en attendant.
+    engine.buildVoices(useAudioStore.getState().soundPackId).catch(() => {
+      // Échec silencieux : initialize() (gesture-gated) retentera au besoin
+      // au premier vrai keydown, avec sa propre gestion d'erreur.
+    });
     return () => {
       engine.unmount();
     };
@@ -428,7 +447,12 @@ export function useAudioEngine() {
           playTime,
           velocity,
         );
-      } else if (engine.fallbackSynth) {
+      } else if (engine.fallbackSynth && engine.loadedPack !== 'piano') {
+        // Le synth de repli EST le son voulu pour les packs non échantillonnés
+        // (synth-lofi, cinematic, jazz-piano) — mais jamais un remplacement
+        // audible du piano réel : comme la règle "jamais une fausse note",
+        // on préfère le silence à un autre instrument le temps que le
+        // sampler (préchargé au montage) finisse de charger.
         engine.fallbackSynth.triggerAttackRelease(
           noteToPlay,
           duration,
