@@ -65,6 +65,11 @@ vi.mock('tone', () => {
   return {
     start: vi.fn().mockResolvedValue(undefined),
     now: vi.fn().mockReturnValue(0),
+    getContext: vi.fn().mockReturnValue({
+      lookAhead: 0.1,
+      state: 'running',
+      rawContext: { state: 'running' },
+    }),
     Frequency: vi.fn().mockReturnValue({ toNote: () => 'C4' }),
     Sampler: vi.fn(function (this: unknown, opts: { onload?: () => void }) {
       return new Sampler(opts);

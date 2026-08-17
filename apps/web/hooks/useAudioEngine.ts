@@ -164,7 +164,16 @@ function normalizeVelocity(rawVelocity: number): number {
 let tonePromise: Promise<typeof import('tone')> | null = null;
 function loadTone(): Promise<typeof import('tone')> {
   if (!tonePromise) {
-    tonePromise = import('tone');
+    tonePromise = import('tone').then((Tone) => {
+      // Tone.js programme par défaut chaque évènement 100ms dans le futur
+      // (context.lookAhead) — pensé pour la lecture fluide de longues
+      // séquences, pas pour un instrument qui doit répondre à la frappe. Une
+      // seule voix joue à la fois ici, donc pas de risque de glitch à
+      // réduire cette marge : on gagne un délai perceptible entre la touche
+      // et la note sur chaque frappe, pas seulement la première.
+      Tone.getContext().lookAhead = 0.01;
+      return Tone;
+    });
   }
   return tonePromise;
 }
