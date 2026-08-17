@@ -145,4 +145,47 @@ describe('loadMidiPieceWithAssets', () => {
       code: 'MIDI_ASSET_FETCH_FAILED',
     });
   });
+
+  it("récupère automatiquement d'une entrée de cache corrompue (0 note exploitable) en repartant d'un parsing réseau propre, au lieu de planter l'utilisateur sur une erreur définitive", async () => {
+    const { setCachedMidiPiece } = await import('../midi-piece-cache');
+    getMidiAssetPathMock.mockReturnValue('/midi/fur_Elise_WoO59.mid');
+    getMidiAssetCacheVersionMock.mockReturnValue('fur_Elise_WoO59.mid:v2');
+
+    // Une pièce déjà en cache, mais corrompue par un bug de parsing passé —
+    // c'est exactement le scénario reproduit en session live sur Für Elise.
+    await setCachedMidiPiece('fur-elise', 'fur_Elise_WoO59.mid:v2', {
+      ...BASE_PIECE,
+      notes: [],
+    });
+
+    const midiBytes = await readFile(
+      `${process.cwd()}/apps/web/public/midi/fur_Elise_WoO59.mid`,
+    );
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        arrayBuffer: async () =>
+          midiBytes.buffer.slice(
+            midiBytes.byteOffset,
+            midiBytes.byteOffset + midiBytes.byteLength,
+          ),
+      }),
+    );
+
+    // loadPieceFromData simule le vrai comportement de normalizePiece :
+    // rejette une pièce sans notes exploitables (cache), puis accepte la
+    // pièce fraîchement re-parsée depuis le réseau.
+    loadPieceFromDataMock
+      .mockImplementationOnce(() => {
+        throw new Error('MIDI piece has no playable notes: fur-elise');
+      })
+      .mockImplementation((piece) => piece);
+
+    const { loadMidiPieceWithAssets } = await import('../midi-asset-loader');
+    const piece = await loadMidiPieceWithAssets('fur-elise');
+
+    expect(piece.notes.length).toBeGreaterThan(0);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  });
 });

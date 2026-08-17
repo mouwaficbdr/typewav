@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   clearInMemoryMidiPieceCache,
   getCachedMidiPiece,
+  invalidateCachedMidiPiece,
   setCachedMidiPiece,
 } from '../midi-piece-cache';
 
@@ -47,5 +48,13 @@ describe('midi-piece-cache', () => {
     const stale = await getCachedMidiPiece('fur-elise', 'asset-v2');
 
     expect(stale).toBeNull();
+  });
+
+  it('invalidateCachedMidiPiece supprime une entrée corrompue du cache mémoire — le prochain appel ne doit plus jamais la revoir', async () => {
+    await setCachedMidiPiece('fur-elise', 'asset-v1', BASE_PIECE);
+
+    await invalidateCachedMidiPiece('fur-elise');
+
+    expect(await getCachedMidiPiece('fur-elise', 'asset-v1')).toBeNull();
   });
 });

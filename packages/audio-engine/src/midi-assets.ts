@@ -174,9 +174,18 @@ export function getMidiAssetPath(pieceId: MidiPieceId): string | null {
   return MIDI_ASSET_MAP.get(pieceId) ?? null;
 }
 
+/**
+ * Version du pipeline de parsing MIDI (buildPieceFromMidi/normalizePiece).
+ * À incrémenter à chaque changement de cette logique — sinon un cache
+ * IndexedDB existant, potentiellement corrompu par un bug de parsing déjà
+ * corrigé, n'est jamais invalidé tant que le nom de fichier source ne change
+ * pas lui-même. Voir apps/web/lib/midi-piece-cache.ts.
+ */
+export const MIDI_PARSER_VERSION = 'v2';
+
 export function getMidiAssetCacheVersion(pieceId: MidiPieceId): string | null {
   const entry = MIDI_ASSET_ENTRY_BY_PIECE_ID.get(pieceId);
   if (!entry) return null;
 
-  return entry.cacheVersion ?? entry.sourceFileName;
+  return `${entry.cacheVersion ?? entry.sourceFileName}:${MIDI_PARSER_VERSION}`;
 }

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { MUSIC_LIBRARY } from '../library';
 import {
   MIDI_ASSET_INTEGRATIONS,
+  MIDI_PARSER_VERSION,
   ROOT_MIDI_ASSET_INTEGRATIONS,
   UNMAPPED_MIDI_ASSET_FILES,
   UNMAPPED_ROOT_MIDI_FILES,
@@ -25,7 +26,18 @@ describe('midi-assets integration', () => {
   });
 
   it('retourne une version de cache stable pour une pièce mappée', () => {
-    expect(getMidiAssetCacheVersion('fur-elise')).toBe('fur_Elise_WoO59.mid');
+    expect(getMidiAssetCacheVersion('fur-elise')).toBe(
+      `fur_Elise_WoO59.mid:${MIDI_PARSER_VERSION}`,
+    );
+  });
+
+  it('inclut la version du pipeline de parsing dans la clé de cache — sans ça, un cache corrompu par un bug de parsing passé ne serait jamais invalidé tant que le nom de fichier ne change pas', () => {
+    expect(getMidiAssetCacheVersion('fur-elise')).not.toBe(
+      'fur_Elise_WoO59.mid',
+    );
+    expect(getMidiAssetCacheVersion('fur-elise')).toContain(
+      MIDI_PARSER_VERSION,
+    );
   });
 
   it('retourne null pour une pièce non mappée', () => {

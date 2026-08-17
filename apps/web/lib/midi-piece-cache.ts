@@ -94,3 +94,23 @@ export async function setCachedMidiPiece(
 export function clearInMemoryMidiPieceCache(): void {
   memoryCache.clear();
 }
+
+/**
+ * Supprime une entrée précise (mémoire + IndexedDB) — utilisé quand une
+ * entrée en cache s'avère corrompue (ex. séquence sans note exploitable) et
+ * qu'il faut forcer un rechargement propre depuis le réseau.
+ */
+export async function invalidateCachedMidiPiece(
+  pieceId: string,
+): Promise<void> {
+  memoryCache.delete(pieceId);
+
+  const db = await getPersistentDb();
+  if (!db) return;
+
+  try {
+    await db.delete(STORE_NAME, pieceId);
+  } catch {
+    // Best-effort — le cache mémoire est déjà invalidé, c'est le principal.
+  }
+}

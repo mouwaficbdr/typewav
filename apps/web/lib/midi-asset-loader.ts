@@ -9,7 +9,11 @@ import {
   type ParsedNote,
   type ParsedPiece,
 } from '@typewav/audio-engine';
-import { getCachedMidiPiece, setCachedMidiPiece } from './midi-piece-cache';
+import {
+  getCachedMidiPiece,
+  invalidateCachedMidiPiece,
+  setCachedMidiPiece,
+} from './midi-piece-cache';
 
 const PIANO_PROGRAMS = new Set([0, 1, 2, 3, 4, 5, 6, 7]);
 const PHRASE_BOUNDARY_THRESHOLD_MS = 150;
@@ -224,7 +228,15 @@ export async function loadMidiPieceWithAssets(
     if (signal?.aborted) {
       throw abortedError('MIDI asset load aborted while reading cache.');
     }
-    return loadPieceFromData(cached);
+    try {
+      return loadPieceFromData(cached);
+    } catch {
+      // Entrée en cache corrompue (ex. séquence sans note exploitable,
+      // reliquat d'un bug de parsing déjà corrigé) : on l'efface et on
+      // retombe sur un chargement réseau propre ci-dessous, plutôt que de
+      // bloquer l'utilisateur sur une erreur définitive.
+      await invalidateCachedMidiPiece(canonicalPieceId);
+    }
   }
 
   let response: Response;
