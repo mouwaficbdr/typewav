@@ -151,6 +151,24 @@ function normalizeVelocity(rawVelocity: number): number {
   return Math.max(0.2, Math.min(1, rawVelocity / 127));
 }
 
+// Un seul point d'import dynamique pour 'tone', mémoïsé. Ce fichier appelle
+// initialize/build/play/resume depuis 4 endroits distincts ; avec un
+// `await import('tone')` séparé à chacun, le bundler dev (Turbopack) peut
+// résoudre certains sites d'appel vers un chunk physiquement distinct du
+// module — chacun avec sa propre instance de Tone.js et donc son propre
+// AudioContext interne. Tone.start() appelé sur l'instance A ne réveille
+// jamais le contexte de l'instance B : le graphe audio construit ensuite sur
+// B reste indéfiniment suspendu, et toute promesse Tone.js interne qui
+// attend ce contexte reste bloquée pour toujours (symptôme observé en
+// session live : plus aucune frappe n'a d'effet après un certain délai).
+let tonePromise: Promise<typeof import('tone')> | null = null;
+function loadTone(): Promise<typeof import('tone')> {
+  if (!tonePromise) {
+    tonePromise = import('tone');
+  }
+  return tonePromise;
+}
+
 async function createPianoSampler(
   Tone: typeof import('tone'),
   reverb: ToneReverb,
@@ -244,7 +262,7 @@ class VoiceEngine {
   }
 
   private async buildVoicesInner(packId: string): Promise<void> {
-    const Tone = await import('tone');
+    const Tone = await loadTone();
     const config = PACK_CONFIGS[packId] ?? DEFAULT_PACK_CONFIG;
     const audioStore = useAudioStore.getState();
 
@@ -278,25 +296,31 @@ class VoiceEngine {
 
     if (packId !== 'piano') return;
 
-    try {
-      const sampler = await createPianoSampler(Tone, reverb);
+    // Chargement du sampler piano (30 échantillons à décoder, plusieurs
+    // secondes) en tâche de fond, sans bloquer buildVoices()/initialize() :
+    // le fallbackSynth ci-dessus est déjà prêt à jouer immédiatement.
+    // playParsedNote() bascule sur le sampler dès qu'il s'installe sur
+    // this.sampler — sinon chaque première frappe d'une session attend le
+    // décodage complet avant de jouer le moindre son.
+    void createPianoSampler(Tone, reverb)
+      .then((sampler) => {
+        if (this.loadedPack !== packId) {
+          sampler.dispose();
+          return;
+        }
 
-      if (this.loadedPack !== packId) {
-        sampler.dispose();
-        return;
-      }
-
-      sampler.volume.value = currentVolumeDb;
-      this.sampler = sampler;
-      audioStore.setSamplerLoaded(true);
-    } catch (error) {
-      if (this.loadedPack !== packId) return;
-      audioStore.setSamplerLoadError(
-        getErrorMessage(error, 'Piano sampler unavailable.'),
-      );
-      // Fallback synth déjà prêt.
-      audioStore.setSamplerLoaded(true);
-    }
+        sampler.volume.value = currentVolumeDb;
+        this.sampler = sampler;
+        audioStore.setSamplerLoaded(true);
+      })
+      .catch((error: unknown) => {
+        if (this.loadedPack !== packId) return;
+        audioStore.setSamplerLoadError(
+          getErrorMessage(error, 'Piano sampler unavailable.'),
+        );
+        // Fallback synth déjà prêt.
+        audioStore.setSamplerLoaded(true);
+      });
   }
 
   /**
@@ -321,7 +345,7 @@ class VoiceEngine {
   }
 
   private async initializeInner(soundPackId: string): Promise<void> {
-    const Tone = await import('tone');
+    const Tone = await loadTone();
     await Tone.start();
 
     await this.buildVoices(soundPackId);
@@ -388,7 +412,7 @@ export function useAudioEngine() {
       char: string,
       wordIndex: number,
     ): Promise<string | null> => {
-      const Tone = await import('tone');
+      const Tone = await loadTone();
 
       const referenceBpm = getCurrentPiece()?.bpmReference ?? 120;
       const duration = warpEngine.getNoteDuration(parsedNote, referenceBpm);
@@ -461,7 +485,7 @@ export function useAudioEngine() {
   const triggerResume = useCallback(async () => {
     if (!useAudioStore.getState().initialized) return;
 
-    const Tone = await import('tone');
+    const Tone = await loadTone();
     const reverb = engine.reverb;
     if (!reverb) return;
 

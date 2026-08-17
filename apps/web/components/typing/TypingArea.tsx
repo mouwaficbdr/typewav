@@ -101,11 +101,6 @@ export function TypingArea({
   const [isFocused, setIsFocused] = useState(false);
   const [translateY, setTranslateY] = useState(0);
 
-  // Focus automatique sur le conteneur au montage
-  useEffect(() => {
-    containerRef.current?.focus();
-  }, []);
-
   // Remettre le séquenceur MIDI à zéro pour chaque nouvelle tentative.
   // TypingArea remonte entièrement à chaque nouveau test (restart, shuffle,
   // changement de collection/pièce — via la key React côté HomeClient),
@@ -191,16 +186,22 @@ export function TypingArea({
   const wordIndex = text.slice(0, position).split(' ').length - 1;
 
   const handleKeyDown = useCallback(
-    async (e: React.KeyboardEvent<HTMLDivElement>) => {
+    async (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (isComplete) return;
 
-      // Initialiser Tone.js à la première frappe (contrainte navigateur)
-      await initialize();
+      // Démarre l'initialisation audio (Tone.start() doit être appelé de
+      // façon synchrone dans le keydown pour la contrainte navigateur) sans
+      // jamais bloquer dessus : le curseur doit avancer sur CHAQUE frappe,
+      // correcte ou incorrecte (invariant du produit, voir useSessionStore),
+      // indépendamment du temps que prend le chargement du sampler
+      // (plusieurs secondes à froid).
+      const initPromise = initialize();
 
       if (e.key === 'Backspace') {
         correctionEchoRef.current.onBackspace(keystrokes[keystrokes.length - 1]);
         handleBackspace();
+        await initPromise;
         return;
       }
 
@@ -210,6 +211,8 @@ export function TypingArea({
       const isCorrect = e.key === expected;
 
       handleKeystroke(e.key);
+
+      await initPromise;
 
       if (isCorrect) {
         const playedNote = await playNote(e.key, wordIndex);
@@ -240,6 +243,53 @@ export function TypingArea({
       onNoteChange,
     ],
   );
+
+  // handleKeyDown change de référence à chaque frappe (deps de son
+  // useCallback) — passer par un ref permet au listener natif ci-dessous de
+  // toujours appeler la version courante sans avoir à se détacher/rattacher
+  // à chaque frappe.
+  const handleKeyDownRef = useRef(handleKeyDown);
+  useEffect(() => {
+    handleKeyDownRef.current = handleKeyDown;
+  });
+
+  // Écoute native (addEventListener) plutôt que les props React
+  // onKeyDown/onFocus/onBlur. Constaté en session live (reproduit en dev ET
+  // en build de prod, avec focus DOM/fenêtre confirmés corrects et les props
+  // bien attachées aux internals React) : un keydown, même natif et fiable
+  // au niveau DOM, n'atteignait jamais le dispatch synthétique de React
+  // après un focus purement programmatique — un vrai clic le débloquait
+  // systématiquement, un addEventListener natif posé directement sur le
+  // conteneur aussi. Cause exacte non identifiée côté React ; on contourne
+  // son système d'événements synthétique pour ce chemin critique plutôt que
+  // de dépendre de lui.
+  //
+  // useLayoutEffect (pas useEffect), et les listeners posés AVANT
+  // container.focus() : sinon le focus automatique au montage émet son
+  // événement 'focus' natif avant que le listener ne soit attaché, et cet
+  // évènement — non rejouable, un élément déjà focus ne réémet rien — est
+  // perdu pour de bon (overlay "Cliquez pour activer" resté affiché à tort).
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      void handleKeyDownRef.current(e);
+    };
+    const onFocus = () => setIsFocused(true);
+    const onBlur = () => setIsFocused(false);
+
+    container.addEventListener('keydown', onKeyDown);
+    container.addEventListener('focus', onFocus);
+    container.addEventListener('blur', onBlur);
+    container.focus();
+
+    return () => {
+      container.removeEventListener('keydown', onKeyDown);
+      container.removeEventListener('focus', onFocus);
+      container.removeEventListener('blur', onBlur);
+    };
+  }, []);
 
   return (
     <div
@@ -303,9 +353,6 @@ export function TypingArea({
         aria-label={t('hint')}
         aria-multiline="false"
         tabIndex={0}
-        onKeyDown={handleKeyDown}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
         className="cursor-text select-none w-full"
         style={{
           position: 'relative',
