@@ -78,13 +78,6 @@ vi.mock('tone', () => {
   };
 });
 
-vi.mock('@/lib/harmonic-drone', () => ({
-  harmonicDrone: {
-    start: vi.fn().mockResolvedValue(undefined),
-    stop: vi.fn().mockResolvedValue(undefined),
-  },
-}));
-
 vi.mock('@/lib/warp-engine', () => ({
   warpEngine: {
     reset: vi.fn(),
@@ -104,7 +97,6 @@ vi.mock('@/lib/note-expression', () => ({
   applyTypingExpression: (note: string) => note,
 }));
 
-import { harmonicDrone } from '@/lib/harmonic-drone';
 import { useAudioStore } from '@/stores/useAudioStore';
 import { useSessionStore } from '@/stores/useSessionStore';
 import { loadPieceFromData } from '@typewav/audio-engine';
@@ -231,9 +223,8 @@ describe('useAudioEngine — cycle de vie partagé', () => {
     expect(useAudioStore.getState().initialized).toBe(true);
 
     instanceB.unmount();
-    // Plus aucune instance montée : le moteur (et le bourdon) se ferment.
+    // Plus aucune instance montée : le moteur se ferme.
     expect(samplerInstances[0]!.dispose).toHaveBeenCalled();
     expect(useAudioStore.getState().initialized).toBe(false);
-    expect(harmonicDrone.stop).toHaveBeenCalled();
   });
 });

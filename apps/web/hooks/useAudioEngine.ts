@@ -24,7 +24,6 @@
  * Spec : docs/specs/01-audio-engine.md
  */
 
-import { harmonicDrone } from '@/lib/harmonic-drone';
 import {
   MidiAssetLoadError,
   loadMidiPieceWithAssets,
@@ -39,7 +38,6 @@ import {
   getCurrentPiece,
   type MidiPieceId,
   type ParsedNote,
-  type ParsedPiece,
 } from '@typewav/audio-engine';
 import { useCallback, useEffect, useRef } from 'react';
 // Import de type uniquement — pas d'impact runtime (Tone.js reste lazy)
@@ -153,11 +151,6 @@ function normalizeVelocity(rawVelocity: number): number {
   return Math.max(0.2, Math.min(1, rawVelocity / 127));
 }
 
-function getPieceTonicPitch(piece: ParsedPiece | null): number | null {
-  if (!piece || piece.notes.length === 0) return null;
-  return piece.notes[0]?.pitch ?? null;
-}
-
 async function createPianoSampler(
   Tone: typeof import('tone'),
   reverb: ToneReverb,
@@ -180,7 +173,6 @@ class VoiceEngine {
   sampler: ToneSampler | null = null;
   reverb: ToneReverb | null = null;
   loadedPack = '';
-  pendingDronePitch: number | null = null;
   midiLoadRequestId = 0;
   midiLoadAbortController: AbortController | null = null;
 
@@ -198,8 +190,6 @@ class VoiceEngine {
     if (this.mountedCount === 0) {
       this.midiLoadAbortController?.abort();
       warpEngine.reset();
-      this.pendingDronePitch = null;
-      void harmonicDrone.stop();
       this.disposeVoices();
       this.loadedPack = '';
       // Sans ce reset, une instance qui remonte ensuite verrait
@@ -341,10 +331,6 @@ class VoiceEngine {
       warpEngine.reset(currentPiece.bpmReference);
     }
 
-    if (this.pendingDronePitch !== null) {
-      await harmonicDrone.start(this.pendingDronePitch);
-    }
-
     useAudioStore.getState().setInitialized(true);
   }
 }
@@ -459,22 +445,6 @@ export function useAudioEngine() {
     [soundPackId, playParsedNote],
   );
 
-  const refreshDroneForCurrentPiece = useCallback(async () => {
-    const tonicPitch = getPieceTonicPitch(getCurrentPiece());
-    engine.pendingDronePitch = tonicPitch;
-
-    if (tonicPitch === null) {
-      await harmonicDrone.stop();
-      return;
-    }
-
-    if (!useAudioStore.getState().initialized) {
-      return;
-    }
-
-    await harmonicDrone.start(tonicPitch);
-  }, []);
-
   /**
    * Silence pour une frappe incorrecte — ne joue rien.
    * En mode MIDI : la séquence se fige (position non avancée, géré dans playNote).
@@ -536,7 +506,6 @@ export function useAudioEngine() {
         audioStore.setActivePiece(pieceId);
         audioStore.setMidiLoadError(null);
         warpEngine.reset(parsedPiece.bpmReference);
-        await refreshDroneForCurrentPiece();
       } catch (error) {
         if (requestId !== engine.midiLoadRequestId) {
           return;
@@ -554,9 +523,7 @@ export function useAudioEngine() {
             ? error.message
             : 'Unknown MIDI loading error.';
         clearLoadedPiece();
-        engine.pendingDronePitch = null;
         warpEngine.reset();
-        await harmonicDrone.stop();
         audioStore.setActivePiece(null);
         audioStore.setMidiLoadError(message);
       } finally {
@@ -565,7 +532,7 @@ export function useAudioEngine() {
         }
       }
     },
-    [refreshDroneForCurrentPiece],
+    [],
   );
 
   return {

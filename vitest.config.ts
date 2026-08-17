@@ -41,7 +41,6 @@ export default defineConfig({
         'apps/web/lib/supabase/**', // SDK init glue
         'apps/web/lib/stripe.ts', // SDK init glue
         'apps/web/lib/fonts.ts', // next/font config
-        'apps/web/lib/harmonic-drone.ts', // Tone.js audio side-effects
       ],
       // Enforced ratchet floors set to the measured baseline of the scope
       // above (lines 81.6% / funcs 86.1% / branches 66.9%). The previous
