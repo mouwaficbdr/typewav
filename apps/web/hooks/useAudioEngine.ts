@@ -584,12 +584,30 @@ export function useAudioEngine() {
   );
 
   /**
-   * Silence pour une frappe incorrecte — ne joue rien.
-   * En mode MIDI : la séquence se fige (position non avancée, géré dans playNote).
+   * Silence pour une frappe incorrecte — ne joue jamais de nouvelle note
+   * (règle absolue : jamais une fausse note). En mode MIDI, la séquence se
+   * fige (position non avancée, géré dans playNote).
+   *
+   * Ce silence reste un vrai silence côté mélodie, mais une coupure sèche et
+   * répétée se vit comme une sanction plutôt qu'une pause — à rebours d'un
+   * produit qui se veut apaisant. On adoucit la transition avec le même
+   * mécanisme de fondu de réverbération que triggerResume (jamais de nouveau
+   * son, jamais de note) : un bref surcroît de reverb qui laisse le son déjà
+   * en train de sonner s'éteindre en fondu au lieu de s'arrêter net.
    */
-  const triggerSilence = useCallback(() => {
-    // Intentionnellement vide — le silence est le comportement correct sur erreur
-  }, []);
+  const triggerSilence = useCallback(async () => {
+    if (!useAudioStore.getState().initialized) return;
+
+    const reverb = engine.reverb;
+    if (!reverb) return;
+
+    const Tone = await loadTone();
+    const baselineWet = (PACK_CONFIGS[soundPackId] ?? DEFAULT_PACK_CONFIG)
+      .reverbWet;
+
+    reverb.wet.rampTo(Math.min(1, baselineWet + 0.25), 0.15, Tone.now());
+    reverb.wet.rampTo(baselineWet, 0.5, Tone.now() + 0.15);
+  }, [soundPackId]);
 
   /**
    * Reprend après correction avec micro-reverb.

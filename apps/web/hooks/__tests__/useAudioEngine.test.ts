@@ -171,6 +171,45 @@ describe('useAudioEngine — triggerResume', () => {
   });
 });
 
+describe('useAudioEngine — triggerSilence', () => {
+  it('ne joue aucune note et adoucit le reverb en fondu, jamais à zéro', async () => {
+    const { result, unmount } = renderHook(() => useAudioEngine());
+
+    await act(async () => {
+      await result.current.initialize();
+    });
+    await waitFor(() => expect(samplerInstances.length).toBe(1));
+
+    await act(async () => {
+      await result.current.triggerSilence();
+    });
+
+    const sampler = samplerInstances[0]!;
+    expect(sampler.triggerAttackRelease).not.toHaveBeenCalled();
+
+    const reverb = reverbInstances[0]!;
+    const rampCalls = reverb.wet.rampTo.mock.calls;
+    expect(rampCalls[0]?.[0]).toBeGreaterThan(0.25); // léger surcroît de reverb
+    expect(rampCalls[1]?.[0]).toBe(0.25); // retour au wet du pack piano, pas 0
+
+    unmount();
+  });
+
+  it("ne touche pas au reverb si l'audio n'est pas initialisé", async () => {
+    const { result, unmount } = renderHook(() => useAudioEngine());
+
+    await act(async () => {
+      await result.current.triggerSilence();
+    });
+
+    reverbInstances.forEach((reverb) => {
+      expect(reverb.wet.rampTo).not.toHaveBeenCalled();
+    });
+
+    unmount();
+  });
+});
+
 describe('useAudioEngine — pas de double initialisation', () => {
   it('deux appels concurrents à initialize() ne construisent le graphe audio qu’une fois', async () => {
     const { result, unmount } = renderHook(() => useAudioEngine());
