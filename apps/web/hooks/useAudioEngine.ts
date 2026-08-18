@@ -352,20 +352,26 @@ class VoiceEngine {
       return;
     }
 
-    const promise = this.initializeInner(soundPackId);
+    // .catch() attaché ICI, avant d'assigner à this.initializingPromise :
+    // ce champ est lu par DEUX chemins distincts (le try/finally juste en
+    // dessous, et le "if (this.initializingPromise)" ci-dessus pour un
+    // appelant concurrent arrivé pendant que celui-ci tourne — TypingArea
+    // ET playNote() appellent tous deux initialize()/engine.initialize()).
+    // Un rejet (ex. timeout Tone.start()) rejette la même promesse pour
+    // TOUS ses awaiters ; ne l'attraper que dans le try/catch local
+    // laissait le second chemin planter en rejection non gérée.
+    const promise = this.initializeInner(soundPackId).catch(() => {
+      // Échec : `initialized` reste false, ce qui reflète l'état réel. Ne
+      // jamais propager — les appelants (playNote, le hook) dégradent déjà
+      // proprement vers le silence quand l'audio n'est pas prêt.
+    });
     this.initializingPromise = promise;
     try {
       await promise;
-    } catch {
-      // Échec (ex. timeout Tone.start() ci-dessous) : `initialized` reste
-      // false, ce qui reflète l'état réel. Ne jamais propager — les
-      // appelants (playNote, le hook) dégradent déjà proprement vers le
-      // silence quand l'audio n'est pas prêt, sans avoir besoin de gérer
-      // une rejection individuellement.
     } finally {
-      // Toujours exécuté, y compris sur échec : une frappe suivante doit
-      // pouvoir retenter une initialisation propre plutôt que d'attendre
-      // indéfiniment une tentative qui ne se terminera jamais.
+      // Toujours exécuté : une frappe suivante doit pouvoir retenter une
+      // initialisation propre plutôt que d'attendre indéfiniment une
+      // tentative qui ne se terminera jamais.
       this.initializingPromise = null;
     }
   }
