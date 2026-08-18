@@ -1,6 +1,24 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import frMessages from '../../../messages/fr.json';
+
+// Interpole les vraies chaînes fr.json (namespace + placeholders {x}) plutôt
+// que de renvoyer la clé brute — les assertions ci-dessous vérifient de la
+// vraie copie utilisateur (noms de niveaux, CTA), pas le câblage i18n en soi.
+vi.mock('next-intl', () => ({
+  useTranslations: (namespace: string) => (key: string, values?: Record<string, unknown>) => {
+    const path = `${namespace}.${key}`.split('.');
+    let msg: unknown = frMessages;
+    for (const segment of path) {
+      msg = (msg as Record<string, unknown> | undefined)?.[segment];
+    }
+    if (typeof msg !== 'string') return `${namespace}.${key}`;
+    return msg.replace(/\{(\w+)\}/g, (_match, token: string) =>
+      String(values?.[token] ?? ''),
+    );
+  },
+}));
 
 const typingAreaPropsRef: {
   current: null | {
@@ -101,7 +119,7 @@ describe('LearningMode progression wiring', () => {
     });
 
     expect(screen.getByText(/10\/50 frappes/i)).toBeInTheDocument();
-    expect(screen.getByText(/Derni.re session:/i)).toBeInTheDocument();
+    expect(screen.getByText(/Derni.re session/i)).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: /D.bloquer le niveau 2/i }),
     ).not.toBeInTheDocument();
@@ -126,7 +144,7 @@ describe('LearningMode progression wiring', () => {
 
     fireEvent.click(unlockButton);
 
-    expect(screen.getByText(/Niveau 2.*Top Row/i)).toBeInTheDocument();
+    expect(screen.getByText(/Niveau 2.*Vers les aigus/i)).toBeInTheDocument();
   });
 });
 

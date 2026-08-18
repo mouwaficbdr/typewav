@@ -330,6 +330,40 @@
       "gaming": "Gaming"
     }
   },
+  "learning": {
+    "tagline": "Every keystroke is already a note.",
+    "level": {
+      "1": {
+        "name": "First Notes",
+        "tagline": "Rest your fingers — the music has already begun."
+      },
+      "2": {
+        "name": "Reaching the Highs",
+        "tagline": "Your melody climbs a row."
+      },
+      "3": {
+        "name": "Reaching the Lows",
+        "tagline": "It descends, it breathes."
+      },
+      "4": {
+        "name": "Your First Score",
+        "tagline": "Real words, a real melody taking shape."
+      },
+      "5": {
+        "name": "Accents & Rests",
+        "tagline": "Capitals and punctuation: the accents and rests of your music."
+      }
+    },
+    "levelHeading": "Level {id} — {name}",
+    "progressStats": "{samples}/{minSamples} keystrokes • {accuracy}% accuracy",
+    "objective": "Goal: {accuracy}% accuracy over {samples} keystrokes.",
+    "lastSession": "Last session: {wpm} WPM · {accuracy}% ({correct}/{total})",
+    "remaining": "{samples} keystrokes and ~{accuracy}% accuracy left to reach.",
+    "skipTutorial": "Skip tutorial",
+    "tutorialComplete": "Tutorial complete! You're already improvising.",
+    "exitToClassic": "Switch to Classic mode →",
+    "unlockNext": "Unlock level {id} →"
+  },
   "hint": {
     "restart": "Restart (Tab + Enter)",
     "tabEnter": "tab + enter — new text"

@@ -23,6 +23,7 @@ import {
 import { generateLearningText } from '@/lib/words';
 import { LEARNING_LEVELS } from '@typewav/types';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface LearningSessionStats {
@@ -49,6 +50,7 @@ export function LearningMode({
   isOnboarding = false,
   onExitTutorial,
 }: LearningModeProps) {
+  const t = useTranslations('learning');
   const shouldReduceMotion = useReducedMotion();
   const duration = shouldReduceMotion ? 0 : 0.3;
 
@@ -191,22 +193,39 @@ export function LearningMode({
       )}
 
       {isOnboarding && (
-        <button
-          onClick={onExitTutorial}
-          style={{
-            alignSelf: 'flex-end',
-            background: 'transparent',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-            color: 'var(--color-text-muted)',
-            fontFamily: 'var(--font-ui)',
-            fontSize: 12,
-            padding: '6px 12px',
-            cursor: 'pointer',
-          }}
-        >
-          Passer le tutoriel
-        </button>
+        <>
+          {/* La promesse "musicothérapie" existe dans les meta SEO depuis
+              toujours, mais aucun utilisateur ne les voit jamais — c'est ici,
+              au tout premier contact, qu'elle doit vivre à l'écran. */}
+          <p
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontStyle: 'italic',
+              color: 'var(--color-accent)',
+              fontSize: '1.1rem',
+              textAlign: 'center',
+              margin: 0,
+            }}
+          >
+            {t('tagline')}
+          </p>
+          <button
+            onClick={onExitTutorial}
+            style={{
+              alignSelf: 'flex-end',
+              background: 'transparent',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-md)',
+              color: 'var(--color-text-muted)',
+              fontFamily: 'var(--font-ui)',
+              fontSize: 12,
+              padding: '6px 12px',
+              cursor: 'pointer',
+            }}
+          >
+            {t('skipTutorial')}
+          </button>
+        </>
       )}
 
       {/* Titre du niveau */}
@@ -218,8 +237,22 @@ export function LearningMode({
             fontSize: '1.75rem',
           }}
         >
-          Niveau {currentLevelId} — {currentLevel.name}
+          {t('levelHeading', {
+            id: currentLevelId,
+            name: t(`level.${currentLevelId}.name`),
+          })}
         </h2>
+        <p
+          style={{
+            fontFamily: 'var(--font-ui)',
+            fontSize: 13,
+            color: 'var(--color-text-muted)',
+            fontStyle: 'italic',
+            margin: 0,
+          }}
+        >
+          {t(`level.${currentLevelId}.tagline`)}
+        </p>
 
         {/* Progression */}
         <div className="flex items-center gap-3 mt-1">
@@ -248,8 +281,11 @@ export function LearningMode({
               color: 'var(--color-text-muted)',
             }}
           >
-            {currentProgress.samples}/{currentLevel.minSamples} frappes •{' '}
-            {currentProgress.accuracy.toFixed(0)}% précision
+            {t('progressStats', {
+              samples: currentProgress.samples,
+              minSamples: currentLevel.minSamples,
+              accuracy: currentProgress.accuracy.toFixed(0),
+            })}
           </span>
         </div>
       </div>
@@ -260,12 +296,13 @@ export function LearningMode({
           const progress = levelProgress.find((p) => p.levelId === level.id)!;
           const isActive = level.id === currentLevelId;
           const isSelectable = progress.unlocked || IS_DEV_MODE;
+          const levelName = t(`level.${level.id}.name`);
           return (
             <button
               key={level.id}
               onClick={() => handleLevelSelect(level.id)}
               disabled={!isSelectable}
-              aria-label={`Niveau ${level.id} — ${level.name}`}
+              aria-label={t('levelHeading', { id: level.id, name: levelName })}
               style={{
                 padding: '6px 14px',
                 borderRadius: 'var(--radius-md)',
@@ -285,7 +322,7 @@ export function LearningMode({
                 transition: 'all 0.15s',
               }}
             >
-              {level.id}. {level.name}
+              {level.id}. {levelName}
             </button>
           );
         })}
@@ -310,22 +347,23 @@ export function LearningMode({
           lineHeight: 1.4,
         }}
       >
-        {lastSessionStats ? (
-          <>
-            Dernière session: {Math.round(lastSessionStats.wpm)} WPM ·{' '}
-            {Math.round(lastSessionStats.accuracy)}% ({lastSessionStats.correct}
-            /{lastSessionStats.total})
-          </>
-        ) : (
-          <>
-            Objectif: {currentLevel.minAccuracy}% de précision sur{' '}
-            {currentLevel.minSamples} frappes.
-          </>
-        )}
+        {lastSessionStats
+          ? t('lastSession', {
+              wpm: Math.round(lastSessionStats.wpm),
+              accuracy: Math.round(lastSessionStats.accuracy),
+              correct: lastSessionStats.correct,
+              total: lastSessionStats.total,
+            })
+          : t('objective', {
+              accuracy: currentLevel.minAccuracy,
+              samples: currentLevel.minSamples,
+            })}
         {!canUnlockNext && currentProgress.samples > 0 && (
           <div>
-            Reste {remainingSamples} frappes et ~{Math.ceil(remainingAccuracy)}%
-            de précision à atteindre.
+            {t('remaining', {
+              samples: remainingSamples,
+              accuracy: Math.ceil(remainingAccuracy),
+            })}
           </div>
         )}
       </div>
@@ -364,7 +402,7 @@ export function LearningMode({
                 color: 'var(--color-text-primary)',
               }}
             >
-              🎉 Tutoriel terminé ! Tu maîtrises les bases du clavier.
+              🎉 {t('tutorialComplete')}
             </span>
             <button
               onClick={onExitTutorial}
@@ -380,7 +418,7 @@ export function LearningMode({
                 cursor: 'pointer',
               }}
             >
-              Passer en mode classique →
+              {t('exitToClassic')}
             </button>
           </motion.div>
         ) : (
@@ -404,7 +442,7 @@ export function LearningMode({
                 cursor: 'pointer',
               }}
             >
-              Débloquer le niveau {currentLevelId + 1} →
+              {t('unlockNext', { id: currentLevelId + 1 })}
             </motion.button>
           )
         )}

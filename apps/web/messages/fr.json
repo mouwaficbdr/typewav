@@ -330,6 +330,40 @@
       "gaming": "Gaming"
     }
   },
+  "learning": {
+    "tagline": "Chaque touche est déjà une note.",
+    "level": {
+      "1": {
+        "name": "Les premières notes",
+        "tagline": "Pose tes doigts, la musique commence."
+      },
+      "2": {
+        "name": "Vers les aigus",
+        "tagline": "Ta mélodie grimpe d'un rang."
+      },
+      "3": {
+        "name": "Vers les graves",
+        "tagline": "Elle descend, elle respire."
+      },
+      "4": {
+        "name": "Ta première partition",
+        "tagline": "De vrais mots, une vraie mélodie qui prend forme."
+      },
+      "5": {
+        "name": "Nuances et silences",
+        "tagline": "Majuscules et ponctuation : les accents et les silences de ta musique."
+      }
+    },
+    "levelHeading": "Niveau {id} — {name}",
+    "progressStats": "{samples}/{minSamples} frappes • {accuracy}% précision",
+    "objective": "Objectif : {accuracy}% de précision sur {samples} frappes.",
+    "lastSession": "Dernière session : {wpm} MPM · {accuracy}% ({correct}/{total})",
+    "remaining": "Reste {samples} frappes et ~{accuracy}% de précision à atteindre.",
+    "skipTutorial": "Passer le tutoriel",
+    "tutorialComplete": "Tutoriel terminé ! Tu improvises déjà.",
+    "exitToClassic": "Passer en mode classique →",
+    "unlockNext": "Débloquer le niveau {id} →"
+  },
   "hint": {
     "restart": "Recommencer (Tab + Entrée)",
     "tabEnter": "tab + entrée — nouveau texte"
