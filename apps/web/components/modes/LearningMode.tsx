@@ -134,10 +134,6 @@ export function LearningMode({
     0,
     currentLevel.minSamples - currentProgress.samples,
   );
-  const remainingAccuracy = Math.max(
-    0,
-    currentLevel.minAccuracy - currentProgress.accuracy,
-  );
 
   function handleLevelSelect(levelId: number) {
     const progress = levelProgress.find((p) => p.levelId === levelId);
@@ -300,6 +296,7 @@ export function LearningMode({
               samples: currentProgress.samples,
               minSamples: currentLevel.minSamples,
               accuracy: currentProgress.accuracy.toFixed(0),
+              targetAccuracy: currentLevel.minAccuracy,
             })}
           </span>
         </div>
@@ -432,25 +429,34 @@ export function LearningMode({
           lineHeight: 1.4,
         }}
       >
-        {lastSessionStats
-          ? t('lastSession', {
+        {lastSessionStats && (
+          <div>
+            {t('lastSession', {
               wpm: Math.round(lastSessionStats.wpm),
               accuracy: Math.round(lastSessionStats.accuracy),
               correct: lastSessionStats.correct,
               total: lastSessionStats.total,
-            })
-          : t('objective', {
-              accuracy: currentLevel.minAccuracy,
-              samples: currentLevel.minSamples,
-            })}
-        {!canUnlockNext && currentProgress.samples > 0 && (
-          <div>
-            {t('remaining', {
-              samples: remainingSamples,
-              accuracy: Math.ceil(remainingAccuracy),
             })}
           </div>
         )}
+        {/* Toujours visible, jamais seulement après une première série : sans
+            ça, un niveau tout juste ouvert (0 frappe) n'affiche aucune
+            indication de ce qu'il faut faire. Distingue explicitement quel
+            critère bloque (frappes ou précision) plutôt qu'un message générique,
+            et rappelle qu'une série interrompue avant la fin ne compte pas : la
+            cause la plus probable d'un niveau qui semble ne jamais avancer. */}
+        <div>
+          {canUnlockNext
+            ? t('readyToAdvance')
+            : remainingSamples > 0
+              ? t('needMoreReps', {
+                  samples: remainingSamples,
+                  accuracy: currentLevel.minAccuracy,
+                })
+              : t('needMoreAccuracy', {
+                  accuracy: currentLevel.minAccuracy,
+                })}
+        </div>
       </div>
 
       {/* Schéma clavier */}

@@ -107,6 +107,28 @@ describe('LearningMode progression wiring', () => {
     mockOnExitTutorial.mockClear();
   });
 
+  it("affiche l'exigence dès un niveau tout juste ouvert, avant toute frappe", () => {
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
+
+    expect(screen.getByText(/Encore 50 frappes/i)).toBeInTheDocument();
+  });
+
+  it('distingue le critère qui bloque : assez de frappes, précision encore trop basse', () => {
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
+
+    act(() => {
+      typingAreaPropsRef.current?.onSessionComplete?.({
+        wpm: 40,
+        accuracy: 40,
+        correct: 20,
+        total: 50,
+      });
+    });
+
+    expect(screen.getByText(/as fait assez de frappes/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Encore \d+ frappes/i)).not.toBeInTheDocument();
+  });
+
   it('met a jour les stats de progression apres une session terminee', () => {
     render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
 
@@ -139,6 +161,8 @@ describe('LearningMode progression wiring', () => {
         total: 50,
       });
     });
+
+    expect(screen.getByText(/Objectif atteint/i)).toBeInTheDocument();
 
     const readyTab = screen.getByRole('button', {
       name: /Niveau 2 pr.t/i,
