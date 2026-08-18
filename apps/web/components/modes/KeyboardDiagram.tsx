@@ -92,7 +92,12 @@ export function KeyboardDiagram({
       <svg
         viewBox="0 0 330 172"
         aria-label={t('ariaKeyboardDiagram')}
-        style={{ width: '100%', maxWidth: 500 }}
+        // clamp() plutôt qu'une largeur fixe : ce schéma est le plus gros
+        // contributeur à la hauteur du mode Apprentissage (colonne dense,
+        // conteneur main à hauteur fixe qui ne scrolle jamais). Il se
+        // réduit lui-même sur un viewport bas au lieu de forcer le reste
+        // du contenu à déborder hors de l'écran.
+        style={{ width: '100%', maxWidth: 'clamp(260px, 38vh, 500px)' }}
       >
         {KEYS.map((keyData) => {
           const isActive = activeKey?.toLowerCase() === keyData.key;

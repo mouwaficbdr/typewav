@@ -362,7 +362,8 @@
     "skipTutorial": "Skip tutorial",
     "tutorialComplete": "Tutorial complete! You're already improvising.",
     "exitToClassic": "Switch to Classic mode →",
-    "unlockNext": "Unlock level {id} →"
+    "readyToUnlock": "Level {id} ready: {name}. Click to continue.",
+    "unlockedAnnouncement": "Level {id} unlocked: {name}."
   },
   "hint": {
     "restart": "Restart (Tab + Enter)",

@@ -9,7 +9,6 @@
 
 import { KeyboardDiagram } from '@/components/modes/KeyboardDiagram';
 import { TypingArea } from '@/components/typing/TypingArea';
-import { IS_DEV_MODE } from '@/lib/featureFlags';
 import {
   applySessionStats,
   calculateProgressPercent,
@@ -24,7 +23,7 @@ import { generateLearningText } from '@/lib/words';
 import { LEARNING_LEVELS } from '@typewav/types';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface LearningSessionStats {
   correct: number;
@@ -60,7 +59,14 @@ export function LearningMode({
   );
   const [progressLoaded, setProgressLoaded] = useState(false);
   const [activeKey, setActiveKey] = useState<string | undefined>(undefined);
-  const [text, setText] = useState(() => generateLearningText(1));
+  // '' plutôt que generateLearningText(1) : ce texte est tiré au hasard
+  // (pickRandomWords), donc un appel dans l'initialiseur de useState
+  // produirait une valeur différente au rendu serveur et au premier rendu
+  // client, un mismatch d'hydratation React. Le useEffect ci-dessous (déjà
+  // là pour régénérer le texte à chaque changement de niveau) le pose côté
+  // client uniquement, même filet que getDailyIndex/selectFromTexts dans
+  // HomeClient.tsx pour la même raison.
+  const [text, setText] = useState('');
   const [runIndex, setRunIndex] = useState(0);
   const [lastSessionStats, setLastSessionStats] =
     useState<LearningSessionStats | null>(null);
@@ -104,6 +110,26 @@ export function LearningMode({
   const isLastLevel = currentLevelId === LEARNING_LEVELS.length;
   const tutorialComplete = isLastLevel && canUnlockNext;
 
+  // Le CTA "Débloquer le niveau X" empilé en bas de la colonne était la
+  // vraie cause du débordement intermittent du mode Apprentissage (~60px
+  // ajoutés uniquement quand il apparaissait, sur un conteneur à hauteur
+  // fixe). Au lieu de lui trouver une place, l'action se déplace dans le
+  // sélecteur de niveaux lui-même : l'onglet suivant s'anime et devient
+  // cliquable directement, avec une salve de notes ponctuelle (aucune
+  // hauteur ajoutée, jamais).
+  const prevCanUnlockNextRef = useRef(false);
+  const [showUnlockBurst, setShowUnlockBurst] = useState(false);
+
+  useEffect(() => {
+    const justUnlocked = canUnlockNext && !prevCanUnlockNextRef.current;
+    prevCanUnlockNextRef.current = canUnlockNext;
+    if (!justUnlocked || isLastLevel) return;
+
+    setShowUnlockBurst(true);
+    const timeout = setTimeout(() => setShowUnlockBurst(false), 1300);
+    return () => clearTimeout(timeout);
+  }, [canUnlockNext, isLastLevel]);
+
   const remainingSamples = Math.max(
     0,
     currentLevel.minSamples - currentProgress.samples,
@@ -115,9 +141,7 @@ export function LearningMode({
 
   function handleLevelSelect(levelId: number) {
     const progress = levelProgress.find((p) => p.levelId === levelId);
-    // En développement, un niveau non gagné reste sélectionnable pour ne
-    // pas devoir rejouer tous les niveaux précédents à chaque test.
-    if (!progress?.unlocked && !IS_DEV_MODE) return;
+    if (!progress?.unlocked) return;
     setCurrentLevelId(levelId);
     setLastSessionStats(null);
     setRunIndex((prev) => prev + 1);
@@ -170,27 +194,18 @@ export function LearningMode({
   }, [currentLevelId]);
 
   return (
-    <div className="flex flex-col items-center gap-5 w-full max-w-3xl">
-      {IS_DEV_MODE && (
-        <div
-          role="status"
-          style={{
-            width: '100%',
-            padding: '8px 14px',
-            borderRadius: 'var(--radius-sm)',
-            border: '1px solid color-mix(in srgb, orange 45%, transparent)',
-            background: 'color-mix(in srgb, orange 12%, transparent)',
-            color: 'orange',
-            fontFamily: 'var(--font-mono)',
-            fontSize: 12,
-            textAlign: 'center',
-          }}
-        >
-          🛠 Mode développement — tous les niveaux sont sélectionnables sans
-          validation des critères d&apos;accuracy/frappes. Cette vue ne
-          reflète pas l&apos;expérience réelle d&apos;un nouvel utilisateur.
-        </div>
-      )}
+    <div className="flex flex-col items-center gap-4 w-full max-w-3xl">
+      {/* Annonce lecteur d'écran du déblocage : le glow et la salve de notes
+          sur l'onglet suivant sont purement visuels, ce changement d'état
+          doit rester perceptible sans les yeux. */}
+      <div role="status" aria-live="polite" className="sr-only">
+        {showUnlockBurst && !isLastLevel
+          ? t('unlockedAnnouncement', {
+              id: currentLevelId + 1,
+              name: t(`level.${currentLevelId + 1}.name`),
+            })
+          : ''}
+      </div>
 
       {isOnboarding && (
         <>
@@ -291,52 +306,122 @@ export function LearningMode({
       </div>
 
       {/* Sélecteur de niveaux */}
+      <style>{`
+        @keyframes level-ready-glow {
+          0%, 100% {
+            box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 0%, transparent);
+          }
+          50% {
+            box-shadow: 0 0 10px 2px color-mix(in srgb, var(--color-accent) 45%, transparent);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .level-tab-ready {
+            animation: none !important;
+          }
+        }
+      `}</style>
       <div className="flex gap-2">
         {LEARNING_LEVELS.map((level) => {
           const progress = levelProgress.find((p) => p.levelId === level.id)!;
           const isActive = level.id === currentLevelId;
-          const isSelectable = progress.unlocked || IS_DEV_MODE;
+          const isSelectable = progress.unlocked;
+          const isReadyToUnlock = level.id === currentLevelId + 1 && canUnlockNext;
           const levelName = t(`level.${level.id}.name`);
           return (
             <button
               key={level.id}
-              onClick={() => handleLevelSelect(level.id)}
-              disabled={!isSelectable}
-              aria-label={t('levelHeading', { id: level.id, name: levelName })}
+              onClick={() =>
+                isReadyToUnlock
+                  ? handleNextLevel()
+                  : handleLevelSelect(level.id)
+              }
+              disabled={!isSelectable && !isReadyToUnlock}
+              aria-label={
+                isReadyToUnlock
+                  ? t('readyToUnlock', { id: level.id, name: levelName })
+                  : t('levelHeading', { id: level.id, name: levelName })
+              }
+              className={isReadyToUnlock ? 'level-tab-ready' : undefined}
               style={{
+                position: 'relative',
                 padding: '6px 14px',
                 borderRadius: 'var(--radius-md)',
-                border: `1px solid ${isActive ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                background: isActive
-                  ? 'color-mix(in srgb, var(--color-accent) 10%, transparent)'
-                  : 'transparent',
-                color: isSelectable
-                  ? isActive
+                border: `1px solid ${
+                  isActive || isReadyToUnlock
                     ? 'var(--color-accent)'
-                    : 'var(--color-text-primary)'
-                  : 'var(--color-text-muted)',
+                    : 'var(--color-border)'
+                }`,
+                background:
+                  isActive || isReadyToUnlock
+                    ? 'color-mix(in srgb, var(--color-accent) 10%, transparent)'
+                    : 'transparent',
+                color:
+                  isSelectable || isReadyToUnlock
+                    ? isActive || isReadyToUnlock
+                      ? 'var(--color-accent)'
+                      : 'var(--color-text-primary)'
+                    : 'var(--color-text-muted)',
                 fontFamily: 'var(--font-ui)',
                 fontSize: 13,
-                cursor: isSelectable ? 'pointer' : 'not-allowed',
-                opacity: isSelectable ? 1 : 0.4,
+                cursor: isSelectable || isReadyToUnlock ? 'pointer' : 'not-allowed',
+                opacity: isSelectable || isReadyToUnlock ? 1 : 0.4,
                 transition: 'all 0.15s',
+                animation: isReadyToUnlock
+                  ? 'level-ready-glow 2.2s ease-in-out infinite'
+                  : undefined,
               }}
             >
               {level.id}. {levelName}
+              {isReadyToUnlock && showUnlockBurst && !shouldReduceMotion && (
+                <AnimatePresence>
+                  {['♪', '♫', '♪'].map((glyph, i) => (
+                    <motion.span
+                      key={`unlock-note-${i}`}
+                      aria-hidden="true"
+                      initial={{ opacity: 0, y: 0, x: (i - 1) * 8 }}
+                      animate={{ opacity: [0, 1, 0], y: -22 }}
+                      transition={{
+                        duration: 1.1,
+                        delay: i * 0.15,
+                        ease: [0.16, 1, 0.3, 1],
+                      }}
+                      style={{
+                        position: 'absolute',
+                        top: -4,
+                        left: `${30 + i * 20}%`,
+                        color: 'var(--color-accent)',
+                        fontSize: 14,
+                        pointerEvents: 'none',
+                      }}
+                    >
+                      {glyph}
+                    </motion.span>
+                  ))}
+                </AnimatePresence>
+              )}
             </button>
           );
         })}
       </div>
 
-      {/* Zone de frappe */}
-      <TypingArea
-        key={`learning-${currentLevelId}-${runIndex}`}
-        text={text}
-        mode="learning"
-        autoNavigate={false}
-        onActiveKeyChange={setActiveKey}
-        onSessionComplete={handleLearningSessionComplete}
-      />
+      {/* Zone de frappe.
+          marginTop supplémentaire : le compteur wpm/précision de TypingArea
+          se positionne en absolute à top: -1.75rem (-28px) au-dessus de sa
+          propre boîte (voir apps/web/components/typing/TypingArea.tsx). Le
+          gap-4 du conteneur (16px) ne suffit plus à lui seul depuis le
+          resserrement de l'espacement du mode Apprentissage : sans cette
+          marge, le compteur chevauche le sélecteur de niveaux au-dessus. */}
+      <div style={{ marginTop: '1rem' }}>
+        <TypingArea
+          key={`learning-${currentLevelId}-${runIndex}`}
+          text={text}
+          mode="learning"
+          autoNavigate={false}
+          onActiveKeyChange={setActiveKey}
+          onSessionComplete={handleLearningSessionComplete}
+        />
+      </div>
 
       <div
         style={{
@@ -378,9 +463,11 @@ export function LearningMode({
         />
       </div>
 
-      {/* Bouton débloquer niveau suivant / fin de tutoriel */}
+      {/* Fin de tutoriel : le seul cas restant à occuper la pile verticale,
+          un moment unique par utilisateur, pas répété à chaque niveau (voir
+          le sélecteur de niveaux plus haut pour le cas courant). */}
       <AnimatePresence>
-        {tutorialComplete ? (
+        {tutorialComplete && (
           <motion.div
             key="tutorial-complete"
             initial={{ opacity: 0, y: 10 }}
@@ -421,30 +508,6 @@ export function LearningMode({
               {t('exitToClassic')}
             </button>
           </motion.div>
-        ) : (
-          canUnlockNext && (
-            <motion.button
-              key="unlock-next"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{ duration }}
-              onClick={handleNextLevel}
-              style={{
-                padding: '10px 24px',
-                background: 'var(--color-accent)',
-                color: '#000',
-                borderRadius: 'var(--radius-lg)',
-                border: 'none',
-                fontFamily: 'var(--font-ui)',
-                fontWeight: 700,
-                fontSize: 14,
-                cursor: 'pointer',
-              }}
-            >
-              {t('unlockNext', { id: currentLevelId + 1 })}
-            </motion.button>
-          )
         )}
       </AnimatePresence>
     </div>

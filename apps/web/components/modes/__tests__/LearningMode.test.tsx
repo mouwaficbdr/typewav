@@ -73,6 +73,9 @@ vi.mock('motion/react', () => ({
     div: ({ children, ...props }: HTMLAttributes<HTMLDivElement>) => (
       <div {...props}>{children}</div>
     ),
+    span: ({ children, ...props }: HTMLAttributes<HTMLSpanElement>) => (
+      <span {...props}>{children}</span>
+    ),
     button: (
       props: ButtonHTMLAttributes<HTMLButtonElement> & {
         initial?: unknown;
@@ -121,11 +124,11 @@ describe('LearningMode progression wiring', () => {
     expect(screen.getByText(/10\/50 frappes/i)).toBeInTheDocument();
     expect(screen.getByText(/Derni.re session/i)).toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: /D.bloquer le niveau 2/i }),
+      screen.queryByRole('button', { name: /Niveau 2 pr.t/i }),
     ).not.toBeInTheDocument();
   });
 
-  it('affiche le deblocage du niveau suivant quand les objectifs sont atteints', () => {
+  it("anime l'onglet du niveau suivant et permet d'avancer en cliquant dessus quand les objectifs sont atteints", () => {
     render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
 
     act(() => {
@@ -137,14 +140,31 @@ describe('LearningMode progression wiring', () => {
       });
     });
 
-    const unlockButton = screen.getByRole('button', {
-      name: /D.bloquer le niveau 2/i,
+    const readyTab = screen.getByRole('button', {
+      name: /Niveau 2 pr.t/i,
     });
-    expect(unlockButton).toBeInTheDocument();
+    expect(readyTab).toBeInTheDocument();
 
-    fireEvent.click(unlockButton);
+    fireEvent.click(readyTab);
 
     expect(screen.getByText(/Niveau 2.*Vers les aigus/i)).toBeInTheDocument();
+  });
+
+  it("annonce le déblocage pour un lecteur d'écran, pas seulement visuellement", () => {
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
+
+    expect(screen.getByRole('status')).toHaveTextContent('');
+
+    act(() => {
+      typingAreaPropsRef.current?.onSessionComplete?.({
+        wpm: 55,
+        accuracy: 100,
+        correct: 50,
+        total: 50,
+      });
+    });
+
+    expect(screen.getByRole('status')).toHaveTextContent(/Niveau 2 d.bloqu./i);
   });
 });
 
@@ -221,17 +241,7 @@ describe('LearningMode — sélection manuelle (pas d’onboarding)', () => {
   it('appelle tout de même onExitTutorial en terminant réellement le tutoriel', () => {
     render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
 
-    act(() => {
-      typingAreaPropsRef.current?.onSessionComplete?.({
-        wpm: 55,
-        accuracy: 100,
-        correct: 50,
-        total: 50,
-      });
-    });
-    fireEvent.click(screen.getByRole('button', { name: /D.bloquer le niveau 2/i }));
-
-    for (let level = 2; level <= 4; level++) {
+    for (let level = 1; level <= 4; level++) {
       act(() => {
         typingAreaPropsRef.current?.onSessionComplete?.({
           wpm: 55,
@@ -241,7 +251,9 @@ describe('LearningMode — sélection manuelle (pas d’onboarding)', () => {
         });
       });
       fireEvent.click(
-        screen.getByRole('button', { name: new RegExp(`D.bloquer le niveau ${level + 1}`, 'i') }),
+        screen.getByRole('button', {
+          name: new RegExp(`Niveau ${level + 1} pr.t`, 'i'),
+        }),
       );
     }
 
@@ -255,6 +267,26 @@ describe('LearningMode — sélection manuelle (pas d’onboarding)', () => {
     });
 
     fireEvent.click(screen.getByRole('button', { name: /passer en mode classique/i }));
+    expect(mockOnExitTutorial).toHaveBeenCalledOnce();
+  });
+});
+
+describe('LearningMode, isOnboarding', () => {
+  beforeEach(() => {
+    typingAreaPropsRef.current = null;
+    mockLoadLearningProgress.mockClear().mockResolvedValue(undefined);
+    mockSaveLearningProgress.mockClear().mockResolvedValue(undefined);
+    mockOnExitTutorial.mockClear();
+  });
+
+  it('affiche le bouton "Passer le tutoriel" et appelle onExitTutorial au clic', () => {
+    render(<LearningMode isOnboarding onExitTutorial={mockOnExitTutorial} />);
+
+    const skipButton = screen.getByRole('button', {
+      name: /passer le tutoriel/i,
+    });
+    fireEvent.click(skipButton);
+
     expect(mockOnExitTutorial).toHaveBeenCalledOnce();
   });
 });

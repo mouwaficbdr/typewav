@@ -37,6 +37,7 @@ import {
   getSessionById,
   type PersonalText,
 } from '@/lib/db';
+import { IS_DEV_MODE } from '@/lib/featureFlags';
 import { noteNameToMidi } from '@/lib/note-visualization';
 import {
   hasCompletedOnboarding,
@@ -284,7 +285,18 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   }, [activeMode, setCollection]);
 
   // Déclenche le tutoriel d'onboarding uniquement à la toute première visite.
+  //
+  // TEMPORAIRE (phase de dev) : désactivé en dev pour ne plus avoir à le
+  // traverser à chaque rechargement pendant qu'on itère sur le reste de
+  // l'app. Se réactive tout seul en build de production (IS_DEV_MODE est
+  // figé à false hors `next dev`), mais c'est un changement de comportement
+  // voulu : pour voir/tester l'onboarding en dev, utiliser la route dédiée
+  // /dev-onboarding (apps/web/app/[locale]/dev-onboarding), qui le rejoue à
+  // chaque rechargement sans toucher au flag hasCompletedOnboarding réel.
+  // À RETIRER (avec ce guard et le dossier dev-onboarding en entier) une
+  // fois l'onboarding validé et prêt à revalider en conditions réelles.
   useEffect(() => {
+    if (IS_DEV_MODE) return;
     let cancelled = false;
     hasCompletedOnboarding()
       .then((done) => {
@@ -406,8 +418,13 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 36, // Airy spacing
-        padding: '32px 32px 16px',
+        // Le mode Apprentissage empile davantage de sections que les autres
+        // (bandeau de niveau, sélecteur, zone de frappe, schéma clavier) sur
+        // un conteneur à hauteur fixe qui ne scrolle jamais : le "airy
+        // spacing" pensé pour les modes de test tient moins bien ici, donc
+        // resserré spécifiquement pour ce mode plutôt que globalement.
+        gap: isLearningMode ? 20 : 36,
+        padding: isLearningMode ? '20px 32px 16px' : '32px 32px 16px',
         height: 'calc(100dvh - 100px)',
         overflow: 'hidden', // Account for nav height
         maxWidth: '1600px',
@@ -586,17 +603,6 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           marginBottom: 'auto',
           // On descend la zone de texte pour la centrer visuellement (sauf en mode apprentissage)
           marginTop: isLearningMode ? '0' : '4vh',
-          // Le mode Apprentissage empile beaucoup plus de sections (bandeau,
-          // titre, sélecteur de niveaux, zone de frappe, schéma clavier,
-          // CTA) que les autres modes : sur un viewport bas, son contenu
-          // dépasse la hauteur fixe de `main` (overflow: hidden plus haut),
-          // ce qui coupait silencieusement le bas de l'écran (clavier,
-          // bouton de déblocage) sans aucun moyen d'y accéder. minHeight: 0
-          // autorise cet item flex à rétrécir sous sa taille de contenu ;
-          // sans lui, overflowY n'a jamais l'occasion de s'activer.
-          ...(isLearningMode
-            ? { minHeight: 0, overflowY: 'auto' as const }
-            : {}),
         }}
       >
         {loadingCollection && !isLearningMode ? (

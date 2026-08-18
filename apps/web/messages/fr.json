@@ -362,7 +362,8 @@
     "skipTutorial": "Passer le tutoriel",
     "tutorialComplete": "Tutoriel terminé ! Tu improvises déjà.",
     "exitToClassic": "Passer en mode classique →",
-    "unlockNext": "Débloquer le niveau {id} →"
+    "readyToUnlock": "Niveau {id} prêt : {name}. Cliquer pour continuer.",
+    "unlockedAnnouncement": "Niveau {id} débloqué : {name}."
   },
   "hint": {
     "restart": "Recommencer (Tab + Entrée)",
