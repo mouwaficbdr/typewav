@@ -11,6 +11,7 @@
  * Spec : docs/specs/29-home-layout.md
  */
 
+import { MODES_WITH_TEXT_CONFIG } from '@/lib/typing-mode-support';
 import { useConfigStore } from '@/stores/useConfigStore';
 import type { TypingMode } from '@typewav/types';
 import { useTranslations } from 'next-intl';
@@ -139,12 +140,7 @@ export function ConfigBar({ controlsMode }: ConfigBarProps = {}) {
   // Apprentissage volontairement absent : generateLearningText (words.ts)
   // ne lit jamais ces deux réglages, les afficher là n'aurait aucun effet.
   const effectiveMode = controlsMode ?? activeMode;
-  const supportsModifiers = [
-    'classic',
-    'sprint',
-    'zen',
-    'quote',
-  ].includes(effectiveMode);
+  const supportsModifiers = MODES_WITH_TEXT_CONFIG.includes(effectiveMode);
 
   return (
     <>

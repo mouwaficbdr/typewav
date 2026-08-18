@@ -8,6 +8,7 @@
  */
 
 import { BookIcon } from '@/components/ui/icons';
+import { MODES_WITH_TEXT_CONFIG } from '@/lib/typing-mode-support';
 import { useConfigStore } from '@/stores/useConfigStore';
 import type { TypingMode } from '@typewav/types';
 import { AnimatePresence, motion } from 'motion/react';
@@ -21,17 +22,6 @@ const COLLECTIONS = [
   'gaming',
   'code',
 ] as const;
-
-// 'code' est volontairement absent : ce mode garantit du vrai code (voir
-// l'effet d'auto-bascule dans HomeClient) et rien ne doit permettre à
-// l'utilisateur de faire dériver la collection ailleurs pendant qu'il est
-// actif — sinon "Code" reste affiché tout en montrant un texte quelconque.
-const MODES_WITH_COLLECTION: readonly TypingMode[] = [
-  'classic',
-  'sprint',
-  'zen',
-  'quote',
-];
 
 interface CollectionSelectorProps {
   // Mode à utiliser pour décider de la visibilité (distinct du mode actif du
@@ -54,7 +44,12 @@ export function CollectionSelector({
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const showCollection = MODES_WITH_COLLECTION.includes(
+  // 'code' est volontairement absent de MODES_WITH_TEXT_CONFIG pour ce
+  // composant précis : ce mode garantit du vrai code (voir l'effet
+  // d'auto-bascule dans HomeClient) et rien ne doit permettre à
+  // l'utilisateur de faire dériver la collection ailleurs pendant qu'il est
+  // actif, sinon "Code" reste affiché tout en montrant un texte quelconque.
+  const showCollection = MODES_WITH_TEXT_CONFIG.includes(
     controlsMode ?? activeMode,
   );
   if (!showCollection) return null;

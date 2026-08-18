@@ -1,6 +1,7 @@
 'use client';
 
 import { LanguagesIcon } from '@/components/ui/icons';
+import { MODES_WITH_TEXT_CONFIG } from '@/lib/typing-mode-support';
 import { useConfigStore } from '@/stores/useConfigStore';
 import type { TypingMode } from '@typewav/types';
 import { AnimatePresence, motion } from 'motion/react';
@@ -21,7 +22,7 @@ export function ContextSelectors({ controlsMode }: ContextSelectorsProps = {}) {
   const setTextLanguage = useConfigStore((s) => s.setTextLanguage);
   const activeMode = useConfigStore((s) => s.activeMode);
 
-  const showLanguage = ['classic', 'sprint', 'zen', 'quote'].includes(
+  const showLanguage = MODES_WITH_TEXT_CONFIG.includes(
     controlsMode ?? activeMode,
   );
 
