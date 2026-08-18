@@ -70,25 +70,46 @@ export function ConfigBar() {
     setDuration,
   } = useConfigStore();
 
-  const chipStyle = (active: boolean): React.CSSProperties => ({
-    background: active
-      ? 'color-mix(in srgb, var(--color-text-muted) 15%, transparent)'
-      : 'transparent',
-    border: 'none',
-    borderRadius: 'var(--radius-sm)',
-    color: active ? 'var(--color-accent)' : 'var(--color-text-muted)',
-    cursor: 'pointer',
-    fontFamily: 'var(--font-ui)',
-    fontSize: '0.75rem',
-    fontWeight: active ? 500 : 400,
-    padding: '0 8px' /* Removed vertical padding, relying on fixed height */,
-    height: '26px' /* Strict height for buttons */,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-    transform: active ? 'scale(1.02)' : 'scale(1)',
-  });
+  // Le mode Zen est le mode signature du produit (musicothérapie, sans
+  // minuteur ni score) — il ne doit jamais se fondre dans les 7 autres
+  // modes utilitaires, d'où le traitement 'signature' à part.
+  const chipStyle = (
+    active: boolean,
+    variant: 'default' | 'signature' = 'default',
+  ): React.CSSProperties => {
+    const isSignature = variant === 'signature';
+    return {
+      background: isSignature
+        ? `color-mix(in srgb, var(--color-accent) ${active ? 20 : 9}%, transparent)`
+        : active
+          ? 'color-mix(in srgb, var(--color-text-muted) 15%, transparent)'
+          : 'transparent',
+      border: 'none',
+      borderRadius: 'var(--radius-sm)',
+      color:
+        isSignature || active
+          ? 'var(--color-accent)'
+          : 'var(--color-text-muted)',
+      cursor: 'pointer',
+      fontFamily: 'var(--font-ui)',
+      fontSize: '0.75rem',
+      fontWeight: active || isSignature ? 500 : 400,
+      padding: '0 8px' /* Removed vertical padding, relying on fixed height */,
+      height: '26px' /* Strict height for buttons */,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+      transform: active ? 'scale(1.02)' : 'scale(1)',
+      // Respire doucement pour attirer l'œil vers le mode signature — mais
+      // s'arrête net une fois sélectionné : Zen promet le calme, un glow
+      // qui continue de pulser pendant la frappe serait le contredire.
+      animation:
+        isSignature && !active
+          ? 'zen-breathe 3.6s ease-in-out infinite'
+          : undefined,
+    };
+  };
 
   const separator = (
     <div
@@ -114,98 +135,85 @@ export function ConfigBar() {
   ].includes(activeMode);
 
   return (
-    <div
-      role="toolbar"
-      aria-label={t('label')}
-      style={{
-        display: 'flex',
-        flexWrap: 'nowrap' /* Force la ligne unique */,
-        overflowX:
-          'auto' /* Permet le scroll horizontal si l'écran est trop petit */,
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: 'fit-content',
-        maxWidth: '1200px',
-        height: '42px' /* Strict height */,
-        // Élément de chrome permanent : ne doit jamais être écrasé par du
-        // contenu voisin trop haut (ex. mode Apprentissage). Sans ça, le
-        // parent flex-column à hauteur fixe (overflow: hidden) le réduit à
-        // 0px — la barre reste dans le DOM mais devient invisible, et donc
-        // impossible de changer de mode depuis là.
-        flexShrink: 0,
-        margin: '0 auto',
-        padding: '0 16px',
-        background:
-          'color-mix(in srgb, var(--color-text-muted) 10%, transparent)',
-        borderRadius: 'var(--radius-md)',
-        backdropFilter: 'blur(8px)',
-        gap: '4px',
-      }}
-      className="hide-scrollbar"
-    >
-      {/* ── Modificateurs ─────────────────────────────── */}
-      {supportsModifiers && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-            flexShrink: 0,
-          }}
-        >
-          <button
-            style={chipStyle(punctuationEnabled)}
-            onClick={togglePunctuation}
-            aria-pressed={punctuationEnabled}
-            title={t('punctuation')}
-            className="hover:text-text-primary hover:scale-[1.05] transition-transform duration-200"
-          >
-            <AtIcon size={14} /> {t('punctuationShort')}
-          </button>
-          <button
-            style={chipStyle(numbersEnabled)}
-            onClick={toggleNumbers}
-            aria-pressed={numbersEnabled}
-            title={t('numbers')}
-            className="hover:text-text-primary hover:scale-[1.05] transition-transform duration-200"
-          >
-            <HashIcon size={14} /> {t('numbersShort')}
-          </button>
-
-          {separator}
-        </div>
-      )}
-
-      {/* ── Modes ─────────────────────────────── */}
+    <>
+      <style>{`
+        @keyframes zen-breathe {
+          0%, 100% {
+            box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 0%, transparent);
+          }
+          50% {
+            box-shadow: 0 0 8px 1px color-mix(in srgb, var(--color-accent) 40%, transparent);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .configbar-zen-chip {
+            animation: none !important;
+          }
+        }
+      `}</style>
       <div
-        style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}
+        role="toolbar"
+        aria-label={t('label')}
+        style={{
+          display: 'flex',
+          flexWrap: 'nowrap' /* Force la ligne unique */,
+          overflowX:
+            'auto' /* Permet le scroll horizontal si l'écran est trop petit */,
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 'fit-content',
+          maxWidth: '1200px',
+          height: '42px' /* Strict height */,
+          // Élément de chrome permanent : ne doit jamais être écrasé par du
+          // contenu voisin trop haut (ex. mode Apprentissage). Sans ça, le
+          // parent flex-column à hauteur fixe (overflow: hidden) le réduit à
+          // 0px — la barre reste dans le DOM mais devient invisible, et donc
+          // impossible de changer de mode depuis là.
+          flexShrink: 0,
+          margin: '0 auto',
+          padding: '0 16px',
+          background:
+            'color-mix(in srgb, var(--color-text-muted) 10%, transparent)',
+          borderRadius: 'var(--radius-md)',
+          backdropFilter: 'blur(8px)',
+          gap: '4px',
+        }}
+        className="hide-scrollbar"
       >
-        {MODES.map((id) => {
-          const Icon = MODE_ICONS[id as keyof typeof MODE_ICONS];
-          const label = tModes(id);
-          return (
+        {/* ── Modificateurs ─────────────────────────────── */}
+        {supportsModifiers && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              flexShrink: 0,
+            }}
+          >
             <button
-              key={id}
-              style={{
-                ...chipStyle(activeMode === id),
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
-              onClick={() => setMode(id as never)}
-              aria-pressed={activeMode === id}
-              title={label}
+              style={chipStyle(punctuationEnabled)}
+              onClick={togglePunctuation}
+              aria-pressed={punctuationEnabled}
+              title={t('punctuation')}
               className="hover:text-text-primary hover:scale-[1.05] transition-transform duration-200"
             >
-              <Icon size={14} />
-              {label}
+              <AtIcon size={14} /> {t('punctuationShort')}
             </button>
-          );
-        })}
-      </div>
+            <button
+              style={chipStyle(numbersEnabled)}
+              onClick={toggleNumbers}
+              aria-pressed={numbersEnabled}
+              title={t('numbers')}
+              className="hover:text-text-primary hover:scale-[1.05] transition-transform duration-200"
+            >
+              <HashIcon size={14} /> {t('numbersShort')}
+            </button>
 
-      {/* ── Options Contextuelles ─────────────────── */}
-      {(activeMode === 'classic' || activeMode === 'sprint') && (
+            {separator}
+          </div>
+        )}
+
+        {/* ── Modes ─────────────────────────────── */}
         <div
           style={{
             display: 'flex',
@@ -214,33 +222,76 @@ export function ConfigBar() {
             flexShrink: 0,
           }}
         >
-          {separator}
-          {activeMode === 'classic' &&
-            DURATIONS.map((d) => (
+          {MODES.map((id) => {
+            const Icon = MODE_ICONS[id as keyof typeof MODE_ICONS];
+            const label = tModes(id);
+            const isSignature = id === 'zen';
+            return (
               <button
-                key={d}
-                style={chipStyle(durationSeconds === d)}
-                onClick={() => setDuration(d)}
-                aria-pressed={durationSeconds === d}
-                className="hover:text-text-primary hover:scale-[1.05] transition-transform duration-200"
+                key={id}
+                style={{
+                  ...chipStyle(
+                    activeMode === id,
+                    isSignature ? 'signature' : 'default',
+                  ),
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+                onClick={() => setMode(id as never)}
+                aria-pressed={activeMode === id}
+                title={label}
+                className={
+                  isSignature
+                    ? 'configbar-zen-chip hover:text-text-primary hover:scale-[1.05] transition-transform duration-200'
+                    : 'hover:text-text-primary hover:scale-[1.05] transition-transform duration-200'
+                }
               >
-                {d}
+                <Icon size={14} />
+                {label}
               </button>
-            ))}
-          {activeMode === 'sprint' &&
-            WORD_COUNTS.map((wc) => (
-              <button
-                key={wc}
-                style={chipStyle(wordCount === wc)}
-                onClick={() => setWordCount(wc)}
-                aria-pressed={wordCount === wc}
-                className="hover:text-text-primary hover:scale-[1.05] transition-transform duration-200"
-              >
-                {wc}
-              </button>
-            ))}
+            );
+          })}
         </div>
-      )}
-    </div>
+
+        {/* ── Options Contextuelles ─────────────────── */}
+        {(activeMode === 'classic' || activeMode === 'sprint') && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              flexShrink: 0,
+            }}
+          >
+            {separator}
+            {activeMode === 'classic' &&
+              DURATIONS.map((d) => (
+                <button
+                  key={d}
+                  style={chipStyle(durationSeconds === d)}
+                  onClick={() => setDuration(d)}
+                  aria-pressed={durationSeconds === d}
+                  className="hover:text-text-primary hover:scale-[1.05] transition-transform duration-200"
+                >
+                  {d}
+                </button>
+              ))}
+            {activeMode === 'sprint' &&
+              WORD_COUNTS.map((wc) => (
+                <button
+                  key={wc}
+                  style={chipStyle(wordCount === wc)}
+                  onClick={() => setWordCount(wc)}
+                  aria-pressed={wordCount === wc}
+                  className="hover:text-text-primary hover:scale-[1.05] transition-transform duration-200"
+                >
+                  {wc}
+                </button>
+              ))}
+          </div>
+        )}
+      </div>
+    </>
   );
 }
