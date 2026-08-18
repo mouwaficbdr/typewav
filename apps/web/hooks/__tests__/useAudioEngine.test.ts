@@ -172,7 +172,37 @@ describe('useAudioEngine — triggerResume', () => {
 });
 
 describe('useAudioEngine — triggerSilence', () => {
-  it('ne joue aucune note et adoucit le reverb en fondu, jamais à zéro', async () => {
+  it('rejoue en écho doux la dernière note déjà jouée, jamais une nouvelle', async () => {
+    loadPieceFromData(TEST_PIECE);
+    const { result, unmount } = renderHook(() => useAudioEngine());
+
+    await act(async () => {
+      await result.current.initialize();
+    });
+    await waitFor(() => expect(samplerInstances.length).toBe(1));
+
+    await act(async () => {
+      await result.current.playNote('a', 0);
+    });
+
+    const sampler = samplerInstances[0]!;
+    const [firstNote, , , firstVelocity] =
+      sampler.triggerAttackRelease.mock.calls[0]!;
+
+    await act(async () => {
+      await result.current.triggerSilence();
+    });
+
+    expect(sampler.triggerAttackRelease).toHaveBeenCalledTimes(2);
+    const [echoNote, , , echoVelocity] =
+      sampler.triggerAttackRelease.mock.calls[1]!;
+    expect(echoNote).toBe(firstNote); // même hauteur, jamais une nouvelle note
+    expect(echoVelocity).toBeLessThan(firstVelocity as number); // un écho, pas une vraie frappe
+
+    unmount();
+  });
+
+  it("ne joue rien si aucune note n'a encore sonné", async () => {
     const { result, unmount } = renderHook(() => useAudioEngine());
 
     await act(async () => {
@@ -184,26 +214,20 @@ describe('useAudioEngine — triggerSilence', () => {
       await result.current.triggerSilence();
     });
 
-    const sampler = samplerInstances[0]!;
-    expect(sampler.triggerAttackRelease).not.toHaveBeenCalled();
-
-    const reverb = reverbInstances[0]!;
-    const rampCalls = reverb.wet.rampTo.mock.calls;
-    expect(rampCalls[0]?.[0]).toBeGreaterThan(0.25); // léger surcroît de reverb
-    expect(rampCalls[1]?.[0]).toBe(0.25); // retour au wet du pack piano, pas 0
+    expect(samplerInstances[0]!.triggerAttackRelease).not.toHaveBeenCalled();
 
     unmount();
   });
 
-  it("ne touche pas au reverb si l'audio n'est pas initialisé", async () => {
+  it("ne joue rien si l'audio n'est pas initialisé", async () => {
     const { result, unmount } = renderHook(() => useAudioEngine());
 
     await act(async () => {
       await result.current.triggerSilence();
     });
 
-    reverbInstances.forEach((reverb) => {
-      expect(reverb.wet.rampTo).not.toHaveBeenCalled();
+    samplerInstances.forEach((sampler) => {
+      expect(sampler.triggerAttackRelease).not.toHaveBeenCalled();
     });
 
     unmount();

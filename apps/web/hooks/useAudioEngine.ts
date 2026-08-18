@@ -245,6 +245,8 @@ class VoiceEngine {
   sampler: ToneSampler | null = null;
   reverb: ToneReverb | null = null;
   loadedPack = '';
+  /** Dernière note réellement jouée — rejouée en écho doux sur erreur, jamais une nouvelle note. */
+  lastPlayedNote: string | null = null;
   midiLoadRequestId = 0;
   midiLoadAbortController: AbortController | null = null;
 
@@ -264,6 +266,7 @@ class VoiceEngine {
       warpEngine.reset();
       this.disposeVoices();
       this.loadedPack = '';
+      this.lastPlayedNote = null;
       // Sans ce reset, une instance qui remonte ensuite verrait
       // `initialized` toujours vrai côté Zustand et ne reconstruirait
       // jamais un graphe pourtant disposé — silence total.
@@ -545,6 +548,7 @@ export function useAudioEngine() {
         return null;
       }
 
+      engine.lastPlayedNote = noteToPlay;
       recordNoteEvent(noteToPlay, sessionPosition);
       return noteToPlay;
     },
@@ -584,30 +588,45 @@ export function useAudioEngine() {
   );
 
   /**
-   * Silence pour une frappe incorrecte — ne joue jamais de nouvelle note
-   * (règle absolue : jamais une fausse note). En mode MIDI, la séquence se
-   * fige (position non avancée, géré dans playNote).
+   * Silence pour une frappe incorrecte — n'avance jamais la séquence et ne
+   * joue jamais de note nouvelle (règle absolue : jamais une fausse note).
    *
-   * Ce silence reste un vrai silence côté mélodie, mais une coupure sèche et
-   * répétée se vit comme une sanction plutôt qu'une pause — à rebours d'un
-   * produit qui se veut apaisant. On adoucit la transition avec le même
-   * mécanisme de fondu de réverbération que triggerResume (jamais de nouveau
-   * son, jamais de note) : un bref surcroît de reverb qui laisse le son déjà
-   * en train de sonner s'éteindre en fondu au lieu de s'arrêter net.
+   * Une coupure sèche et répétée se vit comme une sanction plutôt qu'une
+   * pause. Un simple remix de reverb ne suffit pas à l'adoucir : `wet` ne
+   * fait que rééquilibrer un signal déjà en train de sonner, et ce signal
+   * est presque toujours déjà quasi éteint au moment de l'erreur — rien à
+   * remixer, donc rien d'audible. On relance à la place, à très faible
+   * vélocité, un écho de la DERNIÈRE note déjà jouée (même hauteur, jamais
+   * une nouvelle) : ça produit un vrai son qui s'éteint en fondu, sans
+   * introduire le moindre contenu mélodique nouveau ni avancer la pièce.
    */
   const triggerSilence = useCallback(async () => {
     if (!useAudioStore.getState().initialized) return;
 
-    const reverb = engine.reverb;
-    if (!reverb) return;
+    const lastNote = engine.lastPlayedNote;
+    if (!lastNote) return;
 
     const Tone = await loadTone();
-    const baselineWet = (PACK_CONFIGS[soundPackId] ?? DEFAULT_PACK_CONFIG)
-      .reverbWet;
+    const playTime = Tone.now();
+    const echoVelocity = 0.18;
+    const echoHoldSec = 1.6;
 
-    reverb.wet.rampTo(Math.min(1, baselineWet + 0.25), 0.15, Tone.now());
-    reverb.wet.rampTo(baselineWet, 0.5, Tone.now() + 0.15);
-  }, [soundPackId]);
+    if (engine.sampler) {
+      engine.sampler.triggerAttackRelease(
+        lastNote,
+        echoHoldSec,
+        playTime,
+        echoVelocity,
+      );
+    } else if (engine.fallbackSynth && engine.loadedPack !== 'piano') {
+      engine.fallbackSynth.triggerAttackRelease(
+        lastNote,
+        echoHoldSec,
+        playTime,
+        echoVelocity,
+      );
+    }
+  }, []);
 
   /**
    * Reprend après correction avec micro-reverb.
