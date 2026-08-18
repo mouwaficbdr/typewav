@@ -78,4 +78,14 @@ describe('MilestoneToast — i18n', () => {
     // (le namespace est 'progression', donc t('milestoneUnlocked'))
     expect(screen.getByText('milestoneUnlocked')).toBeInTheDocument();
   });
+
+  it("ne rend qu'un seul toast si le même jalon apparaît deux fois dans pendingMilestones (deux runAfterSession concurrents, même profil pas encore sauvegardé, débloquent le même jalon)", () => {
+    mockLocale.mockReturnValue('fr');
+    mockPendingMilestones.length = 0;
+    mockPendingMilestones.push(mockMilestone, { ...mockMilestone });
+
+    render(<MilestoneToast />);
+
+    expect(screen.getAllByText('Test FR Label')).toHaveLength(1);
+  });
 });
