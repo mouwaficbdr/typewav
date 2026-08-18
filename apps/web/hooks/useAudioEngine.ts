@@ -178,6 +178,51 @@ function loadTone(): Promise<typeof import('tone')> {
   return tonePromise;
 }
 
+/**
+ * Résout Tone.start() (context.resume()) avec retries internes. Le tout
+ * premier appel d'une session reste parfois bloqué durablement sans jamais
+ * ni aboutir ni rejeter — mais un appel neuf (pas la même promesse relancée)
+ * réussit de façon fiable en une centaine de ms. On retente donc nous-mêmes
+ * ici, bornés par un court timeout par tentative, plutôt que de dépendre
+ * d'une future frappe de l'utilisateur pour déclencher ce nouvel essai.
+ *
+ * Timeouts mesurés en session live : le premier essai n'a JAMAIS abouti (5
+ * sessions réelles, jusqu'à 8s laissés, 0 succès) — 100ms lui laisse le
+ * strict minimum. Les essais qui réussissent le font en 30-130ms ; 250ms
+ * leur laisse une marge large (x2-x8) sans traîner si l'un d'eux échoue
+ * aussi. 4 essais, pas 3 : deux sessions ont mesuré 2 échecs avant le succès.
+ */
+const TONE_START_ATTEMPT_TIMEOUTS_MS = [100, 250, 250, 250];
+
+async function startToneWithRetry(
+  Tone: typeof import('tone'),
+): Promise<void> {
+  let lastError: unknown;
+  for (let i = 0; i < TONE_START_ATTEMPT_TIMEOUTS_MS.length; i++) {
+    const timeoutMs = TONE_START_ATTEMPT_TIMEOUTS_MS[i]!;
+    try {
+      await Promise.race([
+        Tone.start(),
+        new Promise<never>((_, reject) => {
+          setTimeout(
+            () =>
+              reject(
+                new Error(
+                  `Tone.start() timed out after ${timeoutMs}ms (attempt ${i + 1}/${TONE_START_ATTEMPT_TIMEOUTS_MS.length})`,
+                ),
+              ),
+            timeoutMs,
+          );
+        }),
+      ]);
+      return;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError;
+}
+
 async function createPianoSampler(
   Tone: typeof import('tone'),
   reverb: ToneReverb,
@@ -379,23 +424,15 @@ class VoiceEngine {
   private async initializeInner(soundPackId: string): Promise<void> {
     const Tone = await loadTone();
 
-    // Tone.start()/context.resume() peut rester indéfiniment en attente
-    // (observé en session live : navigateur/onglet qui refuse de reprendre
-    // le contexte audio sans jamais rejeter la promesse) — sans ce timeout,
-    // `initializingPromise` reste bloqué pour de bon, et plus aucune frappe
-    // future de toute la session ne peut réessayer, même après un focus
-    // retrouvé. Le rejet (plutôt qu'une résolution silencieuse) est
-    // volontaire : on ne veut jamais marquer `initialized` alors que le
-    // contexte n'est peut-être toujours pas réellement "running".
-    await Promise.race([
-      Tone.start(),
-      new Promise<never>((_, reject) => {
-        setTimeout(
-          () => reject(new Error('Tone.start() timed out after 3s')),
-          3000,
-        );
-      }),
-    ]);
+    // Le tout premier Tone.start()/context.resume() d'une session reste
+    // bloqué durablement (observé plusieurs fois en session live) mais
+    // n'aboutit JAMAIS de lui-même — seul un appel neuf (pas la même
+    // promesse qui finirait par se résoudre) réussit, en 32-130ms de façon
+    // fiable. Laisser ce sursaut dépendre de la frappe suivante de
+    // l'utilisateur fonctionne mais dépend du rythme de frappe (~1s observé
+    // dans le pire cas) : on retente nous-mêmes, dans le même appel, pour ne
+    // plus dépendre de ça.
+    await startToneWithRetry(Tone);
 
     await this.buildVoices(soundPackId);
 
@@ -519,9 +556,17 @@ export function useAudioEngine() {
    */
   const playNote = useCallback(
     async (char: string, wordIndex: number): Promise<string | null> => {
-      if (!useAudioStore.getState().initialized) {
-        await engine.initialize(soundPackId);
-      }
+      // Pas de ré-initialisation ici : les deux seuls appelants (TypingArea,
+      // useAudioPreview) appellent déjà initialize() avant playNote(). La
+      // retenter ici en double était le vrai bug derrière la latence sur les
+      // premières frappes d'une session — observé en session live : quand
+      // Tone.start() est lent (ou expire, cf. le timeout ci-dessus),
+      // handleKeyDown() attend déjà jusqu'à 3s pour rien, puis CE bloc
+      // relançait un second essai identique (donc un second échec probable)
+      // avant que playParsedNote() ne dégrade proprement vers le silence —
+      // jusqu'à 6-8s d'attente pour une seule touche. Si `initialized` est
+      // encore faux ici, playParsedNote() gère déjà le cas gracieusement
+      // (silence, jamais un synth de repli à la place du piano réel).
 
       // Re-créer le synth si le pack a changé depuis la dernière frappe
       if (engine.loadedPack !== soundPackId) {
