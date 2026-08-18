@@ -170,7 +170,7 @@ export function LearningMode({
   }, [currentLevelId]);
 
   return (
-    <div className="flex flex-col items-center gap-8 w-full max-w-3xl">
+    <div className="flex flex-col items-center gap-5 w-full max-w-3xl">
       {IS_DEV_MODE && (
         <div
           role="status"

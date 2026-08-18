@@ -586,6 +586,17 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           marginBottom: 'auto',
           // On descend la zone de texte pour la centrer visuellement (sauf en mode apprentissage)
           marginTop: isLearningMode ? '0' : '4vh',
+          // Le mode Apprentissage empile beaucoup plus de sections (bandeau,
+          // titre, sélecteur de niveaux, zone de frappe, schéma clavier,
+          // CTA) que les autres modes : sur un viewport bas, son contenu
+          // dépasse la hauteur fixe de `main` (overflow: hidden plus haut),
+          // ce qui coupait silencieusement le bas de l'écran (clavier,
+          // bouton de déblocage) sans aucun moyen d'y accéder. minHeight: 0
+          // autorise cet item flex à rétrécir sous sa taille de contenu —
+          // sans lui, overflowY n'a jamais l'occasion de s'activer.
+          ...(isLearningMode
+            ? { minHeight: 0, overflowY: 'auto' as const }
+            : {}),
         }}
       >
         {loadingCollection && !isLearningMode ? (
