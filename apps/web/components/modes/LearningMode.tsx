@@ -446,16 +446,34 @@ export function LearningMode({
             et rappelle qu'une série interrompue avant la fin ne compte pas : la
             cause la plus probable d'un niveau qui semble ne jamais avancer. */}
         <div>
-          {canUnlockNext
-            ? t('readyToAdvance')
-            : remainingSamples > 0
-              ? t('needMoreReps', {
-                  samples: remainingSamples,
-                  accuracy: currentLevel.minAccuracy,
-                })
-              : t('needMoreAccuracy', {
-                  accuracy: currentLevel.minAccuracy,
-                })}
+          {canUnlockNext ? (
+            // Se démarque nettement de "Dernière session" juste au-dessus
+            // (même gris muté sinon, ce message passait inaperçu) : c'est le
+            // seul des trois messages qui annonce une bonne nouvelle.
+            <motion.span
+              key="ready-to-advance"
+              initial={
+                shouldReduceMotion ? false : { opacity: 0, scale: 0.92 }
+              }
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.35, ease: [0.68, -0.55, 0.265, 1.55] }}
+              style={{
+                display: 'inline-block',
+                color: 'var(--color-accent)',
+                fontWeight: 600,
+                fontSize: 14,
+              }}
+            >
+              {t('readyToAdvance')}
+            </motion.span>
+          ) : remainingSamples > 0 ? (
+            t('needMoreReps', {
+              samples: remainingSamples,
+              accuracy: currentLevel.minAccuracy,
+            })
+          ) : (
+            t('needMoreAccuracy', { accuracy: currentLevel.minAccuracy })
+          )}
         </div>
       </div>
 
