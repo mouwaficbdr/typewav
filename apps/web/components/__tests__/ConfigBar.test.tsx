@@ -65,6 +65,14 @@ describe('ConfigBar', () => {
     expect(screen.queryByTitle('punctuation')).not.toBeInTheDocument();
   });
 
+  it('masque les modificateurs quand la collection active est Code, même en mode Citation', () => {
+    // La collection Code force ponctuation/chiffres (voir HomeClient) : des
+    // bascules qui prétendraient les contrôler mentiraient sur l'état réel.
+    useConfigStore.setState({ activeMode: 'quote', activeCollection: 'code' });
+    render(<ConfigBar />);
+    expect(screen.queryByTitle('punctuation')).not.toBeInTheDocument();
+  });
+
   it('controlsMode prend le pas sur le mode actif du store pour la visibilité', () => {
     // Fantôme sans donnée personnelle se comporte comme Classic (voir
     // HomeClient) : les modificateurs doivent suivre ce comportement réel,

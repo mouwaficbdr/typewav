@@ -379,12 +379,15 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
     if (!selectedEntry) return { text: '', source: '', collectionId: '' };
 
-    // Le mode Code force ponctuation/chiffres — un extrait sans parenthèses,
-    // points-virgules ou chiffres n'est plus du code, quel que soit l'état
-    // (masqué dans ce mode) des bascules ponctuation/chiffres.
+    // Un extrait de la collection Code force ponctuation/chiffres, qu'on y
+    // soit arrivé via le mode Code (bascules masquées) ou en le sélectionnant
+    // manuellement depuis un autre mode (Classic/Sprint/Zen/Citation) : sans
+    // parenthèses, points-virgules ou chiffres, ce n'est plus du code, quel
+    // que soit le chemin emprunté pour l'afficher.
+    const isCodeContent = activeMode === 'code' || activeCollection === 'code';
     const filteredText = applyTextFilters(selectedEntry.content, {
-      punctuationEnabled: activeMode === 'code' ? true : punctuationEnabled,
-      numbersEnabled: activeMode === 'code' ? true : numbersEnabled,
+      punctuationEnabled: isCodeContent ? true : punctuationEnabled,
+      numbersEnabled: isCodeContent ? true : numbersEnabled,
       mode: activeMode,
       wordCount,
     });

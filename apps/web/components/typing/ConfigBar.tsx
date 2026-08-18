@@ -71,6 +71,7 @@ export function ConfigBar({ controlsMode }: ConfigBarProps = {}) {
   const {
     activeMode,
     setMode,
+    activeCollection,
     punctuationEnabled,
     togglePunctuation,
     numbersEnabled,
@@ -139,8 +140,13 @@ export function ConfigBar({ controlsMode }: ConfigBarProps = {}) {
   // Modes qui supportent les modificateurs ponctuation/chiffres/langue.
   // Apprentissage volontairement absent : generateLearningText (words.ts)
   // ne lit jamais ces deux réglages, les afficher là n'aurait aucun effet.
+  // Collection Code exclue quel que soit le mode : ponctuation/chiffres y
+  // sont forcés à true (voir HomeClient) pour garantir du vrai code, donc
+  // des bascules qui prétendraient les contrôler mentiraient sur l'état réel.
   const effectiveMode = controlsMode ?? activeMode;
-  const supportsModifiers = MODES_WITH_TEXT_CONFIG.includes(effectiveMode);
+  const supportsModifiers =
+    MODES_WITH_TEXT_CONFIG.includes(effectiveMode) &&
+    activeCollection !== 'code';
 
   return (
     <>

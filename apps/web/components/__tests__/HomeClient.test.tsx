@@ -421,6 +421,36 @@ describe('HomeClient — application des filtres config', () => {
     });
   });
 
+  it('force aussi ponctuation/chiffres quand la collection Code est choisie depuis un autre mode (ex: Citation)', async () => {
+    // La collection Code doit rester du vrai code même quand elle est
+    // sélectionnée manuellement en dehors du mode Code (ex: mode Citation) :
+    // sans ce garde-fou, retirer la ponctuation/les chiffres mutile la
+    // syntaxe (voir la régression reproduite en live avant ce correctif).
+    mockFetchCollection.mockResolvedValueOnce(mockConfigFiltersCollection);
+
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({
+        activeMode: 'quote',
+        activeCollection: 'code',
+        punctuationEnabled: false,
+        numbersEnabled: false,
+      });
+    });
+
+    render(
+      <HomeClient initialCollection={mockConfigFiltersCollection as never} />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('typing-area')).toHaveTextContent(
+        'Hello, world! 2026 test rapide complet.',
+      );
+    });
+  });
+
   it('sélectionne un texte de la bonne tranche de longueur (mode Mots · 100)', async () => {
     const { HomeClient } = await import('../typing/HomeClient');
     const { useConfigStore } = await import('@/stores/useConfigStore');
