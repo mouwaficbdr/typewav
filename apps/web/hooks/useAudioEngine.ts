@@ -9,7 +9,8 @@
  * - Correction = reprise + micro-reverb (decay 0.3, wet 0.4)
  * - Lazy loading : uniquement le pack actif en mémoire
  *
- * Packs supportés : piano | synth-lofi | cinematic | jazz-piano
+ * Pack supporté : piano uniquement (décision produit définitive, voir la
+ * mémoire projet sur la Phase 4 : plus d'autres sound packs à venir)
  * Lecture : une seule logique de pièce musicale (plus de mode pentatonique séparé)
  *
  * Le graphe Tone.js (sampler/reverb/synth) vit dans un singleton de module
@@ -60,6 +61,11 @@ interface PackSynthConfig {
   reverbWet: number;
 }
 
+// Piano uniquement, décision produit définitive : plus de sound packs à
+// vendre ou à débloquer (voir la mémoire projet sur la Phase 4). Reste une
+// Record<string, ...> plutôt qu'un objet à clé unique : packId reste un
+// string dans toute la chaîne d'appel (buildVoices/loadSoundPack), inutile
+// de la retyper tant que rien d'autre ne le justifie.
 const PACK_CONFIGS: Record<string, PackSynthConfig> = {
   piano: {
     oscillatorType: 'triangle',
@@ -68,31 +74,6 @@ const PACK_CONFIGS: Record<string, PackSynthConfig> = {
     sustain: 0.4,
     release: 1.2,
     reverbWet: 0.25,
-  },
-  'synth-lofi': {
-    oscillatorType: 'sawtooth',
-    attack: 0.05,
-    decay: 0.2,
-    sustain: 0.5,
-    release: 0.8,
-    reverbWet: 0.35,
-  },
-  // ─── Packs premium ─────────────────────────────────────────────────────────
-  cinematic: {
-    oscillatorType: 'sawtooth',
-    attack: 0.08,
-    decay: 0.5,
-    sustain: 0.7,
-    release: 2.0,
-    reverbWet: 0.45,
-  },
-  'jazz-piano': {
-    oscillatorType: 'sine',
-    attack: 0.01,
-    decay: 0.4,
-    sustain: 0.3,
-    release: 1.5,
-    reverbWet: 0.28,
   },
 };
 
@@ -533,11 +514,11 @@ export function useAudioEngine() {
           velocity,
         );
       } else if (engine.fallbackSynth && engine.loadedPack !== 'piano') {
-        // Le synth de repli EST le son voulu pour les packs non échantillonnés
-        // (synth-lofi, cinematic, jazz-piano) — mais jamais un remplacement
-        // audible du piano réel : comme la règle "jamais une fausse note",
-        // on préfère le silence à un autre instrument le temps que le
-        // sampler (préchargé au montage) finisse de charger.
+        // Piano est l'unique pack (décision produit définitive) : cette
+        // branche ne s'exécute plus jamais en pratique (loadedPack vaut
+        // toujours 'piano'), conservée telle quelle plutôt que retirée pour
+        // ne pas toucher inutilement à ce fichier. Voir la mémoire projet
+        // sur la Phase 4 si un nettoyage plus profond est fait un jour.
         engine.fallbackSynth.triggerAttackRelease(
           noteToPlay,
           duration,

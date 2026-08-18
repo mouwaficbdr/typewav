@@ -16,32 +16,17 @@ import {
   Cloud,
   Ghost,
   Link2,
-  Music,
   Swords,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useState } from 'react';
 
+// Les sound packs premium (Cinematic, Jazz Piano) ont été retirés : piano
+// est l'unique pack, décision produit définitive (voir la mémoire projet
+// Phase 4). Le contenu premium sera redéfini une fois le MVP posé ; pour
+// l'instant cette liste ne montre plus que ce qui existe vraiment.
 const PREMIUM_FEATURES = [
-  {
-    Icon: Music,
-    labelKey: 'featureCinematic',
-    premium: true,
-    comingSoon: false,
-  },
-  {
-    Icon: Music,
-    labelKey: 'featureLofi',
-    premium: true,
-    comingSoon: false,
-  },
-  {
-    Icon: Music,
-    labelKey: 'featureJazz',
-    premium: true,
-    comingSoon: false,
-  },
   {
     Icon: AudioLines,
     labelKey: 'featureClassics',

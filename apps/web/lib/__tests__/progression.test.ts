@@ -27,7 +27,6 @@ function makeSession(overrides: Partial<SessionResult> = {}): SessionResult {
 
 const emptyProfile: UserProfile = {
   unlockedThemes: ['terminal'],
-  unlockedSoundPacks: ['piano'],
   unlockedCollections: ['litterature'],
   unlockedMilestoneIds: [],
   currentRank: 'novice',

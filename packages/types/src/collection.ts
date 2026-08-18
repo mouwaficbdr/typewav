@@ -40,8 +40,6 @@ export interface CollectionConfig {
   language: CollectionLanguage;
   /** Thème AudioEngine recommandé pour cette collection */
   recommendedTheme?: string;
-  /** Pack sonore recommandé pour cette collection */
-  recommendedSoundPack?: string;
   isPremium: boolean;
   texts: TextEntry[];
 }

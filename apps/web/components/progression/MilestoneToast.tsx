@@ -15,7 +15,6 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 const REWARD_ICONS: Record<Milestone['reward']['type'], string> = {
-  soundpack: '🎵',
   theme: '🎨',
   collection: '📚',
   accent: '✨',

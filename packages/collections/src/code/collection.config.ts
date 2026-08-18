@@ -13,7 +13,6 @@ export const codeCollection: CollectionConfig = {
   description: 'Snippets issus de projets open source — MIT, Apache 2.0.',
   language: 'en',
   recommendedTheme: 'terminal',
-  recommendedSoundPack: 'chiptune',
   isPremium: false,
   texts: [
     // ── English ───────────────────────────────────────────────────────────────

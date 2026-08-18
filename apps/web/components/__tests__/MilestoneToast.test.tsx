@@ -39,7 +39,7 @@ import { MilestoneToast } from '../progression/MilestoneToast';
 const mockMilestone: Milestone = {
   id: 'test-1',
   condition: { type: 'sessions', value: 1 },
-  reward: { type: 'soundpack', packId: 'piano' },
+  reward: { type: 'accent', color: '#FFD700' },
   labelFr: 'Test FR Label',
   labelEn: 'Test EN Label',
 };

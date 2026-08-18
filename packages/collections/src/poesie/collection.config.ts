@@ -13,7 +13,6 @@ export const poesieCollection: CollectionConfig = {
   description: 'Poèmes emblématiques du patrimoine mondial — domaine public.',
   language: 'multi',
   recommendedTheme: 'midnight-sun',
-  recommendedSoundPack: 'piano',
   isPremium: false,
   texts: [
     {

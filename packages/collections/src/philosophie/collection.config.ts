@@ -14,7 +14,6 @@ export const philosophieCollection: CollectionConfig = {
     'Fragments de la pensée universelle — Descartes, Pascal, Nietzsche et leurs pairs.',
   language: 'multi',
   recommendedTheme: 'noir',
-  recommendedSoundPack: 'piano',
   isPremium: false,
   texts: [
     {

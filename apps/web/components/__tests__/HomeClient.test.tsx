@@ -46,7 +46,6 @@ vi.mock('@/lib/db', () => ({
     currentRank: 'novice',
     pseudo: '',
     unlockedThemes: [],
-    unlockedSoundPacks: [],
     unlockedCollections: [],
     unlockedMilestoneIds: [],
   }),

@@ -13,7 +13,6 @@ export const litteratureCollection: CollectionConfig = {
   description: 'Grands textes de la littérature mondiale — domaine public.',
   language: 'multi',
   recommendedTheme: 'noir',
-  recommendedSoundPack: 'piano',
   isPremium: false,
   texts: [
     // ── Français ──────────────────────────────────────────────────────────────

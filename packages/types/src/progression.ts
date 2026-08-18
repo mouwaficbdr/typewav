@@ -56,7 +56,6 @@ export const RANKS: Record<RankTier, Rank> = {
 // ─── Jalons ────────────────────────────────────────────────────────────────────
 
 export type Reward =
-  | { type: 'soundpack'; packId: string }
   | { type: 'theme'; themeId: string }
   | { type: 'collection'; collectionId: string }
   | { type: 'accent'; color: string };
@@ -88,7 +87,7 @@ export const MILESTONES: Milestone[] = [
   {
     id: 'sessions_10',
     condition: { type: 'sessions', value: 10 },
-    reward: { type: 'soundpack', packId: 'marimba' },
+    reward: { type: 'accent', color: '#FF6B35' },
     labelFr: '10 sessions complétées',
     labelEn: '10 sessions completed',
   },
@@ -102,7 +101,7 @@ export const MILESTONES: Milestone[] = [
   {
     id: 'wpm_50',
     condition: { type: 'wpm', value: 50 },
-    reward: { type: 'soundpack', packId: 'synth-lofi' },
+    reward: { type: 'accent', color: '#4A9EFF' },
     labelFr: '50 WPM atteints',
     labelEn: '50 WPM reached',
   },
@@ -116,7 +115,7 @@ export const MILESTONES: Milestone[] = [
   {
     id: 'wpm_90',
     condition: { type: 'wpm', value: 90 },
-    reward: { type: 'soundpack', packId: 'chiptune' },
+    reward: { type: 'accent', color: '#FF3D7F' },
     labelFr: '90 WPM atteints',
     labelEn: '90 WPM reached',
   },
@@ -155,7 +154,6 @@ export interface PersonalRecords {
 
 export interface UserProfile {
   unlockedThemes: string[];
-  unlockedSoundPacks: string[];
   unlockedCollections: string[];
   unlockedMilestoneIds: string[];
   currentRank: RankTier;

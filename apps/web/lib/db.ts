@@ -240,7 +240,6 @@ export async function deletePreference(key: string): Promise<void> {
 
 const DEFAULT_PROFILE: UserProfile = {
   unlockedThemes: ['terminal'],
-  unlockedSoundPacks: ['piano'],
   unlockedCollections: ['litterature'],
   unlockedMilestoneIds: [],
   currentRank: 'novice',

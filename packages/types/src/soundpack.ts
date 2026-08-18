@@ -1,12 +1,10 @@
 /**
  * Type d'instrument Tone.js utilisé pour la synthèse audio.
  * Représente le caractère sonore du pack, pas l'ID du pack.
+ * Piano uniquement (décision produit définitive, Phase 4) : plus d'autres
+ * sound packs à venir, voir la mémoire projet.
  */
-export type InstrumentType =
-  | 'piano' // oscillateur triangle, son arrondi
-  | 'strings' // oscillateur sawtooth avec reverb élevé — cordes orchestrales
-  | 'synth' // oscillateur sawtooth — lo-fi, analogique
-  | 'chiptune'; // oscillateur square — 8-bit (conservé pour forward-compat)
+export type InstrumentType = 'piano'; // oscillateur triangle, son arrondi
 
 /**
  * Configuration d'un sound pack.

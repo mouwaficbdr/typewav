@@ -252,7 +252,7 @@
   },
   "sync": {
     "comingSoon": "Bientôt",
-    "comingSoonExplainer": "La synchronisation cloud cross-device est en cours de déploiement. Elle sera disponible très prochainement pour tous les abonnés Premium. Les packs sonores premium sont disponibles dès maintenant.",
+    "comingSoonExplainer": "La synchronisation cloud cross-device est en cours de déploiement. Elle sera disponible très prochainement pour tous les abonnés Premium.",
     "premiumBanner": "La sync cloud cross-device sera bientôt disponible. Tes sessions sont actuellement sauvegardées localement. Tu seras notifié dès l'activation."
   },
   "ghost": {
@@ -281,9 +281,9 @@
   },
   "premium": {
     "alreadyPremium": "✦ Vous êtes Premium",
-    "alreadyPremiumDesc": "Tous les packs sonores et fonctionnalités cloud sont débloqués.",
+    "alreadyPremiumDesc": "Merci de soutenir TypeWav.",
     "title": "TypeWav Premium",
-    "subtitle": "Des sons cinématiques. Votre musique, votre rythme.",
+    "subtitle": "Votre musique, votre rythme.",
     "monthly": "Mensuel",
     "monthlyDesc": "par mois · sans engagement",
     "annual": "Annuel",
@@ -295,9 +295,6 @@
     "soon": "BIENTÔT",
     "premiumBadge": "PREMIUM",
     "freeBadge": "GRATUIT",
-    "featureCinematic": "Pack Cinematic — cordes + piano",
-    "featureLofi": "Pack Synth Lo-Fi",
-    "featureJazz": "Pack Jazz Piano",
     "featureClassics": "Mode Classiques MIDI",
     "featureAnalytics": "Dashboard analytics complet",
     "featureGhost": "Mode Fantôme — record personnel",

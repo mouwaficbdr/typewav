@@ -17,7 +17,6 @@ export const gamingCollection: CollectionConfig = {
     'Phrases et paragraphes inspirés de la culture du jeu vidéo — originaux TypeWav.',
   language: 'multi',
   recommendedTheme: 'arcade',
-  recommendedSoundPack: 'chiptune',
   isPremium: false,
   texts: [
     {
