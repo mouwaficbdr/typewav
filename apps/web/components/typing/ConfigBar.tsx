@@ -71,7 +71,7 @@ export function ConfigBar() {
   } = useConfigStore();
 
   // Le mode Zen est le mode signature du produit (musicothérapie, sans
-  // minuteur ni score) — il ne doit jamais se fondre dans les 7 autres
+  // minuteur ni score) ; il ne doit jamais se fondre dans les 7 autres
   // modes utilitaires, d'où le traitement 'signature' à part.
   const chipStyle = (
     active: boolean,
@@ -101,7 +101,7 @@ export function ConfigBar() {
       justifyContent: 'center',
       transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
       transform: active ? 'scale(1.02)' : 'scale(1)',
-      // Respire doucement pour attirer l'œil vers le mode signature — mais
+      // Respire doucement pour attirer l'œil vers le mode signature, mais
       // s'arrête net une fois sélectionné : Zen promet le calme, un glow
       // qui continue de pulser pendant la frappe serait le contredire.
       animation:

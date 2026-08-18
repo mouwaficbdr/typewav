@@ -195,7 +195,7 @@ export function LearningMode({
       {isOnboarding && (
         <>
           {/* La promesse "musicothérapie" existe dans les meta SEO depuis
-              toujours, mais aucun utilisateur ne les voit jamais — c'est ici,
+              toujours, mais aucun utilisateur ne les voit jamais : c'est ici,
               au tout premier contact, qu'elle doit vivre à l'écran. */}
           <p
             style={{

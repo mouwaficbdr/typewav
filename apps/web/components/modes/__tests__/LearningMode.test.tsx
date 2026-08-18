@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import frMessages from '../../../messages/fr.json';
 
 // Interpole les vraies chaînes fr.json (namespace + placeholders {x}) plutôt
-// que de renvoyer la clé brute — les assertions ci-dessous vérifient de la
+// que de renvoyer la clé brute : les assertions ci-dessous vérifient de la
 // vraie copie utilisateur (noms de niveaux, CTA), pas le câblage i18n en soi.
 vi.mock('next-intl', () => ({
   useTranslations: (namespace: string) => (key: string, values?: Record<string, unknown>) => {

@@ -354,7 +354,7 @@
         "tagline": "Majuscules et ponctuation : les accents et les silences de ta musique."
       }
     },
-    "levelHeading": "Niveau {id} — {name}",
+    "levelHeading": "Niveau {id} : {name}",
     "progressStats": "{samples}/{minSamples} frappes • {accuracy}% précision",
     "objective": "Objectif : {accuracy}% de précision sur {samples} frappes.",
     "lastSession": "Dernière session : {wpm} MPM · {accuracy}% ({correct}/{total})",

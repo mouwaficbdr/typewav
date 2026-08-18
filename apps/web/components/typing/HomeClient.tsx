@@ -592,7 +592,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           // dépasse la hauteur fixe de `main` (overflow: hidden plus haut),
           // ce qui coupait silencieusement le bas de l'écran (clavier,
           // bouton de déblocage) sans aucun moyen d'y accéder. minHeight: 0
-          // autorise cet item flex à rétrécir sous sa taille de contenu —
+          // autorise cet item flex à rétrécir sous sa taille de contenu ;
           // sans lui, overflowY n'a jamais l'occasion de s'activer.
           ...(isLearningMode
             ? { minHeight: 0, overflowY: 'auto' as const }

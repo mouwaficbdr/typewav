@@ -245,7 +245,7 @@ class VoiceEngine {
   sampler: ToneSampler | null = null;
   reverb: ToneReverb | null = null;
   loadedPack = '';
-  /** Dernière note réellement jouée — rejouée en écho doux sur erreur, jamais une nouvelle note. */
+  /** Dernière note réellement jouée, rejouée en écho doux sur erreur, jamais une nouvelle note. */
   lastPlayedNote: string | null = null;
   midiLoadRequestId = 0;
   midiLoadAbortController: AbortController | null = null;
@@ -588,13 +588,13 @@ export function useAudioEngine() {
   );
 
   /**
-   * Silence pour une frappe incorrecte — n'avance jamais la séquence et ne
+   * Silence pour une frappe incorrecte : n'avance jamais la séquence et ne
    * joue jamais de note nouvelle (règle absolue : jamais une fausse note).
    *
    * Une coupure sèche et répétée se vit comme une sanction plutôt qu'une
    * pause. Un simple remix de reverb ne suffit pas à l'adoucir : `wet` ne
    * fait que rééquilibrer un signal déjà en train de sonner, et ce signal
-   * est presque toujours déjà quasi éteint au moment de l'erreur — rien à
+   * est presque toujours déjà quasi éteint au moment de l'erreur ; rien à
    * remixer, donc rien d'audible. On relance à la place, à très faible
    * vélocité, un écho de la DERNIÈRE note déjà jouée (même hauteur, jamais
    * une nouvelle) : ça produit un vrai son qui s'éteint en fondu, sans
