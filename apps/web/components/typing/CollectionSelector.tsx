@@ -33,7 +33,17 @@ const MODES_WITH_COLLECTION: readonly TypingMode[] = [
   'quote',
 ];
 
-export function CollectionSelector() {
+interface CollectionSelectorProps {
+  // Mode à utiliser pour décider de la visibilité (distinct du mode actif du
+  // store quand celui-ci ne reflète pas le comportement réel de la session,
+  // ex. Fantôme sans donnée personnelle qui se comporte comme Classic) : voir
+  // HomeClient. Retombe sur le mode actif du store quand non fourni.
+  controlsMode?: TypingMode;
+}
+
+export function CollectionSelector({
+  controlsMode,
+}: CollectionSelectorProps = {}) {
   const activeCollection = useConfigStore((s) => s.activeCollection);
   const setCollection = useConfigStore((s) => s.setCollection);
   const activeMode = useConfigStore((s) => s.activeMode);
@@ -44,7 +54,9 @@ export function CollectionSelector() {
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const showCollection = MODES_WITH_COLLECTION.includes(activeMode);
+  const showCollection = MODES_WITH_COLLECTION.includes(
+    controlsMode ?? activeMode,
+  );
   if (!showCollection) return null;
 
   return (

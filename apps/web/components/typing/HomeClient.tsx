@@ -50,7 +50,7 @@ import { useCustomTextStore } from '@/stores/useCustomTextStore';
 import { useSessionStore } from '@/stores/useSessionStore';
 import { type MidiPieceId } from '@typewav/audio-engine';
 import { selectFromTexts } from '@typewav/collections';
-import type { CollectionConfig } from '@typewav/types';
+import type { CollectionConfig, TypingMode } from '@typewav/types';
 import { useReducedMotion } from 'motion/react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -145,6 +145,14 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const hasGhostData = ghostData !== null;
   const ghostEnabled = activeMode === 'ghost' && hasGhostData;
 
+  // Mode utilisé pour piloter la visibilité des contrôles (ConfigBar,
+  // sélecteurs de langue/collection) : identique au mode actif, sauf pour
+  // Fantôme sans donnée personnelle, qui se comporte réellement comme
+  // Classic (voir la bannière plus bas et l'effet de sélection de texte
+  // ci-dessous) et doit donc exposer les mêmes réglages, pas les cacher.
+  const controlsMode: TypingMode =
+    activeMode === 'ghost' && !ghostEnabled ? 'classic' : activeMode;
+
   // `initialized` volontairement absent de cet abonnement : le sampler est
   // préchargé au montage (indépendant du geste utilisateur), et s'abonner
   // ici forcerait un re-render de tout HomeClient au moment précis où
@@ -210,16 +218,19 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
   // Sélectionne un texte conscient de la cible réelle (durée en mode Temps,
   // nombre de mots en mode Mots) via selectFromTexts (@typewav/collections,
-  // déjà testé) — remplace l'ancien index déterministe par jour, qui
+  // déjà testé) : remplace l'ancien index déterministe par jour, qui
   // ignorait totalement la durée/le nombre de mots demandés. Tourne dans un
   // effet (jamais dans le rendu) : selectFromTexts utilise Math.random(),
   // qui provoquerait un mismatch d'hydratation SSR/client sinon.
-  // Libre/Fantôme ont leur propre source de texte (voir plus bas) ;
-  // Apprentissage ne consomme pas ce texte du tout.
+  // Libre a sa propre source de texte (voir plus bas) ; Apprentissage ne
+  // consomme pas ce texte du tout. Fantôme avec une vraie donnée personnelle
+  // rejoue le texte original de la session enregistrée (voir plus bas) et
+  // saute donc cet effet ; sans donnée, la session se comporte comme Classic
+  // (bannière visible), donc cet effet tourne normalement pour elle aussi.
   useEffect(() => {
     if (
       activeMode === 'custom' ||
-      activeMode === 'ghost' ||
+      (activeMode === 'ghost' && ghostEnabled) ||
       activeMode === 'learning'
     ) {
       return;
@@ -261,6 +272,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   }, [
     activeCollection,
     activeMode,
+    ghostEnabled,
     shuffleOffset,
     collectionsCache,
     textLanguage,
@@ -446,7 +458,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           }}
         >
           {/* Zone 2 — ConfigBar */}
-          <ConfigBar />
+          <ConfigBar controlsMode={controlsMode} />
 
           {/* Zone 3 — Active Session Header */}
           <ActiveSessionHeader
@@ -455,8 +467,8 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           />
 
           {/* Zone 3.5 — Context Selectors (Language + Collection) */}
-          <ContextSelectors />
-          <CollectionSelector />
+          <ContextSelectors controlsMode={controlsMode} />
+          <CollectionSelector controlsMode={controlsMode} />
 
           {activeMode === 'custom' && (
             <button
@@ -591,7 +603,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         // La ConfigBar reste visible même pendant l'onboarding : sans elle,
         // le mode Apprentissage devient un piège sans issue de navigation
         // (le logo ne fait rien tant qu'on est déjà sur la même route).
-        <ConfigBar />
+        <ConfigBar controlsMode={controlsMode} />
       )}
 
       <div

@@ -59,6 +59,21 @@ describe('ConfigBar', () => {
     expect(screen.getByTitle('punctuation')).toBeInTheDocument();
   });
 
+  it('les modificateurs restent cachés en mode apprentissage (sans effet sur le texte généré)', () => {
+    useConfigStore.setState({ activeMode: 'learning' });
+    render(<ConfigBar />);
+    expect(screen.queryByTitle('punctuation')).not.toBeInTheDocument();
+  });
+
+  it('controlsMode prend le pas sur le mode actif du store pour la visibilité', () => {
+    // Fantôme sans donnée personnelle se comporte comme Classic (voir
+    // HomeClient) : les modificateurs doivent suivre ce comportement réel,
+    // pas le mode brut affiché dans la ConfigBar.
+    useConfigStore.setState({ activeMode: 'ghost' });
+    render(<ConfigBar controlsMode="classic" />);
+    expect(screen.getByTitle('punctuation')).toBeInTheDocument();
+  });
+
   it('n’affiche pas de chips collection en mode classic', () => {
     render(<ConfigBar />);
     expect(screen.queryByRole('button', { name: /litterature/i })).toBeNull();

@@ -95,4 +95,13 @@ describe('CollectionSelector', () => {
     const { container } = render(<CollectionSelector />);
     expect(container).toBeEmptyDOMElement();
   });
+
+  it('controlsMode prend le pas sur le mode actif du store pour la visibilité', () => {
+    // Fantôme sans donnée personnelle se comporte comme Classic (voir
+    // HomeClient) : le sélecteur doit rester visible dans ce cas, malgré le
+    // mode brut 'ghost' toujours affiché comme actif dans la ConfigBar.
+    useConfigStore.setState({ activeMode: 'ghost' });
+    render(<CollectionSelector controlsMode="classic" />);
+    expect(screen.getByText('Littérature')).toBeInTheDocument();
+  });
 });

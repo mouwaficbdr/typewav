@@ -12,6 +12,7 @@
  */
 
 import { useConfigStore } from '@/stores/useConfigStore';
+import type { TypingMode } from '@typewav/types';
 import { useTranslations } from 'next-intl';
 import {
   AlignLeftIcon,
@@ -52,7 +53,16 @@ const MODES = [
 const DURATIONS = [15, 30, 60, 120] as const;
 const WORD_COUNTS = [10, 25, 50, 100] as const;
 
-export function ConfigBar() {
+interface ConfigBarProps {
+  // Mode à utiliser pour décider quels contrôles afficher (modificateurs,
+  // options contextuelles). Distinct du mode actif du store quand celui-ci
+  // ne reflète pas le comportement réel de la session (ex. Fantôme sans
+  // donnée personnelle, qui se comporte comme Classic) : voir HomeClient.
+  // Retombe sur le mode actif du store quand non fourni.
+  controlsMode?: TypingMode;
+}
+
+export function ConfigBar({ controlsMode }: ConfigBarProps = {}) {
   const t = useTranslations('config');
   const tModes = useTranslations('config.modes' as never) as (
     k: string,
@@ -125,14 +135,16 @@ export function ConfigBar() {
     />
   );
 
-  // Modes qui supportent les modificateurs ponctuation/chiffres/langue
+  // Modes qui supportent les modificateurs ponctuation/chiffres/langue.
+  // Apprentissage volontairement absent : generateLearningText (words.ts)
+  // ne lit jamais ces deux réglages, les afficher là n'aurait aucun effet.
+  const effectiveMode = controlsMode ?? activeMode;
   const supportsModifiers = [
     'classic',
     'sprint',
     'zen',
     'quote',
-    'learning',
-  ].includes(activeMode);
+  ].includes(effectiveMode);
 
   return (
     <>

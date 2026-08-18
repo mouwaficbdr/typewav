@@ -630,6 +630,41 @@ describe('HomeClient — mode Fantôme', () => {
     expect(
       screen.queryByText(/aucun record personnel/i),
     ).not.toBeInTheDocument();
+    // Réplique fixe d'une session enregistrée : les sélecteurs de langue et
+    // de collection n'ont pas de sens ici, ils doivent rester masqués.
+    expect(screen.queryByTitle('changeLanguage')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('changeCollection')).not.toBeInTheDocument();
+  });
+
+  it("sans donnée personnelle, la session tourne réellement en Classic : sélecteurs visibles et texte régénéré depuis la collection active", async () => {
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({
+        activeMode: 'ghost',
+        punctuationEnabled: false,
+        numbersEnabled: false,
+      });
+    });
+
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await screen.findByText(/aucun record personnel/i);
+
+    // La bannière promet un comportement Classic : les contrôles qui
+    // pilotent ce comportement doivent être visibles, pas cachés derrière
+    // le mode brut 'ghost'.
+    expect(screen.getByTitle('changeLanguage')).toBeInTheDocument();
+    expect(screen.getByTitle('changeCollection')).toBeInTheDocument();
+
+    // Le texte affiché doit être réellement issu de la collection active
+    // (filtré comme en Classic), pas un texte figé d'avant le repli.
+    await waitFor(() => {
+      expect(screen.getByTestId('typing-area')).toHaveTextContent(
+        'Texte de littérature initial',
+      );
+    });
   });
 });
 
