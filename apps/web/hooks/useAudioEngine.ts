@@ -356,14 +356,40 @@ class VoiceEngine {
     this.initializingPromise = promise;
     try {
       await promise;
+    } catch {
+      // Échec (ex. timeout Tone.start() ci-dessous) : `initialized` reste
+      // false, ce qui reflète l'état réel. Ne jamais propager — les
+      // appelants (playNote, le hook) dégradent déjà proprement vers le
+      // silence quand l'audio n'est pas prêt, sans avoir besoin de gérer
+      // une rejection individuellement.
     } finally {
+      // Toujours exécuté, y compris sur échec : une frappe suivante doit
+      // pouvoir retenter une initialisation propre plutôt que d'attendre
+      // indéfiniment une tentative qui ne se terminera jamais.
       this.initializingPromise = null;
     }
   }
 
   private async initializeInner(soundPackId: string): Promise<void> {
     const Tone = await loadTone();
-    await Tone.start();
+
+    // Tone.start()/context.resume() peut rester indéfiniment en attente
+    // (observé en session live : navigateur/onglet qui refuse de reprendre
+    // le contexte audio sans jamais rejeter la promesse) — sans ce timeout,
+    // `initializingPromise` reste bloqué pour de bon, et plus aucune frappe
+    // future de toute la session ne peut réessayer, même après un focus
+    // retrouvé. Le rejet (plutôt qu'une résolution silencieuse) est
+    // volontaire : on ne veut jamais marquer `initialized` alors que le
+    // contexte n'est peut-être toujours pas réellement "running".
+    await Promise.race([
+      Tone.start(),
+      new Promise<never>((_, reject) => {
+        setTimeout(
+          () => reject(new Error('Tone.start() timed out after 3s')),
+          3000,
+        );
+      }),
+    ]);
 
     await this.buildVoices(soundPackId);
 
