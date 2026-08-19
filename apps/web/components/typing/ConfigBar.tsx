@@ -269,7 +269,11 @@ export function ConfigBar({ controlsMode }: ConfigBarProps = {}) {
         </div>
 
         {/* ── Options Contextuelles ─────────────────── */}
-        {(activeMode === 'classic' || activeMode === 'sprint') && (
+        {/* effectiveMode, pas activeMode : Fantôme sans donnée personnelle
+            tourne réellement en session chronométrée façon Classic (voir
+            HomeClient), le réglage de durée doit rester visible/ajustable
+            dans ce cas plutôt que masqué derrière le mode brut 'ghost'. */}
+        {(effectiveMode === 'classic' || effectiveMode === 'sprint') && (
           <div
             style={{
               display: 'flex',
@@ -279,7 +283,7 @@ export function ConfigBar({ controlsMode }: ConfigBarProps = {}) {
             }}
           >
             {separator}
-            {activeMode === 'classic' &&
+            {effectiveMode === 'classic' &&
               DURATIONS.map((d) => (
                 <button
                   key={d}
@@ -291,7 +295,7 @@ export function ConfigBar({ controlsMode }: ConfigBarProps = {}) {
                   {d}
                 </button>
               ))}
-            {activeMode === 'sprint' &&
+            {effectiveMode === 'sprint' &&
               WORD_COUNTS.map((wc) => (
                 <button
                   key={wc}

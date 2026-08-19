@@ -421,11 +421,13 @@ describe('HomeClient — application des filtres config', () => {
     });
   });
 
-  it('force aussi ponctuation/chiffres quand la collection Code est choisie depuis un autre mode (ex: Citation)', async () => {
+  it('force aussi ponctuation/chiffres quand la collection Code est choisie depuis un autre mode (ex: Classic)', async () => {
     // La collection Code doit rester du vrai code même quand elle est
-    // sélectionnée manuellement en dehors du mode Code (ex: mode Citation) :
-    // sans ce garde-fou, retirer la ponctuation/les chiffres mutile la
-    // syntaxe (voir la régression reproduite en live avant ce correctif).
+    // sélectionnée manuellement en dehors du mode Code (ex: mode Classic ;
+    // le mode Citation, lui, exclut carrément Code de ses options, voir
+    // 'ramène la collection sur litterature...' ci-dessous) : sans ce
+    // garde-fou, retirer la ponctuation/les chiffres mutile la syntaxe (voir
+    // la régression reproduite en live avant ce correctif).
     mockFetchCollection.mockResolvedValueOnce(mockConfigFiltersCollection);
 
     const { HomeClient } = await import('../typing/HomeClient');
@@ -433,7 +435,7 @@ describe('HomeClient — application des filtres config', () => {
 
     act(() => {
       useConfigStore.setState({
-        activeMode: 'quote',
+        activeMode: 'classic',
         activeCollection: 'code',
         punctuationEnabled: false,
         numbersEnabled: false,
@@ -602,6 +604,26 @@ describe('HomeClient — bascule automatique de collection', () => {
     });
 
     expect(useConfigStore.getState().activeCollection).toBe('poesie');
+  });
+
+  it("ramène la collection sur 'litterature' en passant en mode Citation depuis Code (un snippet n'est pas une citation)", async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'code', activeCollection: 'code' });
+    });
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+    expect(useConfigStore.getState().activeCollection).toBe('code');
+
+    await act(async () => {
+      useConfigStore.setState({ activeMode: 'quote' });
+    });
+
+    await waitFor(() => {
+      expect(useConfigStore.getState().activeCollection).toBe('litterature');
+    });
   });
 });
 

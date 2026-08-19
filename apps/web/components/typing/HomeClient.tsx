@@ -145,12 +145,16 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const hasGhostData = ghostData !== null;
   const ghostEnabled = activeMode === 'ghost' && hasGhostData;
 
-  // Mode utilisé pour piloter la visibilité des contrôles (ConfigBar,
-  // sélecteurs de langue/collection) : identique au mode actif, sauf pour
+  // Mode réellement en train de tourner : identique au mode actif, sauf pour
   // Fantôme sans donnée personnelle, qui se comporte réellement comme
-  // Classic (voir la bannière plus bas et l'effet de sélection de texte
-  // ci-dessous) et doit donc exposer les mêmes réglages, pas les cacher.
-  const controlsMode: TypingMode =
+  // Classic (voir la bannière plus bas). Source unique pour tout ce qui doit
+  // refléter ce comportement réel plutôt que le mode brut affiché dans la
+  // ConfigBar : visibilité des contrôles (ConfigBar, sélecteurs de
+  // langue/collection), ciblage de la sélection de texte, et le prop `mode`
+  // passé à TypingArea. Ne jamais dupliquer ce calcul ailleurs dans ce
+  // fichier : deux versions à synchroniser à la main, c'est exactement le
+  // genre d'incohérence qui a produit les bugs corrigés dans ce composant.
+  const effectiveMode: TypingMode =
     activeMode === 'ghost' && !ghostEnabled ? 'classic' : activeMode;
 
   // `initialized` volontairement absent de cet abonnement : le sampler est
@@ -229,9 +233,9 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   // (bannière visible), donc cet effet tourne normalement pour elle aussi.
   useEffect(() => {
     if (
-      activeMode === 'custom' ||
-      (activeMode === 'ghost' && ghostEnabled) ||
-      activeMode === 'learning'
+      effectiveMode === 'custom' ||
+      effectiveMode === 'ghost' ||
+      effectiveMode === 'learning'
     ) {
       return;
     }
@@ -257,8 +261,8 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
       const entry = selectFromTexts(collection.texts, {
         ...(textLanguage !== 'both' ? { language: textLanguage } : {}),
-        ...(activeMode === 'sprint' ? { wordCount } : {}),
-        ...(activeMode === 'classic' ? { durationSeconds } : {}),
+        ...(effectiveMode === 'sprint' ? { wordCount } : {}),
+        ...(effectiveMode === 'classic' ? { durationSeconds } : {}),
         ...(numbersEnabled ? { numbersEnabled: true } : {}),
         ...(lastEntryIdRef.current
           ? { excludeIds: [lastEntryIdRef.current] }
@@ -271,8 +275,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     });
   }, [
     activeCollection,
-    activeMode,
-    ghostEnabled,
+    effectiveMode,
     shuffleOffset,
     collectionsCache,
     textLanguage,
@@ -295,6 +298,17 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
       setCollection('code');
     }
   }, [activeMode, setCollection]);
+
+  // Le mode Citation présente son texte comme une citation attribuée (voir
+  // le rendu de `source` plus bas) : un extrait de code n'est pas une
+  // citation, seulement une description technique. Si la collection Code
+  // était active avant de basculer en Citation, on la ramène vers le défaut
+  // plutôt que d'afficher un snippet sous une fausse attribution.
+  useEffect(() => {
+    if (activeMode === 'quote' && activeCollection === 'code') {
+      setCollection('litterature');
+    }
+  }, [activeMode, activeCollection, setCollection]);
 
   // Déclenche le tutoriel d'onboarding uniquement à la toute première visite.
   //
@@ -388,7 +402,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     const filteredText = applyTextFilters(selectedEntry.content, {
       punctuationEnabled: isCodeContent ? true : punctuationEnabled,
       numbersEnabled: isCodeContent ? true : numbersEnabled,
-      mode: activeMode,
+      mode: effectiveMode,
       wordCount,
     });
 
@@ -400,28 +414,13 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   }, [
     selectedEntry,
     activeMode,
+    effectiveMode,
     punctuationEnabled,
     numbersEnabled,
     wordCount,
     activeCollection,
     activePersonalText,
   ]);
-
-  // Mode effectif pour TypingArea
-  const typingAreaMode =
-    ghostEnabled && ghostData
-      ? 'ghost'
-      : activeMode === 'code'
-        ? 'code'
-        : activeMode === 'sprint'
-          ? 'sprint'
-          : activeMode === 'quote'
-            ? 'quote'
-            : activeMode === 'zen'
-              ? 'zen'
-              : activeMode === 'custom'
-                ? 'custom'
-                : 'classic';
 
   // Le layout unifié supprime les "sauts" ou "jumps" de l'UI.
   // LearningMode y est maintenant intégré de manière fluide.
@@ -461,7 +460,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           }}
         >
           {/* Zone 2 — ConfigBar */}
-          <ConfigBar controlsMode={controlsMode} />
+          <ConfigBar controlsMode={effectiveMode} />
 
           {/* Zone 3 — Active Session Header */}
           <ActiveSessionHeader
@@ -470,8 +469,8 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           />
 
           {/* Zone 3.5 — Context Selectors (Language + Collection) */}
-          <ContextSelectors controlsMode={controlsMode} />
-          <CollectionSelector controlsMode={controlsMode} />
+          <ContextSelectors controlsMode={effectiveMode} />
+          <CollectionSelector controlsMode={effectiveMode} />
 
           {activeMode === 'custom' && (
             <button
@@ -606,7 +605,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         // La ConfigBar reste visible même pendant l'onboarding : sans elle,
         // le mode Apprentissage devient un piège sans issue de navigation
         // (le logo ne fait rien tant qu'on est déjà sur la même route).
-        <ConfigBar controlsMode={controlsMode} />
+        <ConfigBar controlsMode={effectiveMode} />
       )}
 
       <div
@@ -660,14 +659,14 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               key={`${activeCollection}-${shuffleOffset}-${selectedPieceId}-${restartKey}-${activePersonalTextId ?? ''}`}
               text={ghostEnabled && ghostData ? ghostData.text : text}
               collectionId={collectionId}
-              mode={typingAreaMode}
+              mode={effectiveMode}
               durationSeconds={durationSeconds}
               onNoteChange={handleNoteChange}
               {...(ghostEnabled && ghostData
                 ? { ghostTimings: ghostData.timings }
                 : {})}
             />
-            {activeMode === 'quote' && source && (
+            {effectiveMode === 'quote' && source && (
               <p
                 style={{
                   fontFamily: 'var(--font-ui)',

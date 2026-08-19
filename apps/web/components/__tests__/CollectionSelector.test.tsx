@@ -96,6 +96,17 @@ describe('CollectionSelector', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
+  it("n'offre pas Code parmi les options en mode Citation (ce n'est pas une citation)", () => {
+    useConfigStore.setState({ activeMode: 'quote' });
+    render(<CollectionSelector />);
+    fireEvent.click(screen.getByTitle('changeCollection'));
+
+    expect(screen.getByText('Poésie')).toBeInTheDocument();
+    expect(screen.getByText('Philosophie')).toBeInTheDocument();
+    expect(screen.getByText('Gaming')).toBeInTheDocument();
+    expect(screen.queryByText('Code')).not.toBeInTheDocument();
+  });
+
   it('controlsMode prend le pas sur le mode actif du store pour la visibilité', () => {
     // Fantôme sans donnée personnelle se comporte comme Classic (voir
     // HomeClient) : le sélecteur doit rester visible dans ce cas, malgré le

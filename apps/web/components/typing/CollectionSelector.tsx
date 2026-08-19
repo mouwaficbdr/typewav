@@ -49,10 +49,19 @@ export function CollectionSelector({
   // d'auto-bascule dans HomeClient) et rien ne doit permettre à
   // l'utilisateur de faire dériver la collection ailleurs pendant qu'il est
   // actif, sinon "Code" reste affiché tout en montrant un texte quelconque.
-  const showCollection = MODES_WITH_TEXT_CONFIG.includes(
-    controlsMode ?? activeMode,
-  );
+  const effectiveMode = controlsMode ?? activeMode;
+  const showCollection = MODES_WITH_TEXT_CONFIG.includes(effectiveMode);
   if (!showCollection) return null;
+
+  // Le mode Citation présente son texte comme une citation attribuée (voir
+  // le rendu de `source` dans HomeClient) : un extrait de code n'est pas une
+  // citation, seulement une description technique. HomeClient bascule déjà
+  // la collection loin de 'code' à l'entrée en Citation pour cette raison ;
+  // ne pas la remettre en cause d'un simple clic dans ce menu.
+  const availableCollections =
+    effectiveMode === 'quote'
+      ? COLLECTIONS.filter((c) => c !== 'code')
+      : COLLECTIONS;
 
   return (
     <div
@@ -118,7 +127,7 @@ export function CollectionSelector({
                 whiteSpace: 'nowrap',
               }}
             >
-              {COLLECTIONS.map((collection) => (
+              {availableCollections.map((collection) => (
                 <button
                   key={collection}
                   onClick={() => {
