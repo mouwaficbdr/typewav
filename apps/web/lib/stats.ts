@@ -11,10 +11,26 @@ import type {
 } from '@typewav/types';
 
 /**
- * Calcule les WPM bruts.
- * Formule : (nombre de caractères corrects / 5) / minutes écoulées
+ * Calcule les WPM bruts (toutes les frappes, correctes ou non).
+ * Formule : (nombre total de caractères / 5) / minutes écoulées
  */
 export function calculateWPM(
+  keystrokes: KeystrokeEntry[],
+  durationMs: number,
+): number {
+  if (durationMs <= 0 || keystrokes.length === 0) return 0;
+  const minutes = durationMs / 60_000;
+  return Math.round(keystrokes.length / 5 / minutes);
+}
+
+/**
+ * Calcule les WPM nets (seuls les caractères corrects comptent).
+ * Même unité que calculateWPM — aucune pénalité supplémentaire n'est
+ * appliquée en plus de l'exclusion des caractères incorrects, pour éviter
+ * de pénaliser deux fois la même erreur.
+ * Formule : (nombre de caractères corrects / 5) / minutes écoulées
+ */
+export function calculateWPMNet(
   keystrokes: KeystrokeEntry[],
   durationMs: number,
 ): number {
@@ -22,22 +38,6 @@ export function calculateWPM(
   const correctChars = keystrokes.filter((k) => k.correct).length;
   const minutes = durationMs / 60_000;
   return Math.round(correctChars / 5 / minutes);
-}
-
-/**
- * Calcule les WPM nets (pénalise les erreurs non corrigées).
- * errorsNotCorrected = frappes incorrectes finales dans le texte tapé
- */
-export function calculateWPMNet(
-  keystrokes: KeystrokeEntry[],
-  durationMs: number,
-): number {
-  if (durationMs <= 0 || keystrokes.length === 0) return 0;
-  const grossWPM = calculateWPM(keystrokes, durationMs);
-  const minutes = durationMs / 60_000;
-  const errorCount = keystrokes.filter((k) => !k.correct).length;
-  const errorsPerMinute = errorCount / minutes;
-  return Math.max(0, Math.round(grossWPM - errorsPerMinute));
 }
 
 /**

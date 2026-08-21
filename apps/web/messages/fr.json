@@ -67,10 +67,22 @@
     "registerRomantique": "Romantique",
     "registerFolk": "Folk",
     "changeLanguage": "Changer la langue d entrée",
+    "changeCollection": "Changer la collection de textes",
     "ariaSessionWaveform": "Forme d onde de la session",
     "ariaWpmChart": "Graphique WPM de la session",
     "ariaKeyboardDiagram": "Clavier QWERTY interactif",
     "ariaLoadingCollection": "Chargement de la collection",
+    "myTexts": "Mes textes",
+    "noPersonalTextSelected": "Aucun texte personnel sélectionné. Ouvrez « Mes textes » pour en ajouter ou en choisir un.",
+    "personalTexts": {
+      "title": "Mes textes",
+      "empty": "Aucun texte pour l'instant. Ajoutez-en un pour commencer à taper votre propre contenu.",
+      "addPlaceholder": "Collez ou écrivez votre texte ici…",
+      "add": "Ajouter",
+      "use": "Utiliser",
+      "delete": "Supprimer",
+      "close": "Fermer"
+    },
     "finger": {
       "LP": "Auriculaire gauche",
       "LR": "Annulaire gauche",
@@ -240,7 +252,7 @@
   },
   "sync": {
     "comingSoon": "Bientôt",
-    "comingSoonExplainer": "La synchronisation cloud cross-device est en cours de déploiement. Elle sera disponible très prochainement pour tous les abonnés Premium. Les packs sonores premium sont disponibles dès maintenant.",
+    "comingSoonExplainer": "La synchronisation cloud cross-device est en cours de déploiement. Elle sera disponible très prochainement pour tous les abonnés Premium.",
     "premiumBanner": "La sync cloud cross-device sera bientôt disponible. Tes sessions sont actuellement sauvegardées localement. Tu seras notifié dès l'activation."
   },
   "ghost": {
@@ -269,9 +281,9 @@
   },
   "premium": {
     "alreadyPremium": "✦ Vous êtes Premium",
-    "alreadyPremiumDesc": "Tous les packs sonores et fonctionnalités cloud sont débloqués.",
+    "alreadyPremiumDesc": "Merci de soutenir TypeWav.",
     "title": "TypeWav Premium",
-    "subtitle": "Des sons cinématiques. Votre musique, votre rythme.",
+    "subtitle": "Votre musique, votre rythme.",
     "monthly": "Mensuel",
     "monthlyDesc": "par mois · sans engagement",
     "annual": "Annuel",
@@ -283,9 +295,6 @@
     "soon": "BIENTÔT",
     "premiumBadge": "PREMIUM",
     "freeBadge": "GRATUIT",
-    "featureCinematic": "Pack Cinematic — cordes + piano",
-    "featureLofi": "Pack Synth Lo-Fi",
-    "featureJazz": "Pack Jazz Piano",
     "featureClassics": "Mode Classiques MIDI",
     "featureAnalytics": "Dashboard analytics complet",
     "featureGhost": "Mode Fantôme — record personnel",
@@ -317,6 +326,42 @@
       "philosophie": "Philosophie",
       "gaming": "Gaming"
     }
+  },
+  "learning": {
+    "tagline": "Chaque touche est déjà une note.",
+    "level": {
+      "1": {
+        "name": "Les premières notes",
+        "tagline": "Pose tes doigts, la musique commence."
+      },
+      "2": {
+        "name": "Vers les aigus",
+        "tagline": "Ta mélodie grimpe d'un rang."
+      },
+      "3": {
+        "name": "Vers les graves",
+        "tagline": "Elle descend, elle respire."
+      },
+      "4": {
+        "name": "Ta première partition",
+        "tagline": "De vrais mots, une vraie mélodie qui prend forme."
+      },
+      "5": {
+        "name": "Nuances et silences",
+        "tagline": "Majuscules et ponctuation : les accents et les silences de ta musique."
+      }
+    },
+    "levelHeading": "Niveau {id} : {name}",
+    "progressStats": "{samples}/{minSamples} frappes • {accuracy}% précision (visé {targetAccuracy}%)",
+    "lastSession": "Dernière session : {wpm} MPM · {accuracy}% ({correct}/{total})",
+    "readyToAdvance": "Objectif atteint : clique sur le niveau suivant, juste au-dessus, pour continuer.",
+    "needMoreReps": "Encore {samples} frappes à enchaîner (vise {accuracy}% de précision) pour débloquer la suite. Termine chaque série jusqu'au bout : une série interrompue ne compte pas.",
+    "needMoreAccuracy": "Tu as fait assez de frappes, mais ta précision cumulée est encore sous les {accuracy}% visés. Enchaîne des séries précises pour la faire remonter.",
+    "skipTutorial": "Passer le tutoriel",
+    "tutorialComplete": "Tutoriel terminé ! Tu improvises déjà.",
+    "exitToClassic": "Passer en mode classique →",
+    "readyToUnlock": "Niveau {id} prêt : {name}. Cliquer pour continuer.",
+    "unlockedAnnouncement": "Niveau {id} débloqué : {name}."
   },
   "hint": {
     "restart": "Recommencer (Tab + Entrée)",

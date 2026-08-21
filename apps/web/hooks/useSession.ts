@@ -24,10 +24,17 @@ import { useAudioStore } from '@/stores/useAudioStore';
 import { useSessionStore } from '@/stores/useSessionStore';
 import type { KeystrokeEntry, SessionResult, TypingMode } from '@typewav/types';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface LiveStats {
   wpm: number;
+  accuracy: number;
+  consistency: number;
+}
+
+interface FinalStats {
+  wpm: number;
+  wpmNet: number;
   accuracy: number;
   consistency: number;
 }
@@ -64,15 +71,46 @@ export function useSession({
   } = useSessionStore();
   const { themeId: audioThemeId } = useAudioStore();
   const { runAfterSession } = useProgressionCheck();
+  // Lu via ref (pas comme dépendance de l'effet ci-dessous) : changer le
+  // thème audio en cours de frappe est un réglage à chaud, pas le signal
+  // d'un nouveau test — il ne doit jamais réinitialiser la séance en cours.
+  const audioThemeIdRef = useRef(audioThemeId);
+  useEffect(() => {
+    audioThemeIdRef.current = audioThemeId;
+  });
 
   const [liveStats, setLiveStats] = useState<LiveStats>({
     wpm: 0,
     accuracy: 100,
     consistency: 100,
   });
+  // Distinct de liveStats (mis à jour au mieux toutes les 1s pendant la
+  // frappe) : dérivé directement de keystrokes/startedAt/endedAt, donc
+  // disponible dès le rendu où la séance se termine — un exercice qui finit
+  // avant le premier tick périodique (fréquent sur un texte court)
+  // laisserait sinon liveStats.wpm à sa valeur initiale de 0 au moment où
+  // les composants consommateurs lisent le WPM final.
+  const finalStats = useMemo<FinalStats | null>(() => {
+    if (endedAt === null || startedAt === null) return null;
+    const duration = endedAt - startedAt;
+    return {
+      wpm: calculateWPM(keystrokes, duration),
+      wpmNet: calculateWPMNet(keystrokes, duration),
+      accuracy: calculateAccuracy(keystrokes),
+      consistency: calculateConsistency(keystrokes),
+    };
+  }, [endedAt, startedAt, keystrokes]);
 
   // Ref pour l'intervalle de mise à jour des stats live
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // `keystrokes` change de référence à chaque frappe : le lire via un ref
+  // (plutôt que comme dépendance de l'effet ci-dessous) permet à
+  // l'intervalle de survivre à la frappe continue au lieu d'être détruit
+  // et recréé avant d'avoir jamais atteint son propre délai d'1s.
+  const keystrokesRef = useRef(keystrokes);
+  useEffect(() => {
+    keystrokesRef.current = keystrokes;
+  });
 
   // Démarrer la session quand le texte change
   useEffect(() => {
@@ -80,9 +118,9 @@ export function useSession({
       mode,
       ...(collectionId !== undefined ? { collectionId } : {}),
       soundPackId,
-      themeId: audioThemeId,
+      themeId: audioThemeIdRef.current,
     });
-  }, [text, mode, collectionId, soundPackId, audioThemeId, startSession]);
+  }, [text, mode, collectionId, soundPackId, startSession]);
 
   // Mettre à jour les stats live toutes les secondes
   useEffect(() => {
@@ -97,19 +135,20 @@ export function useSession({
     intervalRef.current = setInterval(() => {
       const now = Date.now();
       const elapsed = now - (startedAt ?? now);
-      if (elapsed < 1000 || keystrokes.length === 0) return;
+      const currentKeystrokes = keystrokesRef.current;
+      if (elapsed < 1000 || currentKeystrokes.length === 0) return;
 
       setLiveStats({
-        wpm: calculateWPM(keystrokes, elapsed),
-        accuracy: calculateAccuracy(keystrokes),
-        consistency: calculateConsistency(keystrokes),
+        wpm: calculateWPM(currentKeystrokes, elapsed),
+        accuracy: calculateAccuracy(currentKeystrokes),
+        consistency: calculateConsistency(currentKeystrokes),
       });
     }, 1000);
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [startedAt, endedAt, keystrokes]);
+  }, [startedAt, endedAt]);
 
   // Durée de session: appliquer un timeout pour les modes chronométrés.
   useEffect(() => {
@@ -134,13 +173,10 @@ export function useSession({
 
   // Fin de session : sauvegarder + naviguer
   useEffect(() => {
-    if (endedAt === null || startedAt === null) return;
+    if (endedAt === null || startedAt === null || !finalStats) return;
 
     const duration = endedAt - startedAt;
-    const wpm = calculateWPM(keystrokes, duration);
-    const wpmNet = calculateWPMNet(keystrokes, duration);
-    const accuracy = calculateAccuracy(keystrokes);
-    const consistency = calculateConsistency(keystrokes);
+    const { wpm, wpmNet, accuracy, consistency } = finalStats;
 
     const sessionResult: SessionResult = {
       id: crypto.randomUUID(),
@@ -219,6 +255,7 @@ export function useSession({
     position,
     keystrokes,
     liveStats,
+    finalStats,
     isActive: startedAt !== null && endedAt === null,
     isComplete: endedAt !== null,
     handleKeystroke,

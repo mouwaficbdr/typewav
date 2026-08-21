@@ -1,45 +1,37 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   advanceAndGet,
+  advanceAndGetNote,
   advanceAndGetWithDuration,
   getCurrentDuration,
   getCurrentPiece,
   getCurrentPosition,
   loadPiece,
+  loadPieceFromData,
   MIDI_PIECES,
   resetSequence,
+  type ParsedPiece,
 } from '../midi-player';
 
 describe('MIDI_PIECES', () => {
-  it('contient exactement 58 pièces', () => {
-    expect(Object.keys(MIDI_PIECES)).toHaveLength(58);
+  it('contient exactement 24 pièces', () => {
+    expect(Object.keys(MIDI_PIECES)).toHaveLength(24);
   });
 
-  it('chaque pièce a un tableau de notes non vide', () => {
+  it('chaque pièce a des notes parsées valides', () => {
     for (const piece of Object.values(MIDI_PIECES)) {
       expect(piece.notes.length).toBeGreaterThan(0);
-    }
-  });
+      expect(piece.bpmReference).toBeGreaterThan(0);
+      expect(piece.ppq).toBeGreaterThan(0);
+      expect(piece.totalDurationSec).toBeGreaterThan(0);
 
-  it('chaque note est une chaîne de type pitch Tone.js ou "rest"', () => {
-    const pitchRegex = /^([A-G][b#]?\d|rest)$/;
-    for (const piece of Object.values(MIDI_PIECES)) {
       for (const note of piece.notes) {
-        expect(note).toMatch(pitchRegex);
+        expect(note.pitch).toBeGreaterThanOrEqual(0);
+        expect(note.pitch).toBeLessThanOrEqual(127);
+        expect(note.durationSec).toBeGreaterThan(0);
+        expect(note.durationTicks).toBeGreaterThan(0);
+        expect(note.startTick).toBeGreaterThanOrEqual(0);
       }
-    }
-  });
-
-  it('chaque pièce a une noteDuration valide', () => {
-    const validDurations = ['1n', '2n', '4n', '8n', '16n', '32n'];
-    for (const piece of Object.values(MIDI_PIECES)) {
-      expect(validDurations).toContain(piece.noteDuration);
-    }
-  });
-
-  it('toutes les pièces sont du domaine public (year < 1956)', () => {
-    for (const piece of Object.values(MIDI_PIECES)) {
-      expect(piece.year).toBeLessThan(1956);
     }
   });
 });
@@ -51,107 +43,150 @@ describe('loadPiece', () => {
     expect(getCurrentPosition()).toBe(0);
   });
 
-  it('charge une pièce différente sans laisser de résidus', () => {
-    loadPiece('fur-elise');
-    loadPiece('korobeiniki');
-    expect(getCurrentPiece()?.id).toBe('korobeiniki');
-    expect(getCurrentPosition()).toBe(0);
-  });
-
-  it('charge des pièces hors noyau historique sans erreur', () => {
-    const samplePieces = [
-      'clair-de-lune',
-      'flight-of-bumblebee',
-      'amazing-grace',
-    ];
-    for (const id of samplePieces) {
-      const piece = loadPiece(id);
-      expect(piece.id).toBe(id);
-      expect(piece.notes.length).toBeGreaterThan(0);
-    }
-  });
-
   it('supporte les alias legacy', () => {
-    const piece = loadPiece('prelude-bwv846');
-    expect(piece.id).toBe('bwv846');
+    const piece = loadPiece('canon-pachelbel');
+    expect(piece.id).toBe('canon-in-d');
   });
 });
 
-describe('advanceAndGet', () => {
+describe('advanceAndGetNote', () => {
   beforeEach(() => {
-    loadPiece('bwv846');
+    loadPiece('canon-in-d');
   });
 
-  it('retourne la première note au premier appel', () => {
-    const note = advanceAndGet();
+  it('retourne une note parsée au premier appel', () => {
+    const note = advanceAndGetNote();
     const piece = getCurrentPiece();
+
     expect(piece).not.toBeNull();
-    expect(note).toBe(piece!.notes[0]);
+    expect(note).toEqual(piece?.notes[0]);
   });
 
   it('avance la position à chaque appel', () => {
-    advanceAndGet(); // position → 1
+    advanceAndGetNote();
     expect(getCurrentPosition()).toBe(1);
-    advanceAndGet(); // position → 2
+    advanceAndGetNote();
     expect(getCurrentPosition()).toBe(2);
   });
 
   it('boucle à la fin de la séquence', () => {
-    const piece = loadPiece('bwv846');
-    // Avancer jusqu'à la dernière note
+    const piece = loadPiece('canon-in-d');
+
     for (let i = 0; i < piece.notes.length - 1; i++) {
-      advanceAndGet();
+      advanceAndGetNote();
     }
-    // Dernière note → position revient à 0
-    const lastNote = advanceAndGet();
-    expect(lastNote).toBe(piece.notes[piece.notes.length - 1]);
+
+    const last = advanceAndGetNote();
+    expect(last).toEqual(piece.notes[piece.notes.length - 1]);
+    expect(getCurrentPosition()).toBe(0);
+  });
+});
+
+describe('legacy compatibility', () => {
+  beforeEach(() => {
+    loadPiece('canon-in-d');
+  });
+
+  it('advanceAndGet retourne un nom de note Tone-compatible', () => {
+    const noteName = advanceAndGet();
+    expect(noteName).toMatch(/^([A-G]#?\d)$/);
+  });
+
+  it('advanceAndGetWithDuration retourne note+durée legacy', () => {
+    const step = advanceAndGetWithDuration();
+    expect(step).not.toBeNull();
+    expect(step?.note).toMatch(/^([A-G]#?\d)$/);
+    expect(step?.duration).toMatch(/^(1n|2n|4n|8n|16n|32n)$/);
+  });
+
+  it('getCurrentDuration retourne une durée valide', () => {
+    const duration = getCurrentDuration();
+    expect(duration).toMatch(/^(1n|2n|4n|8n|16n|32n)$/);
+  });
+});
+
+describe('loadPieceFromData', () => {
+  it('charge une pièce parsée dynamique', () => {
+    const piece: ParsedPiece = {
+      id: 'custom',
+      title: 'Custom',
+      composer: 'TypeWav',
+      year: 1900,
+      bpmReference: 110,
+      ppq: 480,
+      totalDurationSec: 1,
+      notes: [
+        {
+          pitch: 60,
+          durationSec: 0.5,
+          durationTicks: 240,
+          startTick: 0,
+          velocity: 100,
+          isPhraseBoundary: false,
+        },
+        {
+          pitch: 64,
+          durationSec: 0.5,
+          durationTicks: 240,
+          startTick: 240,
+          velocity: 96,
+          isPhraseBoundary: true,
+        },
+      ],
+    };
+
+    loadPieceFromData(piece);
+    expect(getCurrentPiece()?.id).toBe('custom');
     expect(getCurrentPosition()).toBe(0);
   });
 
-  it('retourne null si aucune pièce chargée', () => {
-    // Réinitialiser l'état en forçant un état vide
-    loadPiece('fur-elise');
-    resetSequence();
-    // Même sans pièce nulle, advanceAndGet doit fonctionner
-    const note = advanceAndGet();
-    expect(note).toBeDefined();
-  });
-});
+  it('rejette les notes avec un pitch non fini (NaN/Infinity) plutôt que de le propager', () => {
+    const piece: ParsedPiece = {
+      id: 'corrupted',
+      title: 'Corrupted',
+      composer: 'TypeWav',
+      year: 1900,
+      bpmReference: 110,
+      ppq: 480,
+      totalDurationSec: 1,
+      notes: [
+        {
+          pitch: NaN,
+          durationSec: 0.5,
+          durationTicks: 240,
+          startTick: 0,
+          velocity: 100,
+          isPhraseBoundary: false,
+        },
+        {
+          pitch: 64,
+          durationSec: 0.5,
+          durationTicks: 240,
+          startTick: 240,
+          velocity: 96,
+          isPhraseBoundary: true,
+        },
+      ],
+    };
 
-describe('advanceAndGetWithDuration', () => {
-  beforeEach(() => {
-    loadPiece('bwv846');
-  });
+    loadPieceFromData(piece);
+    const loaded = getCurrentPiece();
 
-  it('retourne la note et la duree de la meme piece', () => {
-    const step = advanceAndGetWithDuration();
-    expect(step).not.toBeNull();
-    expect(step?.note).toBe(MIDI_PIECES['bwv846']?.notes[0]);
-    expect(step?.duration).toBe(MIDI_PIECES['bwv846']?.noteDuration);
-  });
-});
-
-describe('getCurrentDuration', () => {
-  it('retourne la durée de la pièce chargée', () => {
-    loadPiece('gymnopedie1');
-    expect(getCurrentDuration()).toBe('8n');
-  });
-
-  it('retourne "16n" par défaut si aucune pièce', () => {
-    // Patch interne — vérifier fallback
-    loadPiece('fur-elise');
-    expect(getCurrentDuration()).toBe('16n');
+    expect(loaded?.notes).toHaveLength(1);
+    expect(loaded?.notes.every((n) => Number.isFinite(n.pitch))).toBe(true);
   });
 });
 
 describe('resetSequence', () => {
   it('remet la position à 0 sans changer la pièce', () => {
-    loadPiece('korobeiniki');
-    advanceAndGet();
-    advanceAndGet();
+    loadPiece('ode-to-joy');
+    advanceAndGetNote();
+    advanceAndGetNote();
     expect(getCurrentPosition()).toBe(2);
+
     resetSequence();
+
     expect(getCurrentPosition()).toBe(0);
-    expect(getCurrentPiece()?.id).toBe('korobeiniki');
+    expect(getCurrentPiece()?.id).toBe('ode-to-joy');
   });
 });

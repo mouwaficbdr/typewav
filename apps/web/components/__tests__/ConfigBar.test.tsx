@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import 'fake-indexeddb/auto';
+import { act, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -13,10 +14,19 @@ vi.mock('@/stores/useAudioStore', () => ({
 
 import { DEFAULT_CONFIG, useConfigStore } from '@/stores/useConfigStore';
 
+// Storage IndexedDB asynchrone : réhydratation déterministe avant chaque
+// test (voir useConfigStore.test.ts pour le détail de la course évitée).
+beforeEach(async () => {
+  await act(async () => {
+    await useConfigStore.persist.rehydrate();
+  });
+});
+
 // Reset store between tests
-afterEach(() => {
-  useConfigStore.setState(DEFAULT_CONFIG);
-  localStorage.clear();
+afterEach(async () => {
+  await act(async () => {
+    useConfigStore.setState(DEFAULT_CONFIG);
+  });
 });
 
 import { ConfigBar } from '../typing/ConfigBar';
@@ -46,6 +56,29 @@ describe('ConfigBar', () => {
 
   it('les modificateurs sont visibles en mode classic', () => {
     render(<ConfigBar />); // activeMode = 'classic' by default
+    expect(screen.getByTitle('punctuation')).toBeInTheDocument();
+  });
+
+  it('les modificateurs restent cachés en mode apprentissage (sans effet sur le texte généré)', () => {
+    useConfigStore.setState({ activeMode: 'learning' });
+    render(<ConfigBar />);
+    expect(screen.queryByTitle('punctuation')).not.toBeInTheDocument();
+  });
+
+  it('masque les modificateurs quand la collection active est Code, même en mode Citation', () => {
+    // La collection Code force ponctuation/chiffres (voir HomeClient) : des
+    // bascules qui prétendraient les contrôler mentiraient sur l'état réel.
+    useConfigStore.setState({ activeMode: 'quote', activeCollection: 'code' });
+    render(<ConfigBar />);
+    expect(screen.queryByTitle('punctuation')).not.toBeInTheDocument();
+  });
+
+  it('controlsMode prend le pas sur le mode actif du store pour la visibilité', () => {
+    // Fantôme sans donnée personnelle se comporte comme Classic (voir
+    // HomeClient) : les modificateurs doivent suivre ce comportement réel,
+    // pas le mode brut affiché dans la ConfigBar.
+    useConfigStore.setState({ activeMode: 'ghost' });
+    render(<ConfigBar controlsMode="classic" />);
     expect(screen.getByTitle('punctuation')).toBeInTheDocument();
   });
 

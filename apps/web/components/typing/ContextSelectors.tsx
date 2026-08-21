@@ -1,19 +1,29 @@
 'use client';
 
 import { LanguagesIcon } from '@/components/ui/icons';
+import { MODES_WITH_TEXT_CONFIG } from '@/lib/typing-mode-support';
 import { useConfigStore } from '@/stores/useConfigStore';
+import type { TypingMode } from '@typewav/types';
 import { AnimatePresence, motion } from 'motion/react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
-export function ContextSelectors() {
+interface ContextSelectorsProps {
+  // Mode à utiliser pour décider de la visibilité (distinct du mode actif du
+  // store quand celui-ci ne reflète pas le comportement réel de la session,
+  // ex. Fantôme sans donnée personnelle qui se comporte comme Classic) : voir
+  // HomeClient. Retombe sur le mode actif du store quand non fourni.
+  controlsMode?: TypingMode;
+}
+
+export function ContextSelectors({ controlsMode }: ContextSelectorsProps = {}) {
   const t = useTranslations('typing');
   const textLanguage = useConfigStore((s) => s.textLanguage);
   const setTextLanguage = useConfigStore((s) => s.setTextLanguage);
   const activeMode = useConfigStore((s) => s.activeMode);
 
-  const showLanguage = ['classic', 'sprint', 'zen', 'quote'].includes(
-    activeMode,
+  const showLanguage = MODES_WITH_TEXT_CONFIG.includes(
+    controlsMode ?? activeMode,
   );
 
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);

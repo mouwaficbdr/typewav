@@ -39,7 +39,7 @@ import { MilestoneToast } from '../progression/MilestoneToast';
 const mockMilestone: Milestone = {
   id: 'test-1',
   condition: { type: 'sessions', value: 1 },
-  reward: { type: 'soundpack', packId: 'piano' },
+  reward: { type: 'accent', color: '#FFD700' },
   labelFr: 'Test FR Label',
   labelEn: 'Test EN Label',
 };
@@ -77,5 +77,15 @@ describe('MilestoneToast — i18n', () => {
     // useTranslations mock retourne la clé : 'progression.milestoneUnlocked' → 'milestoneUnlocked'
     // (le namespace est 'progression', donc t('milestoneUnlocked'))
     expect(screen.getByText('milestoneUnlocked')).toBeInTheDocument();
+  });
+
+  it("ne rend qu'un seul toast si le même jalon apparaît deux fois dans pendingMilestones (deux runAfterSession concurrents, même profil pas encore sauvegardé, débloquent le même jalon)", () => {
+    mockLocale.mockReturnValue('fr');
+    mockPendingMilestones.length = 0;
+    mockPendingMilestones.push(mockMilestone, { ...mockMilestone });
+
+    render(<MilestoneToast />);
+
+    expect(screen.getAllByText('Test FR Label')).toHaveLength(1);
   });
 });

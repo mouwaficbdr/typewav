@@ -1,19 +1,32 @@
-import type { MidiPiece } from '@typewav/audio-engine';
+import type { ParsedPiece } from '@typewav/audio-engine';
 import { readFile } from 'node:fs/promises';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const loadPieceFromDataMock = vi.fn<(piece: MidiPiece) => MidiPiece>();
+const loadPieceFromDataMock = vi.fn<(piece: ParsedPiece) => ParsedPiece>();
+const getMidiAssetCacheVersionMock =
+  vi.fn<(pieceId: string) => string | null>();
 const getMidiAssetPathMock = vi.fn<(pieceId: string) => string | null>();
 const getLibraryIdFromMidiPieceIdMock = vi.fn<(pieceId: string) => string>();
 
-const MIDI_PIECES_MOCK: Record<string, MidiPiece> = {
+const MIDI_PIECES_MOCK: Record<string, ParsedPiece> = {
   'fur-elise': {
     id: 'fur-elise',
     title: 'Fur Elise',
     composer: 'Beethoven',
     year: 1900,
-    notes: ['E5'],
-    noteDuration: '16n',
+    notes: [
+      {
+        pitch: 76,
+        durationSec: 0.125,
+        durationTicks: 120,
+        startTick: 0,
+        velocity: 100,
+        isPhraseBoundary: false,
+      },
+    ],
+    bpmReference: 120,
+    ppq: 480,
+    totalDurationSec: 0.125,
   },
 };
 
@@ -22,19 +35,31 @@ vi.mock('@typewav/audio-engine', async () => {
   return {
     ...actual,
     loadPieceFromData: loadPieceFromDataMock,
+    getMidiAssetCacheVersion: getMidiAssetCacheVersionMock,
     getMidiAssetPath: getMidiAssetPathMock,
     getLibraryIdFromMidiPieceId: getLibraryIdFromMidiPieceIdMock,
     MIDI_PIECES: MIDI_PIECES_MOCK,
   };
 });
 
-const BASE_PIECE: MidiPiece = {
+const BASE_PIECE: ParsedPiece = {
   id: 'fur-elise',
   title: 'Für Elise',
   composer: 'Beethoven',
   year: 1900,
-  notes: ['E5'],
-  noteDuration: '16n',
+  notes: [
+    {
+      pitch: 76,
+      durationSec: 0.125,
+      durationTicks: 120,
+      startTick: 0,
+      velocity: 100,
+      isPhraseBoundary: false,
+    },
+  ],
+  bpmReference: 120,
+  ppq: 480,
+  totalDurationSec: 0.125,
 };
 
 describe('loadMidiPieceWithAssets', () => {
@@ -45,6 +70,9 @@ describe('loadMidiPieceWithAssets', () => {
 
     MIDI_PIECES_MOCK['fur-elise'] = BASE_PIECE;
     getLibraryIdFromMidiPieceIdMock.mockImplementation((pieceId) => pieceId);
+    getMidiAssetCacheVersionMock.mockImplementation(
+      () => 'fur_Elise_WoO59.mid',
+    );
     loadPieceFromDataMock.mockImplementation((piece) => piece);
   });
 
@@ -80,7 +108,11 @@ describe('loadMidiPieceWithAssets', () => {
 
     expect(loadPieceFromDataMock).toHaveBeenCalledTimes(1);
     expect(piece.notes.length).toBeGreaterThan(0);
-    expect(piece.noteDuration).toMatch(/^(1n|2n|4n|8n|16n|32n)$/);
+    expect(piece.bpmReference).toBeGreaterThan(0);
+    expect(piece.ppq).toBeGreaterThan(0);
+    expect(piece.totalDurationSec).toBeGreaterThan(0);
+    expect(piece.notes.every((note) => note.durationSec > 0)).toBe(true);
+    expect(piece.notes.every((note) => note.durationTicks > 0)).toBe(true);
   });
 
   it('leve une erreur explicite si la requete est annulee', async () => {
@@ -112,5 +144,48 @@ describe('loadMidiPieceWithAssets', () => {
     await expect(loadMidiPieceWithAssets('fur-elise')).rejects.toMatchObject({
       code: 'MIDI_ASSET_FETCH_FAILED',
     });
+  });
+
+  it("récupère automatiquement d'une entrée de cache corrompue (0 note exploitable) en repartant d'un parsing réseau propre, au lieu de planter l'utilisateur sur une erreur définitive", async () => {
+    const { setCachedMidiPiece } = await import('../midi-piece-cache');
+    getMidiAssetPathMock.mockReturnValue('/midi/fur_Elise_WoO59.mid');
+    getMidiAssetCacheVersionMock.mockReturnValue('fur_Elise_WoO59.mid:v2');
+
+    // Une pièce déjà en cache, mais corrompue par un bug de parsing passé —
+    // c'est exactement le scénario reproduit en session live sur Für Elise.
+    await setCachedMidiPiece('fur-elise', 'fur_Elise_WoO59.mid:v2', {
+      ...BASE_PIECE,
+      notes: [],
+    });
+
+    const midiBytes = await readFile(
+      `${process.cwd()}/apps/web/public/midi/fur_Elise_WoO59.mid`,
+    );
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        arrayBuffer: async () =>
+          midiBytes.buffer.slice(
+            midiBytes.byteOffset,
+            midiBytes.byteOffset + midiBytes.byteLength,
+          ),
+      }),
+    );
+
+    // loadPieceFromData simule le vrai comportement de normalizePiece :
+    // rejette une pièce sans notes exploitables (cache), puis accepte la
+    // pièce fraîchement re-parsée depuis le réseau.
+    loadPieceFromDataMock
+      .mockImplementationOnce(() => {
+        throw new Error('MIDI piece has no playable notes: fur-elise');
+      })
+      .mockImplementation((piece) => piece);
+
+    const { loadMidiPieceWithAssets } = await import('../midi-asset-loader');
+    const piece = await loadMidiPieceWithAssets('fur-elise');
+
+    expect(piece.notes.length).toBeGreaterThan(0);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
   });
 });

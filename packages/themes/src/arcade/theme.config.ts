@@ -25,5 +25,5 @@ export const arcadeTheme: ThemeConfig = {
     mono: 'JetBrains Mono',
   },
   chordProgressionId: 'arcade',
-  defaultSoundPackId: 'chiptune',
+  defaultSoundPackId: 'piano',
 }

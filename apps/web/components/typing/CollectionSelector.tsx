@@ -1,0 +1,156 @@
+'use client';
+
+/**
+ * CollectionSelector — sélecteur de collection de textes (Poésie,
+ * Philosophie, Gaming, Code, Littérature). Calqué sur le menu déroulant de
+ * ContextSelectors (langue) : un bouton compact qui déplie la liste des
+ * collections disponibles.
+ */
+
+import { BookIcon } from '@/components/ui/icons';
+import { NON_CITABLE_COLLECTIONS } from '@/lib/collection-support';
+import { MODES_WITH_TEXT_CONFIG } from '@/lib/typing-mode-support';
+import { useConfigStore } from '@/stores/useConfigStore';
+import { ALL_COLLECTIONS } from '@typewav/collections';
+import type { TypingMode } from '@typewav/types';
+import { AnimatePresence, motion } from 'motion/react';
+import { useTranslations } from 'next-intl';
+import { useState } from 'react';
+
+interface CollectionSelectorProps {
+  // Mode à utiliser pour décider de la visibilité (distinct du mode actif du
+  // store quand celui-ci ne reflète pas le comportement réel de la session,
+  // ex. Fantôme sans donnée personnelle qui se comporte comme Classic) : voir
+  // HomeClient. Retombe sur le mode actif du store quand non fourni.
+  controlsMode?: TypingMode;
+}
+
+export function CollectionSelector({
+  controlsMode,
+}: CollectionSelectorProps = {}) {
+  const activeCollection = useConfigStore((s) => s.activeCollection);
+  const setCollection = useConfigStore((s) => s.setCollection);
+  const activeMode = useConfigStore((s) => s.activeMode);
+  const t = useTranslations('typing');
+  const tCollections = useTranslations('typing.collection' as never) as (
+    k: string,
+  ) => string;
+
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // 'code' est volontairement absent de MODES_WITH_TEXT_CONFIG pour ce
+  // composant précis : ce mode garantit du vrai code (voir l'effet
+  // d'auto-bascule dans HomeClient) et rien ne doit permettre à
+  // l'utilisateur de faire dériver la collection ailleurs pendant qu'il est
+  // actif, sinon "Code" reste affiché tout en montrant un texte quelconque.
+  const effectiveMode = controlsMode ?? activeMode;
+  const showCollection = MODES_WITH_TEXT_CONFIG.includes(effectiveMode);
+  if (!showCollection) return null;
+
+  // Le mode Citation présente son texte comme une citation attribuée (voir
+  // le rendu de `source` dans HomeClient) : Code et Gaming n'ont pas de
+  // vraie attribution auteur/œuvre (voir NON_CITABLE_COLLECTIONS). HomeClient
+  // bascule déjà la collection loin de l'une d'elles à l'entrée en Citation
+  // pour cette raison ; ne pas la remettre en cause d'un simple clic ici.
+  const availableCollections =
+    effectiveMode === 'quote'
+      ? ALL_COLLECTIONS.filter((c) => !NON_CITABLE_COLLECTIONS.includes(c))
+      : ALL_COLLECTIONS;
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'var(--color-text-muted)',
+        fontFamily: 'var(--font-ui)',
+        fontSize: '0.85rem',
+        userSelect: 'none',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <button
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            color: 'var(--color-text-muted)',
+            padding: 0,
+          }}
+          className="hover:text-[var(--color-text-primary)] transition-colors"
+          title={t('changeCollection')}
+        >
+          <BookIcon size={12} className="opacity-70" />
+          <AnimatePresence mode="popLayout">
+            {!isMenuOpen && (
+              <motion.span
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: 'auto' }}
+                exit={{ opacity: 0, width: 0 }}
+                transition={{ duration: 0.15, ease: 'easeOut' }}
+                style={{
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  display: 'inline-block',
+                  fontSize: '0.85rem',
+                }}
+              >
+                {tCollections(activeCollection)}
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </button>
+
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, width: 0 }}
+              animate={{ opacity: 1, width: 'auto' }}
+              exit={{ opacity: 0, width: 0 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {availableCollections.map((collection) => (
+                <button
+                  key={collection}
+                  onClick={() => {
+                    setCollection(collection);
+                    setIsMenuOpen(false);
+                  }}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem',
+                    fontFamily: 'var(--font-ui)',
+                    color:
+                      activeCollection === collection
+                        ? 'var(--color-text-primary)'
+                        : 'var(--color-text-muted)',
+                    padding: '2px 4px',
+                    transition: 'color 0.1s ease',
+                    fontWeight: activeCollection === collection ? 600 : 400,
+                  }}
+                  className="hover:text-[var(--color-text-primary)]"
+                >
+                  {tCollections(collection)}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}

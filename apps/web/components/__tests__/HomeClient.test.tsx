@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
@@ -30,14 +30,22 @@ vi.mock('@/stores/useAudioStore', () => ({
   useAudioStore: () => ({ setSoundPack: vi.fn(), soundPackId: 'piano' }),
 }));
 
+const mockGetPersonalRecords = vi.fn().mockResolvedValue(null);
+const mockGetSessionById = vi.fn().mockResolvedValue(null);
+const mockGetPersonalTexts = vi.fn().mockResolvedValue([]);
+const mockSavePersonalText = vi.fn().mockResolvedValue(undefined);
+const mockDeletePersonalText = vi.fn().mockResolvedValue(undefined);
+
 vi.mock('@/lib/db', () => ({
-  getPersonalRecords: vi.fn().mockResolvedValue(null),
-  getSessionById: vi.fn().mockResolvedValue(null),
+  getPersonalRecords: (...args: unknown[]) => mockGetPersonalRecords(...args),
+  getSessionById: (...args: unknown[]) => mockGetSessionById(...args),
+  getPersonalTexts: (...args: unknown[]) => mockGetPersonalTexts(...args),
+  savePersonalText: (...args: unknown[]) => mockSavePersonalText(...args),
+  deletePersonalText: (...args: unknown[]) => mockDeletePersonalText(...args),
   getUserProfile: vi.fn().mockResolvedValue({
     currentRank: 'novice',
     pseudo: '',
     unlockedThemes: [],
-    unlockedSoundPacks: [],
     unlockedCollections: [],
     unlockedMilestoneIds: [],
   }),
@@ -49,8 +57,29 @@ vi.mock('@/components/typing/TypingArea', () => ({
   ),
 }));
 
+const learningModePropsRef: {
+  current: null | {
+    isOnboarding?: boolean;
+    onExitTutorial: () => void;
+  };
+} = { current: null };
+
 vi.mock('@/components/modes/LearningMode', () => ({
-  LearningMode: () => <div data-testid="learning-mode" />,
+  LearningMode: (props: {
+    isOnboarding?: boolean;
+    onExitTutorial: () => void;
+  }) => {
+    learningModePropsRef.current = props;
+    return <div data-testid="learning-mode" />;
+  },
+}));
+
+const mockHasCompletedOnboarding = vi.fn().mockResolvedValue(true);
+const mockMarkOnboardingComplete = vi.fn().mockResolvedValue(undefined);
+
+vi.mock('@/lib/onboarding', () => ({
+  hasCompletedOnboarding: () => mockHasCompletedOnboarding(),
+  markOnboardingComplete: () => mockMarkOnboardingComplete(),
 }));
 
 // ConfigBar stub — rend les boutons de collection pour les tests d'intégration
@@ -121,8 +150,11 @@ vi.mock('@/stores/useProgressionStore', () => ({
 }));
 
 vi.mock('@/stores/useSessionStore', () => ({
-  useSessionStore: (selector: (s: { startedAt: null }) => unknown) =>
-    selector({ startedAt: null }),
+  useSessionStore: Object.assign(
+    (selector: (s: { startedAt: null }) => unknown) =>
+      selector({ startedAt: null }),
+    { getState: () => ({ keystrokes: [] }) },
+  ),
 }));
 
 vi.mock('next/link', () => ({
@@ -194,6 +226,65 @@ const mockConfigFiltersCollection = {
   ],
 };
 
+const mockTargetCollection = {
+  id: 'litterature',
+  name: 'Littérature',
+  texts: [
+    {
+      id: 'short-01',
+      content: 'Un texte court ici.',
+      source: 'Auteur A',
+      language: 'fr',
+      difficulty: 1,
+      wordCount: 5,
+      charCount: 20,
+    },
+    {
+      id: 'long-01',
+      content: 'Un texte nettement plus long, pensé pour représenter un extrait de plus de cent mots, utile pour vérifier que la sélection cible bien la bonne tranche de longueur selon le nombre de mots demandé par le mode Sprint. Il continue encore un peu afin de dépasser confortablement le seuil des cent mots requis par ce test, avec quelques phrases supplémentaires ajoutées ici uniquement pour allonger le compte total de mots jusqu\'à la cible attendue par ce scénario précis de vérification automatisée du comportement exact de troncature en mode Mots, sans quoi le test ne serait pas assez long pour couvrir correctement ce cas de figure précis.',
+      source: 'Auteur B',
+      language: 'fr',
+      difficulty: 3,
+      wordCount: 106,
+      charCount: 637,
+    },
+  ],
+};
+
+const mockDigitPreferenceCollection = {
+  id: 'litterature',
+  name: 'Littérature',
+  texts: [
+    {
+      id: 'no-digit-01',
+      content: 'Un texte sans le moindre chiffre nulle part.',
+      source: 'Auteur A',
+      language: 'fr',
+      difficulty: 1,
+      wordCount: 8,
+      charCount: 45,
+    },
+    {
+      id: 'no-digit-02',
+      content: 'Encore un autre texte qui ne contient aucun nombre.',
+      source: 'Auteur B',
+      language: 'fr',
+      difficulty: 1,
+      wordCount: 9,
+      charCount: 52,
+    },
+    {
+      id: 'has-digit-01',
+      content: 'En 1815 ce texte contient bel et bien un chiffre.',
+      source: 'Auteur C',
+      language: 'fr',
+      difficulty: 1,
+      wordCount: 9,
+      charCount: 50,
+    },
+  ],
+};
+
 // Reset config store before each test
 beforeEach(async () => {
   const { DEFAULT_CONFIG, useConfigStore } =
@@ -203,6 +294,18 @@ beforeEach(async () => {
   });
   localStorage.clear();
   mockFetchCollection.mockClear();
+  learningModePropsRef.current = null;
+  mockHasCompletedOnboarding.mockClear().mockResolvedValue(true);
+  mockMarkOnboardingComplete.mockClear().mockResolvedValue(undefined);
+  mockGetPersonalRecords.mockClear().mockResolvedValue(null);
+  mockGetSessionById.mockClear().mockResolvedValue(null);
+  mockGetPersonalTexts.mockClear().mockResolvedValue([]);
+  mockSavePersonalText.mockClear().mockResolvedValue(undefined);
+  mockDeletePersonalText.mockClear().mockResolvedValue(undefined);
+  const { useCustomTextStore } = await import('@/stores/useCustomTextStore');
+  act(() => {
+    useCustomTextStore.setState({ activePersonalTextId: null });
+  });
 });
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -289,6 +392,108 @@ describe('HomeClient — application des filtres config', () => {
     );
   });
 
+  it('force ponctuation/chiffres en mode code, même si désactivés dans la config', async () => {
+    // Le mode Code bascule automatiquement la collection sur 'code' (voir
+    // B2) — le cache initial ne la connaît que sous la clé 'litterature',
+    // donc un fetch est déclenché ; on le mocke pour qu'il retourne ce même
+    // fixture sous l'id 'code'.
+    mockFetchCollection.mockResolvedValueOnce(mockConfigFiltersCollection);
+
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({
+        activeMode: 'code',
+        punctuationEnabled: false,
+        numbersEnabled: false,
+      });
+    });
+
+    render(
+      <HomeClient initialCollection={mockConfigFiltersCollection as never} />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('typing-area')).toHaveTextContent(
+        'Hello, world! 2026 test rapide complet.',
+      );
+    });
+  });
+
+  it('force aussi ponctuation/chiffres quand la collection Code est choisie depuis un autre mode (ex: Classic)', async () => {
+    // La collection Code doit rester du vrai code même quand elle est
+    // sélectionnée manuellement en dehors du mode Code (ex: mode Classic ;
+    // le mode Citation, lui, exclut carrément Code de ses options, voir
+    // 'ramène la collection sur litterature...' ci-dessous) : sans ce
+    // garde-fou, retirer la ponctuation/les chiffres mutile la syntaxe (voir
+    // la régression reproduite en live avant ce correctif).
+    mockFetchCollection.mockResolvedValueOnce(mockConfigFiltersCollection);
+
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({
+        activeMode: 'classic',
+        activeCollection: 'code',
+        punctuationEnabled: false,
+        numbersEnabled: false,
+      });
+    });
+
+    render(
+      <HomeClient initialCollection={mockConfigFiltersCollection as never} />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('typing-area')).toHaveTextContent(
+        'Hello, world! 2026 test rapide complet.',
+      );
+    });
+  });
+
+  it('sélectionne un texte de la bonne tranche de longueur (mode Mots · 100)', async () => {
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'sprint', wordCount: 100 });
+    });
+
+    render(<HomeClient initialCollection={mockTargetCollection as never} />);
+
+    // Sur 2 entrées (5 mots / 106 mots), seule celle à 106 mots a assez de
+    // mots réels pour que la troncature en aval produise exactement 100 —
+    // la sélection doit donc toujours retourner ce texte-là, jamais le
+    // texte court (qui donnerait seulement 5 mots au lieu des 100 promis).
+    await waitFor(() => {
+      expect(screen.getByTestId('typing-area')).toHaveTextContent(
+        /nettement plus long/,
+      );
+    });
+    expect(screen.getByTestId('typing-area')).not.toHaveTextContent(
+      'Un texte court ici.',
+    );
+  });
+
+  it('le mode Mots · 100 affiche exactement 100 mots, jamais moins', async () => {
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'sprint', wordCount: 100 });
+    });
+
+    render(<HomeClient initialCollection={mockTargetCollection as never} />);
+
+    await waitFor(() => {
+      const rendered = screen.getByTestId('typing-area').textContent ?? '';
+      const actualWordCount = rendered.split(/\s+/).filter(Boolean).length;
+      expect(actualWordCount).toBe(100);
+    });
+  });
+
   it('conserve le texte si wordCount est supérieur au nombre de mots', async () => {
     const { HomeClient } = await import('../typing/HomeClient');
     const { useConfigStore } = await import('@/stores/useConfigStore');
@@ -309,5 +514,385 @@ describe('HomeClient — application des filtres config', () => {
     expect(screen.getByTestId('typing-area')).toHaveTextContent(
       'Hello, world! 2026',
     );
+  });
+
+  it('privilégie un texte contenant un chiffre quand chiffres est activé', async () => {
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({
+        activeMode: 'classic',
+        numbersEnabled: true,
+      });
+    });
+
+    render(
+      <HomeClient initialCollection={mockDigitPreferenceCollection as never} />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('typing-area')).toHaveTextContent(
+        /1815/,
+      );
+    });
+  });
+});
+
+describe('HomeClient — attribution mode citation', () => {
+  it('affiche la source du texte en mode citation', async () => {
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+    act(() => {
+      useConfigStore.setState({ activeMode: 'quote' });
+    });
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    expect(await screen.findByText(/Victor Hugo/)).toBeInTheDocument();
+  });
+
+  it("n'affiche pas de source en mode classic", async () => {
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('typing-area')).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/Victor Hugo/)).not.toBeInTheDocument();
+  });
+});
+
+describe('HomeClient — bascule automatique de collection', () => {
+  it("bascule la collection sur 'code' en passant en mode Code", async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+    expect(useConfigStore.getState().activeCollection).toBe('litterature');
+
+    await act(async () => {
+      useConfigStore.setState({ activeMode: 'code' });
+    });
+
+    await waitFor(() => {
+      expect(useConfigStore.getState().activeCollection).toBe('code');
+    });
+  });
+
+  it("ne force pas la collection à chaque rendu — l'utilisateur peut la changer ensuite", async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'code' });
+    });
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(useConfigStore.getState().activeCollection).toBe('code');
+    });
+
+    act(() => {
+      useConfigStore.setState({ activeCollection: 'poesie' });
+    });
+
+    // Un re-rendu (ex: shuffle) ne doit pas re-forcer 'code'.
+    act(() => {
+      useConfigStore.setState({ punctuationEnabled: true });
+    });
+
+    expect(useConfigStore.getState().activeCollection).toBe('poesie');
+  });
+
+  it("ramène la collection sur 'litterature' en passant en mode Citation depuis Code (un snippet n'est pas une citation)", async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'code', activeCollection: 'code' });
+    });
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+    expect(useConfigStore.getState().activeCollection).toBe('code');
+
+    await act(async () => {
+      useConfigStore.setState({ activeMode: 'quote' });
+    });
+
+    await waitFor(() => {
+      expect(useConfigStore.getState().activeCollection).toBe('litterature');
+    });
+  });
+
+  it("ramène aussi la collection sur 'litterature' en passant en mode Citation depuis Gaming (même absence d'attribution que Code)", async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({
+        activeMode: 'classic',
+        activeCollection: 'gaming',
+      });
+    });
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+    expect(useConfigStore.getState().activeCollection).toBe('gaming');
+
+    await act(async () => {
+      useConfigStore.setState({ activeMode: 'quote' });
+    });
+
+    await waitFor(() => {
+      expect(useConfigStore.getState().activeCollection).toBe('litterature');
+    });
+  });
+});
+
+describe('HomeClient — mode Fantôme', () => {
+  it("affiche une notice explicite quand aucun record personnel n'existe", async () => {
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'ghost' });
+    });
+
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    expect(
+      await screen.findByText(/aucun record personnel/i),
+    ).toBeInTheDocument();
+  });
+
+  it('rejoue le texte original de la session enregistrée (pas un texte indépendant)', async () => {
+    mockGetPersonalRecords.mockResolvedValue({
+      maxWpm: { value: 80, sessionId: 'session-1', achievedAt: Date.now() },
+    });
+    mockGetSessionById.mockResolvedValue({
+      id: 'session-1',
+      timestamp: Date.now(),
+      wpm: 80,
+      wpmNet: 78,
+      accuracy: 98,
+      consistency: 90,
+      duration: 30_000,
+      mode: 'classic',
+      themeId: 'terminal',
+      soundPackId: 'piano',
+      keystrokeData: [
+        { char: 'x', timestamp: 1000, correct: true, deltaMs: 0 },
+        { char: 'y', timestamp: 1100, correct: true, deltaMs: 100 },
+      ],
+      text: 'Texte original du record — distinct du texte du jour.',
+    });
+
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'ghost' });
+    });
+
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    expect(
+      await screen.findByText(
+        'Texte original du record — distinct du texte du jour.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/aucun record personnel/i),
+    ).not.toBeInTheDocument();
+    // Réplique fixe d'une session enregistrée : les sélecteurs de langue et
+    // de collection n'ont pas de sens ici, ils doivent rester masqués.
+    expect(screen.queryByTitle('changeLanguage')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('changeCollection')).not.toBeInTheDocument();
+  });
+
+  it("sans donnée personnelle, la session tourne réellement en Classic : sélecteurs visibles et texte régénéré depuis la collection active", async () => {
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({
+        activeMode: 'ghost',
+        punctuationEnabled: false,
+        numbersEnabled: false,
+      });
+    });
+
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await screen.findByText(/aucun record personnel/i);
+
+    // La bannière promet un comportement Classic : les contrôles qui
+    // pilotent ce comportement doivent être visibles, pas cachés derrière
+    // le mode brut 'ghost'.
+    expect(screen.getByTitle('changeLanguage')).toBeInTheDocument();
+    expect(screen.getByTitle('changeCollection')).toBeInTheDocument();
+
+    // Le texte affiché doit être réellement issu de la collection active
+    // (filtré comme en Classic), pas un texte figé d'avant le repli.
+    await waitFor(() => {
+      expect(screen.getByTestId('typing-area')).toHaveTextContent(
+        'Texte de littérature initial',
+      );
+    });
+  });
+});
+
+describe('HomeClient — mode Libre (textes personnels)', () => {
+  it("affiche un message explicite quand aucun texte personnel n'est actif", async () => {
+    mockGetPersonalTexts.mockResolvedValue([]);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'custom' });
+    });
+
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    expect(
+      await screen.findByText('noPersonalTextSelected'),
+    ).toBeInTheDocument();
+  });
+
+  it('affiche le texte personnel actif sans filtrage ponctuation/chiffres', async () => {
+    mockGetPersonalTexts.mockResolvedValue([
+      {
+        id: 'pt-1',
+        title: 'Mon texte',
+        content: 'Un texte avec, ponctuation! et 123 chiffres.',
+        createdAt: 1,
+        lastUsed: 1,
+        isFavorite: false,
+      },
+    ]);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+    const { useCustomTextStore } = await import(
+      '@/stores/useCustomTextStore'
+    );
+
+    act(() => {
+      useConfigStore.setState({
+        activeMode: 'custom',
+        punctuationEnabled: false,
+        numbersEnabled: false,
+      });
+      useCustomTextStore.setState({ activePersonalTextId: 'pt-1' });
+    });
+
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('typing-area')).toHaveTextContent(
+        'Un texte avec, ponctuation! et 123 chiffres.',
+      );
+    });
+  });
+
+  it("le bouton \"Mes textes\" n'apparaît qu'en mode Libre", async () => {
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    const { rerender } = render(
+      <HomeClient initialCollection={mockLitterature as never} />,
+    );
+    expect(screen.queryByTestId('my-texts-button')).not.toBeInTheDocument();
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'custom' });
+    });
+    rerender(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('my-texts-button')).toBeInTheDocument();
+    });
+  });
+
+  it('cliquer "Mes textes" ouvre le panneau de gestion', async () => {
+    mockGetPersonalTexts.mockResolvedValue([]);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'custom' });
+    });
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => screen.getByTestId('my-texts-button'));
+    fireEvent.click(screen.getByTestId('my-texts-button'));
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+});
+
+describe('HomeClient — onboarding première visite', () => {
+  it("force le mode apprentissage mais garde la ConfigBar visible — la navigation doit toujours rester possible", async () => {
+    mockHasCompletedOnboarding.mockResolvedValue(false);
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(learningModePropsRef.current?.isOnboarding).toBe(true);
+    });
+    expect(screen.getByTestId('learning-mode')).toBeInTheDocument();
+    expect(screen.getByTestId('config-bar')).toBeInTheDocument();
+  });
+
+  it("changer de mode depuis la ConfigBar pendant l'onboarding marque le tutoriel comme terminé (le piège ne doit pas revenir au prochain chargement)", async () => {
+    mockHasCompletedOnboarding.mockResolvedValue(false);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(learningModePropsRef.current?.isOnboarding).toBe(true);
+    });
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'classic' });
+    });
+
+    await waitFor(() => {
+      expect(mockMarkOnboardingComplete).toHaveBeenCalledOnce();
+    });
+    expect(screen.getByTestId('config-bar')).toBeInTheDocument();
+    expect(screen.queryByTestId('learning-mode')).not.toBeInTheDocument();
+  });
+
+  it("n'affiche pas le mode apprentissage quand l'onboarding est déjà complété", async () => {
+    mockHasCompletedOnboarding.mockResolvedValue(true);
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => expect(mockHasCompletedOnboarding).toHaveBeenCalled());
+    expect(screen.getByTestId('config-bar')).toBeInTheDocument();
+    expect(screen.queryByTestId('learning-mode')).not.toBeInTheDocument();
+  });
+
+  it("marque l'onboarding comme terminé et repasse en mode classique à la sortie du tutoriel", async () => {
+    mockHasCompletedOnboarding.mockResolvedValue(false);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(learningModePropsRef.current?.onExitTutorial).toBeInstanceOf(
+        Function,
+      );
+    });
+
+    act(() => {
+      learningModePropsRef.current?.onExitTutorial();
+    });
+
+    expect(mockMarkOnboardingComplete).toHaveBeenCalledOnce();
+    expect(useConfigStore.getState().activeMode).toBe('classic');
+    expect(screen.getByTestId('config-bar')).toBeInTheDocument();
   });
 });

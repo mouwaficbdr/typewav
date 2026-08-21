@@ -10,6 +10,7 @@ import {
   getAllKeystrokeStats,
   getSessionById,
   getSessions,
+  getUserProfile,
   saveSession,
   updateKeystrokeStats,
 } from '../db';
@@ -113,5 +114,21 @@ describe('updateKeystrokeStats', () => {
     const stats = await getAllKeystrokeStats();
     const zStat = stats.find((s) => s.key === 'z');
     expect(zStat).toBeUndefined();
+  });
+});
+
+describe('getUserProfile', () => {
+  it('retourne un profil par défaut indépendant à chaque appel — muter l’un ne corrompt pas les autres', async () => {
+    const profile1 = await getUserProfile();
+    const profile2 = await getUserProfile();
+
+    expect(profile1).not.toBe(profile2);
+
+    profile1.currentRank = 'ghost';
+    profile1.unlockedThemes.push('galaxy');
+
+    const profile3 = await getUserProfile();
+    expect(profile3.currentRank).toBe('novice');
+    expect(profile3.unlockedThemes).toEqual(['terminal']);
   });
 });

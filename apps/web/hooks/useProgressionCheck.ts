@@ -62,11 +62,6 @@ export function useProgressionCheck() {
           ) {
             profile.unlockedThemes.push(reward.themeId);
           } else if (
-            reward.type === 'soundpack' &&
-            !profile.unlockedSoundPacks.includes(reward.packId)
-          ) {
-            profile.unlockedSoundPacks.push(reward.packId);
-          } else if (
             reward.type === 'collection' &&
             !profile.unlockedCollections.includes(reward.collectionId)
           ) {

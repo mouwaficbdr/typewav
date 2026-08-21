@@ -21,11 +21,18 @@ export {
 
 export type { AudioEngine } from './engine';
 
-export type { MidiPiece, MidiPieceId, SequencedMidiNote } from './midi-player';
+export type {
+  MidiPiece,
+  MidiPieceId,
+  ParsedNote,
+  ParsedPiece,
+  SequencedMidiNote,
+} from './midi-player';
 
 export {
   MIDI_PIECES,
   advanceAndGet,
+  advanceAndGetNote,
   advanceAndGetWithDuration,
   clearLoadedPiece,
   getCurrentDuration,
@@ -40,9 +47,11 @@ export type { MidiAssetIntegration } from './midi-assets';
 
 export {
   MIDI_ASSET_INTEGRATIONS,
+  MIDI_ASSET_MAP,
   ROOT_MIDI_ASSET_INTEGRATIONS,
   UNMAPPED_MIDI_ASSET_FILES,
   UNMAPPED_ROOT_MIDI_FILES,
+  getMidiAssetCacheVersion,
   getMidiAssetPath,
 } from './midi-assets';
 

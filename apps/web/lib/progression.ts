@@ -13,17 +13,32 @@ import {
   type PersonalRecords,
   type RankTier,
   type SessionResult,
+  type TypingMode,
   type UserProfile,
 } from '@typewav/types';
+
+/**
+ * Modes détente/apprentissage — jamais pris en compte pour le rang ou les
+ * records personnels, sans quoi un score obtenu sans pression fausserait un
+ * classement de performance.
+ */
+const NON_COMPETITIVE_MODES: ReadonlySet<TypingMode> = new Set([
+  'zen',
+  'learning',
+  'endurance',
+]);
 
 // ─── Rang ──────────────────────────────────────────────────────────────────────
 
 /**
  * Calcule le rang d'un utilisateur à partir de la médiane WPM
- * des 10 dernières sessions.
+ * des 10 dernières sessions compétitives.
  */
 export function calculateRank(sessions: SessionResult[]): RankTier {
-  const last10 = sessions.slice(0, 10);
+  const competitive = sessions.filter(
+    (s) => !NON_COMPETITIVE_MODES.has(s.mode),
+  );
+  const last10 = competitive.slice(0, 10);
   if (last10.length === 0) return 'novice';
 
   const medianWpm = calculateMedianWpm(last10);
@@ -146,6 +161,8 @@ const DEFAULT_RECORDS: PersonalRecords = {
 /**
  * Met à jour les records personnels avec une nouvelle session.
  * Retourne les records mis à jour (immuable — ne modifie pas l'original).
+ * Les sessions en mode non compétitif (zen, learning, endurance) ne
+ * modifient jamais les records.
  */
 export function updatePersonalRecords(
   current: PersonalRecords | null,
@@ -154,6 +171,8 @@ export function updatePersonalRecords(
   const records: PersonalRecords = current
     ? (JSON.parse(JSON.stringify(current)) as PersonalRecords)
     : (JSON.parse(JSON.stringify(DEFAULT_RECORDS)) as PersonalRecords);
+
+  if (NON_COMPETITIVE_MODES.has(session.mode)) return records;
 
   if (session.wpm > records.maxWpm.value) {
     records.maxWpm = {

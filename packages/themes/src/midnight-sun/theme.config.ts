@@ -25,5 +25,5 @@ export const midnightSunTheme: ThemeConfig = {
     mono: 'JetBrains Mono',
   },
   chordProgressionId: 'midnight-sun',
-  defaultSoundPackId: 'marimba',
+  defaultSoundPackId: 'piano',
 }

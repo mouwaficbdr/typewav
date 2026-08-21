@@ -18,4 +18,4 @@ export const ALL_COLLECTIONS = [
 export type CollectionId = (typeof ALL_COLLECTIONS)[number];
 
 export type { FetchOptions } from './fetch';
-export { fetchCollection, fetchPool } from './fetch';
+export { fetchCollection, fetchPool, selectFromTexts } from './fetch';

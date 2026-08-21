@@ -1,3 +1,4 @@
+import type { KeystrokeEntry } from '@typewav/types';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -7,18 +8,30 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mockHandleKeystroke = vi.fn();
 const mockHandleBackspace = vi.fn();
 
+const defaultMockSessionState = {
+  position: 1,
+  keystrokes: [
+    { char: 'h', timestamp: 1000, correct: true, deltaMs: 0 },
+  ] as KeystrokeEntry[],
+  liveStats: { wpm: 0, accuracy: 100, consistency: 100 },
+  finalStats: null as {
+    wpm: number;
+    wpmNet: number;
+    accuracy: number;
+    consistency: number;
+  } | null,
+  isActive: true,
+  isComplete: false,
+  handleKeystroke: mockHandleKeystroke,
+  handleBackspace: mockHandleBackspace,
+  reset: vi.fn(),
+  endSession: vi.fn(),
+};
+
+const mockSessionState = { ...defaultMockSessionState };
+
 vi.mock('@/hooks/useSession', () => ({
-  useSession: vi.fn(() => ({
-    position: 1,
-    keystrokes: [{ char: 'h', timestamp: 1000, correct: true, deltaMs: 0 }],
-    liveStats: { wpm: 0, accuracy: 100, consistency: 100 },
-    isActive: true,
-    isComplete: false,
-    handleKeystroke: mockHandleKeystroke,
-    handleBackspace: mockHandleBackspace,
-    reset: vi.fn(),
-    endSession: vi.fn(),
-  })),
+  useSession: vi.fn(() => mockSessionState),
 }));
 
 const mockPlayNote = vi.fn().mockResolvedValue(undefined);
@@ -49,9 +62,18 @@ vi.mock('@/components/typing/GhostCursor', () => ({
   GhostCursor: () => null,
 }));
 
+const mockResetSequence = vi.fn();
+vi.mock('@typewav/audio-engine', () => ({
+  resetSequence: (...args: unknown[]) => mockResetSequence(...args),
+}));
+
 import { TypingArea } from '../typing/TypingArea';
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
+
+beforeEach(() => {
+  Object.assign(mockSessionState, defaultMockSessionState);
+});
 
 describe('TypingArea — i18n hint text', () => {
   it('affiche le hint text depuis les traductions (non hardcodé)', () => {
@@ -132,6 +154,14 @@ describe('TypingArea — Backspace', () => {
   });
 });
 
+describe('TypingArea — nouvelle tentative', () => {
+  it('remet le séquenceur MIDI à zéro au montage (nouveau test/restart)', () => {
+    mockResetSequence.mockClear();
+    render(<TypingArea text="hello world" />);
+    expect(mockResetSequence).toHaveBeenCalledOnce();
+  });
+});
+
 describe('TypingArea — waveform note source', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -149,5 +179,65 @@ describe('TypingArea — waveform note source', () => {
     await user.keyboard('e');
 
     expect(onNoteChange).toHaveBeenCalledWith('C4', false);
+  });
+});
+
+describe('TypingArea — mode zen', () => {
+  it('masque le bandeau de stats live en mode zen ("sans pression")', () => {
+    render(<TypingArea text="hello world" mode="zen" />);
+    expect(screen.queryByTestId('live-stats-overlay')).not.toBeInTheDocument();
+  });
+
+  it('affiche le bandeau de stats live dans les autres modes', () => {
+    render(<TypingArea text="hello world" mode="classic" />);
+    expect(screen.getByTestId('live-stats-overlay')).toBeInTheDocument();
+  });
+});
+
+describe('TypingArea — fin de session', () => {
+  it('reporte finalStats.wpm, pas liveStats.wpm (qui peut être resté à 0)', () => {
+    mockSessionState.isComplete = true;
+    mockSessionState.liveStats = { wpm: 0, accuracy: 100, consistency: 100 };
+    mockSessionState.finalStats = {
+      wpm: 42,
+      wpmNet: 40,
+      accuracy: 95,
+      consistency: 88,
+    };
+
+    const onComplete = vi.fn();
+    const onSessionComplete = vi.fn();
+
+    render(
+      <TypingArea
+        text="hello world"
+        onComplete={onComplete}
+        onSessionComplete={onSessionComplete}
+      />,
+    );
+
+    expect(onComplete).toHaveBeenCalledWith(42);
+    expect(onSessionComplete).toHaveBeenCalledWith(
+      expect.objectContaining({ wpm: 42 }),
+    );
+  });
+
+  it("n'appelle pas les callbacks de fin tant que finalStats n'est pas encore calculé", () => {
+    mockSessionState.isComplete = true;
+    mockSessionState.finalStats = null;
+
+    const onComplete = vi.fn();
+    const onSessionComplete = vi.fn();
+
+    render(
+      <TypingArea
+        text="hello world"
+        onComplete={onComplete}
+        onSessionComplete={onSessionComplete}
+      />,
+    );
+
+    expect(onComplete).not.toHaveBeenCalled();
+    expect(onSessionComplete).not.toHaveBeenCalled();
   });
 });
