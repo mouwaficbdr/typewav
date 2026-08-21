@@ -31,6 +31,7 @@ import { MusicNoteIcon, PenIcon, RepeatIcon } from '@/components/ui/icons';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useSyncCloud } from '@/hooks/useSyncCloud';
 import { useUser } from '@/hooks/useUser';
+import { NON_CITABLE_COLLECTIONS } from '@/lib/collection-support';
 import {
   getPersonalRecords,
   getPersonalTexts,
@@ -300,12 +301,15 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   }, [activeMode, setCollection]);
 
   // Le mode Citation présente son texte comme une citation attribuée (voir
-  // le rendu de `source` plus bas) : un extrait de code n'est pas une
-  // citation, seulement une description technique. Si la collection Code
-  // était active avant de basculer en Citation, on la ramène vers le défaut
-  // plutôt que d'afficher un snippet sous une fausse attribution.
+  // le rendu de `source` plus bas) : Code et Gaming n'ont pas de vraie
+  // attribution auteur/œuvre (voir NON_CITABLE_COLLECTIONS). Si l'une d'elles
+  // était active avant de basculer en Citation, on ramène vers le défaut
+  // plutôt que d'afficher un texte sous une fausse attribution.
   useEffect(() => {
-    if (activeMode === 'quote' && activeCollection === 'code') {
+    if (
+      activeMode === 'quote' &&
+      NON_CITABLE_COLLECTIONS.includes(activeCollection)
+    ) {
       setCollection('litterature');
     }
   }, [activeMode, activeCollection, setCollection]);

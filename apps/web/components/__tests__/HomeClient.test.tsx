@@ -625,6 +625,29 @@ describe('HomeClient — bascule automatique de collection', () => {
       expect(useConfigStore.getState().activeCollection).toBe('litterature');
     });
   });
+
+  it("ramène aussi la collection sur 'litterature' en passant en mode Citation depuis Gaming (même absence d'attribution que Code)", async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({
+        activeMode: 'classic',
+        activeCollection: 'gaming',
+      });
+    });
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+    expect(useConfigStore.getState().activeCollection).toBe('gaming');
+
+    await act(async () => {
+      useConfigStore.setState({ activeMode: 'quote' });
+    });
+
+    await waitFor(() => {
+      expect(useConfigStore.getState().activeCollection).toBe('litterature');
+    });
+  });
 });
 
 describe('HomeClient — mode Fantôme', () => {

@@ -96,14 +96,14 @@ describe('CollectionSelector', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("n'offre pas Code parmi les options en mode Citation (ce n'est pas une citation)", () => {
+  it("n'offre ni Code ni Gaming parmi les options en mode Citation (aucune vraie attribution auteur/œuvre)", () => {
     useConfigStore.setState({ activeMode: 'quote' });
     render(<CollectionSelector />);
     fireEvent.click(screen.getByTitle('changeCollection'));
 
     expect(screen.getByText('Poésie')).toBeInTheDocument();
     expect(screen.getByText('Philosophie')).toBeInTheDocument();
-    expect(screen.getByText('Gaming')).toBeInTheDocument();
+    expect(screen.queryByText('Gaming')).not.toBeInTheDocument();
     expect(screen.queryByText('Code')).not.toBeInTheDocument();
   });
 

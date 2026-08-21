@@ -8,20 +8,14 @@
  */
 
 import { BookIcon } from '@/components/ui/icons';
+import { NON_CITABLE_COLLECTIONS } from '@/lib/collection-support';
 import { MODES_WITH_TEXT_CONFIG } from '@/lib/typing-mode-support';
 import { useConfigStore } from '@/stores/useConfigStore';
+import { ALL_COLLECTIONS } from '@typewav/collections';
 import type { TypingMode } from '@typewav/types';
 import { AnimatePresence, motion } from 'motion/react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-
-const COLLECTIONS = [
-  'litterature',
-  'poesie',
-  'philosophie',
-  'gaming',
-  'code',
-] as const;
 
 interface CollectionSelectorProps {
   // Mode à utiliser pour décider de la visibilité (distinct du mode actif du
@@ -54,14 +48,14 @@ export function CollectionSelector({
   if (!showCollection) return null;
 
   // Le mode Citation présente son texte comme une citation attribuée (voir
-  // le rendu de `source` dans HomeClient) : un extrait de code n'est pas une
-  // citation, seulement une description technique. HomeClient bascule déjà
-  // la collection loin de 'code' à l'entrée en Citation pour cette raison ;
-  // ne pas la remettre en cause d'un simple clic dans ce menu.
+  // le rendu de `source` dans HomeClient) : Code et Gaming n'ont pas de
+  // vraie attribution auteur/œuvre (voir NON_CITABLE_COLLECTIONS). HomeClient
+  // bascule déjà la collection loin de l'une d'elles à l'entrée en Citation
+  // pour cette raison ; ne pas la remettre en cause d'un simple clic ici.
   const availableCollections =
     effectiveMode === 'quote'
-      ? COLLECTIONS.filter((c) => c !== 'code')
-      : COLLECTIONS;
+      ? ALL_COLLECTIONS.filter((c) => !NON_CITABLE_COLLECTIONS.includes(c))
+      : ALL_COLLECTIONS;
 
   return (
     <div
