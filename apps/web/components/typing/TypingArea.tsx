@@ -55,10 +55,17 @@ interface TypingAreaProps {
     total: number;
   }) => void;
   /**
-   * Callback appelé à chaque frappe — pilote WaveformBars en Zone 5.
+   * Callback appelé à chaque frappe — pilote WaveformBars et AmbientAura.
    * note = note réellement jouée (ou null si silence/erreur).
+   * isPhraseBoundary = true si cette note marque la fin d'une phrase
+   * musicale réelle (voir ParsedNote dans @typewav/audio-engine) : toujours
+   * false si note est null.
    */
-  onNoteChange?: (note: string | null, isError: boolean) => void;
+  onNoteChange?: (
+    note: string | null,
+    isError: boolean,
+    isPhraseBoundary: boolean,
+  ) => void;
 }
 
 export function TypingArea({
@@ -215,11 +222,11 @@ export function TypingArea({
       await initPromise;
 
       if (isCorrect) {
-        const playedNote = await playNote(e.key, wordIndex);
-        onNoteChange?.(playedNote, false);
+        const played = await playNote(e.key, wordIndex);
+        onNoteChange?.(played?.note ?? null, false, played?.isPhraseBoundary ?? false);
       } else {
         triggerSilence();
-        onNoteChange?.(null, true);
+        onNoteChange?.(null, true, false);
       }
 
       // Micro-reverb uniquement si cette frappe correcte complète une

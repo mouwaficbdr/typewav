@@ -21,6 +21,7 @@ import {
 } from '@/app/[locale]/actions/collections';
 import { LearningMode } from '@/components/modes/LearningMode';
 import { ActiveSessionHeader } from '@/components/typing/ActiveSessionHeader';
+import { AmbientAura } from '@/components/typing/AmbientAura';
 import { ConfigBar } from '@/components/typing/ConfigBar';
 import { CollectionSelector } from '@/components/typing/CollectionSelector';
 import { ContextSelectors } from '@/components/typing/ContextSelectors';
@@ -36,6 +37,7 @@ import {
   getPersonalRecords,
   getPersonalTexts,
   getSessionById,
+  getUserProfile,
   type PersonalText,
 } from '@/lib/db';
 import { IS_DEV_MODE } from '@/lib/featureFlags';
@@ -48,6 +50,7 @@ import { applyTextFilters } from '@/lib/text-filters';
 import { useAudioStore } from '@/stores/useAudioStore';
 import { useConfigStore } from '@/stores/useConfigStore';
 import { useCustomTextStore } from '@/stores/useCustomTextStore';
+import { useProgressionStore } from '@/stores/useProgressionStore';
 import { useSessionStore } from '@/stores/useSessionStore';
 import { type MidiPieceId } from '@typewav/audio-engine';
 import { selectFromTexts } from '@typewav/collections';
@@ -94,7 +97,8 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const [lastNote, setLastNote] = useState<{
     pitch: number | null;
     isError: boolean;
-  }>({ pitch: null, isError: false });
+    isPhraseBoundary: boolean;
+  }>({ pitch: null, isError: false, isPhraseBoundary: false });
   const [isOnboarding, setIsOnboarding] = useState(false);
   const [personalTexts, setPersonalTexts] = useState<PersonalText[]>([]);
   const [isPersonalTextsPanelOpen, setIsPersonalTextsPanelOpen] =
@@ -188,6 +192,17 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   useEffect(() => {
     refreshPersonalTexts();
   }, [refreshPersonalTexts]);
+
+  // Hydrate le rang persisté dès le montage : useProgressionStore ne le
+  // recalcule qu'à la fin d'une session (useProgressionCheck), donc sans ce
+  // chargement explicite, l'aura ambiante (voir AmbientAura) afficherait
+  // toujours 'novice' pour un utilisateur revenant avec un rang déjà acquis,
+  // jusqu'à ce qu'il termine une nouvelle session dans cet onglet.
+  useEffect(() => {
+    void getUserProfile().then((profile) => {
+      useProgressionStore.getState().setRank(profile.currentRank);
+    });
+  }, []);
 
   // Charger le record personnel : timings ET texte original de cette
   // session — le curseur fantôme positionne ses timings par index de
@@ -377,9 +392,9 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   }, []);
 
   const handleNoteChange = useCallback(
-    (note: string | null, isError: boolean) => {
+    (note: string | null, isError: boolean, isPhraseBoundary: boolean) => {
       const pitch = note ? noteNameToMidi(note) : null;
-      setLastNote({ pitch, isError });
+      setLastNote({ pitch, isError, isPhraseBoundary });
     },
     [],
   );
@@ -451,6 +466,15 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         backgroundColor: 'transparent',
       }}
     >
+      {/* Aura ambiante — couleur = rang, respiration = tempo réel de la
+          frappe (voir AmbientAura). Purement décorative, en z-index négatif,
+          doit rester le tout premier enfant pour peindre derrière le reste. */}
+      <AmbientAura
+        pitch={lastNote.pitch}
+        isError={lastNote.isError}
+        isPhraseBoundary={lastNote.isPhraseBoundary}
+      />
+
       {/* En-tête de Configuration */}
       {!isLearningMode ? (
         <div
@@ -805,6 +829,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               <WaveformBars
                 pitch={lastNote.pitch}
                 isError={lastNote.isError}
+                isPhraseBoundary={lastNote.isPhraseBoundary}
                 numBars={12}
                 maxHeightPx={20}
                 idlePulse

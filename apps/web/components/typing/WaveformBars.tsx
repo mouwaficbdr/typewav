@@ -16,6 +16,13 @@ import { useEffect, useRef, useState } from 'react';
 interface WaveformBarsProps {
   pitch?: number | null;
   isError?: boolean;
+  /**
+   * true si la note qui vient de jouer marque la fin d'une phrase musicale
+   * réelle (voir ParsedNote.isPhraseBoundary, @typewav/audio-engine) : un
+   * repère irrégulier et non fabriqué dans le vrai morceau, pas un simple
+   * flash uniforme comme pour une note normale.
+   */
+  isPhraseBoundary?: boolean;
   numBars?: number;
   maxHeightPx?: number;
   pitchMapping?: NotePitchMappingOptions;
@@ -27,6 +34,7 @@ interface WaveformBarsProps {
 export function WaveformBars({
   pitch = null,
   isError = false,
+  isPhraseBoundary = false,
   numBars = 12,
   maxHeightPx = 30,
   pitchMapping,
@@ -36,6 +44,7 @@ export function WaveformBars({
 }: WaveformBarsProps) {
   const shouldReduceMotion = useReducedMotion();
   const [activeBar, setActiveBar] = useState<number | null>(null);
+  const [isPeak, setIsPeak] = useState(false);
   const [errorFlash, setErrorFlash] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -52,6 +61,7 @@ export function WaveformBars({
         scheduleStateUpdate(() => {
           setErrorFlash(true);
           setActiveBar(null);
+          setIsPeak(false);
         });
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(() => setErrorFlash(false), 300);
@@ -74,18 +84,27 @@ export function WaveformBars({
       };
     }
 
-    scheduleStateUpdate(() => setActiveBar(barIdx));
+    scheduleStateUpdate(() => {
+      setActiveBar(barIdx);
+      setIsPeak(isPhraseBoundary);
+    });
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    // Une fin de phrase tient plus longtemps qu'une note normale : c'est ce
+    // qui la rend perceptible comme un repère plutôt qu'un flash identique
+    // à toutes les autres notes (voir isPhraseBoundary ci-dessus).
     timeoutRef.current = setTimeout(
-      () => setActiveBar(null),
-      shouldReduceMotion ? 0 : 250,
+      () => {
+        setActiveBar(null);
+        setIsPeak(false);
+      },
+      shouldReduceMotion ? 0 : isPhraseBoundary ? 450 : 250,
     );
 
     return () => {
       cancelled = true;
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [pitch, isError, shouldReduceMotion, numBars, pitchMapping]);
+  }, [pitch, isError, isPhraseBoundary, shouldReduceMotion, numBars, pitchMapping]);
 
   const bars = Array.from({ length: numBars }, (_, i) => i);
 
@@ -112,6 +131,11 @@ export function WaveformBars({
       >
         {bars.map((i) => {
           const isActive = activeBar === i;
+          // Une fin de phrase illumine aussi les deux voisines : un repère
+          // qui s'étale, pas un point isolé identique à une note normale.
+          const isPeakNeighbor =
+            isPeak && activeBar !== null && Math.abs(i - activeBar) === 1;
+          const isLit = isActive || isPeakNeighbor;
 
           const normalized = Math.sin((i / (numBars - 1)) * Math.PI);
           const baseHeight = Math.round(
@@ -120,7 +144,14 @@ export function WaveformBars({
 
           const delay = (i * 0.12).toFixed(2);
           const isIdle =
-            idlePulse && !shouldReduceMotion && !isActive && activeBar === null;
+            idlePulse && !shouldReduceMotion && !isLit && activeBar === null;
+
+          const scale = isActive
+            ? (isPeak ? maxHeightPx * 1.15 : maxHeightPx) / baseHeight
+            : isPeakNeighbor
+              ? (maxHeightPx * 0.75) / baseHeight
+              : 1;
+          const glowStrength = isActive && isPeak ? 90 : 70;
 
           return (
             <div
@@ -128,16 +159,14 @@ export function WaveformBars({
               style={{
                 flex: 1,
                 height: baseHeight,
-                transform: isActive
-                  ? 'scaleY(' + maxHeightPx / baseHeight + ')'
-                  : 'scaleY(1)',
+                transform: 'scaleY(' + scale + ')',
                 backgroundColor: errorFlash
                   ? 'var(--color-error)'
-                  : isActive
+                  : isLit
                     ? 'var(--color-accent)'
                     : 'color-mix(in srgb, var(--color-accent) 25%, transparent)',
-                boxShadow: isActive
-                  ? '0 0 10px 2px color-mix(in srgb, var(--color-accent) 70%, transparent)'
+                boxShadow: isLit
+                  ? `0 0 ${isActive && isPeak ? 16 : 10}px ${isActive && isPeak ? 3 : 2}px color-mix(in srgb, var(--color-accent) ${glowStrength}%, transparent)`
                   : 'none',
                 borderRadius: 'var(--radius-sm)',
                 transformOrigin: '50% 50%',

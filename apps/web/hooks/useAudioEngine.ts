@@ -496,7 +496,7 @@ export function useAudioEngine() {
       parsedNote: ParsedNote,
       char: string,
       wordIndex: number,
-    ): Promise<string | null> => {
+    ): Promise<{ note: string; isPhraseBoundary: boolean } | null> => {
       const Tone = await loadTone();
 
       const referenceBpm = getCurrentPiece()?.bpmReference ?? 120;
@@ -531,7 +531,7 @@ export function useAudioEngine() {
 
       engine.lastPlayedNote = noteToPlay;
       recordNoteEvent(noteToPlay, sessionPosition);
-      return noteToPlay;
+      return { note: noteToPlay, isPhraseBoundary: parsedNote.isPhraseBoundary };
     },
     [recordNoteEvent, sessionPosition],
   );
@@ -540,7 +540,10 @@ export function useAudioEngine() {
    * Joue la prochaine note de la pièce musicale active.
    */
   const playNote = useCallback(
-    async (char: string, wordIndex: number): Promise<string | null> => {
+    async (
+      char: string,
+      wordIndex: number,
+    ): Promise<{ note: string; isPhraseBoundary: boolean } | null> => {
       // Pas de ré-initialisation ici : les deux seuls appelants (TypingArea,
       // useAudioPreview) appellent déjà initialize() avant playNote(). La
       // retenter ici en double était le vrai bug derrière la latence sur les
@@ -562,6 +565,10 @@ export function useAudioEngine() {
       if (!nextNote) return null;
 
       warpEngine.onKeystroke();
+      // Pousse le tempo live dans le store : seul point d'entrée du BPM
+      // calculé par warpEngine vers React, jusqu'ici sans aucun consommateur
+      // UI (voir AmbientAura, qui en fait la respiration de l'aura ambiante).
+      useAudioStore.getState().setLiveBpm(warpEngine.getCurrentBpm());
 
       return await playParsedNote(nextNote, char, wordIndex);
     },
