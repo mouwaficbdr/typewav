@@ -3,45 +3,33 @@
 /**
  * WaveformBars — visualiseur de barres réactif aux notes jouées.
  *
- * Barres verticales (configurable) qui pulsent à chaque frappe correcte.
- * La hauteur de la barre activée correspond à la position relative
- * de la note dans la gamme pentatonique (grave → aigu = gauche → droite).
- * Une erreur : flash rouge + toutes les barres reviennent à minimum.
+ * Une note est pilotée par son pitch MIDI réel (0-127).
  */
 
+import {
+  mapPitchToBarIndex,
+  type NotePitchMappingOptions,
+} from '@/lib/note-visualization';
 import { useReducedMotion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 
-const PENTATONIC_NOTES = [
-  'C3',
-  'D3',
-  'E3',
-  'G3',
-  'A3',
-  'C4',
-  'D4',
-  'E4',
-  'G4',
-  'A4',
-  'C5',
-  'D5',
-];
-
 interface WaveformBarsProps {
-  lastNote?: string | undefined;
+  pitch?: number | null;
   isError?: boolean;
-  barCount?: number;
+  numBars?: number;
   maxHeightPx?: number;
+  pitchMapping?: NotePitchMappingOptions;
   idlePulse?: boolean;
   className?: string;
   style?: React.CSSProperties;
 }
 
 export function WaveformBars({
-  lastNote,
+  pitch = null,
   isError = false,
-  barCount = 12,
+  numBars = 12,
   maxHeightPx = 30,
+  pitchMapping,
   idlePulse = false,
   className,
   style,
@@ -73,22 +61,19 @@ export function WaveformBars({
       };
     }
 
-    if (!lastNote) {
+    if (pitch === null) {
       return () => {
         cancelled = true;
       };
     }
 
-    const noteIdx = PENTATONIC_NOTES.indexOf(lastNote);
-    if (noteIdx === -1) {
+    const barIdx = mapPitchToBarIndex(pitch, numBars, pitchMapping);
+    if (barIdx === null) {
       return () => {
         cancelled = true;
       };
     }
 
-    const barIdx = Math.round(
-      (noteIdx / (PENTATONIC_NOTES.length - 1)) * (barCount - 1),
-    );
     scheduleStateUpdate(() => setActiveBar(barIdx));
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(
@@ -100,9 +85,9 @@ export function WaveformBars({
       cancelled = true;
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [lastNote, isError, shouldReduceMotion, barCount]);
+  }, [pitch, isError, shouldReduceMotion, numBars, pitchMapping]);
 
-  const bars = Array.from({ length: barCount }, (_, i) => i);
+  const bars = Array.from({ length: numBars }, (_, i) => i);
 
   return (
     <>
@@ -128,7 +113,7 @@ export function WaveformBars({
         {bars.map((i) => {
           const isActive = activeBar === i;
 
-          const normalized = Math.sin((i / (barCount - 1)) * Math.PI);
+          const normalized = Math.sin((i / (numBars - 1)) * Math.PI);
           const baseHeight = Math.round(
             Math.max(3, maxHeightPx * 0.15 + normalized * maxHeightPx * 0.2),
           );

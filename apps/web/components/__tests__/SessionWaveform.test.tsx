@@ -41,4 +41,25 @@ describe('SessionWaveform', () => {
     const figure = container.querySelector('figure');
     expect(figure).toHaveAttribute('aria-hidden', 'true');
   });
+
+  it('projette une note chromatique sur une hauteur dynamique', () => {
+    const events: NoteEvent[] = [
+      {
+        noteName: 'F#4',
+        timestamp: 1200,
+        charIndex: 4,
+        isError: false as const,
+      },
+    ];
+
+    const { container } = render(
+      <SessionWaveform noteEvents={events} durationMs={30000} />,
+    );
+
+    const rects = container.querySelectorAll('svg rect');
+    const firstBar = rects.item(1);
+
+    expect(firstBar).not.toBeNull();
+    expect(Number(firstBar?.getAttribute('height'))).toBeGreaterThan(4);
+  });
 });

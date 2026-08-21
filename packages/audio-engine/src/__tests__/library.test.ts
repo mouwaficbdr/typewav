@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { MUSIC_LIBRARY, MUSIC_LIBRARY_MAP } from '../library';
 
 describe('MUSIC_LIBRARY', () => {
-  it('contient exactement 58 pièces', () => {
-    expect(MUSIC_LIBRARY).toHaveLength(58);
+  it('contient exactement 24 pièces', () => {
+    expect(MUSIC_LIBRARY).toHaveLength(24);
   });
 
   it('tous les IDs sont uniques', () => {
@@ -11,12 +11,12 @@ describe('MUSIC_LIBRARY', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it('tous les catalogNumbers sont uniques et entre 1 et 58', () => {
+  it('tous les catalogNumbers sont uniques et entre 1 et 24', () => {
     const numbers = MUSIC_LIBRARY.map((p) => p.catalogNumber);
-    expect(new Set(numbers).size).toBe(58);
+    expect(new Set(numbers).size).toBe(24);
     numbers.forEach((n) => {
       expect(n).toBeGreaterThanOrEqual(1);
-      expect(n).toBeLessThanOrEqual(58);
+      expect(n).toBeLessThanOrEqual(24);
     });
   });
 
@@ -39,16 +39,17 @@ describe('MUSIC_LIBRARY', () => {
     });
   });
 
-  it('les 8 pièces existantes sont toujours présentes', () => {
+  it('les pièces importées conservées sont présentes', () => {
     const existing = [
       'fur-elise',
-      'bwv846',
       'gymnopedie1',
-      'korobeiniki',
       'ode-to-joy',
-      'nocturne-op9-2',
       'rondo-alla-turca',
       'canon-in-d',
+      'toccata-fugue',
+      'mountain-king',
+      'symphony-5-theme',
+      'ave-maria',
     ];
     existing.forEach((id) => {
       expect(MUSIC_LIBRARY_MAP.has(id)).toBe(true);
@@ -56,6 +57,6 @@ describe('MUSIC_LIBRARY', () => {
   });
 
   it('MUSIC_LIBRARY_MAP contient toutes les pièces', () => {
-    expect(MUSIC_LIBRARY_MAP.size).toBe(58);
+    expect(MUSIC_LIBRARY_MAP.size).toBe(24);
   });
 });

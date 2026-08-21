@@ -27,7 +27,6 @@ function makeSession(overrides: Partial<SessionResult> = {}): SessionResult {
 
 const emptyProfile: UserProfile = {
   unlockedThemes: ['terminal'],
-  unlockedSoundPacks: ['piano'],
   unlockedCollections: ['litterature'],
   unlockedMilestoneIds: [],
   currentRank: 'novice',
@@ -73,6 +72,24 @@ describe('calculateRank', () => {
     const recent = Array.from({ length: 10 }, () => makeSession({ wpm: 20 }));
     // slice(0, 10) = 10 sessions à 20 WPM → médiane = 20 → novice
     expect(calculateRank([...recent, ...old])).toBe('novice');
+  });
+
+  it('exclut les modes non compétitifs (zen, learning, endurance) de la médiane', () => {
+    // Sessions zen à 100 WPM (devraient être ignorées) + classic à 25 WPM
+    const zen = Array.from({ length: 5 }, () =>
+      makeSession({ wpm: 100, mode: 'zen' }),
+    );
+    const classic = Array.from({ length: 5 }, () =>
+      makeSession({ wpm: 25, mode: 'classic' }),
+    );
+    expect(calculateRank([...zen, ...classic])).toBe('novice');
+  });
+
+  it('retourne novice si seules des sessions non compétitives existent', () => {
+    const learning = Array.from({ length: 5 }, () =>
+      makeSession({ wpm: 100, mode: 'learning' }),
+    );
+    expect(calculateRank(learning)).toBe('novice');
   });
 });
 
@@ -159,5 +176,22 @@ describe('updatePersonalRecords', () => {
     const session2 = makeSession({ wpm: 90 });
     updatePersonalRecords(records, session2);
     expect(records.maxWpm.value).toBe(original.maxWpm.value);
+  });
+
+  it('ignore les sessions en mode non compétitif (zen, learning, endurance)', () => {
+    const session1 = makeSession({ wpm: 70, mode: 'classic' });
+    const records1 = updatePersonalRecords(null, session1);
+
+    const zenSession = makeSession({ wpm: 200, mode: 'zen' });
+    const records2 = updatePersonalRecords(records1, zenSession);
+    expect(records2.maxWpm.value).toBe(70);
+
+    const learningSession = makeSession({ wpm: 200, mode: 'learning' });
+    const records3 = updatePersonalRecords(records2, learningSession);
+    expect(records3.maxWpm.value).toBe(70);
+
+    const enduranceSession = makeSession({ wpm: 200, mode: 'endurance' });
+    const records4 = updatePersonalRecords(records3, enduranceSession);
+    expect(records4.maxWpm.value).toBe(70);
   });
 });

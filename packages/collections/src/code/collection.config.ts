@@ -13,7 +13,6 @@ export const codeCollection: CollectionConfig = {
   description: 'Snippets issus de projets open source — MIT, Apache 2.0.',
   language: 'en',
   recommendedTheme: 'terminal',
-  recommendedSoundPack: 'chiptune',
   isPremium: false,
   texts: [
     // ── English ───────────────────────────────────────────────────────────────
@@ -1000,6 +999,490 @@ git log --oneline --graph --all --decorate | head -20`,
       wordCount: 15,
       charCount: 92,
       tags: ["git","shell","historique"],
+    },
+    {
+      id: 'code-ts-fr-07',
+      content: `// File d'attente de tâches avec limite de concurrence
+class FileDeTaches<T> {
+  private enCours = 0;
+  private attente: Array<() => void> = [];
+
+  constructor(private limite: number) {}
+
+  async executer(tache: () => Promise<T>): Promise<T> {
+    if (this.enCours >= this.limite) {
+      await new Promise<void>((resoudre) => this.attente.push(resoudre));
     }
+    this.enCours++;
+    try {
+      return await tache();
+    } finally {
+      this.enCours--;
+      this.attente.shift()?.();
+    }
+  }
+}`,
+      source: 'TypeScript — file de tâches concurrente',
+      language: 'fr',
+      difficulty: 4,
+      wordCount: 59,
+      charCount: 502,
+      tags: ["typescript", "concurrence", "file-attente"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-py-fr-06',
+      content: `# Regroupe une liste d'éléments par lots de taille fixe
+def regrouper_par_lots(elements, taille_lot):
+    if taille_lot <= 0:
+        raise ValueError("la taille du lot doit être strictement positive")
+    lots = []
+    lot_courant = []
+    for element in elements:
+        lot_courant.append(element)
+        if len(lot_courant) == taille_lot:
+            lots.append(lot_courant)
+            lot_courant = []
+    if lot_courant:
+        lots.append(lot_courant)
+    return lots`,
+      source: 'Python — regroupement par lots',
+      language: 'fr',
+      difficulty: 2,
+      wordCount: 50,
+      charCount: 479,
+      tags: ["python", "liste", "utilitaire"],
+      codeLanguage: 'python',
+    },
+    {
+      id: 'code-go-fr-04',
+      content: `// Calcule la médiane d'une tranche de nombres flottants
+func mediane(nombres []float64) float64 {
+	copie := make([]float64, len(nombres))
+	copy(copie, nombres)
+	sort.Float64s(copie)
+	milieu := len(copie) / 2
+	if len(copie)%2 == 0 {
+		return (copie[milieu-1] + copie[milieu]) / 2
+	}
+	return copie[milieu]
+}`,
+      source: 'Go — calcul de médiane',
+      language: 'fr',
+      difficulty: 3,
+      wordCount: 41,
+      charCount: 306,
+      tags: ["go", "statistiques", "tri"],
+      codeLanguage: 'go',
+    },
+    {
+      id: 'code-ts-fr-08',
+      content: `// Cache mémoire simple avec expiration par entrée
+class CacheAvecExpiration<K, V> {
+  private entrees = new Map<K, { valeur: V; expireA: number }>();
+
+  constructor(private dureeDeVieMs: number) {}
+
+  definir(cle: K, valeur: V): void {
+    this.entrees.set(cle, { valeur, expireA: Date.now() + this.dureeDeVieMs });
+  }
+
+  obtenir(cle: K): V | undefined {
+    const entree = this.entrees.get(cle);
+    if (!entree) return undefined;
+    if (Date.now() > entree.expireA) {
+      this.entrees.delete(cle);
+      return undefined;
+    }
+    return entree.valeur;
+  }
+
+  nettoyerExpirees(): number {
+    const maintenant = Date.now();
+    let supprimees = 0;
+    for (const [cle, entree] of this.entrees) {
+      if (maintenant > entree.expireA) {
+        this.entrees.delete(cle);
+        supprimees++;
+      }
+    }
+    return supprimees;
+  }
+}`,
+      source: 'TypeScript — cache avec expiration',
+      language: 'fr',
+      difficulty: 4,
+      wordCount: 99,
+      charCount: 843,
+      tags: ["typescript", "cache", "ttl"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-py-fr-07',
+      content: `# Implémentation d'une pile qui retient aussi le minimum courant
+class PileAvecMinimum:
+    """Pile classique augmentée d'un accès au minimum en temps constant."""
+
+    def __init__(self):
+        self.pile = []
+        self.minimums = []
+
+    def empiler(self, valeur):
+        self.pile.append(valeur)
+        if not self.minimums or valeur <= self.minimums[-1]:
+            self.minimums.append(valeur)
+        else:
+            self.minimums.append(self.minimums[-1])
+
+    def depiler(self):
+        if not self.pile:
+            raise IndexError("pile vide")
+        self.minimums.pop()
+        return self.pile.pop()
+
+    def minimum(self):
+        if not self.minimums:
+            raise IndexError("pile vide")
+        return self.minimums[-1]
+
+    def sommet(self):
+        if not self.pile:
+            raise IndexError("pile vide")
+        return self.pile[-1]
+
+    def taille(self):
+        return len(self.pile)
+
+    def vider(self):
+        self.pile.clear()
+        self.minimums.clear()
+
+    def est_vide(self):
+        return len(self.pile) == 0`,
+      source: 'Python — pile avec minimum',
+      language: 'fr',
+      difficulty: 3,
+      wordCount: 89,
+      charCount: 1062,
+      tags: ["python", "structure-de-donnees", "pile"],
+      codeLanguage: 'python',
+    },
+    {
+      id: 'code-rs-fr-04',
+      content: `// Structure de file d'attente à priorité minimale sur un tas binaire
+use std::collections::BinaryHeap;
+use std::cmp::Reverse;
+
+struct FilePriorite<T: Ord> {
+    tas: BinaryHeap<Reverse<T>>,
+}
+
+impl<T: Ord> FilePriorite<T> {
+    fn nouvelle() -> Self {
+        FilePriorite { tas: BinaryHeap::new() }
+    }
+
+    fn inserer(&mut self, valeur: T) {
+        self.tas.push(Reverse(valeur));
+    }
+
+    fn extraire_minimum(&mut self) -> Option<T> {
+        self.tas.pop().map(|Reverse(valeur)| valeur)
+    }
+
+    fn est_vide(&self) -> bool {
+        self.tas.is_empty()
+    }
+
+    fn taille(&self) -> usize {
+        self.tas.len()
+    }
+
+    fn depuis_vec(valeurs: Vec<T>) -> Self {
+        let tas = valeurs.into_iter().map(Reverse).collect();
+        FilePriorite { tas }
+    }
+}`,
+      source: 'Rust — file de priorité minimale',
+      language: 'fr',
+      difficulty: 5,
+      wordCount: 85,
+      charCount: 777,
+      tags: ["rust", "tas-binaire", "file-priorite"],
+      codeLanguage: 'rust',
+    },
+    {
+      id: 'code-ts-16',
+      content: `// Debounces a function so it only fires after calls settle
+function debounce<T extends (...args: never[]) => void>(
+  fn: T,
+  delayMs: number,
+): (...args: Parameters<T>) => void {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delayMs);
+  };
+}`,
+      source: 'TypeScript — debounce utility',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 48,
+      charCount: 361,
+      tags: ["typescript", "debounce", "utility"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-py-09',
+      content: `# Flattens an arbitrarily nested list into a single flat list
+def flatten(nested):
+    result = []
+    for item in nested:
+        if isinstance(item, (list, tuple)):
+            result.extend(flatten(item))
+        else:
+            result.append(item)
+    return result
+
+
+def flatten_unique(nested):
+    seen = []
+    for item in flatten(nested):
+        if item not in seen:
+            seen.append(item)
+    return seen`,
+      source: 'Python — recursive flatten',
+      language: 'en',
+      difficulty: 2,
+      wordCount: 46,
+      charCount: 423,
+      tags: ["python", "recursion", "list"],
+      codeLanguage: 'python',
+    },
+    {
+      id: 'code-go-06',
+      content: `// Retries a function with exponential backoff up to maxAttempts
+func retryWithBackoff(fn func() error, maxAttempts int) error {
+	var err error
+	for attempt := 0; attempt < maxAttempts; attempt++ {
+		if err = fn(); err == nil {
+			return nil
+		}
+		time.Sleep(time.Duration(1<<attempt) * time.Second)
+	}
+	return err
+}`,
+      source: 'Go — exponential backoff retry',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 48,
+      charCount: 316,
+      tags: ["go", "retry", "resilience"],
+      codeLanguage: 'go',
+    },
+    {
+      id: 'code-ts-17',
+      content: `// A small event emitter supporting typed listeners and unsubscribe
+class EventEmitter<Events extends Record<string, unknown[]>> {
+  private listeners: { [K in keyof Events]?: Array<(...args: Events[K]) => void> } = {};
+
+  on<K extends keyof Events>(event: K, handler: (...args: Events[K]) => void): () => void {
+    const list = (this.listeners[event] ??= []);
+    list.push(handler);
+    return () => {
+      const index = list.indexOf(handler);
+      if (index !== -1) list.splice(index, 1);
+    };
+  }
+
+  emit<K extends keyof Events>(event: K, ...args: Events[K]): void {
+    for (const handler of this.listeners[event] ?? []) {
+      handler(...args);
+    }
+  }
+
+  clear(event: keyof Events): void {
+    delete this.listeners[event];
+  }
+}`,
+      source: 'TypeScript — typed event emitter',
+      language: 'en',
+      difficulty: 5,
+      wordCount: 96,
+      charCount: 744,
+      tags: ["typescript", "event-emitter", "generics"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-py-10',
+      content: `# A least-recently-used cache backed by an ordered dictionary
+from collections import OrderedDict
+
+class LRUCache:
+    """Fixed-capacity cache that evicts the least recently used entry first."""
+
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.store = OrderedDict()
+
+    def get(self, key):
+        if key not in self.store:
+            return None
+        self.store.move_to_end(key)
+        return self.store[key]
+
+    def put(self, key, value):
+        if key in self.store:
+            self.store.move_to_end(key)
+        self.store[key] = value
+        if len(self.store) > self.capacity:
+            self.store.popitem(last=False)
+
+    def __contains__(self, key):
+        return key in self.store
+
+    def __len__(self):
+        return len(self.store)
+
+    def keys(self):
+        return list(self.store.keys())
+
+    def clear(self):
+        self.store.clear()`,
+      source: 'Python — LRU cache implementation',
+      language: 'en',
+      difficulty: 4,
+      wordCount: 82,
+      charCount: 899,
+      tags: ["python", "cache", "lru"],
+      codeLanguage: 'python',
+    },
+    {
+      id: 'code-rs-07',
+      content: `// A minimal thread-safe counter shared across worker threads
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+fn run_parallel_counter(worker_count: usize, increments_per_worker: usize) -> usize {
+    let counter = Arc::new(Mutex::new(0usize));
+    let mut handles = Vec::new();
+
+    for _ in 0..worker_count {
+        let counter = Arc::clone(&counter);
+        handles.push(thread::spawn(move || {
+            for _ in 0..increments_per_worker {
+                let mut value = counter.lock().unwrap();
+                *value += 1;
+            }
+        }));
+    }
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    let final_value = *counter.lock().unwrap();
+    let expected = worker_count * increments_per_worker;
+    assert_eq!(final_value, expected, "lost updates detected under contention");
+    final_value
+}`,
+      source: 'Rust — thread-safe shared counter',
+      language: 'en',
+      difficulty: 5,
+      wordCount: 85,
+      charCount: 836,
+      tags: ["rust", "concurrency", "mutex"],
+      codeLanguage: 'rust',
+    },
+    {
+      id: 'code-ts-fr-09',
+      content: `// File d'attente de priorité générique avec réévaluation des clés
+class FileDePrioriteAvecMiseAJour<T> {
+  private tas: Array<{ cle: number; valeur: T }> = [];
+
+  inserer(cle: number, valeur: T): void {
+    this.tas.push({ cle, valeur });
+    this.tas.sort((a, b) => a.cle - b.cle);
+  }
+
+  extraireMinimum(): T | undefined {
+    const entree = this.tas.shift();
+    return entree?.valeur;
+  }
+
+  mettreAJourCle(valeur: T, nouvelleCle: number): boolean {
+    const index = this.tas.findIndex((e) => e.valeur === valeur);
+    if (index === -1) return false;
+    this.tas[index]!.cle = nouvelleCle;
+    this.tas.sort((a, b) => a.cle - b.cle);
+    return true;
+  }
+
+  contient(valeur: T): boolean {
+    return this.tas.some((e) => e.valeur === valeur);
+  }
+
+  taille(): number {
+    return this.tas.length;
+  }
+
+  estVide(): boolean {
+    return this.tas.length === 0;
+  }
+
+  vider(): void {
+    this.tas = [];
+  }
+}`,
+      source: 'TypeScript — file de priorité avec réévaluation',
+      language: 'fr',
+      difficulty: 4,
+      wordCount: 117,
+      charCount: 913,
+      tags: ["typescript", "file-priorite", "structure-de-donnees"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-ts-18',
+      content: `// Rate limiter using a sliding window of request timestamps
+class SlidingWindowRateLimiter {
+  private timestamps: number[] = [];
+
+  constructor(private maxRequests: number, private windowMs: number) {}
+
+  allow(now: number): boolean {
+    const cutoff = now - this.windowMs;
+    this.timestamps = this.timestamps.filter((t) => t > cutoff);
+    if (this.timestamps.length >= this.maxRequests) {
+      return false;
+    }
+    this.timestamps.push(now);
+    return true;
+  }
+
+  remaining(now: number): number {
+    const cutoff = now - this.windowMs;
+    const active = this.timestamps.filter((t) => t > cutoff);
+    return Math.max(0, this.maxRequests - active.length);
+  }
+
+  retryAfterMs(now: number): number {
+    if (this.timestamps.length === 0) return 0;
+    const oldest = Math.min(...this.timestamps);
+    return Math.max(0, oldest + this.windowMs - now);
+  }
+
+  reset(): void {
+    this.timestamps = [];
+  }
+}`,
+      source: 'TypeScript — sliding window rate limiter',
+      language: 'en',
+      difficulty: 4,
+      wordCount: 108,
+      charCount: 918,
+      tags: ["typescript", "rate-limiter", "sliding-window"],
+      codeLanguage: 'typescript',
+    },
   ],
 };

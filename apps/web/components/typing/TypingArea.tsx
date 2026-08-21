@@ -16,6 +16,8 @@
 import { GhostCursor } from '@/components/typing/GhostCursor';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useSession } from '@/hooks/useSession';
+import { CorrectionEchoTracker } from '@/lib/correction-echo';
+import { resetSequence } from '@typewav/audio-engine';
 import type { TypingMode } from '@typewav/types';
 import { useTranslations } from 'next-intl';
 import {
@@ -75,6 +77,7 @@ export function TypingArea({
     position,
     keystrokes,
     liveStats,
+    finalStats,
     isComplete,
     handleKeystroke,
     handleBackspace,
@@ -92,12 +95,19 @@ export function TypingArea({
   const containerRef = useRef<HTMLDivElement>(null);
   const wordsRef = useRef<HTMLParagraphElement>(null);
   const completionNotifiedRef = useRef(false);
+  const correctionEchoRef = useRef<CorrectionEchoTracker>(
+    new CorrectionEchoTracker(),
+  );
   const [isFocused, setIsFocused] = useState(false);
   const [translateY, setTranslateY] = useState(0);
 
-  // Focus automatique sur le conteneur au montage
+  // Remettre le séquenceur MIDI à zéro pour chaque nouvelle tentative.
+  // TypingArea remonte entièrement à chaque nouveau test (restart, shuffle,
+  // changement de collection/pièce — via la key React côté HomeClient),
+  // mais le séquenceur est un singleton de module qui, sans ce reset,
+  // garde la position laissée par la tentative précédente.
   useEffect(() => {
-    containerRef.current?.focus();
+    resetSequence();
   }, []);
 
   // Notifier la touche actuellement attendue (pour KeyboardDiagram)
@@ -107,12 +117,17 @@ export function TypingArea({
     onActiveKeyChange(isComplete ? undefined : expected);
   }, [position, text, isComplete, onActiveKeyChange]);
 
-  // Callback(s) de fin quand le test se termine
+  // Callback(s) de fin quand le test se termine.
+  // Attend finalStats plutôt que de lire liveStats.wpm : liveStats n'est
+  // rafraîchi qu'au mieux toutes les 1s pendant la frappe, donc un exercice
+  // qui se termine plus vite que ce premier tick (fréquent sur un texte
+  // court) le laisserait à sa valeur initiale de 0.
   useEffect(() => {
     if (!isComplete) {
       completionNotifiedRef.current = false;
       return;
     }
+    if (!finalStats) return;
 
     if (completionNotifiedRef.current) return;
     completionNotifiedRef.current = true;
@@ -121,14 +136,14 @@ export function TypingArea({
     const correct = keystrokes.filter((entry) => entry.correct).length;
     const accuracy = total === 0 ? 100 : (correct / total) * 100;
 
-    onComplete?.(liveStats.wpm);
+    onComplete?.(finalStats.wpm);
     onSessionComplete?.({
-      wpm: liveStats.wpm,
+      wpm: finalStats.wpm,
       accuracy,
       correct,
       total,
     });
-  }, [isComplete, liveStats.wpm, keystrokes, onComplete, onSessionComplete]);
+  }, [isComplete, finalStats, keystrokes, onComplete, onSessionComplete]);
 
   // Scroll 3 lignes — translateY calculé via getBoundingClientRect
   // Note : spanRect.top - wordsRect.top est indépendant du transform appliqué
@@ -171,15 +186,22 @@ export function TypingArea({
   const wordIndex = text.slice(0, position).split(' ').length - 1;
 
   const handleKeyDown = useCallback(
-    async (e: React.KeyboardEvent<HTMLDivElement>) => {
+    async (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (isComplete) return;
 
-      // Initialiser Tone.js à la première frappe (contrainte navigateur)
-      await initialize();
+      // Démarre l'initialisation audio (Tone.start() doit être appelé de
+      // façon synchrone dans le keydown pour la contrainte navigateur) sans
+      // jamais bloquer dessus : le curseur doit avancer sur CHAQUE frappe,
+      // correcte ou incorrecte (invariant du produit, voir useSessionStore),
+      // indépendamment du temps que prend le chargement du sampler
+      // (plusieurs secondes à froid).
+      const initPromise = initialize();
 
       if (e.key === 'Backspace') {
+        correctionEchoRef.current.onBackspace(keystrokes[keystrokes.length - 1]);
         handleBackspace();
+        await initPromise;
         return;
       }
 
@@ -190,6 +212,8 @@ export function TypingArea({
 
       handleKeystroke(e.key);
 
+      await initPromise;
+
       if (isCorrect) {
         const playedNote = await playNote(e.key, wordIndex);
         onNoteChange?.(playedNote, false);
@@ -198,9 +222,9 @@ export function TypingArea({
         onNoteChange?.(null, true);
       }
 
-      // Micro-reverb si c'est une correction (frappe juste après erreur)
-      const prevKeystroke = keystrokes[keystrokes.length - 1];
-      if (isCorrect && prevKeystroke && !prevKeystroke.correct) {
+      // Micro-reverb uniquement si cette frappe correcte complète une
+      // correction amorcée par Backspace (pas juste "la frappe d'avant était fausse").
+      if (correctionEchoRef.current.onKeystroke(isCorrect)) {
         await triggerResume();
       }
     },
@@ -220,6 +244,53 @@ export function TypingArea({
     ],
   );
 
+  // handleKeyDown change de référence à chaque frappe (deps de son
+  // useCallback) — passer par un ref permet au listener natif ci-dessous de
+  // toujours appeler la version courante sans avoir à se détacher/rattacher
+  // à chaque frappe.
+  const handleKeyDownRef = useRef(handleKeyDown);
+  useEffect(() => {
+    handleKeyDownRef.current = handleKeyDown;
+  });
+
+  // Écoute native (addEventListener) plutôt que les props React
+  // onKeyDown/onFocus/onBlur. Constaté en session live (reproduit en dev ET
+  // en build de prod, avec focus DOM/fenêtre confirmés corrects et les props
+  // bien attachées aux internals React) : un keydown, même natif et fiable
+  // au niveau DOM, n'atteignait jamais le dispatch synthétique de React
+  // après un focus purement programmatique — un vrai clic le débloquait
+  // systématiquement, un addEventListener natif posé directement sur le
+  // conteneur aussi. Cause exacte non identifiée côté React ; on contourne
+  // son système d'événements synthétique pour ce chemin critique plutôt que
+  // de dépendre de lui.
+  //
+  // useLayoutEffect (pas useEffect), et les listeners posés AVANT
+  // container.focus() : sinon le focus automatique au montage émet son
+  // événement 'focus' natif avant que le listener ne soit attaché, et cet
+  // évènement — non rejouable, un élément déjà focus ne réémet rien — est
+  // perdu pour de bon (overlay "Cliquez pour activer" resté affiché à tort).
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      void handleKeyDownRef.current(e);
+    };
+    const onFocus = () => setIsFocused(true);
+    const onBlur = () => setIsFocused(false);
+
+    container.addEventListener('keydown', onKeyDown);
+    container.addEventListener('focus', onFocus);
+    container.addEventListener('blur', onBlur);
+    container.focus();
+
+    return () => {
+      container.removeEventListener('keydown', onKeyDown);
+      container.removeEventListener('focus', onFocus);
+      container.removeEventListener('blur', onBlur);
+    };
+  }, []);
+
   return (
     <div
       className="content-typing"
@@ -230,45 +301,50 @@ export function TypingArea({
         transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
-      {/* Live stats overlay — Option A : au-dessus, opacity 0 avant la première frappe */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          top: '-1.75rem',
-          left: 0,
-          right: 0,
-          textAlign: 'center',
-          opacity: position === 0 ? 0 : 0.45,
-          fontFamily: 'var(--font-mono)',
-          fontSize: '0.75rem',
-          color: 'var(--color-text-muted)',
-          transition: 'opacity 0.3s',
-          letterSpacing: '0.04em',
-          userSelect: 'none',
-          zIndex: 2,
-          pointerEvents: 'none',
-        }}
-      >
-        <span
+      {/* Live stats overlay — Option A : au-dessus, opacity 0 avant la première frappe.
+          Masqué en mode zen : « sans pression, sans timer » veut dire sans métrique
+          affichée en direct non plus, sinon zen == quote avec juste un timer en moins. */}
+      {mode !== 'zen' && (
+        <div
+          data-testid="live-stats-overlay"
+          aria-hidden="true"
           style={{
-            color: 'var(--color-accent)',
-            fontVariantNumeric: 'tabular-nums',
+            position: 'absolute',
+            top: '-1.75rem',
+            left: 0,
+            right: 0,
+            textAlign: 'center',
+            opacity: position === 0 ? 0 : 0.45,
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.75rem',
+            color: 'var(--color-text-muted)',
+            transition: 'opacity 0.3s',
+            letterSpacing: '0.04em',
+            userSelect: 'none',
+            zIndex: 2,
+            pointerEvents: 'none',
           }}
         >
-          {Math.round(liveStats.wpm)}
-        </span>
-        {' wpm · '}
-        <span
-          style={{
-            color: 'var(--color-accent)',
-            fontVariantNumeric: 'tabular-nums',
-          }}
-        >
-          {Math.round(liveStats.accuracy)}
-        </span>
-        {'% acc'}
-      </div>
+          <span
+            style={{
+              color: 'var(--color-accent)',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {Math.round(liveStats.wpm)}
+          </span>
+          {' wpm · '}
+          <span
+            style={{
+              color: 'var(--color-accent)',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {Math.round(liveStats.accuracy)}
+          </span>
+          {'% acc'}
+        </div>
+      )}
 
       {/* Zone de frappe — aérée, fluide, text muté pour l'attente */}
       <div
@@ -277,9 +353,6 @@ export function TypingArea({
         aria-label={t('hint')}
         aria-multiline="false"
         tabIndex={0}
-        onKeyDown={handleKeyDown}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
         className="cursor-text select-none w-full"
         style={{
           position: 'relative',

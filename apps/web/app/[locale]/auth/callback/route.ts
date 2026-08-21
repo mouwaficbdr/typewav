@@ -7,6 +7,7 @@
  * Spec : docs/ARCHITECTURE.md — @supabase/ssr
  */
 
+import { getSafeRedirectPath } from '@/lib/safe-redirect';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
@@ -14,7 +15,7 @@ import { NextResponse } from 'next/server';
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/';
+  const next = getSafeRedirectPath(searchParams.get('next'));
 
   if (code) {
     const supabase = await createSupabaseServerClient();

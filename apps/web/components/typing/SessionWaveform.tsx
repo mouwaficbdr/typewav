@@ -12,23 +12,12 @@
  * Spec : docs/specs/27-waveform-visualizer.md
  */
 
+import {
+  mapNoteToBarHeight,
+  type NotePitchMappingOptions,
+} from '@/lib/note-visualization';
 import type { NoteEvent } from '@typewav/types';
 import { useTranslations } from 'next-intl';
-
-const PENTATONIC_NOTES = [
-  'C3',
-  'D3',
-  'E3',
-  'G3',
-  'A3',
-  'C4',
-  'D4',
-  'E4',
-  'G4',
-  'A4',
-  'C5',
-  'D5',
-];
 
 interface SessionWaveformProps {
   noteEvents: NoteEvent[];
@@ -36,6 +25,7 @@ interface SessionWaveformProps {
   durationMs: number;
   width?: number;
   height?: number;
+  pitchMapping?: NotePitchMappingOptions;
 }
 
 export function SessionWaveform({
@@ -43,6 +33,7 @@ export function SessionWaveform({
   durationMs,
   width = 600,
   height = 48,
+  pitchMapping,
 }: SessionWaveformProps) {
   const t = useTranslations('typing');
 
@@ -66,9 +57,8 @@ export function SessionWaveform({
 
   const bars = noteEvents.map((event) => {
     const x = maxTimestamp > 0 ? (event.timestamp / maxTimestamp) * width : 0;
-    const noteIdx = PENTATONIC_NOTES.indexOf(event.noteName);
-    // barHeight : 4 (graves) → 24 (aigus) sur hauteur 48px
-    const barHeight = noteIdx === -1 ? 8 : 4 + Math.round((noteIdx / 11) * 20);
+    // barHeight : 4 (graves) -> 24 (aigus) sur hauteur 48px
+    const barHeight = mapNoteToBarHeight(event.noteName, 4, 24, pitchMapping);
     const y = height - barHeight;
 
     return { x, y, barHeight, key: event.charIndex };

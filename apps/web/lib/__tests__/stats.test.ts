@@ -4,6 +4,7 @@ import {
   calculateAccuracy,
   calculateConsistency,
   calculateWPM,
+  calculateWPMNet,
   detectBigramSlowdowns,
   detectFatigue,
   generateRecommendation,
@@ -43,14 +44,55 @@ describe('calculateWPM', () => {
     expect(calculateWPM(ks, 30_000)).toBe(24);
   });
 
-  it('ignore les frappes incorrectes', () => {
+  it('compte toutes les frappes, correctes ou non (vitesse brute)', () => {
     const ks: KeystrokeEntry[] = [
       { char: 'a', timestamp: 1000, correct: true, deltaMs: 0 },
       { char: 'x', timestamp: 1500, correct: false, deltaMs: 500 },
       { char: 'b', timestamp: 2000, correct: true, deltaMs: 500 },
     ];
-    // 2 chars corrects / 5 = 0.4 mot. 1 s = 1/60 min. 0.4 / (1/60) = 24 WPM
-    expect(calculateWPM(ks, 1_000)).toBeGreaterThan(0);
+    // 3 chars / 5 = 0.6 mot. 1 s = 1/60 min. 0.6 / (1/60) = 36 WPM
+    expect(calculateWPM(ks, 1_000)).toBe(36);
+  });
+});
+
+// ─── calculateWPMNet ───────────────────────────────────────────────────────────
+
+describe('calculateWPMNet', () => {
+  it('retourne 0 si aucune frappe', () => {
+    expect(calculateWPMNet([], 30_000)).toBe(0);
+  });
+
+  it('retourne 0 si durée est 0', () => {
+    const ks = makeKeystrokes('hello', 200);
+    expect(calculateWPMNet(ks, 0)).toBe(0);
+  });
+
+  it('est égal au WPM brut si aucune erreur', () => {
+    const ks = makeKeystrokes('a'.repeat(60), 500);
+    expect(calculateWPMNet(ks, 30_000)).toBe(calculateWPM(ks, 30_000));
+  });
+
+  it('ne compte que les caractères corrects, dans la même unité que le WPM brut — sans pénalité supplémentaire', () => {
+    // 50 corrects + 10 incorrects sur 30 s (0.5 min).
+    const ks: KeystrokeEntry[] = [
+      ...Array.from({ length: 50 }, (_, i) => ({
+        char: 'a',
+        timestamp: 1000 + i * 300,
+        correct: true,
+        deltaMs: 300,
+      })),
+      ...Array.from({ length: 10 }, (_, i) => ({
+        char: 'x',
+        timestamp: 1000 + (50 + i) * 300,
+        correct: false,
+        deltaMs: 300,
+      })),
+    ];
+
+    // Brut : 60 chars / 5 / 0.5 min = 24 WPM
+    expect(calculateWPM(ks, 30_000)).toBe(24);
+    // Net : 50 chars corrects / 5 / 0.5 min = 20 WPM
+    expect(calculateWPMNet(ks, 30_000)).toBe(20);
   });
 });
 

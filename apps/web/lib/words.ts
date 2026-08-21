@@ -5,6 +5,8 @@
  * Organisés par longueur pour la difficulté adaptative.
  */
 
+import { LEARNING_LEVELS } from '@typewav/types';
+
 /** Mots courts (2-4 lettres) — niveau facile */
 export const WORDS_EASY = [
   'le',
@@ -241,23 +243,82 @@ export function generateWordList(complexity: number, wordCount = 30): string {
   return pickRandomWords(pool, wordCount).join(' ');
 }
 
+/** Ne garde que les mots dont toutes les lettres sont dans `allowedKeys`. */
+function filterWordsByKeys(words: string[], allowedKeys: string[]): string[] {
+  if (allowedKeys.length === 0) return words;
+  const allowed = new Set(allowedKeys.map((k) => k.toLowerCase()));
+  return words.filter((word) =>
+    word
+      .toLowerCase()
+      .split('')
+      .every((ch) => allowed.has(ch)),
+  );
+}
+
+function capitalize(word: string): string {
+  if (word.length === 0) return word;
+  return word[0]!.toUpperCase() + word.slice(1);
+}
+
+const SENTENCE_TERMINATORS = ['.', '!', '?'];
+const SENTENCE_LENGTH = 5;
+
+/**
+ * Génère un texte avec majuscules de début de phrase et ponctuation —
+ * niveau 5 "Shift & Punctuation". Le thème du niveau est justement
+ * d'introduire Shift et la ponctuation, donc leur présence est garantie
+ * plutôt que laissée au hasard.
+ */
+function generatePunctuatedText(wordCount: number): string {
+  const words = pickRandomWords([...WORDS_NORMAL, ...WORDS_HARD], wordCount);
+
+  const sentences: string[] = [];
+  for (let start = 0; start < words.length; start += SENTENCE_LENGTH) {
+    const sentenceWords = words.slice(start, start + SENTENCE_LENGTH);
+    if (sentenceWords.length === 0) continue;
+
+    const [first, ...rest] = sentenceWords;
+    const capitalized = capitalize(first!);
+    // Virgule après le deuxième mot pour les phrases assez longues.
+    const withComma =
+      rest.length >= 2 ? [`${rest[0]},`, ...rest.slice(1)] : rest;
+    const terminator =
+      SENTENCE_TERMINATORS[sentences.length % SENTENCE_TERMINATORS.length]!;
+
+    sentences.push(`${[capitalized, ...withComma].join(' ')}${terminator}`);
+  }
+
+  return sentences.join(' ');
+}
+
 /**
  * Génère un texte pour le mode Apprentissage selon le niveau.
  * Les mots n'utilisent que les touches autorisées au niveau courant.
  */
 export function generateLearningText(levelId: number, wordCount = 20): string {
   if (levelId === 1) {
-    return pickRandomWords(WORDS_HOME_ROW, wordCount).join(' ');
+    const allowedKeys = LEARNING_LEVELS.find((l) => l.id === 1)?.keys ?? [];
+    const filtered = filterWordsByKeys(WORDS_HOME_ROW, allowedKeys);
+    const pool = filtered.length > 0 ? filtered : WORDS_HOME_ROW;
+    return pickRandomWords(pool, wordCount).join(' ');
   }
-  // Pour les niveaux 2+, utiliser des mots de difficulté croissante
-  const pool =
+
+  if (levelId === 5) {
+    return generatePunctuatedText(wordCount);
+  }
+
+  // Pour les niveaux 2-4, utiliser des mots de difficulté croissante
+  const basePool =
     levelId === 2
       ? WORDS_EASY
       : levelId === 3
         ? [...WORDS_EASY, ...WORDS_NORMAL]
-        : levelId === 4
-          ? WORDS_NORMAL
-          : WORDS_HARD;
+        : WORDS_NORMAL;
+
+  const allowedKeys =
+    LEARNING_LEVELS.find((l) => l.id === levelId)?.keys ?? [];
+  const filtered = filterWordsByKeys(basePool, allowedKeys);
+  const pool = filtered.length > 0 ? filtered : basePool;
 
   return pickRandomWords(pool, wordCount).join(' ');
 }

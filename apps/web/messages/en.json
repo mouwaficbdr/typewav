@@ -67,10 +67,22 @@
     "registerRomantique": "Romantic",
     "registerFolk": "Folk",
     "changeLanguage": "Change input language",
+    "changeCollection": "Change text collection",
     "ariaSessionWaveform": "Session waveform",
     "ariaWpmChart": "Session WPM chart",
     "ariaKeyboardDiagram": "Interactive QWERTY keyboard",
     "ariaLoadingCollection": "Loading collection",
+    "myTexts": "My texts",
+    "noPersonalTextSelected": "No personal text selected. Open \"My texts\" to add or pick one.",
+    "personalTexts": {
+      "title": "My texts",
+      "empty": "No texts yet. Add one to start typing your own content.",
+      "addPlaceholder": "Paste or write your text here…",
+      "add": "Add",
+      "use": "Use",
+      "delete": "Delete",
+      "close": "Close"
+    },
     "finger": {
       "LP": "Left Pinky",
       "LR": "Left Ring",
@@ -240,7 +252,7 @@
   },
   "sync": {
     "comingSoon": "Coming soon",
-    "comingSoonExplainer": "Cross-device cloud sync is being deployed. It will be available very soon for all Premium subscribers. Premium sound packs are available right now.",
+    "comingSoonExplainer": "Cross-device cloud sync is being deployed. It will be available very soon for all Premium subscribers.",
     "premiumBanner": "Cross-device cloud sync will be available soon. Your sessions are currently saved locally. You will be notified when it goes live."
   },
   "ghost": {
@@ -269,9 +281,9 @@
   },
   "premium": {
     "alreadyPremium": "✦ You are Premium",
-    "alreadyPremiumDesc": "All sound packs and cloud features are unlocked.",
+    "alreadyPremiumDesc": "Thank you for supporting TypeWav.",
     "title": "TypeWav Premium",
-    "subtitle": "Cinematic sounds. Your music, your rhythm.",
+    "subtitle": "Your music, your rhythm.",
     "monthly": "Monthly",
     "monthlyDesc": "per month · no commitment",
     "annual": "Annual",
@@ -283,9 +295,6 @@
     "soon": "COMING SOON",
     "premiumBadge": "PREMIUM",
     "freeBadge": "FREE",
-    "featureCinematic": "Cinematic pack — strings + piano",
-    "featureLofi": "Synth Lo-Fi pack",
-    "featureJazz": "Jazz Piano pack",
     "featureClassics": "MIDI Classics mode",
     "featureAnalytics": "Full analytics dashboard",
     "featureGhost": "Ghost mode — personal best",
@@ -317,6 +326,42 @@
       "philosophie": "Philosophy",
       "gaming": "Gaming"
     }
+  },
+  "learning": {
+    "tagline": "Every keystroke is already a note.",
+    "level": {
+      "1": {
+        "name": "First Notes",
+        "tagline": "Rest your fingers, the music has already begun."
+      },
+      "2": {
+        "name": "Reaching the Highs",
+        "tagline": "Your melody climbs a row."
+      },
+      "3": {
+        "name": "Reaching the Lows",
+        "tagline": "It descends, it breathes."
+      },
+      "4": {
+        "name": "Your First Score",
+        "tagline": "Real words, a real melody taking shape."
+      },
+      "5": {
+        "name": "Accents & Rests",
+        "tagline": "Capitals and punctuation: the accents and rests of your music."
+      }
+    },
+    "levelHeading": "Level {id}: {name}",
+    "progressStats": "{samples}/{minSamples} keystrokes • {accuracy}% accuracy (target {targetAccuracy}%)",
+    "lastSession": "Last session: {wpm} WPM · {accuracy}% ({correct}/{total})",
+    "readyToAdvance": "Goal reached: click the next level, just above, to continue.",
+    "needMoreReps": "{samples} more keystrokes to go (aim for {accuracy}% accuracy) to unlock the next level. Finish each round to the end: an interrupted round doesn't count.",
+    "needMoreAccuracy": "You've typed enough, but your cumulative accuracy is still below the {accuracy}% target. Run through precise rounds to bring it back up.",
+    "skipTutorial": "Skip tutorial",
+    "tutorialComplete": "Tutorial complete! You're already improvising.",
+    "exitToClassic": "Switch to Classic mode →",
+    "readyToUnlock": "Level {id} ready: {name}. Click to continue.",
+    "unlockedAnnouncement": "Level {id} unlocked: {name}."
   },
   "hint": {
     "restart": "Restart (Tab + Enter)",

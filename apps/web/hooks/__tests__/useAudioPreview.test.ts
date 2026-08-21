@@ -36,10 +36,10 @@ describe('useAudioPreview', () => {
     const { useAudioPreview } = await import('@/hooks/useAudioPreview');
     const { result } = renderHook(() => useAudioPreview());
 
-    void act(() => {
+    await act(async () => {
       void result.current.playPreview();
+      await vi.runAllTimersAsync();
     });
-    await vi.runAllTimersAsync();
 
     expect(mockInitialize).toHaveBeenCalledOnce();
   });
@@ -48,10 +48,10 @@ describe('useAudioPreview', () => {
     const { useAudioPreview } = await import('@/hooks/useAudioPreview');
     const { result } = renderHook(() => useAudioPreview());
 
-    void act(() => {
+    await act(async () => {
       void result.current.playPreview();
+      await vi.runAllTimersAsync();
     });
-    await vi.runAllTimersAsync();
 
     expect(mockPlayNote.mock.calls.length).toBeGreaterThan(1);
   });

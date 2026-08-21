@@ -15,7 +15,6 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 const REWARD_ICONS: Record<Milestone['reward']['type'], string> = {
-  soundpack: '🎵',
   theme: '🎨',
   collection: '📚',
   accent: '✨',
@@ -94,10 +93,32 @@ export function MilestoneToast() {
   const { pendingMilestones, clearPendingMilestones } = useProgressionStore();
   const [visible, setVisible] = useState<Milestone[]>([]);
 
-  // Synchroniser avec les jalons en attente
+  // Synchroniser avec les jalons en attente.
+  //
+  // runAfterSession (useProgressionCheck.ts) lit puis réécrit le profil en
+  // IndexedDB sans verrou : deux sessions terminées coup sur coup (le mode
+  // Apprentissage relance une série immédiatement après chaque fin) peuvent
+  // toutes les deux lire le profil avant que l'une n'ait sauvegardé, et
+  // toutes les deux concluent que le même jalon vient d'être débloqué. Le
+  // filtre ci-dessous absorbe ce doublon ici plutôt qu'en amont : c'est le
+  // seul endroit où milestone.id devient une clé React, donc le seul qui a
+  // vraiment besoin de garantir l'unicité.
   useEffect(() => {
     if (pendingMilestones.length > 0) {
-      setVisible((prev) => [...prev, ...pendingMilestones]);
+      setVisible((prev) => {
+        // Deux appels concurrents à addPendingMilestones (la vraie course en
+        // amont) peuvent aussi bien dupliquer un id DANS un même batch
+        // pendingMilestones qu'entre deux batches successifs : le filtre
+        // doit couvrir les deux, pas seulement ce qui est déjà affiché.
+        const seen = new Set(prev.map((m) => m.id));
+        const fresh: Milestone[] = [];
+        for (const milestone of pendingMilestones) {
+          if (seen.has(milestone.id)) continue;
+          seen.add(milestone.id);
+          fresh.push(milestone);
+        }
+        return [...prev, ...fresh];
+      });
       clearPendingMilestones();
     }
     // clearPendingMilestones est stable (Zustand action), pas besoin de la déclarer
