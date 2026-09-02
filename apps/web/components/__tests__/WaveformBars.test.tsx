@@ -44,6 +44,40 @@ describe('WaveformBars', () => {
     render(<WaveformBars pitch={67} isError={true} />);
   });
 
+  it("n'illumine qu'une seule barre pour une note normale", async () => {
+    const { container } = render(
+      <WaveformBars pitch={66} isError={false} isPhraseBoundary={false} />,
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const bars = Array.from(
+      container.querySelectorAll('div[aria-hidden="true"] > div'),
+    ) as HTMLDivElement[];
+    const litBars = bars.filter((bar) => bar.style.boxShadow.includes('0 0'));
+
+    expect(litBars).toHaveLength(1);
+  });
+
+  it('illumine aussi les barres voisines pour une fin de phrase musicale', async () => {
+    const { container } = render(
+      <WaveformBars pitch={66} isError={false} isPhraseBoundary />,
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const bars = Array.from(
+      container.querySelectorAll('div[aria-hidden="true"] > div'),
+    ) as HTMLDivElement[];
+    const litBars = bars.filter((bar) => bar.style.boxShadow.includes('0 0'));
+
+    expect(litBars.length).toBeGreaterThan(1);
+  });
+
   it('rend sans crash sans props', () => {
     render(<WaveformBars />);
     expect(screen.queryByRole('img')).toBeNull();

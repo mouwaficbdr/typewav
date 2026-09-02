@@ -88,6 +88,7 @@ vi.mock('@/lib/warp-engine', () => ({
     reset: vi.fn(),
     onKeystroke: vi.fn(),
     getNoteDuration: vi.fn().mockReturnValue('8n'),
+    getCurrentBpm: vi.fn().mockReturnValue(150),
   },
 }));
 
@@ -137,6 +138,7 @@ const INITIAL_AUDIO_STATE = {
   midiLoadError: null,
   isSamplerLoaded: false,
   samplerLoadError: null,
+  liveBpm: 80,
 };
 
 beforeEach(() => {
@@ -229,6 +231,48 @@ describe('useAudioEngine — triggerSilence', () => {
     samplerInstances.forEach((sampler) => {
       expect(sampler.triggerAttackRelease).not.toHaveBeenCalled();
     });
+
+    unmount();
+  });
+});
+
+describe('useAudioEngine — playNote', () => {
+  it('pousse le BPM live de warpEngine dans useAudioStore à chaque note', async () => {
+    loadPieceFromData(TEST_PIECE);
+    const { result, unmount } = renderHook(() => useAudioEngine());
+
+    await act(async () => {
+      await result.current.initialize();
+    });
+    await waitFor(() => expect(samplerInstances.length).toBe(1));
+
+    expect(useAudioStore.getState().liveBpm).toBe(80); // défaut, avant toute frappe
+
+    await act(async () => {
+      await result.current.playNote('a', 0);
+    });
+
+    expect(useAudioStore.getState().liveBpm).toBe(150); // warpEngine.getCurrentBpm() mocké
+
+    unmount();
+  });
+
+  it('résout avec la note jouée et son indicateur de fin de phrase', async () => {
+    loadPieceFromData(TEST_PIECE);
+    const { result, unmount } = renderHook(() => useAudioEngine());
+
+    await act(async () => {
+      await result.current.initialize();
+    });
+    await waitFor(() => expect(samplerInstances.length).toBe(1));
+
+    let played: { note: string; isPhraseBoundary: boolean } | null = null;
+    await act(async () => {
+      played = await result.current.playNote('a', 0);
+    });
+
+    expect(played).not.toBeNull();
+    expect(played!.isPhraseBoundary).toBe(false); // TEST_PIECE : note unique, non marquée
 
     unmount();
   });

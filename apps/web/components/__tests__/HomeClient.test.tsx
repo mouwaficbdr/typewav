@@ -91,6 +91,10 @@ vi.mock('@/components/typing/WaveformBars', () => ({
   WaveformBars: () => <div data-testid="waveform-bars" />,
 }));
 
+vi.mock('@/components/typing/AmbientAura', () => ({
+  AmbientAura: () => <div data-testid="ambient-aura" />,
+}));
+
 vi.mock('@/components/typing/ActiveSessionHeader', () => ({
   ActiveSessionHeader: () => <div data-testid="active-session-header" />,
 }));
@@ -144,9 +148,14 @@ vi.mock('@/components/typing/AudioPreviewButton', () => ({
   ),
 }));
 
+const mockSetRank = vi.fn();
+
 vi.mock('@/stores/useProgressionStore', () => ({
-  useProgressionStore: (selector: (s: { rank: string }) => unknown) =>
-    selector({ rank: 'novice' }),
+  useProgressionStore: Object.assign(
+    (selector: (s: { rank: string }) => unknown) =>
+      selector({ rank: 'novice' }),
+    { getState: () => ({ rank: 'novice', setRank: mockSetRank }) },
+  ),
 }));
 
 vi.mock('@/stores/useSessionStore', () => ({
@@ -894,5 +903,16 @@ describe('HomeClient — onboarding première visite', () => {
     expect(mockMarkOnboardingComplete).toHaveBeenCalledOnce();
     expect(useConfigStore.getState().activeMode).toBe('classic');
     expect(screen.getByTestId('config-bar')).toBeInTheDocument();
+  });
+});
+
+describe('HomeClient — hydratation du rang (AmbientAura)', () => {
+  it("hydrate useProgressionStore depuis le profil persisté au montage, plutôt que de laisser 'novice' par défaut jusqu'à la fin d'une session", async () => {
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(mockSetRank).toHaveBeenCalledWith('novice');
+    });
   });
 });

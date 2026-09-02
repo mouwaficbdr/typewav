@@ -168,7 +168,7 @@ describe('TypingArea — waveform note source', () => {
   });
 
   it('envoie la note jouee (pas la touche brute) a onNoteChange', async () => {
-    mockPlayNote.mockResolvedValueOnce('C4');
+    mockPlayNote.mockResolvedValueOnce({ note: 'C4', isPhraseBoundary: false });
     const onNoteChange = vi.fn();
     const user = userEvent.setup();
 
@@ -178,7 +178,21 @@ describe('TypingArea — waveform note source', () => {
     await user.click(container);
     await user.keyboard('e');
 
-    expect(onNoteChange).toHaveBeenCalledWith('C4', false);
+    expect(onNoteChange).toHaveBeenCalledWith('C4', false, false);
+  });
+
+  it('signale une fin de phrase à onNoteChange quand la note jouée en marque une', async () => {
+    mockPlayNote.mockResolvedValueOnce({ note: 'E4', isPhraseBoundary: true });
+    const onNoteChange = vi.fn();
+    const user = userEvent.setup();
+
+    render(<TypingArea text="hello world" onNoteChange={onNoteChange} />);
+
+    const container = screen.getByRole('textbox');
+    await user.click(container);
+    await user.keyboard('e');
+
+    expect(onNoteChange).toHaveBeenCalledWith('E4', false, true);
   });
 });
 
