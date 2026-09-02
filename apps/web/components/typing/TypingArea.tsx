@@ -23,6 +23,7 @@ import { useTranslations } from 'next-intl';
 import {
   useCallback,
   useEffect,
+  useId,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -107,6 +108,54 @@ export function TypingArea({
   );
   const [isFocused, setIsFocused] = useState(false);
   const [translateY, setTranslateY] = useState(0);
+
+  // Accessibilité : la zone de frappe est un widget d'interaction custom
+  // (role="application"), pas un champ de texte. Un lecteur d'écran ne
+  // parcourt donc pas son contenu ; on lui expose séparément les
+  // instructions, le texte cible complet, et une région live discrète qui
+  // annonce la progression aux paliers de 25 % plutôt qu'à chaque frappe.
+  const instructionsId = useId();
+  const [liveMessage, setLiveMessage] = useState('');
+  const announcedBucketRef = useRef(0);
+
+  const srPercent =
+    text.length > 0
+      ? Math.min(100, Math.max(0, Math.floor((position / text.length) * 100)))
+      : 0;
+  const srBucket =
+    srPercent >= 100
+      ? 100
+      : srPercent >= 75
+        ? 75
+        : srPercent >= 50
+          ? 50
+          : srPercent >= 25
+            ? 25
+            : 0;
+
+  useEffect(() => {
+    if (isComplete) {
+      if (announcedBucketRef.current === 100) return;
+      announcedBucketRef.current = 100;
+      setLiveMessage(
+        t('srComplete', {
+          wpm: Math.round(finalStats?.wpm ?? liveStats.wpm),
+          accuracy: Math.round(finalStats?.accuracy ?? liveStats.accuracy),
+        }),
+      );
+      return;
+    }
+    if (srBucket >= 25 && srBucket > announcedBucketRef.current) {
+      announcedBucketRef.current = srBucket;
+      setLiveMessage(
+        t('srProgress', {
+          percent: srPercent,
+          wpm: Math.round(liveStats.wpm),
+          accuracy: Math.round(liveStats.accuracy),
+        }),
+      );
+    }
+  }, [srBucket, srPercent, isComplete, finalStats, liveStats, t]);
 
   // Remettre le séquenceur MIDI à zéro pour chaque nouvelle tentative.
   // TypingArea remonte entièrement à chaque nouveau test (restart, shuffle,
@@ -308,9 +357,30 @@ export function TypingArea({
         transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
+      {/* Instructions et texte cible, réservés aux technologies d'assistance.
+          Hors du conteneur role="application" pour rester parcourables au
+          curseur de révision d'un lecteur d'écran. */}
+      <p id={instructionsId} className="sr-only">
+        {t('ariaTypingInstructions')}
+      </p>
+      <p className="sr-only" data-testid="typing-target-text">
+        {t('ariaTargetTextLabel')}: {text}
+      </p>
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+        data-testid="typing-live-region"
+      >
+        {liveMessage}
+      </div>
+
       {/* Live stats overlay — Option A : au-dessus, opacity 0 avant la première frappe.
           Masqué en mode zen : « sans pression, sans timer » veut dire sans métrique
-          affichée en direct non plus, sinon zen == quote avec juste un timer en moins. */}
+          affichée en direct non plus, sinon zen == quote avec juste un timer en moins.
+          aria-hidden : ces chiffres sont annoncés via la région live ci-dessus,
+          pas en double ici. */}
       {mode !== 'zen' && (
         <div
           data-testid="live-stats-overlay"
@@ -353,14 +423,18 @@ export function TypingArea({
         </div>
       )}
 
-      {/* Zone de frappe — aérée, fluide, text muté pour l'attente */}
+      {/* Zone de frappe — aérée, fluide, text muté pour l'attente.
+          role="application" : widget d'interaction custom, force le passage
+          des touches lettres au lieu de les laisser piloter les raccourcis
+          de navigation du lecteur d'écran. Décrite par les instructions
+          sr-only ci-dessus. */}
       <div
         ref={containerRef}
-        role="textbox"
-        aria-label={t('hint')}
-        aria-multiline="false"
+        role="application"
+        aria-label={t('ariaTypingArea')}
+        aria-describedby={instructionsId}
         tabIndex={0}
-        className="cursor-text select-none w-full"
+        className="typing-focus-ring cursor-text select-none w-full"
         style={{
           position: 'relative',
           height: `${LINE_HEIGHT_PX * 3}px`,
@@ -369,7 +443,6 @@ export function TypingArea({
           fontSize: '1.75rem' /* MonkeyType scale */,
           lineHeight: `${LINE_HEIGHT_PX}px`,
           letterSpacing: '0.02em',
-          outline: 'none', // Remove browser focus ring
         }}
       >
         {ghostTimings && ghostTimings.length > 0 && (
@@ -415,7 +488,7 @@ export function TypingArea({
         {/* Conteneur des mots — scroll par translateY, transition ultra douce */}
         <div
           ref={wordsRef}
-          aria-live="off"
+          aria-hidden="true"
           className="m-0 flex flex-wrap"
           data-testid="typing-area"
           style={{

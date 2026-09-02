@@ -91,7 +91,7 @@ describe('TypingArea — i18n hint text', () => {
 describe('TypingArea — accessibilité focus ring', () => {
   it("n'a pas de focus:outline-none sans remplacement accessible", () => {
     render(<TypingArea text="hello world" />);
-    const container = screen.getByRole('textbox');
+    const container = screen.getByRole('application');
     // La classe focus:outline-none ne doit plus être présente
     expect(container.className).not.toContain('focus:outline-none');
     // La zone doit rester focusable clavier
@@ -111,7 +111,7 @@ describe('TypingArea — indicateur mode/collection', () => {
 describe('TypingArea — affordance activation (Fix D)', () => {
   it('affiche un overlay hint après blur sur la zone de frappe', () => {
     render(<TypingArea text="hello world" />);
-    const area = screen.getByRole('textbox');
+    const area = screen.getByRole('application');
     // useEffect met le focus auto — simuler un blur pour afficher l'overlay
     fireEvent.blur(area);
     expect(screen.getByTestId('typing-activation-overlay')).toBeInTheDocument();
@@ -120,7 +120,7 @@ describe('TypingArea — affordance activation (Fix D)', () => {
   it("cache l'overlay hint après focus sur la zone de frappe", async () => {
     const user = userEvent.setup();
     render(<TypingArea text="hello world" />);
-    const area = screen.getByRole('textbox');
+    const area = screen.getByRole('application');
     await user.click(area);
     // L'overlay reste monté pour une transition fluide, mais devient invisible.
     expect(screen.getByTestId('typing-activation-overlay')).toHaveStyle({
@@ -134,7 +134,7 @@ describe('TypingArea — Backspace', () => {
     const user = userEvent.setup();
     render(<TypingArea text="hello world" />);
 
-    const container = screen.getByRole('textbox');
+    const container = screen.getByRole('application');
     await user.click(container);
     await user.keyboard('{Backspace}');
 
@@ -145,7 +145,7 @@ describe('TypingArea — Backspace', () => {
     const user = userEvent.setup();
     render(<TypingArea text="hello world" />);
 
-    const container = screen.getByRole('textbox');
+    const container = screen.getByRole('application');
     await user.click(container);
     await user.keyboard('{Backspace}');
 
@@ -174,7 +174,7 @@ describe('TypingArea — waveform note source', () => {
 
     render(<TypingArea text="hello world" onNoteChange={onNoteChange} />);
 
-    const container = screen.getByRole('textbox');
+    const container = screen.getByRole('application');
     await user.click(container);
     await user.keyboard('e');
 
@@ -188,7 +188,7 @@ describe('TypingArea — waveform note source', () => {
 
     render(<TypingArea text="hello world" onNoteChange={onNoteChange} />);
 
-    const container = screen.getByRole('textbox');
+    const container = screen.getByRole('application');
     await user.click(container);
     await user.keyboard('e');
 
@@ -253,5 +253,81 @@ describe('TypingArea — fin de session', () => {
 
     expect(onComplete).not.toHaveBeenCalled();
     expect(onSessionComplete).not.toHaveBeenCalled();
+  });
+});
+
+describe("TypingArea — accessibilité lecteur d'écran (WS-1)", () => {
+  beforeEach(() => {
+    Object.assign(mockSessionState, defaultMockSessionState, {
+      liveStats: { wpm: 0, accuracy: 100, consistency: 100 },
+      finalStats: null,
+      isComplete: false,
+      position: 0,
+    });
+  });
+
+  it('expose la zone de frappe comme role="application", jamais "textbox"', () => {
+    render(<TypingArea text="hello world" />);
+    expect(screen.queryByRole('textbox')).toBeNull();
+    expect(screen.getByRole('application')).toBeInTheDocument();
+  });
+
+  it("décrit la zone de frappe par des instructions résolues pour le lecteur d'écran", () => {
+    render(<TypingArea text="hello world" />);
+    const area = screen.getByRole('application');
+    const describedBy = area.getAttribute('aria-describedby');
+    expect(describedBy).toBeTruthy();
+    expect(document.getElementById(describedBy as string)).toHaveTextContent(
+      'ariaTypingInstructions',
+    );
+  });
+
+  it("expose le texte cible complet aux technologies d'assistance", () => {
+    render(<TypingArea text="hello world" />);
+    expect(screen.getByTestId('typing-target-text')).toHaveTextContent(
+      'hello world',
+    );
+  });
+
+  it('fournit une région live polite discrète, muette tant qu\'aucun palier n\'est franchi', () => {
+    render(<TypingArea text="hello world" />);
+    const live = screen.getByTestId('typing-live-region');
+    expect(live).toHaveAttribute('aria-live', 'polite');
+    expect(live).toHaveClass('sr-only');
+    expect(live).toBeEmptyDOMElement();
+  });
+
+  it('annonce la progression quand un palier de 25 % est franchi', () => {
+    const { rerender } = render(<TypingArea text="aaaa bbbb" />);
+    expect(screen.getByTestId('typing-live-region')).toBeEmptyDOMElement();
+
+    Object.assign(mockSessionState, {
+      position: 5, // 5 / 9 ≈ 55 %
+      liveStats: { wpm: 42, accuracy: 97, consistency: 100 },
+    });
+    rerender(<TypingArea text="aaaa bbbb" />);
+
+    expect(screen.getByTestId('typing-live-region')).toHaveTextContent(
+      'srProgress',
+    );
+  });
+
+  it('annonce la fin du texte via la région live', () => {
+    Object.assign(mockSessionState, {
+      position: 'hello world'.length,
+      isComplete: true,
+      finalStats: { wpm: 50, wpmNet: 48, accuracy: 99, consistency: 90 },
+    });
+    render(<TypingArea text="hello world" />);
+    expect(screen.getByTestId('typing-live-region')).toHaveTextContent(
+      'srComplete',
+    );
+  });
+
+  it('ne supprime plus le contour de focus de la zone de frappe', () => {
+    render(<TypingArea text="hello world" />);
+    const area = screen.getByRole('application');
+    expect(area.style.outline).not.toBe('none');
+    expect(area).toHaveClass('typing-focus-ring');
   });
 });
