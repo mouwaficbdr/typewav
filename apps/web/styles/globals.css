@@ -61,9 +61,14 @@ body {
   outline-offset: 2px;
 }
 
-/* ---- Focus ring zone de frappe (Désactivé pour MonkeyType style) ---- */
+/* ---- Focus ring zone de frappe ----
+   Visible uniquement au focus clavier (:focus-visible) : un utilisateur au
+   clavier doit voir où il se trouve. Le clic souris, lui, n'affiche rien,
+   donc l'esthétique « MonkeyType » est préservée pendant la frappe. */
 .typing-focus-ring:focus-visible {
-  outline: none;
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+  border-radius: var(--radius-lg);
 }
 
 /* ---- Focus ring champs de formulaire ---- */

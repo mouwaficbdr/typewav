@@ -21,6 +21,11 @@
     "characters": "caractères",
     "errors": "erreurs",
     "hint": "cliquer pour activer · chaque frappe produit une note",
+    "ariaTypingArea": "Zone de frappe",
+    "ariaTypingInstructions": "Tapez le texte affiché. Une frappe correcte joue la note suivante, une erreur reste silencieuse. Retour arrière pour corriger.",
+    "ariaTargetTextLabel": "Texte à taper",
+    "srProgress": "{percent} % du texte tapé, {wpm} mots par minute, {accuracy} % de précision",
+    "srComplete": "Texte terminé. {wpm} mots par minute, {accuracy} % de précision.",
     "contextIndicatorLabel": "Mode et collection actifs",
     "collection": {
       "litterature": "Littérature",
