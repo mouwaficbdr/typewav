@@ -9,6 +9,11 @@
  *
  * Stratégie de résolution de conflits : last-write-wins (timestamp).
  *
+ * Tant que `SYNC_IS_COMING_SOON` est vrai, toute la couche est court-circuitée
+ * ici, au point d'entrée : aucun appel Supabase n'est émis (la table
+ * `user_sessions` n'existe pas encore côté serveur). Le flag retiré, la sync
+ * reprend sans autre changement.
+ *
  * Spec : docs/ARCHITECTURE.md — Supabase uniquement pour premium
  * Spec : docs/specs/00-project-overview.md — local-first
  *
@@ -18,6 +23,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { SessionResult } from '@typewav/types';
 import { getSessionById, getSessions, saveSession } from './db';
+import { SYNC_IS_COMING_SOON } from './featureFlags';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -149,6 +155,9 @@ export async function syncAll(
 ): Promise<SyncResult> {
   const result: SyncResult = { pushed: 0, pulled: 0, errors: 0 };
 
+  // Sync cloud pas encore en service : ne rien émettre vers Supabase.
+  if (SYNC_IS_COMING_SOON) return result;
+
   try {
     const cloudIds = await getCloudSessionIds(supabase, userId);
     result.pushed = await pushToCloud(supabase, userId, cloudIds);
@@ -169,6 +178,9 @@ export async function pushSession(
   userId: string,
   session: SessionResult,
 ): Promise<void> {
+  // Sync cloud pas encore en service : ne rien émettre vers Supabase.
+  if (SYNC_IS_COMING_SOON) return;
+
   const row: CloudSession = {
     id: session.id,
     user_id: userId,

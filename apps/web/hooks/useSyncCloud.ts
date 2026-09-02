@@ -13,6 +13,7 @@
  * Spec : docs/ARCHITECTURE.md — local-first, Supabase uniquement premium
  */
 
+import { SYNC_IS_COMING_SOON } from '@/lib/featureFlags';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { syncAll, type SyncResult } from '@/lib/sync';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -37,6 +38,8 @@ export function useSyncCloud(
   const supabase = getSupabaseBrowserClient();
 
   const sync = useCallback(async () => {
+    // Sync cloud pas encore en service : ne rien déclencher.
+    if (SYNC_IS_COMING_SOON) return;
     if (!userId || !isPremium || !supabase || isSyncingRef.current) return;
 
     isSyncingRef.current = true;
@@ -55,6 +58,7 @@ export function useSyncCloud(
 
   // Sync automatique au montage du composant (login / démarrage app)
   useEffect(() => {
+    if (SYNC_IS_COMING_SOON) return;
     if (userId && isPremium) {
       void sync();
     }
