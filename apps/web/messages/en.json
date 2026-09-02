@@ -21,6 +21,11 @@
     "characters": "characters",
     "errors": "errors",
     "hint": "click to activate · each keystroke plays a note",
+    "ariaTypingArea": "Typing area",
+    "ariaTypingInstructions": "Type the text shown. A correct keystroke plays the next note, a mistake stays silent. Press Backspace to correct.",
+    "ariaTargetTextLabel": "Text to type",
+    "srProgress": "{percent}% of the text typed, {wpm} words per minute, {accuracy}% accuracy",
+    "srComplete": "Text complete. {wpm} words per minute, {accuracy}% accuracy.",
     "contextIndicatorLabel": "Active mode and collection",
     "collection": {
       "litterature": "Literature",
