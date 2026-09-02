@@ -28,6 +28,15 @@ interface AudioState {
   isSamplerLoaded: boolean;
   /** Message d'erreur du chargement sampler (fallback éventuel). */
   samplerLoadError: string | null;
+  /**
+   * Tempo réel courant (BPM), recalculé par warpEngine à chaque frappe.
+   * Existait déjà en lecture seule dans warp-engine.ts sans aucun
+   * consommateur UI ; exposé ici pour piloter la respiration de l'aura
+   * ambiante (AmbientAura) sans forcer un re-render de tout HomeClient à
+   * chaque frappe (seuls les composants qui sélectionnent ce champ
+   * re-rendent). Défaut aligné sur le défaut interne de warpEngine (80).
+   */
+  liveBpm: number;
 }
 
 interface AudioActions {
@@ -40,6 +49,7 @@ interface AudioActions {
   setMidiLoadError: (error: string | null) => void;
   setSamplerLoaded: (loaded: boolean) => void;
   setSamplerLoadError: (error: string | null) => void;
+  setLiveBpm: (bpm: number) => void;
 }
 
 export const useAudioStore = create<AudioState & AudioActions>((set) => ({
@@ -52,6 +62,7 @@ export const useAudioStore = create<AudioState & AudioActions>((set) => ({
   midiLoadError: null,
   isSamplerLoaded: false,
   samplerLoadError: null,
+  liveBpm: 80,
 
   setInitialized: (value) => set({ initialized: value }),
   setSoundPack: (packId) => set({ soundPackId: packId }),
@@ -62,4 +73,5 @@ export const useAudioStore = create<AudioState & AudioActions>((set) => ({
   setMidiLoadError: (error) => set({ midiLoadError: error }),
   setSamplerLoaded: (loaded) => set({ isSamplerLoaded: loaded }),
   setSamplerLoadError: (error) => set({ samplerLoadError: error }),
+  setLiveBpm: (bpm) => set({ liveBpm: bpm }),
 }));
