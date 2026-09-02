@@ -1,6 +1,7 @@
 import { act, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+const mockUseReducedMotion = vi.fn(() => false);
 vi.mock('motion/react', () => ({
   motion: {
     div: ({
@@ -10,10 +11,14 @@ vi.mock('motion/react', () => ({
       children?: React.ReactNode;
     }) => <div {...props}>{children}</div>,
   },
-  useReducedMotion: () => false,
+  useReducedMotion: () => mockUseReducedMotion(),
 }));
 
 import { WaveformBars } from '../typing/WaveformBars';
+
+beforeEach(() => {
+  mockUseReducedMotion.mockReturnValue(false);
+});
 
 describe('WaveformBars', () => {
   it('rend 12 barres', () => {
@@ -81,5 +86,26 @@ describe('WaveformBars', () => {
   it('rend sans crash sans props', () => {
     render(<WaveformBars />);
     expect(screen.queryByRole('img')).toBeNull();
+  });
+
+  it('avec idlePulse, fait pulser les barres en boucle', () => {
+    const { container } = render(<WaveformBars idlePulse />);
+    const bars = Array.from(
+      container.querySelectorAll('div[aria-hidden="true"] > div'),
+    ) as HTMLDivElement[];
+    expect(
+      bars.some((bar) => bar.style.animation.includes('typewav-idle-pulse')),
+    ).toBe(true);
+  });
+
+  it('respecte prefers-reduced-motion : pas de pulsation idle en boucle', () => {
+    mockUseReducedMotion.mockReturnValue(true);
+    const { container } = render(<WaveformBars idlePulse />);
+    const bars = Array.from(
+      container.querySelectorAll('div[aria-hidden="true"] > div'),
+    ) as HTMLDivElement[];
+    expect(
+      bars.every((bar) => !bar.style.animation.includes('typewav-idle-pulse')),
+    ).toBe(true);
   });
 });
