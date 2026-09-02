@@ -24,13 +24,14 @@ describe('getSecurityHeaders', () => {
     }
   });
 
-  it('HSTS : max-age long, includeSubDomains, preload', () => {
+  it('HSTS : max-age long + includeSubDomains, sans preload', () => {
     const hsts = getSecurityHeaders({ dev: false }).find(
       (h) => h.key === 'Strict-Transport-Security',
     )?.value;
     expect(hsts).toMatch(/max-age=\d{7,}/);
     expect(hsts).toContain('includeSubDomains');
-    expect(hsts).toContain('preload');
+    // `preload` volontairement absent : engagement lourd, à opt-in explicite.
+    expect(hsts).not.toContain('preload');
   });
 
   it('X-Frame-Options DENY et X-Content-Type-Options nosniff', () => {
@@ -61,7 +62,7 @@ describe('getSecurityHeaders', () => {
     expect(value).toContain("form-action 'self'");
   });
 
-  it('CSP : aucune origine Stripe (chemin payant retiré)', () => {
+  it('CSP : aucune origine Stripe (checkout en redirection serveur, pas de Stripe.js)', () => {
     const value = csp(false);
     expect(value).not.toContain('stripe.com');
   });

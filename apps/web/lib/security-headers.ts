@@ -21,7 +21,10 @@ export interface SecurityHeader {
  * - tonejs.github.io : samples de piano Salamander chargés par Tone.Sampler
  * - *.supabase.co : REST + Realtime, features auth optionnelles
  *
- * Aucune entrée Stripe : le chemin payant est retiré du produit.
+ * Pas d'origine Stripe : le checkout se fait par redirection serveur
+ * (`fetch('/api/stripe/checkout')` puis `window.location`), sans Stripe.js
+ * embarqué, donc ni `js.stripe.com` (script/frame) ni `api.stripe.com`
+ * (connect) ne sont nécessaires.
  */
 const CONNECT_SRC = [
   "'self'",
@@ -67,8 +70,11 @@ export function getSecurityHeaders(opts: { dev: boolean }): SecurityHeader[] {
       value: buildContentSecurityPolicy(opts.dev),
     },
     {
+      // Pas de `preload` : l'inscription à la liste de préchargement des
+      // navigateurs est un engagement lourd et lent à défaire. À ajouter
+      // seulement si le domaine est soumis délibérément.
       key: 'Strict-Transport-Security',
-      value: 'max-age=63072000; includeSubDomains; preload',
+      value: 'max-age=63072000; includeSubDomains',
     },
     { key: 'X-Frame-Options', value: 'DENY' },
     { key: 'X-Content-Type-Options', value: 'nosniff' },
