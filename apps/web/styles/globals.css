@@ -182,6 +182,29 @@ body {
   animation-delay: 160ms;
 }
 
+/* ---- prefers-reduced-motion : neutraliser les animations CSS en boucle ----
+   Les animations pilotées par les composants passent déjà par
+   useReducedMotion (motion/react). Ici on couvre les keyframes définies
+   dans cette feuille. Le caret reste VISIBLE (on retire juste le
+   clignotement) ; le skeleton garde un fond figé ; les barres du logo
+   apparaissent directement à leur état final. */
+@media (prefers-reduced-motion: reduce) {
+  .cursor-blink,
+  .char-current::after {
+    animation: none;
+    opacity: 1;
+  }
+
+  .skeleton {
+    animation: none;
+    background-position: 0 0;
+  }
+
+  .nav-logo-bars rect {
+    animation: none;
+  }
+}
+
 /* ---- Zone de frappe — largeur conteneur centré (MonkeyType-style) ---- */
 .content-typing {
   max-width: 100%; /* Will be constrained by the parent container in HomeClient (1600px) */

@@ -11,7 +11,9 @@ Les identifiants `WS-N` sont la référence dans les messages de commit et dans 
 
 ## Avancement
 
-`0 / 7` chantiers livrés · `3 / 39` tâches · Vague 1 en cours (WS-1 ∥ WS-4).
+`0 / 7` chantiers livrés · `5 / 39` tâches · Vague 1 en cours (WS-1 ∥ WS-4).
+
+> Vercel bloque tous les déploiements (plan Hobby, projet signalé usage commercial). `main` n'est plus déployé depuis ~2026-08-21. Action Mouwafic : dashboard Vercel. N'affecte pas la CI GitHub Actions.
 
 ## Déjà sécurisé (hors périmètre restant)
 
@@ -22,17 +24,17 @@ Les identifiants `WS-N` sont la référence dans les messages de commit et dans 
 
 ## Chantiers
 
-### WS-1 · Accessibilité et responsive — en cours (3 / 8)
+### WS-1 · Accessibilité et responsive — en cours (4 / 8)
 
 Objectif : le produit utilisable au clavier seul, au lecteur d'écran, au zoom et sur mobile. Obligation légale en Europe. Audit §6.
 Périmètre : `apps/web/components/typing/*`, `app/[locale]/layout.tsx`, `components/nav/*`, `AmbientAura.tsx`, `WaveformBars.tsx`, variables CSS, formulaires.
 
-Tranche 1 (PR #4, en revue) : la zone de frappe elle-même.
+Tranche 1 (PR #4, mergée) : la zone de frappe elle-même. Tranche 2 (PR #5) : reduced-motion côté CSS.
 
 - [x] Zone de frappe : retirer le faux rôle de champ texte, annoncer sa vraie nature (`role="application"`, `aria-describedby`)
 - [x] Exposer texte, progression et stats vivantes via des régions live dédiées (texte cible sr-only, région live polite aux paliers de 25 %)
 - [x] Restaurer un indicateur de focus visible (`outline: none` retiré, anneau accent au focus clavier)
-- [ ] Respecter `prefers-reduced-motion` sur toutes les animations en boucle (zen-breathe, AmbientAura, WaveformBars, glow de l'onglet niveau)
+- [x] Respecter `prefers-reduced-motion` : les animations pilotées par composant l'étaient déjà (`useReducedMotion`) ; ajout d'un bloc `@media` pour les keyframes CSS (caret, curseur, skeleton, logo nav)
 - [ ] Layout fluide avec points de rupture ; ne plus figer la hauteur sur une nav supposée ; nav repliable
 - [ ] Remonter les contrastes de couleur sous le seuil lisible
 - [ ] Erreurs de formulaire annoncées vocalement
@@ -118,6 +120,7 @@ Quatre vagues. À l'intérieur d'une vague, deux chantiers aux arbres de fichier
 
 ## Journal
 
-- **2026-09-03** : WS-1 tranche 1 (zone de frappe accessible) codée en TDD, PR #4. `role="application"` au lieu du faux `textbox`, instructions `aria-describedby`, texte cible sr-only, région live polite aux paliers de 25 %, anneau de focus clavier restauré. Gate vert (typecheck, lint, 530 tests, build). En parallèle, claude2 sur WS-4 tâche 3.
+- **2026-09-03** : WS-1 tranche 2 (reduced-motion côté CSS), PR #5. Bloc `@media (prefers-reduced-motion: reduce)` dans `globals.css` pour le caret, le curseur, le skeleton et le logo nav ; les animations composant étaient déjà couvertes. Gate vert (532 tests). WS-4 : claude2 a livré ses 4 tâches (sync coupée, migrations IndexedDB explicites, mutations stats sérialisées, en-têtes de sécurité), PR à venir.
+- **2026-09-03** : WS-1 tranche 1 (zone de frappe accessible) mergée (PR #4, `06feb8b`). `role="application"` au lieu du faux `textbox`, instructions `aria-describedby`, texte cible sr-only, région live polite aux paliers de 25 %, anneau de focus clavier restauré.
 - **2026-09-02** : nettoyage de branches (ancienne `feat/redesign-ux-ui` supprimée, delta AmbientAura sur PR #3 mergée, `main` recalé), Vague 1 ouverte, assignation parallèle écrite dans `HANDOFF.md`.
 - **2026-09-02** : plan de lancement créé à partir de l'audit et des mémoires. Protocole parallèle claude / claude2 écrit dans le `CLAUDE.md` local et `HANDOFF.md`.
