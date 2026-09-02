@@ -148,6 +148,34 @@ async function getDB(): Promise<IDBPDatabase<TypeWavDB>> {
   return dbInstance;
 }
 
+// ─── Sérialisation des read-modify-write ──────────────────────────────────────
+
+/**
+ * File de promesses par store : chaîne les mutations d'un même store pour
+ * qu'elles ne s'entrelacent jamais. Sans ça, deux `lecture puis écriture`
+ * concurrents lisent la même valeur de départ et la seconde écriture écrase
+ * la première (lost update).
+ */
+const _mutationQueues = new Map<string, Promise<unknown>>();
+
+function enqueueMutation<T>(
+  storeName: string,
+  task: () => Promise<T>,
+): Promise<T> {
+  const pending = _mutationQueues.get(storeName) ?? Promise.resolve();
+  const run = pending.then(task, task);
+  // La queue ne doit jamais rester rejetée pour le maillon suivant ; l'appelant
+  // récupère bien le rejet via `run`.
+  _mutationQueues.set(
+    storeName,
+    run.then(
+      () => undefined,
+      () => undefined,
+    ),
+  );
+  return run;
+}
+
 // ─── Sessions ──────────────────────────────────────────────────────────────────
 
 /**
@@ -289,6 +317,31 @@ export async function saveUserProfile(profile: UserProfile): Promise<void> {
   await db.put('user_profile', profile, 'profile');
 }
 
+/**
+ * Mutation atomique du profil : lecture et écriture dans la même transaction
+ * readwrite, et sérialisation des appels concurrents via une file de
+ * promesses. Deux `runAfterSession` qui s'enchaînent ne peuvent plus se
+ * perdre un unlock mutuellement.
+ *
+ * `mutator` DOIT être synchrone (pas d'`await`) : un `await` entre le get et
+ * le put ferme la transaction IndexedDB.
+ */
+export async function mutateUserProfile(
+  mutator: (current: UserProfile) => UserProfile,
+): Promise<UserProfile> {
+  return enqueueMutation('user_profile', async () => {
+    const db = await getDB();
+    const tx = db.transaction('user_profile', 'readwrite');
+    const stored = await tx.store.get('profile');
+    const current =
+      stored ?? (JSON.parse(JSON.stringify(DEFAULT_PROFILE)) as UserProfile);
+    const updated = mutator(current);
+    await tx.store.put(updated, 'profile');
+    await tx.done;
+    return updated;
+  });
+}
+
 // ─── Records personnels ───────────────────────────────────────────────────────
 
 export async function getPersonalRecords(): Promise<PersonalRecords | null> {
@@ -301,6 +354,25 @@ export async function savePersonalRecords(
 ): Promise<void> {
   const db = await getDB();
   await db.put('personal_records', records, 'records');
+}
+
+/**
+ * Mutation atomique des records personnels, même contrat que
+ * `mutateUserProfile` (transaction readwrite + file de promesses). `mutator`
+ * reçoit `null` quand aucun record n'est encore enregistré.
+ */
+export async function mutatePersonalRecords(
+  mutator: (current: PersonalRecords | null) => PersonalRecords,
+): Promise<PersonalRecords> {
+  return enqueueMutation('personal_records', async () => {
+    const db = await getDB();
+    const tx = db.transaction('personal_records', 'readwrite');
+    const current = (await tx.store.get('records')) ?? null;
+    const updated = mutator(current);
+    await tx.store.put(updated, 'records');
+    await tx.done;
+    return updated;
+  });
 }
 
 // ─── Textes personnels ────────────────────────────────────────────────────────
