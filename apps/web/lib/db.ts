@@ -81,39 +81,67 @@ const DB_VERSION = 2;
 
 let dbInstance: IDBPDatabase<TypeWavDB> | null = null;
 
+/**
+ * Échelle de migrations IndexedDB. Un palier `if (oldVersion < N)` par
+ * incrément de DB_VERSION : il ne s'applique qu'aux clients qui n'ont pas
+ * encore franchi la version N, et se limite à créer des stores et des index
+ * (jamais de suppression ni de réécriture de données existantes). Chaque
+ * palier est donc idempotent et sans perte, et les gardes `contains`
+ * protègent le rejeu partiel.
+ *
+ * Historique :
+ *   v1 : sessions (+ index by-timestamp), keystroke_stats, user_preferences
+ *   v2 : user_profile, personal_records, personal_texts (+ index by-createdAt)
+ *
+ * Pour une v3 : ajouter `if (oldVersion < 3) { ... }` en fin de fonction et
+ * incrémenter DB_VERSION.
+ */
+export function migrate(db: IDBPDatabase<TypeWavDB>, oldVersion: number): void {
+  if (oldVersion < 1) {
+    if (!db.objectStoreNames.contains('sessions')) {
+      const sessions = db.createObjectStore('sessions', { keyPath: 'id' });
+      sessions.createIndex('by-timestamp', 'timestamp');
+    }
+    if (!db.objectStoreNames.contains('keystroke_stats')) {
+      db.createObjectStore('keystroke_stats', { keyPath: 'key' });
+    }
+    if (!db.objectStoreNames.contains('user_preferences')) {
+      db.createObjectStore('user_preferences');
+    }
+  }
+
+  if (oldVersion < 2) {
+    if (!db.objectStoreNames.contains('user_profile')) {
+      db.createObjectStore('user_profile');
+    }
+    if (!db.objectStoreNames.contains('personal_records')) {
+      db.createObjectStore('personal_records');
+    }
+    if (!db.objectStoreNames.contains('personal_texts')) {
+      const personalTexts = db.createObjectStore('personal_texts', {
+        keyPath: 'id',
+      });
+      personalTexts.createIndex('by-createdAt', 'createdAt');
+    }
+  }
+}
+
 async function getDB(): Promise<IDBPDatabase<TypeWavDB>> {
   if (dbInstance) return dbInstance;
 
   dbInstance = await openDB<TypeWavDB>(DB_NAME, DB_VERSION, {
-    upgrade(db) {
-      // sessions
-      if (!db.objectStoreNames.contains('sessions')) {
-        const sessions = db.createObjectStore('sessions', { keyPath: 'id' });
-        sessions.createIndex('by-timestamp', 'timestamp');
-      }
-      // keystroke_stats
-      if (!db.objectStoreNames.contains('keystroke_stats')) {
-        db.createObjectStore('keystroke_stats', { keyPath: 'key' });
-      }
-      // user_preferences
-      if (!db.objectStoreNames.contains('user_preferences')) {
-        db.createObjectStore('user_preferences');
-      }
-      // user_profile
-      if (!db.objectStoreNames.contains('user_profile')) {
-        db.createObjectStore('user_profile');
-      }
-      // personal_records
-      if (!db.objectStoreNames.contains('personal_records')) {
-        db.createObjectStore('personal_records');
-      }
-      // personal_texts
-      if (!db.objectStoreNames.contains('personal_texts')) {
-        const personalTexts = db.createObjectStore('personal_texts', {
-          keyPath: 'id',
-        });
-        personalTexts.createIndex('by-createdAt', 'createdAt');
-      }
+    upgrade(db, oldVersion) {
+      migrate(db, oldVersion);
+    },
+    // Une autre connexion (autre onglet) monte en version, ou la base est en
+    // cours de suppression : on libère la nôtre pour ne pas la bloquer, et on
+    // force une réouverture propre au prochain accès.
+    blocking() {
+      dbInstance?.close();
+      dbInstance = null;
+    },
+    terminated() {
+      dbInstance = null;
     },
   });
 
