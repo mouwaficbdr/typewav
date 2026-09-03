@@ -83,6 +83,34 @@ describe('AuthForm — accessibilité', () => {
     expect(screen.getByLabelText('emailLabel')).toHaveClass('form-input');
     expect(screen.getByLabelText('passwordLabel')).toHaveClass('form-input');
   });
+
+  it("une erreur de connexion est annoncée vocalement (role=alert)", async () => {
+    // Supabase renvoie une AuthError (sous-classe d'Error) : le composant relaie
+    // err.message quand c'est une Error, sinon t('genericError').
+    mockSignIn.mockResolvedValue({ error: new Error('Invalid credentials') });
+    const user = userEvent.setup();
+
+    render(<AuthForm mode="login" />);
+    await user.type(screen.getByLabelText('emailLabel'), 'test@example.com');
+    await user.type(screen.getByLabelText('passwordLabel'), 'password123');
+    await user.click(screen.getByRole('button'));
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Invalid credentials');
+  });
+
+  it("le message de succès d'inscription est annoncé (role=status)", async () => {
+    mockSignUp.mockResolvedValue({ error: null });
+    const user = userEvent.setup();
+
+    render(<AuthForm mode="signup" />);
+    await user.type(screen.getByLabelText('emailLabel'), 'new@example.com');
+    await user.type(screen.getByLabelText('passwordLabel'), 'password123');
+    await user.click(screen.getByRole('button'));
+
+    const status = await screen.findByRole('status');
+    expect(status).toHaveTextContent('signupSuccess');
+  });
 });
 
 // ─── Redirection post-login ───────────────────────────────────────────────────
