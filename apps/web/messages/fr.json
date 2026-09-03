@@ -353,7 +353,13 @@
     "title": "Paramètres",
     "description": "Personnalisez votre expérience de frappe.",
     "themeTitle": "Thème",
-    "selectTheme": "Sélectionner le thème {name}"
+    "selectTheme": "Sélectionner le thème {name}",
+    "dataTitle": "Vos données",
+    "dataOnDevice": "Votre progression est sauvegardée sur cet appareil.",
+    "dataExport": "Télécharger mes données",
+    "dataImport": "Importer un fichier",
+    "dataImportConfirm": "Remplacer toutes vos données locales par ce fichier ? Cette action est irréversible.",
+    "dataImportError": "Ce fichier n'a pas pu être importé."
   },
   "transparence": {
     "metaTitle": "Transparence",

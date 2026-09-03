@@ -353,7 +353,13 @@
     "title": "Settings",
     "description": "Customize your typing experience.",
     "themeTitle": "Theme",
-    "selectTheme": "Select theme {name}"
+    "selectTheme": "Select theme {name}",
+    "dataTitle": "Your data",
+    "dataOnDevice": "Your progress is saved on this device.",
+    "dataExport": "Download my data",
+    "dataImport": "Import a file",
+    "dataImportConfirm": "Replace all your local data with this file? This cannot be undone.",
+    "dataImportError": "This file could not be imported."
   },
   "transparence": {
     "metaTitle": "Transparency",
