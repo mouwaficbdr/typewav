@@ -122,6 +122,17 @@ export function useSession({
     });
   }, [text, mode, collectionId, soundPackId, startSession]);
 
+  // `endedAt` déjà non-null au tout premier rendu = le store porte encore une
+  // séance terminée d'un exercice précédent (on arrive sur /fr depuis /results,
+  // typiquement via « Encore »). L'effet « Démarrer la session » ci-dessus la
+  // réinitialise ; il ne faut alors PAS re-naviguer vers /results (sinon on
+  // rebondit une fois sur le récap avant de revenir à l'exercice). La garde se
+  // lève dès que la séance est ré-armée : la prochaine vraie fin navigue bien.
+  const skipEndNavRef = useRef(endedAt !== null);
+  useEffect(() => {
+    if (endedAt === null) skipEndNavRef.current = false;
+  }, [endedAt]);
+
   // Mettre à jour les stats live toutes les secondes
   useEffect(() => {
     if (startedAt === null || endedAt !== null) {
@@ -174,6 +185,7 @@ export function useSession({
   // Fin de session : sauvegarder + naviguer
   useEffect(() => {
     if (endedAt === null || startedAt === null || !finalStats) return;
+    if (skipEndNavRef.current) return; // séance périmée au montage, pas de rebond
 
     const duration = endedAt - startedAt;
     const { wpm, wpmNet, accuracy, consistency } = finalStats;
