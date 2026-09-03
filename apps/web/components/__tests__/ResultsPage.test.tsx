@@ -4,10 +4,6 @@ import { describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
-vi.mock('@/hooks/useUser', () => ({
-  useUser: () => ({ user: null, isPremium: false }),
-}));
-
 vi.mock('@/components/typing/WpmChart', () => ({
   WpmChart: () => <div data-testid="wpm-chart" />,
 }));
@@ -159,14 +155,5 @@ describe('ResultsPage : réécoute de la mélodie', () => {
     expect(
       screen.getByRole('button', { name: 'relisten' }),
     ).toBeDisabled();
-  });
-});
-
-describe('ResultsPage — CTA login', () => {
-  it('affiche le lien connexion si utilisateur non connecté', () => {
-    render(<ResultsPage {...baseProps} />);
-    const loginLink = screen.getByRole('link', { name: /loginCta/i });
-    expect(loginLink).toBeInTheDocument();
-    expect(loginLink.getAttribute('href')).toContain('/auth/login');
   });
 });

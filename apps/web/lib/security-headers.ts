@@ -19,19 +19,10 @@ export interface SecurityHeader {
 /**
  * Origines externes réellement contactées par le client :
  * - tonejs.github.io : samples de piano Salamander chargés par Tone.Sampler
- * - *.supabase.co : REST + Realtime, features auth optionnelles
  *
- * Pas d'origine Stripe : le checkout se fait par redirection serveur
- * (`fetch('/api/stripe/checkout')` puis `window.location`), sans Stripe.js
- * embarqué, donc ni `js.stripe.com` (script/frame) ni `api.stripe.com`
- * (connect) ne sont nécessaires.
+ * La v1 n'a ni comptes, ni backend, ni paiement : aucune autre origine.
  */
-const CONNECT_SRC = [
-  "'self'",
-  'https://tonejs.github.io',
-  'https://*.supabase.co',
-  'wss://*.supabase.co',
-];
+const CONNECT_SRC = ["'self'", 'https://tonejs.github.io'];
 
 function buildContentSecurityPolicy(dev: boolean): string {
   const scriptSrc = ["'self'", "'unsafe-inline'"];

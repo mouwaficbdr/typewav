@@ -7,7 +7,7 @@ describe('sitemap', () => {
   const urls = entries.map((e) => e.url);
 
   it('liste chaque page publique dans les deux locales', () => {
-    for (const path of ['', '/classement', '/premium', '/transparence']) {
+    for (const path of ['', '/classement', '/transparence']) {
       expect(urls).toContain(`https://typewav.app/fr${path}`);
       expect(urls).toContain(`https://typewav.app/en${path}`);
     }
@@ -40,7 +40,7 @@ describe('robots', () => {
     const rule = Array.isArray(rules.rules) ? rules.rules[0] : rules.rules;
     const disallow = ([] as string[]).concat(rule?.disallow ?? []);
     expect(disallow).toEqual(
-      expect.arrayContaining(['/api/', '/*/auth/', '/*/profil', '/*/results']),
+      expect.arrayContaining(['/api/', '/*/profil', '/*/results']),
     );
   });
 });

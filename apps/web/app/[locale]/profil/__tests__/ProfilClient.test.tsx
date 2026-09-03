@@ -32,16 +32,6 @@ vi.mock('@/stores/useProgressionStore', () => ({
   }),
 }));
 
-const mockIsPremium = vi.fn<() => boolean>(() => false);
-
-vi.mock('@/hooks/useUser', () => ({
-  useUser: () => ({ user: null, isPremium: mockIsPremium(), loading: false }),
-}));
-
-vi.mock('@/lib/featureFlags', () => ({
-  SYNC_IS_COMING_SOON: true,
-}));
-
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
   useLocale: () => 'fr',
@@ -86,7 +76,6 @@ const renderProfilClient = async () => {
 
 describe('ProfilClient — i18n daysFilter', () => {
   it("les boutons de filtre jours utilisent tProfile('daysFilter') et non '{n}j' hardcodé", async () => {
-    mockIsPremium.mockReturnValue(false);
     await renderProfilClient();
     await waitFor(() => {
       // Le mock retourne la clé — 3 boutons (7, 30, 90 jours) doivent rendre 'daysFilter'
@@ -96,30 +85,8 @@ describe('ProfilClient — i18n daysFilter', () => {
   });
 });
 
-describe('ProfilClient — sync banner', () => {
-  it("n'affiche pas de banner sync si utilisateur gratuit", async () => {
-    mockIsPremium.mockReturnValue(false);
-    await renderProfilClient();
-    await waitFor(() => {
-      expect(screen.queryByRole('status')).not.toBeInTheDocument();
-    });
-  });
-
-  it('affiche un banner info sync si utilisateur premium', async () => {
-    mockIsPremium.mockReturnValue(true);
-    const { unmount } = await renderProfilClient();
-    await waitFor(() => {
-      const banner = screen.getByRole('status');
-      expect(banner).toBeInTheDocument();
-      expect(banner.textContent).toBe('premiumBanner');
-    });
-    unmount();
-  });
-});
-
 describe('ProfilClient — structure spec-31', () => {
   it('affiche le rang et le WPM médian en grand', async () => {
-    mockIsPremium.mockReturnValue(false);
     await renderProfilClient();
     await waitFor(() => {
       // With mock (key) => key, tRanks('novice') = 'novice', avgWpm = 0
@@ -130,7 +97,6 @@ describe('ProfilClient — structure spec-31', () => {
   it('affiche max 5 replays récents même avec 10 sessions', async () => {
     const { getSessions } = await import('@/lib/db');
     (getSessions as ReturnType<typeof vi.fn>).mockResolvedValue(mockSessions);
-    mockIsPremium.mockReturnValue(false);
     const { unmount } = await renderProfilClient();
     await waitFor(() => {
       const replayButtons = screen.getAllByRole('button', {
