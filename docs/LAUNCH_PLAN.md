@@ -5,13 +5,13 @@ Source machine du plan de lancement : ce qui reste entre l'état actuel et un la
 - **Vue de lecture (artifact, tenue par le lead) :** https://claude.ai/code/artifact/72a3dfc5-2943-4ef6-84c6-567487387ded
 - **Baton entre instances :** `~/.claude/projects/-home-mouwaficbdr-Code-Typewav/HANDOFF.md`
 - **Sources du plan :** `TypeWav-Etat-des-lieux.docx`, plan `giggly-drifting-hopper.md`, mémoires persistantes du projet.
-- **Dernière revue :** 2026-09-03 · Vague 2 en cours (WS-2 ∥ WS-3)
+- **Dernière revue :** 2026-09-03 · Vague 2 close (WS-3 livré, WS-2 tranches 1-2 livrées)
 
 Les identifiants `WS-N` sont la référence dans les messages de commit et dans `HANDOFF.md`. Ils ne dictent pas l'ordre : voir « Séquencement ».
 
 ## Avancement
 
-`0 / 7` chantiers livrés · `12 / 40` tâches · Vague 2 en cours (WS-1 4/8, WS-2 4/6, WS-4 4/6, restes bloqués/tranches suivantes).
+`1 / 7` chantiers livrés · `15 / 40` tâches · Vague 2 close (WS-1 4/8, WS-2 4/6, WS-3 3/3, WS-4 4/6 ; restes bloqués/tranches suivantes).
 
 > Vercel bloque tous les déploiements (plan Hobby, projet signalé usage commercial). `main` n'est plus déployé depuis ~2026-08-21. Action Mouwafic : dashboard Vercel. N'affecte pas la CI GitHub Actions.
 
@@ -45,7 +45,7 @@ Tranche 1 (PR #4, mergée) : la zone de frappe elle-même. Tranche 2 (PR #5) : r
 Objectif : dé-murer l'adresse nue, rendre le site présentable en recherche et en partage, tenir la promesse bilingue. Audit §3.
 Périmètre : `proxy.ts` / `i18n/*`, metadata de `[locale]/layout.tsx` et `lib/seo.ts`, `[locale]/opengraph-image.tsx`, `messages/{fr,en}.json`, formulaire d'auth, sélecteur de langue, `app/sitemap.ts`. Note : le namespace `learning` est déjà largement extrait.
 
-Tranche 1 (PR #8, mergée) : porte d'entrée + SEO tête de page. Tranche 2 (PR à venir) : extraction i18n.
+Tranche 1 (PR #8, mergée) : porte d'entrée + SEO tête de page. Tranche 2 (PR #10, mergée) : extraction i18n. Restent tranche 3 (dates localisées) et `<html lang>`.
 
 - [x] Adresse nue `/` : détection de langue et redirection. En fait déjà en place via `proxy.ts` (Next 16 a renommé `middleware.ts` → `proxy.ts`) ; vérifié : `/` → 307 `/fr`, `Accept-Language: en` → 307 `/en`
 - [x] Déclarer les alternates hreflang (`<link rel="alternate" hreflang>` fr / en / x-default en tête de page) ; canonical par locale (`/fr`, `/en`) au lieu de la racine nue qui redirige
@@ -54,14 +54,15 @@ Tranche 1 (PR #8, mergée) : porte d'entrée + SEO tête de page. Tranche 2 (PR 
 - [ ] Remplacer les dates FR codées en dur par le formateur localisé
 - [ ] `<html lang>` absent (le layout racine ne connaît pas la locale) : demande une restructuration racine / `[locale]`, différé en tranche dédiée
 
-### WS-3 · Music sells, ce qui reste — à faire (0 / 3)
+### WS-3 · Music sells, ce qui reste — livré (3 / 3)
 
 Objectif : faire grandir la richesse sonore avec le rang, et offrir un vrai moment Peak-End en fin de séance. Plan `giggly-drifting-hopper`, phases 4 et 5.
-Périmètre : `hooks/useAudioEngine.ts`, `lib/warp-engine.ts`, `lib/note-expression.ts`, `stores/useProgressionStore.ts`, `components/results/ResultsPage.tsx`.
+Périmètre : `hooks/useAudioEngine.ts`, `lib/rank-sound.ts` (nouveau), `components/typing/AmbientAura.tsx`, `components/typing/ResultsPage.tsx`.
+Fait par claude2 (PR #9, mergée après revue lead). Décision : le rang façonne l'instrument, pas la partition. Zéro note ajoutée, zéro voix (pas de retour du bourdon), zéro mécanique de streak.
 
-- [ ] Décider comment le rang enrichit le son en piano seul (profondeur de réverbe, plage de vélocité, étalement d'octave) puis le câbler
-- [ ] Rebrancher le mécanisme sans le bourdon, retiré : la proposition d'origine s'appuyait sur `harmonic-drone.ts`
-- [ ] Porter le langage visuel AmbientAura / WaveformBars sur `ResultsPage` (badge record et `SessionWaveform` déjà en place)
+- [x] Le rang façonne l'instrument en piano seul : réverbe (`wet` 0.25→0.49, `decay` 0.30→2.55s), plancher de vélocité (0.20→0.10, la dynamique se rouvre), release des voix (1.8→2.55s). `novice` calé sur `PACK_CONFIGS.piano` : zéro régression nouvel utilisateur. `lib/rank-sound.ts`, fonctions pures
+- [x] Rebranché sans le bourdon : trois leviers piano-only sur le graphe existant, pas de `harmonic-drone.ts`. Rang lu une fois à la construction du graphe, réaligné au 1er keydown si pas encore hydraté ; `triggerResume` revient au `wet` de base du rang, pic de correction au-dessus
+- [x] Langage visuel AmbientAura sur `ResultsPage` : aura respirante en `--color-accent` derrière le contenu, bande `WaveformBars` au repos, courbe signature sur les reveals, un gonflement unique sur nouveau record (aucune boucle, rien sous `prefers-reduced-motion`)
 
 ### WS-4 · Sécurité et données — 4 / 6 (les 2 restantes bloquées)
 
@@ -123,6 +124,7 @@ Quatre vagues. À l'intérieur d'une vague, deux chantiers aux arbres de fichier
 
 ## Journal
 
+- **2026-09-03** : Vague 2 close. WS-3 (PR #9, claude2) mergée après revue lead : le rang façonne l'instrument piano (réverbe, plancher de vélocité, release), sans note ni voix ajoutée ; `lib/rank-sound.ts` fonctions pures ; aura ambiante `AmbientAura` portée sur `ResultsPage` avec un gonflement unique sur nouveau record. Revue lead : frontière disjointe de WS-2 vérifiée, règle produit intacte (chemin d'erreur non touché), pas de crash avant hydratation du rang. 3 nits non bloquants laissés à claude2 (doc « médiane », `config` partiellement mort, vérif manuelle du fond transparent de `ResultsPage`). WS-2 : tranches 1-2 livrées (PR #8 et #10), restent tranche 3 (dates localisées) et `<html lang>`.
 - **2026-09-03** : WS-2 tranche 2 (extraction i18n). Neuf chaînes sorties vers `messages/{fr,en}.json` : sélecteur de langue (`typing.langFr`/`langEn`/`langBoth`, qui affichait un libellé anglais figé même en FR), labels des bannières d'état audio (`audio.samplerFallbackLabel`/`midiErrorLabel`, en dur `Sampler fallback:` / `MIDI error:`), messages propres au formulaire de connexion (`auth.notConfigured`/`signupSuccess`/`genericError`), et le repli Fantôme sans record (`ghost.noRecordFallback`). Parité fr/en vérifiée (321 clés chacune). 3 assertions de test recâblées sur les clés. Nits de doc repliés : « PR à venir » → PR #8 mergée, `510` → `562 tests`, « middleware » → `proxy.ts` dans Séquencement.
 - **2026-09-03** : Vague 2 ouverte, WS-2 tranche 1 (porte d'entrée + SEO tête de page) mergée (PR #8). Constat en démarrant : la redirection de l'adresse nue `/` marche déjà (`proxy.ts`, renommé depuis `middleware.ts` par Next 16) ; le finding « `/` renvoie une 404 » de l'audit était périmé. Livré : canonical par locale (`/fr`, `/en`) au lieu de la racine, `<link hreflang>` fr / en / x-default en tête de page, retrait de la référence morte `/og-image.png` (la convention `opengraph-image` fournit le PNG), image et aperçus OG / Twitter localisés. Bug trouvé au passage et corrigé : `<title>` doublé sur `/en` (`TypeWav | TypeWav | ...`), le gabarit racine enrobait un titre déjà marqué.
 - **2026-09-03** : Vague 1 terminée. WS-4 (PR #6, claude2) mergée après revue lead : sync silencieuse coupée, migrations IndexedDB explicites (`migrate(db, oldVersion)`), mutations profil/records sérialisées (transaction + file de promesses), en-têtes de sécurité (CSP/HSTS/Permissions-Policy). 2 retouches de revue appliquées (commentaire CSP exact, HSTS sans `preload`). WS-1 tranche 2 (reduced-motion CSS) mergée (PR #5).
