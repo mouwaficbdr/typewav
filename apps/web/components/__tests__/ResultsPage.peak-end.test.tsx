@@ -4,6 +4,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
+vi.mock('@/hooks/useAudioEngine', () => ({
+  useAudioEngine: () => ({
+    initialize: vi.fn().mockResolvedValue(undefined),
+    playNoteName: vi.fn().mockResolvedValue(undefined),
+  }),
+}));
+
 vi.mock('@/hooks/useUser', () => ({
   useUser: () => ({ user: null, isPremium: false }),
 }));
