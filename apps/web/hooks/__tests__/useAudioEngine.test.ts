@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -106,7 +106,10 @@ vi.mock('@/lib/note-expression', () => ({
 import { useAudioStore } from '@/stores/useAudioStore';
 import { useSessionStore } from '@/stores/useSessionStore';
 import { loadPieceFromData } from '@typewav/audio-engine';
+import * as Tone from 'tone';
 import { useAudioEngine } from '../useAudioEngine';
+
+const toneStart = vi.mocked(Tone.start);
 
 const TEST_PIECE = {
   id: 'test-piece',
@@ -147,8 +150,19 @@ beforeEach(() => {
   synthInstances = [];
   samplerConstructor.mockClear();
   vi.clearAllMocks();
+  // clearAllMocks efface l'historique mais pas les implémentations posées via
+  // mockImplementation : on rétablit le défaut (résout tout de suite) pour les
+  // tests qui ne touchent pas au réveil de l'AudioContext.
+  toneStart.mockReset();
+  toneStart.mockResolvedValue(undefined);
   useAudioStore.setState(INITIAL_AUDIO_STATE);
   useSessionStore.getState().reset();
+});
+
+afterEach(() => {
+  // Rétabli même si un test échoue avant son propre useRealTimers() : sinon
+  // des timers factices fuient et le test suivant se fige sur un await réel.
+  vi.useRealTimers();
 });
 
 describe('useAudioEngine — triggerResume', () => {
@@ -349,5 +363,159 @@ describe('useAudioEngine — cycle de vie partagé', () => {
     // Plus aucune instance montée : le moteur se ferme.
     expect(samplerInstances[0]!.dispose).toHaveBeenCalled();
     expect(useAudioStore.getState().initialized).toBe(false);
+  });
+});
+
+describe('useAudioEngine : prime au premier geste de la page', () => {
+  it("un pointerdown sur window initialise le moteur, sans appel explicite à initialize()", async () => {
+    loadPieceFromData(TEST_PIECE);
+    const { unmount } = renderHook(() => useAudioEngine());
+
+    await act(async () => {
+      window.dispatchEvent(new Event('pointerdown'));
+      await Promise.resolve();
+    });
+
+    await waitFor(() =>
+      expect(useAudioStore.getState().initialized).toBe(true),
+    );
+    unmount();
+  });
+
+  it('un keydown sur window amorce aussi le prime', async () => {
+    loadPieceFromData(TEST_PIECE);
+    const { unmount } = renderHook(() => useAudioEngine());
+
+    await act(async () => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+      await Promise.resolve();
+    });
+
+    await waitFor(() =>
+      expect(useAudioStore.getState().initialized).toBe(true),
+    );
+    unmount();
+  });
+
+  it('un second geste ne reconstruit pas le graphe audio', async () => {
+    loadPieceFromData(TEST_PIECE);
+    const { unmount } = renderHook(() => useAudioEngine());
+
+    await act(async () => {
+      window.dispatchEvent(new Event('pointerdown'));
+      await Promise.resolve();
+    });
+    await waitFor(() =>
+      expect(useAudioStore.getState().initialized).toBe(true),
+    );
+    samplerConstructor.mockClear();
+
+    await act(async () => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'b' }));
+      await Promise.resolve();
+    });
+
+    expect(samplerConstructor).not.toHaveBeenCalled();
+    unmount();
+  });
+
+  it("après démontage, un geste n'initialise plus rien (pas de listener fuité)", async () => {
+    loadPieceFromData(TEST_PIECE);
+    const { unmount } = renderHook(() => useAudioEngine());
+    unmount();
+
+    await act(async () => {
+      window.dispatchEvent(new Event('pointerdown'));
+      await Promise.resolve();
+    });
+    await Promise.resolve();
+
+    expect(useAudioStore.getState().initialized).toBe(false);
+  });
+});
+
+describe("useAudioEngine : réveil de l'AudioContext", () => {
+  it("un Tone.start() lent (au-delà de l'ancien budget de retry ~850ms) initialise quand même en un seul appel, sans repasser en échec", async () => {
+    vi.useFakeTimers();
+    let resolveStart: (() => void) | null = null;
+    toneStart.mockImplementation(
+      () =>
+        new Promise<void>((res) => {
+          resolveStart = res;
+        }),
+    );
+
+    const { result, unmount } = renderHook(() => useAudioEngine());
+    await act(async () => {
+      void result.current.initialize();
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    // Bien au-delà des 850ms de l'ancienne boucle [100,250,250,250] : elle
+    // aurait déjà jeté et laissé `initialized` à false.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1200);
+    });
+    expect(useAudioStore.getState().initialized).toBe(false); // encore en attente, pas abandonné
+
+    await act(async () => {
+      resolveStart?.();
+      await vi.advanceTimersByTimeAsync(20);
+    });
+
+    expect(useAudioStore.getState().initialized).toBe(true);
+    expect(toneStart).toHaveBeenCalledTimes(1); // le resume a fini seul, aucune relance
+
+    vi.useRealTimers();
+    unmount();
+  });
+
+  it("un Tone.start() qui ne se règle jamais : exactement une vraie relance, puis échec propre (initialized reste false, aucune rejection propagée)", async () => {
+    vi.useFakeTimers();
+    toneStart.mockImplementation(() => new Promise<void>(() => {})); // ne se règle jamais
+
+    const { result, unmount } = renderHook(() => useAudioEngine());
+    let propagated = false;
+    await act(async () => {
+      void result.current.initialize().catch(() => {
+        propagated = true;
+      });
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30_000); // bien au-delà des deux tentatives
+    });
+
+    expect(useAudioStore.getState().initialized).toBe(false);
+    expect(propagated).toBe(false); // engine.initialize() avale l'échec, pas d'unhandled rejection
+    expect(toneStart).toHaveBeenCalledTimes(2); // une seule relance, pas la rafale de 4
+
+    vi.useRealTimers();
+    unmount();
+  });
+});
+
+describe('useAudioEngine : chemin de la note allégé', () => {
+  it("ne re-rend pas quand la position de session avance ni quand un champ audio non lié change (setLiveBpm)", () => {
+    let renders = 0;
+    const { unmount } = renderHook(() => {
+      renders += 1;
+      return useAudioEngine();
+    });
+    const baseline = renders;
+
+    // Ce que fait chaque frappe : avancer le curseur de session, et pousser
+    // le BPM live dans useAudioStore. Aucun des deux ne doit re-rendre ce
+    // hook (donc aucun de ses consommateurs) juste avant que la note ne joue.
+    act(() => {
+      useSessionStore.setState({ position: baseline + 3 });
+    });
+    act(() => {
+      useAudioStore.getState().setLiveBpm(123);
+    });
+
+    expect(renders).toBe(baseline);
+    unmount();
   });
 });
