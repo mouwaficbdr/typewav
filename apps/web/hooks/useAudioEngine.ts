@@ -30,8 +30,10 @@ import {
   loadMidiPieceWithAssets,
 } from '@/lib/midi-asset-loader';
 import { applyTypingExpression } from '@/lib/note-expression';
+import { clampVelocity, getRankSoundProfile } from '@/lib/rank-sound';
 import { warpEngine } from '@/lib/warp-engine';
 import { useAudioStore } from '@/stores/useAudioStore';
+import { useProgressionStore } from '@/stores/useProgressionStore';
 import { useSessionStore } from '@/stores/useSessionStore';
 import {
   advanceAndGetNote,
@@ -57,6 +59,10 @@ interface PackSynthConfig {
   attack: number;
   decay: number;
   sustain: number;
+  // `release` et `reverbWet` : profil de base 'novice'. Ces deux paramètres
+  // sont désormais fonction du rang (voir lib/rank-sound.ts) — les valeurs
+  // ci-dessous restent la référence « aucune régression » d'un nouvel
+  // utilisateur et le repli d'un chemin pré-init.
   release: number;
   reverbWet: number;
 }
@@ -125,11 +131,6 @@ function toDecibels(volume: number): number {
 
 function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error && error.message ? error.message : fallback;
-}
-
-function normalizeVelocity(rawVelocity: number): number {
-  if (!Number.isFinite(rawVelocity)) return 0.75;
-  return Math.max(0.2, Math.min(1, rawVelocity / 127));
 }
 
 // Un seul point d'import dynamique pour 'tone', mémoïsé. Ce fichier appelle
@@ -207,12 +208,13 @@ async function startToneWithRetry(
 async function createPianoSampler(
   Tone: typeof import('tone'),
   reverb: ToneReverb,
+  release: number,
 ): Promise<ToneSampler> {
   return await new Promise<ToneSampler>((resolve, reject) => {
     const sampler = new Tone.Sampler({
       baseUrl: SALAMANDER_BASE_URL,
       urls: SALAMANDER_URLS,
-      release: 1.8,
+      release,
       onload: () => resolve(sampler as ToneSampler),
       onerror: (error) => reject(error),
     }).connect(reverb) as ToneSampler;
@@ -231,6 +233,15 @@ class VoiceEngine {
   midiLoadRequestId = 0;
   midiLoadAbortController: AbortController | null = null;
 
+  // ── Enrichissement par le rang (voir lib/rank-sound.ts) ────────────────────
+  // Lus à la construction du graphe : le rang est stable pour toute la durée
+  // d'une session. Défauts = profil 'novice' (aucune régression pour un
+  // nouvel utilisateur, ni pour un graphe bâti avant hydratation du rang).
+  /** Plancher de vélocité du rang courant, appliqué à chaque note. */
+  velocityFloor = getRankSoundProfile('novice').velocityFloor;
+  /** Mix wet de réverbe du rang courant (cible de retour après une reprise). */
+  reverbBaselineWet = getRankSoundProfile('novice').reverbWet;
+
   private mountedCount = 0;
   private initializingPromise: Promise<void> | null = null;
   private buildingPromise: Promise<void> | null = null;
@@ -248,6 +259,8 @@ class VoiceEngine {
       this.disposeVoices();
       this.loadedPack = '';
       this.lastPlayedNote = null;
+      this.velocityFloor = getRankSoundProfile('novice').velocityFloor;
+      this.reverbBaselineWet = getRankSoundProfile('novice').reverbWet;
       // Sans ce reset, une instance qui remonte ensuite verrait
       // `initialized` toujours vrai côté Zustand et ne reconstruirait
       // jamais un graphe pourtant disposé — silence total.
@@ -310,16 +323,21 @@ class VoiceEngine {
   private async buildVoicesInner(packId: string): Promise<void> {
     const Tone = await loadTone();
     const config = PACK_CONFIGS[packId] ?? DEFAULT_PACK_CONFIG;
+    // Le rang façonne l'instrument (réverbe, nuance, liant) — voir
+    // lib/rank-sound.ts. Lu ici une fois : stable pour toute la session.
+    const rankSound = getRankSoundProfile(useProgressionStore.getState().rank);
     const audioStore = useAudioStore.getState();
 
     this.disposeVoices();
+    this.velocityFloor = rankSound.velocityFloor;
+    this.reverbBaselineWet = rankSound.reverbWet;
 
     audioStore.setSamplerLoadError(null);
     audioStore.setSamplerLoaded(packId !== 'piano');
 
     const reverb = new Tone.Reverb({
-      decay: 0.3,
-      wet: config.reverbWet,
+      decay: rankSound.reverbDecaySec,
+      wet: rankSound.reverbWet,
     }).toDestination() as ToneReverb;
 
     const fallbackSynth = new Tone.Synth({
@@ -328,7 +346,7 @@ class VoiceEngine {
         attack: config.attack,
         decay: config.decay,
         sustain: config.sustain,
-        release: config.release,
+        release: rankSound.releaseSec,
       },
     }).connect(reverb) as ToneSynth;
 
@@ -348,7 +366,7 @@ class VoiceEngine {
     // playParsedNote() bascule sur le sampler dès qu'il s'installe sur
     // this.sampler — sinon chaque première frappe d'une session attend le
     // décodage complet avant de jouer le moindre son.
-    void createPianoSampler(Tone, reverb)
+    void createPianoSampler(Tone, reverb, rankSound.releaseSec)
       .then((sampler) => {
         if (this.loadedPack !== packId) {
           sampler.dispose();
@@ -367,6 +385,22 @@ class VoiceEngine {
         // Fallback synth déjà prêt.
         audioStore.setSamplerLoaded(true);
       });
+  }
+
+  /**
+   * Réaligne le graphe déjà bâti sur le rang courant, sans le reconstruire.
+   * Appelé au premier keydown (initialize) : au préchargement du montage, le
+   * rang persisté n'est pas toujours encore hydraté dans le store, le graphe
+   * a donc pu être bâti sur le profil 'novice' par défaut. Seul `wet` est
+   * ramené à chaud (paramètre continu) ; `decay` et `release` d'un rang à
+   * l'autre attendent la reconstruction de la session suivante — le wet porte
+   * l'essentiel de la sensation d'espace.
+   */
+  applyRankProfile(): void {
+    const rankSound = getRankSoundProfile(useProgressionStore.getState().rank);
+    this.velocityFloor = rankSound.velocityFloor;
+    this.reverbBaselineWet = rankSound.reverbWet;
+    this.reverb?.wet.rampTo(rankSound.reverbWet, 0.3);
   }
 
   /**
@@ -419,6 +453,10 @@ class VoiceEngine {
     await startToneWithRetry(Tone);
 
     await this.buildVoices(soundPackId);
+    // Le préchargement du montage a pu bâtir le graphe avant que le rang
+    // persisté ne soit hydraté : on réaligne maintenant, geste utilisateur
+    // acquis.
+    this.applyRankProfile();
 
     const currentPiece = getCurrentPiece();
     if (currentPiece) {
@@ -503,7 +541,9 @@ export function useAudioEngine() {
       const duration = warpEngine.getNoteDuration(parsedNote, referenceBpm);
       const sourceNote = Tone.Frequency(parsedNote.pitch, 'midi').toNote();
       const noteToPlay = applyTypingExpression(sourceNote, char, wordIndex);
-      const velocity = normalizeVelocity(parsedNote.velocity);
+      // Plancher de vélocité fonction du rang : au rang haut il descend, les
+      // notes douces du morceau redeviennent douces (voir lib/rank-sound.ts).
+      const velocity = clampVelocity(parsedNote.velocity, engine.velocityFloor);
       const playTime = Tone.now();
 
       if (engine.sampler) {
@@ -618,7 +658,7 @@ export function useAudioEngine() {
 
   /**
    * Reprend après correction avec micro-reverb.
-   * Le wet revient au niveau normal du pack, jamais à 0 — sinon la
+   * Le wet revient au niveau de base du rang courant, jamais à 0 — sinon la
    * réverbération reste coupée pour le reste de la séance.
    */
   const triggerResume = useCallback(async () => {
@@ -628,14 +668,17 @@ export function useAudioEngine() {
     const reverb = engine.reverb;
     if (!reverb) return;
 
-    const baselineWet = (PACK_CONFIGS[soundPackId] ?? DEFAULT_PACK_CONFIG)
-      .reverbWet;
+    const baselineWet = engine.reverbBaselineWet;
+    // Un cran d'espace EN PLUS du niveau du rang, jamais en dessous : au rang
+    // haut le niveau de base dépasse déjà 0.4, un retour à 0.4 sec serait un
+    // creux au lieu d'un signal.
+    const cueWet = Math.min(0.9, baselineWet + 0.15);
 
-    // Active brièvement le reverb pour signaler la correction, puis
-    // revient au niveau normal du pack.
-    reverb.wet.rampTo(0.4, 0.05, Tone.now());
+    // Active brièvement le reverb pour signaler la correction, puis revient au
+    // niveau de base du rang.
+    reverb.wet.rampTo(cueWet, 0.05, Tone.now());
     reverb.wet.rampTo(baselineWet, 0.3, Tone.now() + 0.3);
-  }, [soundPackId]);
+  }, []);
 
   /**
    * Charge la pièce musicale sélectionnée.
