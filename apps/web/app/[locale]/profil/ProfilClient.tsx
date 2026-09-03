@@ -10,14 +10,12 @@
 
 import { ContributionHeatmap } from '@/components/charts/ContributionHeatmap';
 import { WpmProgressChart } from '@/components/charts/WpmProgressChart';
-import { useUser } from '@/hooks/useUser';
 import {
   getPersonalRecords,
   getSessionById,
   getSessions,
   getUserProfile,
 } from '@/lib/db';
-import { SYNC_IS_COMING_SOON } from '@/lib/featureFlags';
 import { generateReplayLink } from '@/lib/replay';
 import { useProgressionStore } from '@/stores/useProgressionStore';
 import type { PersonalRecords, RankTier, SessionResult } from '@typewav/types';
@@ -30,8 +28,6 @@ type ChartDays = 7 | 30 | 90;
 
 export function ProfilClient() {
   const { setProfile, setPersonalRecords, setRank } = useProgressionStore();
-  const { isPremium } = useUser();
-  const tSync = useTranslations('sync');
   const tProfile = useTranslations('profile');
   const tCommon = useTranslations('common');
   const tRanks = useTranslations('ranks');
@@ -155,27 +151,6 @@ export function ProfilClient() {
         margin: '0 auto',
       }}
     >
-      {/* Banner sync coming soon — visible uniquement pour les utilisateurs Premium */}
-      {isPremium && SYNC_IS_COMING_SOON && (
-        <div
-          role="status"
-          aria-live="polite"
-          style={{
-            backgroundColor: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-            padding: '12px 16px',
-            marginBottom: '24px',
-            fontFamily: 'var(--font-ui)',
-            fontSize: '0.8125rem',
-            color: 'var(--color-text-muted)',
-            lineHeight: '1.6',
-          }}
-        >
-          {tSync('premiumBanner')}
-        </div>
-      )}
-
       {/* En-tête — rang + WPM médian + pseudo */}
       <div style={{ marginBottom: 40 }}>
         <p

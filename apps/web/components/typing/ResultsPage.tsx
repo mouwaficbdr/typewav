@@ -6,7 +6,7 @@
  * Colonne gauche : stats primaires (wpm / wpmNet / accuracy) + métadonnées mode
  * Colonne droite : WpmChart + stats secondaires + barre d'actions 4 icônes + CTA login
  *
- * Client Component justifié : useUser, interactions (relisten, share).
+ * Client Component justifié : interactions (relisten, share).
  * Spec : docs/specs/30-results-refonte.md (absorbe spec-25)
  */
 
@@ -14,7 +14,6 @@ import { AmbientAura } from '@/components/typing/AmbientAura';
 import { WaveformBars } from '@/components/typing/WaveformBars';
 import { WpmChart } from '@/components/typing/WpmChart';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
-import { useUser } from '@/hooks/useUser';
 import { getSessionById } from '@/lib/db';
 import { generateReplayLink } from '@/lib/replay';
 import { calculateWpmPoints, type WpmPoint } from '@/lib/stats';
@@ -175,7 +174,6 @@ export function ResultsPage({
 }: ResultsPageProps) {
   const t = useTranslations('results');
   const locale = useLocale();
-  const { user } = useUser();
   const shouldReduceMotion = useReducedMotion();
   const animDur = shouldReduceMotion ? 0 : 0.4;
   // Courbe signature (démarrage vif, fin longue et douce) : le seul moment
@@ -440,23 +438,6 @@ export function ResultsPage({
             onClick={handleShare}
           />
         </div>
-
-        {/* CTA connexion (si non connecté) */}
-        {!user && (
-          <Link
-            href={`/${locale}/auth/login`}
-            style={{
-              color: 'var(--color-text-muted)',
-              fontFamily: 'var(--font-ui)',
-              fontSize: '0.75rem',
-              textDecoration: 'none',
-              letterSpacing: '0.03em',
-              opacity: 0.7,
-            }}
-          >
-            {t('loginCta')}
-          </Link>
-        )}
       </motion.div>
     </main>
   );

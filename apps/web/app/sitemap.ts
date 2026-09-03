@@ -3,11 +3,11 @@ import { APP_URL } from '@/lib/seo';
 import type { MetadataRoute } from 'next';
 
 /**
- * Pages publiques indexables. Volontairement absentes : `/auth/*` (noindex),
- * `/profil` (privé), `/results` `/replay` `/challenge` `/dev-onboarding`
- * (états de session, sans valeur d'entrée), `/parametres` (utilitaire).
+ * Pages publiques indexables. Volontairement absentes : `/profil` `/results`
+ * `/replay` `/challenge` `/dev-onboarding` (états de session ou dashboard local,
+ * sans valeur d'entrée), `/parametres` (utilitaire).
  */
-const PUBLIC_PATHS = ['', '/classement', '/premium', '/transparence'] as const;
+const PUBLIC_PATHS = ['', '/classement', '/transparence'] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();

@@ -20,11 +20,6 @@ vi.mock('@/hooks/useAudioEngine', () => ({
   }),
 }));
 
-vi.mock('@/hooks/useSyncCloud', () => ({ useSyncCloud: vi.fn() }));
-
-vi.mock('@/hooks/useUser', () => ({
-  useUser: () => ({ user: null, isPremium: false, loading: false }),
-}));
 
 vi.mock('@/stores/useAudioStore', () => ({
   useAudioStore: () => ({ setSoundPack: vi.fn(), soundPackId: 'piano' }),

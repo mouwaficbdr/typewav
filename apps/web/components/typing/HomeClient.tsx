@@ -30,8 +30,6 @@ import { TypingArea } from '@/components/typing/TypingArea';
 import { WaveformBars } from '@/components/typing/WaveformBars';
 import { MusicNoteIcon, PenIcon, RepeatIcon } from '@/components/ui/icons';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
-import { useSyncCloud } from '@/hooks/useSyncCloud';
-import { useUser } from '@/hooks/useUser';
 import { NON_CITABLE_COLLECTIONS } from '@/lib/collection-support';
 import {
   getPersonalRecords,
@@ -171,9 +169,6 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   // note ne joue.
   const { soundPackId, midiLoadError, samplerLoadError } = useAudioStore();
   const { loadMidiPiece } = useAudioEngine();
-  const { user, isPremium } = useUser();
-
-  useSyncCloud(user?.id ?? null, isPremium);
 
   // Empêcher fermement le défilement de la page entière (100vh)
   useEffect(() => {

@@ -11,10 +11,6 @@ vi.mock('@/hooks/useAudioEngine', () => ({
   }),
 }));
 
-vi.mock('@/hooks/useUser', () => ({
-  useUser: () => ({ user: null, isPremium: false }),
-}));
-
 vi.mock('@/components/typing/WpmChart', () => ({
   WpmChart: () => <div data-testid="wpm-chart" />,
 }));

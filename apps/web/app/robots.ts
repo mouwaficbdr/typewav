@@ -8,7 +8,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: [
         '/api/',
-        '/*/auth/',
         '/*/profil',
         '/*/results',
         '/*/replay',

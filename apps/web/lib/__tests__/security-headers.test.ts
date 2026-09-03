@@ -67,10 +67,10 @@ describe('getSecurityHeaders', () => {
     expect(value).not.toContain('stripe.com');
   });
 
-  it('CSP : autorise les origines externes réellement contactées (samples Tone.js, Supabase)', () => {
+  it('CSP : autorise les origines externes réellement contactées (samples Tone.js)', () => {
     const value = csp(false);
     expect(value).toMatch(/connect-src[^;]*https:\/\/tonejs\.github\.io/);
-    expect(value).toMatch(/connect-src[^;]*\.supabase\.co/);
+    expect(value).not.toMatch(/supabase|stripe/);
     expect(value).toMatch(/media-src[^;]*https:\/\/tonejs\.github\.io/);
     expect(value).toContain('worker-src');
   });
