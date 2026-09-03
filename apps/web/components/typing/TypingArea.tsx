@@ -17,6 +17,7 @@ import { GhostCursor } from '@/components/typing/GhostCursor';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useSession } from '@/hooks/useSession';
 import { CorrectionEchoTracker } from '@/lib/correction-echo';
+import { dlog } from '@/lib/dlog-tmp'; // TEMP latency measurement, do not merge
 import { resetSequence } from '@typewav/audio-engine';
 import type { TypingMode } from '@typewav/types';
 import { useTranslations } from 'next-intl';
@@ -68,6 +69,8 @@ interface TypingAreaProps {
     isPhraseBoundary: boolean,
   ) => void;
 }
+
+let _firstKeystrokeLogged = false; // TEMP latency measurement
 
 export function TypingArea({
   text,
@@ -262,6 +265,11 @@ export function TypingArea({
       }
 
       if (e.key.length !== 1) return;
+
+      if (!_firstKeystrokeLogged) {
+        _firstKeystrokeLogged = true;
+        dlog('first-keystroke', { key: e.key }); // TEMP
+      }
 
       const expected = text[position];
       const isCorrect = e.key === expected;

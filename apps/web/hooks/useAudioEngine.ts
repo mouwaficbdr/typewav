@@ -29,6 +29,7 @@ import {
   MidiAssetLoadError,
   loadMidiPieceWithAssets,
 } from '@/lib/midi-asset-loader';
+import { dlog } from '@/lib/dlog-tmp'; // TEMP latency measurement, do not merge
 import { applyTypingExpression } from '@/lib/note-expression';
 import { clampVelocity, getRankSoundProfile } from '@/lib/rank-sound';
 import { warpEngine } from '@/lib/warp-engine';
@@ -49,6 +50,8 @@ import type {
   Sampler as ToneSampler,
   Synth as ToneSynth,
 } from 'tone';
+
+let _firstNoteLogged = false; // TEMP latency measurement
 
 // ─── Configurations par pack sonore ──────────────────────────────────────────
 
@@ -464,17 +467,19 @@ class VoiceEngine {
   }
 
   private async initializeInner(soundPackId: string): Promise<void> {
+    dlog('initialize-start'); // TEMP
     const Tone = await loadTone();
 
-    // Le tout premier Tone.start()/context.resume() d'une session reste
     // lent à se régler (montée du périphérique de sortie au premier usage).
     // startTone() l'attend sous un timeout large plutôt que d'abandonner tôt
     // et de forcer une ré-init à la frappe suivante ; le prime au premier
     // geste de page (voir le hook plus bas) sort ce coût du chemin
     // frappe -> note quand l'utilisateur ne tape pas dans la seconde.
     await startTone(Tone);
+    dlog('tone-started'); // TEMP
 
     await this.buildVoices(soundPackId);
+    dlog('voices-built'); // TEMP
     // Le préchargement du montage a pu bâtir le graphe avant que le rang
     // persisté ne soit hydraté : on réaligne maintenant, geste utilisateur
     // acquis.
@@ -486,6 +491,7 @@ class VoiceEngine {
     }
 
     useAudioStore.getState().setInitialized(true);
+    dlog('initialized'); // TEMP
   }
 }
 
@@ -530,10 +536,14 @@ export function useAudioEngine() {
     const primeAudio = () => {
       window.removeEventListener('pointerdown', primeAudio, true);
       window.removeEventListener('keydown', primeAudio, true);
+      dlog('page-gesture'); // TEMP
       void engine.initialize(useAudioStore.getState().soundPackId);
     };
-    window.addEventListener('pointerdown', primeAudio, true);
-    window.addEventListener('keydown', primeAudio, true);
+    // TEMP : ?noprime=1 désactive le prime pour mesurer la baseline (= main)
+    if (!window.location.search.includes('noprime')) {
+      window.addEventListener('pointerdown', primeAudio, true);
+      window.addEventListener('keydown', primeAudio, true);
+    }
 
     return () => {
       window.removeEventListener('pointerdown', primeAudio, true);
@@ -586,6 +596,11 @@ export function useAudioEngine() {
       // notes douces du morceau redeviennent douces (voir lib/rank-sound.ts).
       const velocity = clampVelocity(parsedNote.velocity, engine.velocityFloor);
       const playTime = Tone.now();
+
+      if (!_firstNoteLogged) {
+        _firstNoteLogged = true;
+        dlog('first-note', { note: noteToPlay }); // TEMP
+      }
 
       if (engine.sampler) {
         engine.sampler.triggerAttackRelease(
