@@ -1,5 +1,6 @@
 'use client';
 
+import { DataManagement } from '@/components/settings/DataManagement';
 import { getUserProfile } from '@/lib/db';
 import { APP_THEMES, BASE_UNLOCKED_THEME_IDS } from '@/lib/theme/defaultThemes';
 import { useThemeStore } from '@/stores/useThemeStore';
@@ -172,6 +173,8 @@ export function ParametresClient() {
           })}
         </div>
       </section>
+
+      <DataManagement />
     </main>
   );
 }
