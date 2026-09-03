@@ -3,7 +3,7 @@ import type { ThemeConfig } from '@typewav/types'
 export const midnightSunTheme: ThemeConfig = {
   id: 'midnight-sun',
   name: 'Soleil de minuit',
-  description: 'Ambiance nordique — lumière froide et tons bleutés.',
+  description: 'Ambiance nordique : lumière froide et tons bleutés.',
   isPremium: false,
   colors: {
     bg: '#080E1A',
@@ -11,9 +11,11 @@ export const midnightSunTheme: ThemeConfig = {
     border: '#1C2C50',
     accent: '#5B9BD5',
     textPrimary: '#C8D8F0',
-    textMuted: '#5A7399',
+    // textMuted remonté à WCAG 2.2 AA (>= 4.5:1 sur bg et surface).
+    // Voir apps/web/lib/__tests__/theme-contrast.test.ts.
+    textMuted: '#6885B1',
     error: '#E05A6F',
-    charPending: '#5A7399',
+    charPending: '#6885B1',
     charCorrect: '#5B9BD5',
     charError: '#E05A6F',
     charCurrent: '#C8D8F0',

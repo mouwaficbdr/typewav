@@ -66,11 +66,13 @@ export const APP_THEMES: Record<string, ThemeConfig> = {
       border: '#002E2D',
       accent: '#F0EDE5',
       textPrimary: '#F0EDE5',
-      textMuted: '#95A6A2',
-      error: '#FF6B6B',
-      charPending: '#95A6A2',
+      // textMuted / error remontés à WCAG 2.2 AA (>= 4.5:1 sur bg et surface).
+      // Voir apps/web/lib/__tests__/theme-contrast.test.ts.
+      textMuted: '#9EB0AB',
+      error: '#FF8989',
+      charPending: '#9EB0AB',
       charCorrect: '#F0EDE5',
-      charError: '#FF6B6B',
+      charError: '#FF8989',
       charCurrent: '#FFFFFF',
       cursor: '#F0EDE5',
     },
