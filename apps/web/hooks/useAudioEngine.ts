@@ -681,6 +681,35 @@ export function useAudioEngine() {
   }, []);
 
   /**
+   * Joue une note nommée (ex. "C4") telle quelle, sans passer par la séquence
+   * MIDI ni l'expression de frappe. Utilisé pour rejouer la mélodie d'une
+   * session terminée (bouton Réécouter de l'écran de résultats).
+   */
+  const playNoteName = useCallback(
+    async (noteName: string, durationSec = 0.6): Promise<void> => {
+      const Tone = await loadTone();
+      const playTime = Tone.now();
+      const velocity = 0.7;
+      if (engine.sampler) {
+        engine.sampler.triggerAttackRelease(
+          noteName,
+          durationSec,
+          playTime,
+          velocity,
+        );
+      } else if (engine.fallbackSynth) {
+        engine.fallbackSynth.triggerAttackRelease(
+          noteName,
+          durationSec,
+          playTime,
+          velocity,
+        );
+      }
+    },
+    [],
+  );
+
+  /**
    * Charge la pièce musicale sélectionnée.
    */
   const loadMidiPiece = useCallback(
@@ -744,6 +773,7 @@ export function useAudioEngine() {
   return {
     initialize,
     playNote,
+    playNoteName,
     triggerSilence,
     triggerResume,
     loadSoundPack,
