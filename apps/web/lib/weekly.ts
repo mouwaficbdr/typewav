@@ -49,16 +49,21 @@ export function calculateWeeklySummary(
 
   const wpmDelta = avgWpm - prevAvgWpm;
 
-  // Jour avec le plus de sessions
-  const dayCount: Record<string, number> = {};
+  // Jour de semaine le plus fréquenté, en indice Date.getDay() (0 = dimanche).
+  // Indice brut, sans mise en forme : la localisation du nom revient au consommateur.
+  const dayCounts = new Array<number>(7).fill(0);
   for (const s of thisWeek) {
-    const day = new Date(s.timestamp).toLocaleDateString('fr-FR', {
-      weekday: 'long',
-    });
-    dayCount[day] = (dayCount[day] ?? 0) + 1;
+    const dow = new Date(s.timestamp).getDay();
+    dayCounts[dow] = (dayCounts[dow] ?? 0) + 1;
   }
-  const bestDay =
-    Object.entries(dayCount).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '';
+  let bestDayIndex = -1;
+  let bestCount = 0;
+  for (let i = 0; i < 7; i++) {
+    if ((dayCounts[i] ?? 0) > bestCount) {
+      bestCount = dayCounts[i] ?? 0;
+      bestDayIndex = i;
+    }
+  }
 
   // Bigram le plus amélioré (approximation : bigram le plus rapide en fin de semaine)
   const mostImprovedBigram = findMostImprovedBigram(thisWeek);
@@ -68,7 +73,7 @@ export function calculateWeeklySummary(
     sessionsCount: thisWeek.length,
     avgWpm,
     wpmDelta,
-    bestDay,
+    bestDayIndex,
     mostImprovedBigram,
   };
 }
