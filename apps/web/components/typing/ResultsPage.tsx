@@ -10,6 +10,8 @@
  * Spec : docs/specs/30-results-refonte.md (absorbe spec-25)
  */
 
+import { AmbientAura } from '@/components/typing/AmbientAura';
+import { WaveformBars } from '@/components/typing/WaveformBars';
 import { WpmChart } from '@/components/typing/WpmChart';
 import { useUser } from '@/hooks/useUser';
 import { getSessionById } from '@/lib/db';
@@ -172,6 +174,10 @@ export function ResultsPage({
   const { user } = useUser();
   const shouldReduceMotion = useReducedMotion();
   const animDur = shouldReduceMotion ? 0 : 0.4;
+  // Courbe signature (démarrage vif, fin longue et douce) : le seul moment
+  // chorégraphié de l'écran, le reste reste sobre.
+  const revealEase: [number, number, number, number] = [0.16, 1, 0.3, 1];
+  const isNewRecord = Boolean(isNewWpmRecord) || Boolean(isNewAccuracyRecord);
 
   const [wpmPoints, setWpmPoints] = useState<WpmPoint[]>([]);
   const [sessionForReplay, setSessionForReplay] =
@@ -214,15 +220,30 @@ export function ResultsPage({
         gap: 48,
         padding: '48px 24px',
         minHeight: 'calc(100dvh - 48px)',
-        backgroundColor: 'var(--color-bg)',
+        // Transparent (le noir vient du body) pour laisser passer l'aura
+        // ambiante en z-index négatif — même montage que la zone de frappe.
+        backgroundColor: 'transparent',
         flexWrap: 'wrap',
       }}
     >
+      {/* Aura ambiante — prolonge la « pièce éclairée » de la zone de frappe
+          jusqu'à l'écran de fin. Couleur = accent de marque (juste même en
+          chargement à froid) ; un gonflement unique sur un nouveau record,
+          rien sous prefers-reduced-motion. Purement décorative, doit rester
+          le premier enfant pour peindre derrière le reste. */}
+      <AmbientAura
+        pitch={null}
+        isError={false}
+        isPhraseBoundary={false}
+        accentColor="var(--color-accent)"
+        celebrate={isNewRecord}
+      />
+
       {/* ── Colonne gauche : stats primaires ─────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0, x: shouldReduceMotion ? 0 : -20 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: animDur }}
+        transition={{ duration: animDur, ease: revealEase }}
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -260,13 +281,27 @@ export function ResultsPage({
           {mode}
           {collectionId ? ` · ${collectionId}` : ''}
         </div>
+
+        {/* Bande d'égaliseur au repos — même composant qui réagissait à chaque
+            frappe (zone 5), ici immobile : la session est finie. Décoratif,
+            aria-hidden ; pas de pulsation sous prefers-reduced-motion. */}
+        <WaveformBars
+          numBars={12}
+          maxHeightPx={14}
+          idlePulse
+          style={{ width: '100%', opacity: 0.55 }}
+        />
       </motion.div>
 
       {/* ── Zone centrale : graphique + stats + actions ───────────────────── */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: animDur, delay: shouldReduceMotion ? 0 : 0.1 }}
+        transition={{
+          duration: animDur,
+          delay: shouldReduceMotion ? 0 : 0.1,
+          ease: revealEase,
+        }}
         style={{
           display: 'flex',
           flexDirection: 'column',
