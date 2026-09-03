@@ -131,7 +131,25 @@
     "relistenStop": "Stop",
     "duration": "duration",
     "raw": "raw",
-    "characters": "characters"
+    "characters": "characters",
+    "encore": "Again",
+    "encoreKey": "Enter",
+    "sameText": "Replay this text",
+    "share": "Share",
+    "defy": "Challenge",
+    "melodyAria": "Your session's melody, replayable",
+    "recordKicker": "Record",
+    "verdict": {
+      "flawless": "Not a single miss.",
+      "fatigue": "The last stretch cost you {pct}% speed.",
+      "accelerated": "You finished {pct}% faster than you started.",
+      "hesitation": "{count, plural, one {# clear hesitation.} other {# clear hesitations.}}",
+      "accuracy": "{count, plural, one {# keystroke to clean up.} other {# keystrokes to clean up.}}",
+      "metronomic": "Your tempo held to the end.",
+      "clean": "Clean run.",
+      "brief": "Short run. Go for a real one."
+    },
+    "copied": "Link copied"
   },
   "challenge": {
     "title": "TypeWav Challenge",
@@ -149,8 +167,8 @@
     "challengeTextAltered": "Challenge text integrity check failed.",
     "invalidOrExpiredLink": "Invalid or expired challenge link.",
     "backHome": "← Back to home",
-    "wonWithWpm": "✓ Won — {wpm} WPM!",
-    "remainingToBeat": "{wpm} WPM — {remaining} WPM left to beat",
+    "wonWithWpm": "✓ Won: {wpm} WPM!",
+    "remainingToBeat": "{wpm} WPM, {remaining} WPM left to beat",
     "retry": "Retry"
   },
   "replay": {
@@ -161,7 +179,7 @@
     "loading": "Loading replay…",
     "missingReplayInUrl": "No replay found in this URL.",
     "invalidOrCorruptedLink": "Invalid or corrupted replay link.",
-    "banner": "Replay — {wpm} WPM · {accuracy}% · {theme}",
+    "banner": "Replay · {wpm} WPM · {accuracy}% · {theme}",
     "preLaunchDescription": "Press the first key to start your session. The ghost cursor replays the shared record in real time.",
     "backHome": "← Back to home"
   },
@@ -204,7 +222,7 @@
     "recordWpm": "WPM record",
     "recordAccuracy": "Accuracy record",
     "wpmProgress": "WPM progress",
-    "activity90Days": "Activity — 90 days",
+    "activity90Days": "Activity over 90 days",
     "daysFilter": "{count}d",
     "recentReplays": "Recent replays",
     "openReplay": "Open replay",
@@ -256,7 +274,7 @@
     "enable": "Enable Ghost mode",
     "disable": "Disable Ghost mode",
     "locked": "Ghost mode locked",
-    "lockedTooltip": "Complete a test to unlock Ghost mode — your best result will be used as reference",
+    "lockedTooltip": "Complete a test to unlock Ghost mode: your best result will be used as reference",
     "noRecordFallback": "No personal record yet: finish a session to unlock Ghost mode. This session runs in Classic mode."
   },
   "preview": {
@@ -338,7 +356,7 @@
   },
   "hint": {
     "restart": "Restart (Tab + Enter)",
-    "tabEnter": "tab + enter — new text"
+    "tabEnter": "tab + enter: new text"
   },
   "source": {
     "label": "Text source"
