@@ -81,43 +81,99 @@ const DB_VERSION = 2;
 
 let dbInstance: IDBPDatabase<TypeWavDB> | null = null;
 
+/**
+ * Échelle de migrations IndexedDB. Un palier `if (oldVersion < N)` par
+ * incrément de DB_VERSION : il ne s'applique qu'aux clients qui n'ont pas
+ * encore franchi la version N, et se limite à créer des stores et des index
+ * (jamais de suppression ni de réécriture de données existantes). Chaque
+ * palier est donc idempotent et sans perte, et les gardes `contains`
+ * protègent le rejeu partiel.
+ *
+ * Historique :
+ *   v1 : sessions (+ index by-timestamp), keystroke_stats, user_preferences
+ *   v2 : user_profile, personal_records, personal_texts (+ index by-createdAt)
+ *
+ * Pour une v3 : ajouter `if (oldVersion < 3) { ... }` en fin de fonction et
+ * incrémenter DB_VERSION.
+ */
+export function migrate(db: IDBPDatabase<TypeWavDB>, oldVersion: number): void {
+  if (oldVersion < 1) {
+    if (!db.objectStoreNames.contains('sessions')) {
+      const sessions = db.createObjectStore('sessions', { keyPath: 'id' });
+      sessions.createIndex('by-timestamp', 'timestamp');
+    }
+    if (!db.objectStoreNames.contains('keystroke_stats')) {
+      db.createObjectStore('keystroke_stats', { keyPath: 'key' });
+    }
+    if (!db.objectStoreNames.contains('user_preferences')) {
+      db.createObjectStore('user_preferences');
+    }
+  }
+
+  if (oldVersion < 2) {
+    if (!db.objectStoreNames.contains('user_profile')) {
+      db.createObjectStore('user_profile');
+    }
+    if (!db.objectStoreNames.contains('personal_records')) {
+      db.createObjectStore('personal_records');
+    }
+    if (!db.objectStoreNames.contains('personal_texts')) {
+      const personalTexts = db.createObjectStore('personal_texts', {
+        keyPath: 'id',
+      });
+      personalTexts.createIndex('by-createdAt', 'createdAt');
+    }
+  }
+}
+
 async function getDB(): Promise<IDBPDatabase<TypeWavDB>> {
   if (dbInstance) return dbInstance;
 
   dbInstance = await openDB<TypeWavDB>(DB_NAME, DB_VERSION, {
-    upgrade(db) {
-      // sessions
-      if (!db.objectStoreNames.contains('sessions')) {
-        const sessions = db.createObjectStore('sessions', { keyPath: 'id' });
-        sessions.createIndex('by-timestamp', 'timestamp');
-      }
-      // keystroke_stats
-      if (!db.objectStoreNames.contains('keystroke_stats')) {
-        db.createObjectStore('keystroke_stats', { keyPath: 'key' });
-      }
-      // user_preferences
-      if (!db.objectStoreNames.contains('user_preferences')) {
-        db.createObjectStore('user_preferences');
-      }
-      // user_profile
-      if (!db.objectStoreNames.contains('user_profile')) {
-        db.createObjectStore('user_profile');
-      }
-      // personal_records
-      if (!db.objectStoreNames.contains('personal_records')) {
-        db.createObjectStore('personal_records');
-      }
-      // personal_texts
-      if (!db.objectStoreNames.contains('personal_texts')) {
-        const personalTexts = db.createObjectStore('personal_texts', {
-          keyPath: 'id',
-        });
-        personalTexts.createIndex('by-createdAt', 'createdAt');
-      }
+    upgrade(db, oldVersion) {
+      migrate(db, oldVersion);
+    },
+    // Une autre connexion (autre onglet) monte en version, ou la base est en
+    // cours de suppression : on libère la nôtre pour ne pas la bloquer, et on
+    // force une réouverture propre au prochain accès.
+    blocking() {
+      dbInstance?.close();
+      dbInstance = null;
+    },
+    terminated() {
+      dbInstance = null;
     },
   });
 
   return dbInstance;
+}
+
+// ─── Sérialisation des read-modify-write ──────────────────────────────────────
+
+/**
+ * File de promesses par store : chaîne les mutations d'un même store pour
+ * qu'elles ne s'entrelacent jamais. Sans ça, deux `lecture puis écriture`
+ * concurrents lisent la même valeur de départ et la seconde écriture écrase
+ * la première (lost update).
+ */
+const _mutationQueues = new Map<string, Promise<unknown>>();
+
+function enqueueMutation<T>(
+  storeName: string,
+  task: () => Promise<T>,
+): Promise<T> {
+  const pending = _mutationQueues.get(storeName) ?? Promise.resolve();
+  const run = pending.then(task, task);
+  // La queue ne doit jamais rester rejetée pour le maillon suivant ; l'appelant
+  // récupère bien le rejet via `run`.
+  _mutationQueues.set(
+    storeName,
+    run.then(
+      () => undefined,
+      () => undefined,
+    ),
+  );
+  return run;
 }
 
 // ─── Sessions ──────────────────────────────────────────────────────────────────
@@ -261,6 +317,31 @@ export async function saveUserProfile(profile: UserProfile): Promise<void> {
   await db.put('user_profile', profile, 'profile');
 }
 
+/**
+ * Mutation atomique du profil : lecture et écriture dans la même transaction
+ * readwrite, et sérialisation des appels concurrents via une file de
+ * promesses. Deux `runAfterSession` qui s'enchaînent ne peuvent plus se
+ * perdre un unlock mutuellement.
+ *
+ * `mutator` DOIT être synchrone (pas d'`await`) : un `await` entre le get et
+ * le put ferme la transaction IndexedDB.
+ */
+export async function mutateUserProfile(
+  mutator: (current: UserProfile) => UserProfile,
+): Promise<UserProfile> {
+  return enqueueMutation('user_profile', async () => {
+    const db = await getDB();
+    const tx = db.transaction('user_profile', 'readwrite');
+    const stored = await tx.store.get('profile');
+    const current =
+      stored ?? (JSON.parse(JSON.stringify(DEFAULT_PROFILE)) as UserProfile);
+    const updated = mutator(current);
+    await tx.store.put(updated, 'profile');
+    await tx.done;
+    return updated;
+  });
+}
+
 // ─── Records personnels ───────────────────────────────────────────────────────
 
 export async function getPersonalRecords(): Promise<PersonalRecords | null> {
@@ -273,6 +354,25 @@ export async function savePersonalRecords(
 ): Promise<void> {
   const db = await getDB();
   await db.put('personal_records', records, 'records');
+}
+
+/**
+ * Mutation atomique des records personnels, même contrat que
+ * `mutateUserProfile` (transaction readwrite + file de promesses). `mutator`
+ * reçoit `null` quand aucun record n'est encore enregistré.
+ */
+export async function mutatePersonalRecords(
+  mutator: (current: PersonalRecords | null) => PersonalRecords,
+): Promise<PersonalRecords> {
+  return enqueueMutation('personal_records', async () => {
+    const db = await getDB();
+    const tx = db.transaction('personal_records', 'readwrite');
+    const current = (await tx.store.get('records')) ?? null;
+    const updated = mutator(current);
+    await tx.store.put(updated, 'records');
+    await tx.done;
+    return updated;
+  });
 }
 
 // ─── Textes personnels ────────────────────────────────────────────────────────

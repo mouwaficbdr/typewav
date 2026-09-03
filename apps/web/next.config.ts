@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
+import { getSecurityHeaders } from './lib/security-headers';
 
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
@@ -10,16 +11,15 @@ const nextConfig: NextConfig = {
   // Packages à transpiler (workspace packages)
   transpilePackages: ['@typewav/audio-engine', '@typewav/types'],
 
-  // Headers de sécurité
+  // Headers de sécurité (HSTS, CSP, anti-clickjacking, Permissions-Policy...).
+  // Détail et justification des origines : lib/security-headers.ts.
   async headers() {
     return [
       {
         source: '/(.*)',
-        headers: [
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-        ],
+        headers: getSecurityHeaders({
+          dev: process.env.NODE_ENV === 'development',
+        }),
       },
     ];
   },

@@ -10,6 +10,16 @@ vi.mock('../db', () => ({
   saveSession: vi.fn(),
 }));
 
+// Flag de mise en route de la sync cloud, pilotable par test. Les tests du
+// moteur de sync tournent avec le flag à `false` (sync active) ; le bloc
+// dédié plus bas le bascule à `true` pour vérifier le court-circuit.
+const mockFlags = vi.hoisted(() => ({ SYNC_IS_COMING_SOON: false }));
+vi.mock('../featureFlags', () => ({
+  get SYNC_IS_COMING_SOON() {
+    return mockFlags.SYNC_IS_COMING_SOON;
+  },
+}));
+
 import { getSessionById, getSessions, saveSession } from '../db';
 
 const mockSession = {
@@ -52,6 +62,10 @@ function makeSupabaseMock(
 }
 
 // ─── Tests ─────────────────────────────────────────────────────────────────────
+
+beforeEach(() => {
+  mockFlags.SYNC_IS_COMING_SOON = false;
+});
 
 describe('syncAll', () => {
   beforeEach(() => {
@@ -156,5 +170,37 @@ describe('pushSession', () => {
       }),
       { onConflict: 'id' },
     );
+  });
+});
+
+// ─── Court-circuit tant que SYNC_IS_COMING_SOON est vrai ──────────────────────
+
+describe('sync cloud désactivée par le flag SYNC_IS_COMING_SOON', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFlags.SYNC_IS_COMING_SOON = true;
+  });
+
+  it("syncAll n'émet aucun appel Supabase et retourne un résultat neutre", async () => {
+    const from = vi.fn();
+    const supabase = {
+      from,
+    } as unknown as import('@supabase/supabase-js').SupabaseClient;
+
+    const result = await syncAll(supabase, 'user-123');
+
+    expect(from).not.toHaveBeenCalled();
+    expect(result).toEqual({ pushed: 0, pulled: 0, errors: 0 });
+  });
+
+  it("pushSession n'émet aucun appel Supabase", async () => {
+    const from = vi.fn();
+    const supabase = {
+      from,
+    } as unknown as import('@supabase/supabase-js').SupabaseClient;
+
+    await pushSession(supabase, 'user-123', mockSession);
+
+    expect(from).not.toHaveBeenCalled();
   });
 });
