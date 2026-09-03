@@ -1,6 +1,4 @@
-import { fontDisplay, fontMono, fontUi } from '@/lib/fonts';
 import { buildMetadata } from '@/lib/seo';
-import { ThemeScript } from '@/lib/theme/ThemeScript';
 import '@/styles/globals.css';
 import type { Viewport } from 'next';
 
@@ -13,24 +11,18 @@ export const viewport: Viewport = {
 };
 
 /**
- * Root layout — Server Component.
- * next-intl injecte un nested layout [locale] qui ajoute
- * NextIntlClientProvider. Ce layout ne pose que les balises HTML fondamentales.
+ * Root layout : pass-through.
+ *
+ * Les balises `<html>` / `<body>` vivent dans `app/[locale]/layout.tsx` : c'est
+ * le seul endroit qui connaît la locale, indispensable pour `<html lang>`. Ce
+ * layout racine ne sert qu'à porter `metadata` / `viewport` par défaut et à
+ * exister comme ancêtre du segment `[locale]` (structure next-intl sans
+ * `next/root-params`, indisponible avant Next 16.3).
  */
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <html
-      className={`${fontDisplay.variable} ${fontUi.variable} ${fontMono.variable}`}
-      suppressHydrationWarning
-    >
-      <head>
-        <ThemeScript />
-      </head>
-      <body>{children}</body>
-    </html>
-  );
+  return children;
 }

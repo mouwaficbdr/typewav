@@ -1,10 +1,12 @@
 import { MilestoneToast } from '@/components/progression/MilestoneToast';
 import { GlobalNav } from '@/components/ui/GlobalNav';
 import { routing } from '@/i18n/routing';
+import { fontDisplay, fontMono, fontUi } from '@/lib/fonts';
 import { buildMetadata } from '@/lib/seo';
 import { ThemeProvider } from '@/lib/theme/ThemeProvider';
+import { ThemeScript } from '@/lib/theme/ThemeScript';
 import type { Metadata } from 'next';
-import { NextIntlClientProvider } from 'next-intl';
+import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 
@@ -30,23 +32,40 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
+/**
+ * Layout de locale : porte les balises `<html>` / `<body>`.
+ *
+ * C'est le seul endroit de l'arbre qui connaît la locale, donc le seul qui peut
+ * poser `<html lang>`. Le layout racine (`app/layout.tsx`) n'est qu'un
+ * pass-through au-dessus du segment `[locale]`.
+ */
 export default async function LocaleLayout({ children, params }: Props) {
   const { locale } = await params;
 
-  // Valider la locale
-  if (!routing.locales.includes(locale as 'fr' | 'en')) {
+  if (!hasLocale(routing.locales, locale)) {
     notFound();
   }
 
   const messages = await getMessages();
 
   return (
-    <NextIntlClientProvider messages={messages}>
-      <ThemeProvider>
-        <GlobalNav />
-        {children}
-        <MilestoneToast />
-      </ThemeProvider>
-    </NextIntlClientProvider>
+    <html
+      lang={locale}
+      className={`${fontDisplay.variable} ${fontUi.variable} ${fontMono.variable}`}
+      suppressHydrationWarning
+    >
+      <head>
+        <ThemeScript />
+      </head>
+      <body>
+        <NextIntlClientProvider messages={messages}>
+          <ThemeProvider>
+            <GlobalNav />
+            {children}
+            <MilestoneToast />
+          </ThemeProvider>
+        </NextIntlClientProvider>
+      </body>
+    </html>
   );
 }
