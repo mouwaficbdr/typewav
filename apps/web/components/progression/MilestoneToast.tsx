@@ -84,6 +84,18 @@ function SingleToast({
         >
           {locale === 'fr' ? milestone.labelFr : milestone.labelEn}
         </p>
+        {milestone.condition.type === 'rank' && (
+          <p
+            style={{
+              margin: '4px 0 0',
+              fontFamily: 'var(--font-ui)',
+              fontSize: 11,
+              color: 'var(--color-accent)',
+            }}
+          >
+            {t('rankSoundHint')}
+          </p>
+        )}
       </div>
     </motion.div>
   );
