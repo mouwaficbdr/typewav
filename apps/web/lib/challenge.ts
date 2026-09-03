@@ -1,10 +1,10 @@
 /**
- * lib/challenge.ts — Encodage / décodage de challenges directs via URL.
+ * lib/challenge.ts : encodage et décodage de challenges directs via URL.
  *
  * Tout dans l'URL, sans serveur. URL max 2048 chars.
  * Format : /challenge?c={base64url(ChallengeParams)}
  *
- * Spec : docs/specs/08-10-social-analytics-extensibility.md — Challenge direct
+ * Spec : docs/specs/08-10-social-analytics-extensibility.md (Challenge direct)
  */
 
 import type { ChallengeParams } from '@typewav/types';
@@ -39,32 +39,38 @@ export function decodeChallenge(encoded: string): ChallengeParams {
 
 /**
  * Génère un lien de challenge depuis un texte + params.
- * Tronque le texte si nécessaire pour tenir dans MAX_URL_BYTES.
+ * Rogne le texte par paliers pour tenir dans MAX_URL_BYTES. Si même un texte
+ * vide ne suffit pas (baseUrl volumineux, params anormaux), renvoie le meilleur
+ * effort plutôt que de boucler.
  */
 export function generateChallengeLink(
   text: string,
   params: Omit<ChallengeParams, 'textHash' | 'textB64'>,
   baseUrl = '',
 ): string {
-  // Tronquer le texte si trop long
-  const truncated = text.slice(0, MAX_TEXT_LENGTH);
-  const textHash = hashText(truncated);
+  let effective = text.slice(0, MAX_TEXT_LENGTH);
 
-  const bytes = new TextEncoder().encode(truncated);
-  const textB64 = bytesToBase64Url(bytes);
+  // Chaque passe retire au moins un caractère (via `effective.length - 1`) et
+  // s'arrête à zéro : au plus MAX_TEXT_LENGTH passes, jamais de récursion.
+  while (true) {
+    const textB64 = bytesToBase64Url(new TextEncoder().encode(effective));
+    const full: ChallengeParams = {
+      ...params,
+      textHash: hashText(effective),
+      textB64,
+    };
+    const url = `${baseUrl}${CHALLENGE_PREFIX}${encodeChallenge(full)}`;
 
-  const full: ChallengeParams = { ...params, textHash, textB64 };
+    if (url.length <= MAX_URL_BYTES || effective.length === 0) {
+      return url;
+    }
 
-  const encoded = encodeChallenge(full);
-  const url = `${baseUrl}${CHALLENGE_PREFIX}${encoded}`;
-
-  if (url.length > MAX_URL_BYTES) {
-    // Réduire encore le texte
-    const shorter = text.slice(0, Math.floor(MAX_TEXT_LENGTH * 0.6));
-    return generateChallengeLink(shorter, params, baseUrl);
+    const nextLength = Math.min(
+      effective.length - 1,
+      Math.floor(effective.length * 0.6),
+    );
+    effective = effective.slice(0, nextLength);
   }
-
-  return url;
 }
 
 /**
@@ -76,7 +82,7 @@ export function getChallengeText(params: ChallengeParams): string {
 }
 
 /**
- * Hash djb2 simplifié — 8 chars hex, suffisant pour vérifier l'intégrité du texte.
+ * Hash djb2 simplifié : 8 chars hex, suffisant pour vérifier l'intégrité du texte.
  */
 export function hashText(text: string): string {
   let hash = 5381;
