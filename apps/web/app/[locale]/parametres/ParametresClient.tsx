@@ -26,8 +26,14 @@ export function ParametresClient() {
       .catch(() => undefined);
   }, []);
 
+  // Les thèmes de base sont toujours proposés, quel que soit le profil stocké
+  // (un profil d'avant WS-5 #6 peut n'avoir que `['terminal']`).
+  const visibleIds = new Set<string>([
+    ...BASE_UNLOCKED_THEME_IDS,
+    ...unlockedThemes,
+  ]);
   const themes = Object.values(APP_THEMES).filter((theme) =>
-    unlockedThemes.includes(theme.id),
+    visibleIds.has(theme.id),
   );
 
   return (

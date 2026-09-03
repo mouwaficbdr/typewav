@@ -95,6 +95,21 @@ describe('ParametresClient : sélecteur de thème', () => {
     expect(screen.queryByText('Arcade')).toBeNull();
   });
 
+  it('un profil ancien (unlockedThemes = ["terminal"]) garde les 4 thèmes de base', async () => {
+    mockGetUserProfile.mockResolvedValue({ unlockedThemes: ['terminal'] });
+
+    render(<ParametresClient />);
+
+    await waitFor(() => {
+      for (const name of BASE_NAMES) {
+        expect(screen.getByText(name)).toBeTruthy();
+      }
+    });
+    for (const name of GATED_NAMES) {
+      expect(screen.queryByText(name)).toBeNull();
+    }
+  });
+
   it('avant le chargement du profil, montre les thèmes de base', () => {
     mockGetUserProfile.mockReturnValue(new Promise(() => {})); // jamais résolue
 
