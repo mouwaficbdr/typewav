@@ -496,7 +496,28 @@ export function useAudioEngine() {
       // Échec silencieux : initialize() (gesture-gated) retentera au besoin
       // au premier vrai keydown, avec sa propre gestion d'erreur.
     });
+
+    // Amorce l'AudioContext (Tone.start / resume) sur le PREMIER geste de la
+    // page (le clic qui prend le focus, ou une touche pressée pendant que
+    // l'utilisateur lit le texte), et non sur la première frappe voulue. Le
+    // tout premier resume() se bloque ~350-650ms avant qu'un essai de
+    // `startToneWithRetry` n'aboutisse (cf. commentaire de cette fonction) ;
+    // le déclencher tôt absorbe ce coût hors du chemin premiere-frappe vers
+    // premiere-note. `initialize()` est idempotent, les retries tournent
+    // ensuite sur leurs propres timers (aucun re-geste requis). Repli
+    // inchangé : si ce prime échoue, la première frappe rappelle
+    // `initialize()` comme avant.
+    const primeAudio = () => {
+      window.removeEventListener('pointerdown', primeAudio, true);
+      window.removeEventListener('keydown', primeAudio, true);
+      void engine.initialize(useAudioStore.getState().soundPackId);
+    };
+    window.addEventListener('pointerdown', primeAudio, true);
+    window.addEventListener('keydown', primeAudio, true);
+
     return () => {
+      window.removeEventListener('pointerdown', primeAudio, true);
+      window.removeEventListener('keydown', primeAudio, true);
       engine.unmount();
     };
   }, []);
