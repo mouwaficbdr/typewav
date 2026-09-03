@@ -11,7 +11,7 @@ Les identifiants `WS-N` sont la référence dans les messages de commit et dans 
 
 ## Avancement
 
-`3 / 7` chantiers livrés · `21 / 40` tâches · WS-1, WS-2 et WS-3 clos (WS-4 4/6, les 2 RLS bloquées Supabase ; WS-5/6/7 à faire ou bloqués).
+`3 / 7` chantiers livrés · `22 / 40` tâches · WS-1, WS-2 et WS-3 clos (WS-4 4/6, les 2 RLS bloquées Supabase ; WS-5 1/8 ; WS-6/7 à faire ou bloqués).
 
 > Vercel bloque tous les déploiements (plan Hobby, projet signalé usage commercial). `main` n'est plus déployé depuis ~2026-08-21. Action Mouwafic : dashboard Vercel. N'affecte pas la CI GitHub Actions.
 
@@ -79,10 +79,12 @@ Fait par claude2 (PR #6, mergée). Bloqué : les 2 tâches RLS attendent que le 
 - [x] Sérialiser les mises à jour de stats concurrentes qui peuvent se perdre (transaction readwrite + file de promesses par store)
 - [x] Compléter les en-têtes de sécurité (`lib/security-headers.ts` : CSP taillée pour Tone.js/Supabase, HSTS, Permissions-Policy)
 
-### WS-5 · La somme des petites choses : à faire (0 / 8)
+### WS-5 · La somme des petites choses : en cours (1 / 8)
 
 Objectif : retirer l'impression de produit pas tout à fait fini, une fois l'essentiel sécurisé. Audit §8 plus la dette des thèmes de jalons.
 Périmètre : dispersé : ResultsPage / replay, générateur de lien de défi, `HomeClient.tsx`, CSS de thème, `packages/types/src/progression.ts`. Collision : touche `HomeClient` et `ResultsPage`, ne pas paralléliser à l'aveugle.
+
+PR #25 (sitemap et robots).
 
 - [ ] Bouton Réécouter qui ne fait rien
 - [ ] Icônes d'action cryptiques : libellés et infobulles
@@ -90,7 +92,7 @@ Périmètre : dispersé : ResultsPage / replay, générateur de lien de défi, `
 - [ ] Générateur de lien de défi qui peut boucler à l'infini dans un cas extrême
 - [ ] Couleurs codées en dur qui cassent le thème clair
 - [ ] `MILESTONES` récompense des thèmes `noir` et `midnight-sun` absents de `APP_THEMES`
-- [ ] `sitemap.xml` absent pour les moteurs de recherche
+- [x] `sitemap.xml` absent pour les moteurs de recherche (PR #25) : `app/sitemap.ts` liste les pages publiques (accueil, classement, premium, transparence) dans les deux locales avec alternates hreflang fr/en ; `app/robots.ts` autorise le crawl, `Disallow` sur `/api/` et les zones privées par locale (auth, profil, results, replay, dev-onboarding), pointe vers le sitemap. Auth, profil et pages de session volontairement absents. Tests : couverture publique complète, aucune privée, robots nomme le sitemap. Généré en statique au build
 - [ ] Cohérence entre styles écrits à la main et système de style
 
 ### WS-6 · Dettes connues : à faire (0 / 6)
@@ -126,6 +128,7 @@ Quatre vagues. À l'intérieur d'une vague, deux chantiers aux arbres de fichier
 
 ## Journal
 
+- **2026-09-03** : WS-5 démarré (`1 / 8`). **PR #25** : `sitemap.xml` et `robots.txt`, jusque-là absents. `app/sitemap.ts` génère les pages publiques (accueil, classement, premium, transparence) dans les deux locales, chacune avec ses alternates hreflang fr/en, à partir de `routing.locales` et `APP_URL` (pas de duplication). `app/robots.ts` autorise le crawl, `Disallow` sur `/api/` et les zones privées glob-préfixées par locale (`/*/auth/`, `/*/profil`, `/*/results`, `/*/replay`, `/*/dev-onboarding`), déclare le sitemap. Auth / profil / états de session délibérément hors index. Vérifié en curl, généré en statique au build. Tests : couverture publique complète dans les deux locales, aucune route privée, robots nomme le sitemap et interdit les chemins privés. Gate complet vert (718 tests).
 - **2026-09-03** : WS-1 clos (`8 / 8`, `3 / 7` chantiers). Trois PRs séquentielles pour les tâches restantes :
   - **PR #20** : erreurs de formulaire annoncées. `AuthForm` gagne `role="alert"` (erreur) et `role="status"` (succès). Les autres formulaires (`ResetPasswordClient`, bannières audio `HomeClient`) portaient déjà ces rôles.
   - **PR #21** : sélecteur de morceau au clavier. `ActiveSessionHeader` gagne `aria-haspopup`/`aria-expanded`, un nom accessible sur le `role="dialog"`, Échap qui ferme et rend le focus, focus déplacé dans le menu à l'ouverture. `components/typing/MusicChip.tsx` identifié comme code mort orphelin (nettoyage WS-5/6).
