@@ -119,15 +119,23 @@ export function WpmProgressChart({
         data={data}
         margin={{ top: 10, right: 20, bottom: 0, left: 0 }}
       >
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
         <XAxis
           dataKey="date"
-          tick={{ fill: '#888', fontSize: 11, fontFamily: 'var(--font-mono)' }}
-          axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+          tick={{
+            fill: 'var(--color-text-muted)',
+            fontSize: 11,
+            fontFamily: 'var(--font-mono)',
+          }}
+          axisLine={{ stroke: 'var(--color-border)' }}
           tickLine={false}
         />
         <YAxis
-          tick={{ fill: '#888', fontSize: 11, fontFamily: 'var(--font-mono)' }}
+          tick={{
+            fill: 'var(--color-text-muted)',
+            fontSize: 11,
+            fontFamily: 'var(--font-mono)',
+          }}
           axisLine={false}
           tickLine={false}
           unit=" WPM"
@@ -135,28 +143,28 @@ export function WpmProgressChart({
         />
         <Tooltip
           contentStyle={{
-            background: '#0A0A0A',
-            border: '1px solid #1A1A2E',
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
             borderRadius: 8,
             fontFamily: 'var(--font-ui)',
           }}
-          labelStyle={{ color: '#888', fontSize: 11 }}
-          itemStyle={{ color: '#00D4AA' }}
+          labelStyle={{ color: 'var(--color-text-muted)', fontSize: 11 }}
+          itemStyle={{ color: 'var(--color-accent)' }}
           formatter={(value) => [`${value} WPM`, t('chartMedian')]}
         />
         <Legend
           wrapperStyle={{
             fontFamily: 'var(--font-ui)',
             fontSize: 12,
-            color: '#888',
+            color: 'var(--color-text-muted)',
           }}
         />
         <Line
           type="monotone"
           dataKey="wpm"
-          stroke="#00D4AA"
+          stroke="var(--color-accent)"
           strokeWidth={2}
-          dot={{ r: 3, fill: '#00D4AA' }}
+          dot={{ r: 3, fill: 'var(--color-accent)' }}
           name="WPM"
           activeDot={{ r: 5 }}
         />
