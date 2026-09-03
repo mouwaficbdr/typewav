@@ -165,6 +165,107 @@ async function getDB(): Promise<IDBPDatabase<TypeWavDB>> {
   return dbInstance;
 }
 
+// ─── Export / import de toutes les données (local-first) ─────────────────────
+
+const ALL_STORES = [
+  'sessions',
+  'keystroke_stats',
+  'user_preferences',
+  'user_profile',
+  'personal_records',
+  'personal_texts',
+] as const satisfies readonly (keyof TypeWavDB)[];
+
+export interface DBExport {
+  app: 'typewav';
+  /** DB_VERSION au moment de l'export (chemin de migration v2). */
+  version: number;
+  exportedAt: number;
+  /** Une entrée `{ key, value }` par enregistrement, par store. */
+  stores: Record<string, Array<{ key: IDBValidKey; value: unknown }>>;
+}
+
+function isDBExport(v: unknown): v is DBExport {
+  if (typeof v !== 'object' || v === null) return false;
+  const o = v as Record<string, unknown>;
+  if (o['app'] !== 'typewav') return false;
+  if (typeof o['stores'] !== 'object' || o['stores'] === null) return false;
+  return Object.values(o['stores'] as Record<string, unknown>).every(
+    (rows) =>
+      Array.isArray(rows) &&
+      rows.every(
+        (r) => typeof r === 'object' && r !== null && 'key' in r && 'value' in r,
+      ),
+  );
+}
+
+/**
+ * Sérialise tous les stores IndexedDB. La clé est conservée pour chaque
+ * enregistrement (les stores `user_preferences` / `user_profile` /
+ * `personal_records` ont des clés hors-ligne, non contenues dans la valeur).
+ */
+export async function exportAll(): Promise<DBExport> {
+  const db = await getDB();
+  const tx = db.transaction(ALL_STORES, 'readonly');
+  const stores: DBExport['stores'] = {};
+  for (const name of ALL_STORES) {
+    const store = tx.objectStore(name);
+    const [keys, values] = await Promise.all([
+      store.getAllKeys(),
+      store.getAll(),
+    ]);
+    stores[name] = keys.map((key, i) => ({ key, value: values[i] }));
+  }
+  await tx.done;
+  return {
+    app: 'typewav',
+    version: DB_VERSION,
+    exportedAt: Date.now(),
+    stores,
+  };
+}
+
+/**
+ * Remplace toutes les données locales par celles de `data` (objet ou chaîne
+ * JSON). Chaque store est vidé puis repeuplé ; un store absent du dump finit
+ * vide. Tout dans une transaction : un import qui échoue ne laisse rien de
+ * modifié.
+ */
+export async function importAll(data: unknown): Promise<void> {
+  let parsed: unknown = data;
+  if (typeof data === 'string') {
+    try {
+      parsed = JSON.parse(data);
+    } catch {
+      throw new Error('Fichier de données TypeWav illisible (JSON invalide).');
+    }
+  }
+  if (!isDBExport(parsed)) {
+    throw new Error("Ce fichier n'est pas un export de données TypeWav.");
+  }
+
+  const db = await getDB();
+  const tx = db.transaction(ALL_STORES, 'readwrite');
+  for (const name of ALL_STORES) {
+    // `name` est un littéral de `ALL_STORES` mais la boucle en fait une union :
+    // `idb` ne peut plus prouver la compatibilité value/store, d'où le cast.
+    const store = tx.objectStore(name) as unknown as {
+      keyPath: string | string[] | null;
+      clear: () => Promise<void>;
+      put: (value: unknown, key?: IDBValidKey) => Promise<IDBValidKey>;
+    };
+    await store.clear();
+    for (const { key, value } of parsed.stores[name] ?? []) {
+      if (store.keyPath == null) {
+        await store.put(value, key);
+      } else {
+        await store.put(value);
+      }
+    }
+  }
+  await tx.done;
+}
+
 // ─── Sérialisation des read-modify-write ──────────────────────────────────────
 
 /**
