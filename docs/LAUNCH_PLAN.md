@@ -11,13 +11,13 @@ Les identifiants `WS-N` sont la référence dans les messages de commit et dans 
 
 ## Avancement
 
-`0 / 7` chantiers livrés · `11 / 40` tâches · Vague 2 en cours (WS-1 4/8, WS-2 3/6, WS-4 4/6, restes bloqués/tranches suivantes).
+`0 / 7` chantiers livrés · `12 / 40` tâches · Vague 2 en cours (WS-1 4/8, WS-2 4/6, WS-4 4/6, restes bloqués/tranches suivantes).
 
 > Vercel bloque tous les déploiements (plan Hobby, projet signalé usage commercial). `main` n'est plus déployé depuis ~2026-08-21. Action Mouwafic : dashboard Vercel. N'affecte pas la CI GitHub Actions.
 
 ## Déjà sécurisé (hors périmètre restant)
 
-- Audit §7, le filet : intégration continue GitHub Actions, 510 tests, planchers de couverture appliqués.
+- Audit §7, le filet : intégration continue GitHub Actions, 562 tests, planchers de couverture appliqués.
 - Audit §4, la caisse : webhook Stripe qui échoue en fermé, déduplication des événements rejoués, prix annuel aligné.
 - Audit §5, redirection : open redirect fermé dans le retour de connexion OAuth.
 - Audit §1 et §2, les deux cœurs : moteur audio en singleton, écho sur vraie correction, position MIDI remise à zéro chaque tentative ; formule WPM nette corrigée, clôture de séance idempotente, modes détente hors classement.
@@ -40,17 +40,17 @@ Tranche 1 (PR #4, mergée) : la zone de frappe elle-même. Tranche 2 (PR #5) : r
 - [ ] Erreurs de formulaire annoncées vocalement
 - [ ] Sélecteur de morceau entièrement manipulable au clavier
 
-### WS-2 · i18n complet et porte d'entrée — en cours (3 / 6)
+### WS-2 · i18n complet et porte d'entrée — en cours (4 / 6)
 
 Objectif : dé-murer l'adresse nue, rendre le site présentable en recherche et en partage, tenir la promesse bilingue. Audit §3.
 Périmètre : `proxy.ts` / `i18n/*`, metadata de `[locale]/layout.tsx` et `lib/seo.ts`, `[locale]/opengraph-image.tsx`, `messages/{fr,en}.json`, formulaire d'auth, sélecteur de langue, `app/sitemap.ts`. Note : le namespace `learning` est déjà largement extrait.
 
-Tranche 1 (PR à venir) : porte d'entrée + SEO tête de page.
+Tranche 1 (PR #8, mergée) : porte d'entrée + SEO tête de page. Tranche 2 (PR à venir) : extraction i18n.
 
 - [x] Adresse nue `/` : détection de langue et redirection. En fait déjà en place via `proxy.ts` (Next 16 a renommé `middleware.ts` → `proxy.ts`) ; vérifié : `/` → 307 `/fr`, `Accept-Language: en` → 307 `/en`
 - [x] Déclarer les alternates hreflang (`<link rel="alternate" hreflang>` fr / en / x-default en tête de page) ; canonical par locale (`/fr`, `/en`) au lieu de la racine nue qui redirige
 - [x] Aperçus de partage cohérents avec la langue : retrait de la référence morte `/og-image.png`, la convention `opengraph-image` fournit un PNG généré et localisé (texte + `alt` FR/EN), titres OG / Twitter dans la langue de la page
-- [ ] Sortir vers next-intl : messages d'état audio, sélecteur de langue lui-même, messages du formulaire de connexion
+- [x] Sortir vers next-intl : labels des bannières d'état audio (`audio.samplerFallbackLabel` / `audio.midiErrorLabel`), sélecteur de langue lui-même (`typing.langFr` / `langEn` / `langBoth`, désormais localisé au lieu d'un libellé anglais figé), messages propres au formulaire de connexion (`auth.notConfigured` / `signupSuccess` / `genericError`) ; au passage le repli Fantôme sans record (`ghost.noRecordFallback`)
 - [ ] Remplacer les dates FR codées en dur par le formateur localisé
 - [ ] `<html lang>` absent (le layout racine ne connaît pas la locale) : demande une restructuration racine / `[locale]`, différé en tranche dédiée
 
@@ -117,13 +117,14 @@ Bloqué : décision « MVP complet » non prise.
 Quatre vagues. À l'intérieur d'une vague, deux chantiers aux arbres de fichiers disjoints peuvent tourner en parallèle, un par instance (voir la section « Parallèle claude / claude2 » du `CLAUDE.md`).
 
 - **Vague 1 :** WS-1 (accessibilité et responsive) ∥ WS-4 (sécurité et données). Disjoints : composants et CSS d'un côté, `supabase/` plus `db.ts` plus `next.config.ts` de l'autre. WS-4 démarre bloqué sur le lien Supabase ; ses tâches non-RLS avancent en attendant.
-- **Vague 2 :** WS-2 (i18n et porte d'entrée) ∥ WS-3 (richesse sonore et Peak-End). Disjoints : `messages/*` plus metadata plus middleware d'un côté, couche audio plus `warp-engine` de l'autre. Point d'attention : `ResultsPage` est touché par WS-3 et par WS-5, ne pas mener WS-3 et WS-5 en même temps.
+- **Vague 2 :** WS-2 (i18n et porte d'entrée) ∥ WS-3 (richesse sonore et Peak-End). Disjoints : `messages/*` plus metadata plus `proxy.ts` d'un côté, couche audio plus `warp-engine` de l'autre. Point d'attention : `ResultsPage` est touché par WS-3 et par WS-5, ne pas mener WS-3 et WS-5 en même temps.
 - **Vague 3 :** WS-5 (polissage) en solo ou finement découpé, il touche `HomeClient`, `ResultsPage`, le thème et `progression.ts` ; plus les items isolés de WS-6 intercalés.
 - **Vague 4 :** WS-7 (premium), après le feu vert explicite de Mouwafic sur le périmètre premium.
 
 ## Journal
 
-- **2026-09-03** : Vague 2 ouverte, WS-2 tranche 1 (porte d'entrée + SEO tête de page). Constat en démarrant : la redirection de l'adresse nue `/` marche déjà (`proxy.ts`, renommé depuis `middleware.ts` par Next 16) ; le finding « `/` renvoie une 404 » de l'audit était périmé. Livré : canonical par locale (`/fr`, `/en`) au lieu de la racine, `<link hreflang>` fr / en / x-default en tête de page, retrait de la référence morte `/og-image.png` (la convention `opengraph-image` fournit le PNG), image et aperçus OG / Twitter localisés. Bug trouvé au passage et corrigé : `<title>` doublé sur `/en` (`TypeWav | TypeWav | ...`), le gabarit racine enrobait un titre déjà marqué.
+- **2026-09-03** : WS-2 tranche 2 (extraction i18n). Neuf chaînes sorties vers `messages/{fr,en}.json` : sélecteur de langue (`typing.langFr`/`langEn`/`langBoth`, qui affichait un libellé anglais figé même en FR), labels des bannières d'état audio (`audio.samplerFallbackLabel`/`midiErrorLabel`, en dur `Sampler fallback:` / `MIDI error:`), messages propres au formulaire de connexion (`auth.notConfigured`/`signupSuccess`/`genericError`), et le repli Fantôme sans record (`ghost.noRecordFallback`). Parité fr/en vérifiée (321 clés chacune). 3 assertions de test recâblées sur les clés. Nits de doc repliés : « PR à venir » → PR #8 mergée, `510` → `562 tests`, « middleware » → `proxy.ts` dans Séquencement.
+- **2026-09-03** : Vague 2 ouverte, WS-2 tranche 1 (porte d'entrée + SEO tête de page) mergée (PR #8). Constat en démarrant : la redirection de l'adresse nue `/` marche déjà (`proxy.ts`, renommé depuis `middleware.ts` par Next 16) ; le finding « `/` renvoie une 404 » de l'audit était périmé. Livré : canonical par locale (`/fr`, `/en`) au lieu de la racine, `<link hreflang>` fr / en / x-default en tête de page, retrait de la référence morte `/og-image.png` (la convention `opengraph-image` fournit le PNG), image et aperçus OG / Twitter localisés. Bug trouvé au passage et corrigé : `<title>` doublé sur `/en` (`TypeWav | TypeWav | ...`), le gabarit racine enrobait un titre déjà marqué.
 - **2026-09-03** : Vague 1 terminée. WS-4 (PR #6, claude2) mergée après revue lead : sync silencieuse coupée, migrations IndexedDB explicites (`migrate(db, oldVersion)`), mutations profil/records sérialisées (transaction + file de promesses), en-têtes de sécurité (CSP/HSTS/Permissions-Policy). 2 retouches de revue appliquées (commentaire CSP exact, HSTS sans `preload`). WS-1 tranche 2 (reduced-motion CSS) mergée (PR #5).
 - **2026-09-03** : WS-1 tranche 1 (zone de frappe accessible) mergée (PR #4, `06feb8b`). `role="application"` au lieu du faux `textbox`, instructions `aria-describedby`, texte cible sr-only, région live polite aux paliers de 25 %, anneau de focus clavier restauré.
 - **2026-09-02** : nettoyage de branches (ancienne `feat/redesign-ux-ui` supprimée, delta AmbientAura sur PR #3 mergée, `main` recalé), Vague 1 ouverte, assignation parallèle écrite dans `HANDOFF.md`.
