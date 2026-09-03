@@ -80,7 +80,7 @@ export function ClassementClient() {
   return (
     <main
       className="flex flex-col items-center gap-8 p-8 max-w-3xl mx-auto w-full"
-      style={{ minHeight: 'calc(100dvh - 48px)' }}
+      style={{ minHeight: 'calc(100dvh - var(--nav-height))' }}
     >
       {/* Banner honnête — classement mondial bientôt */}
       <div

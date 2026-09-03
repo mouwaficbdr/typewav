@@ -460,7 +460,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         // resserré spécifiquement pour ce mode plutôt que globalement.
         gap: isLearningMode ? 20 : 36,
         padding: isLearningMode ? '20px 32px 16px' : '32px 32px 16px',
-        height: 'calc(100dvh - 100px)',
+        height: 'calc(100dvh - var(--nav-height))',
         overflow: 'hidden', // Account for nav height
         maxWidth: '1600px',
         margin: '0 auto',
