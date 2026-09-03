@@ -24,8 +24,12 @@ vi.mock('recharts', () => {
     XAxis: () => null,
     YAxis: () => null,
     Legend: () => null,
-    Line: (props: { dataKey: string; name: string }) => (
-      <div data-testid={`line-${props.dataKey}`} data-name={props.name} />
+    Line: (props: { dataKey: string; name: string; stroke: string }) => (
+      <div
+        data-testid={`line-${props.dataKey}`}
+        data-name={props.name}
+        data-stroke={props.stroke}
+      />
     ),
     Tooltip: (props: {
       formatter: (v: number, n: string) => [string, string];
@@ -119,6 +123,16 @@ describe('<WpmProgressChart />', () => {
     );
     expect(getByTestId('tooltip').getAttribute('data-label')).toBe(
       'chartMedian',
+    );
+  });
+
+  it('la série WPM se trace avec le token accent, pas un hex figé', () => {
+    const now = Date.now();
+    const { getByTestId } = render(
+      <WpmProgressChart sessions={[makeSession(60, now - 1 * DAY)]} />,
+    );
+    expect(getByTestId('line-wpm').getAttribute('data-stroke')).toBe(
+      'var(--color-accent)',
     );
   });
 });

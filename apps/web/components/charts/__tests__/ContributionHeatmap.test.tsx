@@ -89,6 +89,19 @@ describe('<ContributionHeatmap />', () => {
     expect(container.textContent).toContain('heatmapMore');
   });
 
+  it('les cellules se colorent via des tokens de thème, pas des hex figés', () => {
+    const { container } = render(
+      <ContributionHeatmap sessions={[makeSession(Date.now())]} />,
+    );
+    const fills = [...container.querySelectorAll('rect')].map((r) =>
+      r.getAttribute('fill'),
+    );
+    expect(fills.length).toBeGreaterThan(0);
+    for (const fill of fills) {
+      expect(fill).toMatch(/var\(--color-|color-mix\(/);
+    }
+  });
+
   it('le tooltip de cellule combine la date localisée et le compte traduit', () => {
     const { container } = render(
       <ContributionHeatmap sessions={[makeSession(Date.now())]} />,
