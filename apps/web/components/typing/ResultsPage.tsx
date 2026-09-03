@@ -219,7 +219,7 @@ export function ResultsPage({
         justifyContent: 'center',
         gap: 48,
         padding: '48px 24px',
-        minHeight: 'calc(100dvh - 48px)',
+        minHeight: 'calc(100dvh - var(--nav-height))',
         // Transparent (le noir vient du body) pour laisser passer l'aura
         // ambiante en z-index négatif — même montage que la zone de frappe.
         backgroundColor: 'transparent',
