@@ -141,6 +141,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         <AnimatePresence>
           {error && (
             <motion.p
+              role="alert"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -156,6 +157,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           )}
           {success && (
             <motion.p
+              role="status"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
