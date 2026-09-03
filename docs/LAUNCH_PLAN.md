@@ -5,13 +5,13 @@ Source machine du plan de lancement : ce qui reste entre l'état actuel et un la
 - **Vue de lecture (artifact, tenue par le lead) :** https://claude.ai/code/artifact/72a3dfc5-2943-4ef6-84c6-567487387ded
 - **Baton entre instances :** `~/.claude/projects/-home-mouwaficbdr-Code-Typewav/HANDOFF.md`
 - **Sources du plan :** `TypeWav-Etat-des-lieux.docx`, plan `giggly-drifting-hopper.md`, mémoires persistantes du projet.
-- **Dernière revue :** 2026-09-02 · branche active `feat/redesign-ux-ui`
+- **Dernière revue :** 2026-09-03 · Vague 2 en cours (WS-2 ∥ WS-3)
 
 Les identifiants `WS-N` sont la référence dans les messages de commit et dans `HANDOFF.md`. Ils ne dictent pas l'ordre : voir « Séquencement ».
 
 ## Avancement
 
-`0 / 7` chantiers livrés · `8 / 39` tâches · Vague 1 terminée (WS-1 4/8, WS-4 4/6, restes bloqués/tranches suivantes).
+`0 / 7` chantiers livrés · `11 / 40` tâches · Vague 2 en cours (WS-1 4/8, WS-2 3/6, WS-4 4/6, restes bloqués/tranches suivantes).
 
 > Vercel bloque tous les déploiements (plan Hobby, projet signalé usage commercial). `main` n'est plus déployé depuis ~2026-08-21. Action Mouwafic : dashboard Vercel. N'affecte pas la CI GitHub Actions.
 
@@ -40,16 +40,19 @@ Tranche 1 (PR #4, mergée) : la zone de frappe elle-même. Tranche 2 (PR #5) : r
 - [ ] Erreurs de formulaire annoncées vocalement
 - [ ] Sélecteur de morceau entièrement manipulable au clavier
 
-### WS-2 · i18n complet et porte d'entrée — à faire (0 / 5)
+### WS-2 · i18n complet et porte d'entrée — en cours (3 / 6)
 
 Objectif : dé-murer l'adresse nue, rendre le site présentable en recherche et en partage, tenir la promesse bilingue. Audit §3.
-Périmètre : middleware / `i18n/*`, metadata de `[locale]/layout.tsx`, `messages/{fr,en}.json`, formulaire d'auth, sélecteur de langue, `app/sitemap.ts`. Note : le namespace `learning` est déjà largement extrait.
+Périmètre : `proxy.ts` / `i18n/*`, metadata de `[locale]/layout.tsx` et `lib/seo.ts`, `[locale]/opengraph-image.tsx`, `messages/{fr,en}.json`, formulaire d'auth, sélecteur de langue, `app/sitemap.ts`. Note : le namespace `learning` est déjà largement extrait.
 
-- [ ] Adresse nue `/` : détection de langue et redirection (aujourd'hui une page 404)
-- [ ] Déclarer les alternates hreflang ; corriger le canonical FR qui pointe vers le 404
-- [ ] Générer une image de partage existante et des aperçus cohérents avec la langue de la page
+Tranche 1 (PR à venir) : porte d'entrée + SEO tête de page.
+
+- [x] Adresse nue `/` : détection de langue et redirection. En fait déjà en place via `proxy.ts` (Next 16 a renommé `middleware.ts` → `proxy.ts`) ; vérifié : `/` → 307 `/fr`, `Accept-Language: en` → 307 `/en`
+- [x] Déclarer les alternates hreflang (`<link rel="alternate" hreflang>` fr / en / x-default en tête de page) ; canonical par locale (`/fr`, `/en`) au lieu de la racine nue qui redirige
+- [x] Aperçus de partage cohérents avec la langue : retrait de la référence morte `/og-image.png`, la convention `opengraph-image` fournit un PNG généré et localisé (texte + `alt` FR/EN), titres OG / Twitter dans la langue de la page
 - [ ] Sortir vers next-intl : messages d'état audio, sélecteur de langue lui-même, messages du formulaire de connexion
 - [ ] Remplacer les dates FR codées en dur par le formateur localisé
+- [ ] `<html lang>` absent (le layout racine ne connaît pas la locale) : demande une restructuration racine / `[locale]`, différé en tranche dédiée
 
 ### WS-3 · Music sells, ce qui reste — à faire (0 / 3)
 
@@ -120,6 +123,7 @@ Quatre vagues. À l'intérieur d'une vague, deux chantiers aux arbres de fichier
 
 ## Journal
 
+- **2026-09-03** : Vague 2 ouverte, WS-2 tranche 1 (porte d'entrée + SEO tête de page). Constat en démarrant : la redirection de l'adresse nue `/` marche déjà (`proxy.ts`, renommé depuis `middleware.ts` par Next 16) ; le finding « `/` renvoie une 404 » de l'audit était périmé. Livré : canonical par locale (`/fr`, `/en`) au lieu de la racine, `<link hreflang>` fr / en / x-default en tête de page, retrait de la référence morte `/og-image.png` (la convention `opengraph-image` fournit le PNG), image et aperçus OG / Twitter localisés. Bug trouvé au passage et corrigé : `<title>` doublé sur `/en` (`TypeWav | TypeWav | ...`), le gabarit racine enrobait un titre déjà marqué.
 - **2026-09-03** : Vague 1 terminée. WS-4 (PR #6, claude2) mergée après revue lead : sync silencieuse coupée, migrations IndexedDB explicites (`migrate(db, oldVersion)`), mutations profil/records sérialisées (transaction + file de promesses), en-têtes de sécurité (CSP/HSTS/Permissions-Policy). 2 retouches de revue appliquées (commentaire CSP exact, HSTS sans `preload`). WS-1 tranche 2 (reduced-motion CSS) mergée (PR #5).
 - **2026-09-03** : WS-1 tranche 1 (zone de frappe accessible) mergée (PR #4, `06feb8b`). `role="application"` au lieu du faux `textbox`, instructions `aria-describedby`, texte cible sr-only, région live polite aux paliers de 25 %, anneau de focus clavier restauré.
 - **2026-09-02** : nettoyage de branches (ancienne `feat/redesign-ux-ui` supprimée, delta AmbientAura sur PR #3 mergée, `main` recalé), Vague 1 ouverte, assignation parallèle écrite dans `HANDOFF.md`.
