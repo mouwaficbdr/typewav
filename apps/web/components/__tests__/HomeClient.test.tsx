@@ -671,7 +671,7 @@ describe('HomeClient — mode Fantôme', () => {
     render(<HomeClient initialCollection={mockLitterature as never} />);
 
     expect(
-      await screen.findByText(/aucun record personnel/i),
+      await screen.findByText('noRecordFallback'),
     ).toBeInTheDocument();
   });
 
@@ -712,7 +712,7 @@ describe('HomeClient — mode Fantôme', () => {
       ),
     ).toBeInTheDocument();
     expect(
-      screen.queryByText(/aucun record personnel/i),
+      screen.queryByText('noRecordFallback'),
     ).not.toBeInTheDocument();
     // Réplique fixe d'une session enregistrée : les sélecteurs de langue et
     // de collection n'ont pas de sens ici, ils doivent rester masqués.
@@ -734,7 +734,7 @@ describe('HomeClient — mode Fantôme', () => {
 
     render(<HomeClient initialCollection={mockLitterature as never} />);
 
-    await screen.findByText(/aucun record personnel/i);
+    await screen.findByText('noRecordFallback');
 
     // La bannière promet un comportement Classic : les contrôles qui
     // pilotent ce comportement doivent être visibles, pas cachés derrière

@@ -74,7 +74,8 @@ describe('ContextSelectors', () => {
   it('ouvre le menu et sélectionner une langue met à jour le store', () => {
     render(<ContextSelectors />);
     fireEvent.click(screen.getByTitle('changeLanguage'));
-    fireEvent.click(screen.getByText('english'));
+    // Le mock next-intl renvoie la clé : 'langEn' pour t('langEn').
+    fireEvent.click(screen.getByText('langEn'));
 
     expect(useConfigStore.getState().textLanguage).toBe('en');
   });

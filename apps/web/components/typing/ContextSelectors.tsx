@@ -26,6 +26,9 @@ export function ContextSelectors({ controlsMode }: ContextSelectorsProps = {}) {
     controlsMode ?? activeMode,
   );
 
+  const langLabel = (lang: 'fr' | 'en' | 'both') =>
+    lang === 'both' ? t('langBoth') : lang === 'fr' ? t('langFr') : t('langEn');
+
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
 
   if (!showLanguage) return null;
@@ -75,11 +78,7 @@ export function ContextSelectors({ controlsMode }: ContextSelectorsProps = {}) {
                   fontSize: '0.85rem',
                 }}
               >
-                {textLanguage === 'both'
-                  ? 'french + english'
-                  : textLanguage === 'fr'
-                    ? 'french'
-                    : 'english'}
+                {langLabel(textLanguage)}
               </motion.span>
             )}
           </AnimatePresence>
@@ -123,11 +122,7 @@ export function ContextSelectors({ controlsMode }: ContextSelectorsProps = {}) {
                   }}
                   className="hover:text-[var(--color-text-primary)]"
                 >
-                  {lang === 'both'
-                    ? 'french + english'
-                    : lang === 'fr'
-                      ? 'french'
-                      : 'english'}
+                  {langLabel(lang)}
                 </button>
               ))}
             </motion.div>

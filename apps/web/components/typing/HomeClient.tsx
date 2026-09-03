@@ -79,6 +79,8 @@ function getDailyIndex(length: number, offset = 0): number {
 
 export function HomeClient({ initialCollection }: HomeClientProps) {
   const tHint = useTranslations('typing');
+  const tAudio = useTranslations('audio');
+  const tGhost = useTranslations('ghost');
   const locale = useLocale();
   const shouldReduceMotion = useReducedMotion();
 
@@ -540,7 +542,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
                 textAlign: 'left',
               }}
             >
-              Sampler fallback: {samplerLoadError}
+              {tAudio('samplerFallbackLabel')}: {samplerLoadError}
             </div>
           )}
 
@@ -561,7 +563,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
                 textAlign: 'left',
               }}
             >
-              MIDI error: {midiLoadError}
+              {tAudio('midiErrorLabel')}: {midiLoadError}
             </div>
           )}
 
@@ -582,9 +584,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
                 textAlign: 'left',
               }}
             >
-              Aucun record personnel pour l&apos;instant — terminez une
-              session pour débloquer le mode Fantôme. Cette session se
-              déroule en mode Classic.
+              {tGhost('noRecordFallback')}
             </div>
           )}
 
