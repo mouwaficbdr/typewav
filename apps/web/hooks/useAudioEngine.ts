@@ -161,36 +161,55 @@ function loadTone(): Promise<typeof import('tone')> {
 }
 
 /**
- * Résout Tone.start() (context.resume()) avec retries internes. Le tout
- * premier appel d'une session reste parfois bloqué durablement sans jamais
- * ni aboutir ni rejeter — mais un appel neuf (pas la même promesse relancée)
- * réussit de façon fiable en une centaine de ms. On retente donc nous-mêmes
- * ici, bornés par un court timeout par tentative, plutôt que de dépendre
- * d'une future frappe de l'utilisateur pour déclencher ce nouvel essai.
+ * Réveille l'AudioContext (Tone.start = context.resume()).
  *
- * Timeouts mesurés en session live : le premier essai n'a JAMAIS abouti (5
- * sessions réelles, jusqu'à 8s laissés, 0 succès) — 100ms lui laisse le
- * strict minimum. Les essais qui réussissent le font en 30-130ms ; 250ms
- * leur laisse une marge large (x2-x8) sans traîner si l'un d'eux échoue
- * aussi. 4 essais, pas 3 : deux sessions ont mesuré 2 échecs avant le succès.
+ * Le tout premier resume() d'une session peut mettre jusqu'à ~1,7s à se
+ * régler (mesuré sur machine réelle) : au premier usage, le navigateur monte
+ * le périphérique de sortie audio, une latence pilote/OS qu'aucune relance
+ * ne raccourcit. L'ancienne rafale de timeouts courts ([100,250,250,250])
+ * abandonnait donc vers 850ms — avant que le périphérique ne soit prêt —
+ * puis jetait, laissait `initialized` à false, et la frappe suivante
+ * relançait toute l'init (mesuré : double-init, 1669ms de latence). On
+ * attend désormais chaque tentative sous un timeout large, avec UNE seule
+ * vraie relance pour le cas (jamais observé depuis les mitigations) d'un
+ * resume() qui ne se règle jamais de lui-même.
  */
-const TONE_START_ATTEMPT_TIMEOUTS_MS = [100, 250, 250, 250];
+const TONE_START_TIMEOUTS_MS = [2500, 2500];
 
-async function startToneWithRetry(
-  Tone: typeof import('tone'),
-): Promise<void> {
+/**
+ * Démarre une source muette (un échantillon) à travers le contexte brut,
+ * juste après resume() : force le graphe audio à rendre sa première trame,
+ * ce qui peut accélérer la montée du périphérique de sortie. Meilleur
+ * effort : silencieux et sans effet si l'API n'est pas là ou si ça lève.
+ */
+function nudgeAudioDevice(Tone: typeof import('tone')): void {
+  try {
+    const ctx = Tone.getContext().rawContext;
+    const source = ctx.createBufferSource();
+    source.buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
+    source.connect(ctx.destination);
+    source.start(0);
+  } catch {
+    // best effort
+  }
+}
+
+async function startTone(Tone: typeof import('tone')): Promise<void> {
   let lastError: unknown;
-  for (let i = 0; i < TONE_START_ATTEMPT_TIMEOUTS_MS.length; i++) {
-    const timeoutMs = TONE_START_ATTEMPT_TIMEOUTS_MS[i]!;
+  for (let i = 0; i < TONE_START_TIMEOUTS_MS.length; i++) {
+    const timeoutMs = TONE_START_TIMEOUTS_MS[i]!;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     try {
+      const started = Tone.start();
+      if (i === 0) nudgeAudioDevice(Tone);
       await Promise.race([
-        Tone.start(),
+        started,
         new Promise<never>((_, reject) => {
-          setTimeout(
+          timer = setTimeout(
             () =>
               reject(
                 new Error(
-                  `Tone.start() timed out after ${timeoutMs}ms (attempt ${i + 1}/${TONE_START_ATTEMPT_TIMEOUTS_MS.length})`,
+                  `Tone.start() timed out after ${timeoutMs}ms (attempt ${i + 1}/${TONE_START_TIMEOUTS_MS.length})`,
                 ),
               ),
             timeoutMs,
@@ -200,6 +219,11 @@ async function startToneWithRetry(
       return;
     } catch (error) {
       lastError = error;
+    } finally {
+      // Sans ce clear, le timer d'une tentative RÉUSSIE finit par rejeter dans
+      // le vide (rejection non gérée), et en test les faux timers gardent le
+      // handle indéfiniment.
+      if (timer !== undefined) clearTimeout(timer);
     }
   }
   throw lastError;
@@ -443,14 +467,12 @@ class VoiceEngine {
     const Tone = await loadTone();
 
     // Le tout premier Tone.start()/context.resume() d'une session reste
-    // bloqué durablement (observé plusieurs fois en session live) mais
-    // n'aboutit JAMAIS de lui-même — seul un appel neuf (pas la même
-    // promesse qui finirait par se résoudre) réussit, en 32-130ms de façon
-    // fiable. Laisser ce sursaut dépendre de la frappe suivante de
-    // l'utilisateur fonctionne mais dépend du rythme de frappe (~1s observé
-    // dans le pire cas) : on retente nous-mêmes, dans le même appel, pour ne
-    // plus dépendre de ça.
-    await startToneWithRetry(Tone);
+    // lent à se régler (montée du périphérique de sortie au premier usage).
+    // startTone() l'attend sous un timeout large plutôt que d'abandonner tôt
+    // et de forcer une ré-init à la frappe suivante ; le prime au premier
+    // geste de page (voir le hook plus bas) sort ce coût du chemin
+    // frappe -> note quand l'utilisateur ne tape pas dans la seconde.
+    await startTone(Tone);
 
     await this.buildVoices(soundPackId);
     // Le préchargement du montage a pu bâtir le graphe avant que le rang
@@ -472,16 +494,16 @@ const engine = new VoiceEngine();
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useAudioEngine() {
-  // `soundPackId` seul, volontairement : s'abonner aussi à `initialized`
-  // ici forcerait un re-render de CHAQUE composant utilisant ce hook
-  // (TypingArea, HomeClient, ReplayClient, ChallengeClient, useAudioPreview,
-  // simultanément montés) au moment précis où l'utilisateur tape sa première
-  // touche — juste avant que la première note ne joue. loadSoundPack lit
-  // `initialized` via getState() ci-dessous, une lecture tout aussi fraîche
-  // sans l'abonnement réactif.
-  const { soundPackId } = useAudioStore();
+  // Sélecteur ciblé sur `soundPackId` (jamais `useAudioStore()` nu ni un
+  // abonnement à `initialized` / `position`) : toute lecture réactive plus
+  // large re-rendrait CHAQUE composant qui monte ce hook (TypingArea,
+  // HomeClient, ReplayClient, ChallengeClient, useAudioPreview) au moment
+  // précis de la première frappe — `setLiveBpm` et l'avancée du curseur
+  // arrivent à chaque frappe, juste avant que la note ne joue. `initialized`
+  // et `position` sont lus via getState() là où on en a besoin (lectures
+  // tout aussi fraîches, sans re-render).
+  const soundPackId = useAudioStore((s) => s.soundPackId);
   const recordNoteEvent = useSessionStore((s) => s.recordNoteEvent);
-  const sessionPosition = useSessionStore((s) => s.position);
 
   useEffect(() => {
     engine.mount();
@@ -500,13 +522,11 @@ export function useAudioEngine() {
     // Amorce l'AudioContext (Tone.start / resume) sur le PREMIER geste de la
     // page (le clic qui prend le focus, ou une touche pressée pendant que
     // l'utilisateur lit le texte), et non sur la première frappe voulue. Le
-    // tout premier resume() se bloque ~350-650ms avant qu'un essai de
-    // `startToneWithRetry` n'aboutisse (cf. commentaire de cette fonction) ;
+    // tout premier resume() met jusqu'à ~1,7s à se régler (cf. startTone) ;
     // le déclencher tôt absorbe ce coût hors du chemin premiere-frappe vers
-    // premiere-note. `initialize()` est idempotent, les retries tournent
-    // ensuite sur leurs propres timers (aucun re-geste requis). Repli
-    // inchangé : si ce prime échoue, la première frappe rappelle
-    // `initialize()` comme avant.
+    // premiere-note quand un geste précède la frappe. `initialize()` est
+    // idempotent. Repli inchangé : si ce prime échoue, la première frappe
+    // rappelle `initialize()` comme avant.
     const primeAudio = () => {
       window.removeEventListener('pointerdown', primeAudio, true);
       window.removeEventListener('keydown', primeAudio, true);
@@ -591,10 +611,12 @@ export function useAudioEngine() {
       }
 
       engine.lastPlayedNote = noteToPlay;
-      recordNoteEvent(noteToPlay, sessionPosition);
+      // Position lue à l'instant du jeu (getState, pas un abonnement) : le
+      // curseur a déjà avancé pour cette frappe, c'est bien l'index voulu.
+      recordNoteEvent(noteToPlay, useSessionStore.getState().position);
       return { note: noteToPlay, isPhraseBoundary: parsedNote.isPhraseBoundary };
     },
-    [recordNoteEvent, sessionPosition],
+    [recordNoteEvent],
   );
 
   /**
