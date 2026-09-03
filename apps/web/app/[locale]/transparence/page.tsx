@@ -44,12 +44,6 @@ export default async function TransparencePage({ params }: Props) {
       cost: t('hostingCost'),
       note: t('hostingNote'),
     },
-    { label: t('dbLabel'), cost: t('dbCost'), note: t('dbNote') },
-    {
-      label: t('stripeLabel'),
-      cost: t('stripeCost'),
-      note: t('stripeNote'),
-    },
     {
       label: t('domainLabel'),
       cost: t('domainCost'),

@@ -29,19 +29,10 @@ vi.mock('next/link', () => ({
   ),
 }));
 
-vi.mock('@/hooks/useUser', () => ({
-  useUser: vi.fn(() => ({
-    user: null,
-    isPremium: false,
-    loading: false,
-    pseudo: '',
-  })),
-}));
-
 import { GlobalNav } from '../GlobalNav';
 import { NavLogo } from '../NavLogo';
 
-// ─── GlobalNav v2 ─────────────────────────────────────────────────────────────
+// ─── GlobalNav (v1, sans comptes) ─────────────────────────────────────────────
 
 describe('GlobalNav', () => {
   it('affiche le logo NavLogo (lien TypeWav)', () => {
@@ -49,31 +40,17 @@ describe('GlobalNav', () => {
     expect(screen.getByRole('link', { name: /TypeWav/i })).toBeInTheDocument();
   });
 
-  it('affiche les icônes de navigation avec aria-label (leaderboard, premium)', () => {
+  it('affiche les quatre entrées de navigation', () => {
     render(<GlobalNav />);
-    expect(
-      screen.getByRole('link', { name: 'leaderboard' }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'premium' })).toBeInTheDocument();
+    for (const name of ['typing', 'leaderboard', 'profile', 'settings']) {
+      expect(screen.getByRole('link', { name })).toBeInTheDocument();
+    }
   });
 
-  it('affiche le lien connexion si utilisateur non connecté', () => {
+  it("n'expose ni connexion ni premium", () => {
     render(<GlobalNav />);
-    expect(screen.getByRole('link', { name: 'login' })).toBeInTheDocument();
-  });
-
-  it('affiche le lien profil (icône ○) si utilisateur connecté', async () => {
-    const { useUser } = await import('@/hooks/useUser');
-    vi.mocked(useUser).mockReturnValueOnce({
-      user: {
-        email: 'alice@example.com',
-      } as unknown as import('@supabase/supabase-js').User,
-      isPremium: false,
-      loading: false,
-      pseudo: 'Alice',
-    });
-    render(<GlobalNav />);
-    expect(screen.getByRole('link', { name: 'profile' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'login' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'premium' })).toBeNull();
   });
 
   it('marque le lien actif avec aria-current="page" (pathname=/fr/classement)', () => {
@@ -89,6 +66,10 @@ describe('GlobalNav', () => {
     expect(screen.getByRole('link', { name: 'leaderboard' })).toHaveAttribute(
       'href',
       '/fr/classement',
+    );
+    expect(screen.getByRole('link', { name: 'profile' })).toHaveAttribute(
+      'href',
+      '/fr/profil',
     );
   });
 
