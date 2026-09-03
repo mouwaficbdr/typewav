@@ -5,15 +5,15 @@ Source machine du plan de lancement : ce qui reste entre l'état actuel et un la
 - **Vue de lecture (artifact, tenue par le lead) :** https://claude.ai/code/artifact/72a3dfc5-2943-4ef6-84c6-567487387ded
 - **Baton entre instances :** `~/.claude/projects/-home-mouwaficbdr-Code-Typewav/HANDOFF.md`
 - **Sources du plan :** `TypeWav-Etat-des-lieux.docx`, plan `giggly-drifting-hopper.md`, mémoires persistantes du projet.
-- **Dernière revue :** 2026-09-03 · WS-1 clos (8 / 8) ; trois chantiers livrés
+- **Dernière revue :** 2026-09-03 · comptes retirés de la v1 (PR #32) ; WS-4 et WS-5 clos ; WS-7 reversé en v2
 
 Les identifiants `WS-N` sont la référence dans les messages de commit et dans `HANDOFF.md`. Ils ne dictent pas l'ordre : voir « Séquencement ».
 
 ## Avancement
 
-`3 / 7` chantiers livrés · `23 / 40` tâches · WS-1, WS-2 et WS-3 clos (WS-4 4/6, les 2 RLS bloquées Supabase ; WS-5 2/8 ; WS-6/7 à faire ou bloqués).
+`5 / 6` chantiers livrés · `27 / 35` tâches · WS-1 à WS-5 clos ; reste WS-6 (dettes connues, `0 / 6`). WS-7 (premium) retiré de la v1, reversé en v2 avec l'auth et la sync. Les 2 tâches RLS de WS-4 sont sans objet : la v1 n'a plus de comptes (PR #32).
 
-> Vercel bloque tous les déploiements (plan Hobby, projet signalé usage commercial). `main` n'est plus déployé depuis ~2026-08-21. Action Mouwafic : dashboard Vercel. N'affecte pas la CI GitHub Actions.
+> Vercel bloquait tous les déploiements (plan Hobby, projet signalé usage commercial à cause de Stripe). `main` n'était plus déployé depuis ~2026-08-21. Stripe et le premium retirés en PR #32 : le motif du signalement disparaît. Action Mouwafic : rouvrir le dashboard Vercel, confirmer que le blocage est levé, relancer un déploiement de `main`. N'affecte pas la CI GitHub Actions.
 
 ## Déjà sécurisé (hors périmètre restant)
 
@@ -21,6 +21,7 @@ Les identifiants `WS-N` sont la référence dans les messages de commit et dans 
 - Audit §4, la caisse : webhook Stripe qui échoue en fermé, déduplication des événements rejoués, prix annuel aligné.
 - Audit §5, redirection : open redirect fermé dans le retour de connexion OAuth.
 - Audit §1 et §2, les deux cœurs : moteur audio en singleton, écho sur vraie correction, position MIDI remise à zéro chaque tentative ; formule WPM nette corrigée, clôture de séance idempotente, modes détente hors classement.
+- 2026-09-03, comptes retirés de la v1 (PR #32) : Supabase, `@supabase/ssr`, Stripe, l'auth OAuth, la couche sync et tout le premium supprimés du code. La v1 tourne à 100 % dans le navigateur (IndexedDB). Les correctifs §4 (webhook Stripe fermé) et §5 (open redirect OAuth) portaient sur du code désormais absent. `/profil` et `/classement` restent en local. Réintroduction propre prévue en v2 : `docs/superpowers/specs/2026-09-03-remove-accounts-v1-design.md`.
 
 ## Chantiers
 
@@ -66,34 +67,34 @@ Fait par claude2 (PR #9, mergée après revue lead). Décision : le rang façonn
 - [x] Rebranché sans le bourdon : trois leviers piano-only sur le graphe existant, pas de `harmonic-drone.ts`. Rang lu une fois à la construction du graphe, réaligné au 1er keydown si pas encore hydraté ; `triggerResume` revient au `wet` de base du rang, pic de correction au-dessus
 - [x] Langage visuel AmbientAura sur `ResultsPage` : aura respirante en `--color-accent` derrière le contenu, bande `WaveformBars` au repos, courbe signature sur les reveals, un gonflement unique sur nouveau record (aucune boucle, rien sous `prefers-reduced-motion`)
 
-### WS-4 · Sécurité et données : 4 / 6 (les 2 restantes bloquées)
+### WS-4 · Sécurité et données : livré (4 / 4, 2 tâches RLS sans objet)
 
 Objectif : fermer les fuites de données discrètes que l'audit signale une fois l'urgent traité. Audit §5 et §8.
-Périmètre : `supabase/migrations/*`, `apps/web/lib/db.ts`, couche sync, `apps/web/next.config.ts`, Supabase MCP.
-Fait par claude2 (PR #6, mergée). Bloqué : les 2 tâches RLS attendent que le vrai projet Supabase soit lié (action Mouwafic).
+Périmètre : `apps/web/lib/db.ts`, `apps/web/lib/security-headers.ts`.
+Fait par claude2 (PR #6, mergée). Les 2 tâches RLS sont devenues sans objet : la v1 n'a ni comptes ni backend distant (PR #32).
 
-- [ ] Lier le vrai projet Supabase, appliquer `20260713000001_rls_user_premium_and_sessions.sql`
-- [ ] Tester automatiquement les policies RLS (chaque ligne liée à son propriétaire)
-- [x] Couper réellement la sync cloud tant que `SYNC_IS_COMING_SOON` (gardes au point d'entrée `syncAll`/`pushSession` + hook)
+- [x] ~~Lier le vrai projet Supabase, appliquer la migration RLS~~ : sans objet, la v1 n'a pas de comptes (PR #32)
+- [x] ~~Tester automatiquement les policies RLS~~ : sans objet, plus de base distante (PR #32)
+- [x] Couper réellement la sync cloud : la couche sync entière est supprimée en v1 (PR #32) ; jusque-là, gardes au point d'entrée `syncAll`/`pushSession` + hook (PR #6)
 - [x] Versionner correctement les évolutions de la base locale IndexedDB (`migrate(db, oldVersion)`, échelle par version, `blocking`/`terminated`)
 - [x] Sérialiser les mises à jour de stats concurrentes qui peuvent se perdre (transaction readwrite + file de promesses par store)
-- [x] Compléter les en-têtes de sécurité (`lib/security-headers.ts` : CSP taillée pour Tone.js/Supabase, HSTS, Permissions-Policy)
+- [x] Compléter les en-têtes de sécurité (`lib/security-headers.ts` : CSP, HSTS, Permissions-Policy). `connect-src` réduit à `'self'` + `tonejs.github.io` après le retrait de Supabase (PR #32)
 
-### WS-5 · La somme des petites choses : en cours (2 / 8)
+### WS-5 · La somme des petites choses : livré (6 / 8, 2 reportés en dette WS-6)
 
 Objectif : retirer l'impression de produit pas tout à fait fini, une fois l'essentiel sécurisé. Audit §8 plus la dette des thèmes de jalons.
-Périmètre : dispersé : ResultsPage / replay, générateur de lien de défi, `HomeClient.tsx`, CSS de thème, `packages/types/src/progression.ts`. Collision : touche `HomeClient` et `ResultsPage`, ne pas paralléliser à l'aveugle.
+Périmètre : dispersé : ResultsPage / replay, générateur de lien de défi, `components/charts/*`, `lib/theme/*`, `stores/useThemeStore.ts`, `app/sitemap.ts` / `app/robots.ts`.
 
-PR #25 (sitemap et robots), PR #27 (lien de défi borné).
+PR #25 (sitemap et robots), PR #27 (lien de défi borné), PR #29 (bouton Réécouter), PR #30 (couleurs de graphiques suivant le thème), PR #31 (thèmes de jalons câblés, claude2).
 
-- [ ] Bouton Réécouter qui ne fait rien
-- [ ] Icônes d'action cryptiques : libellés et infobulles
-- [ ] Texte du jour qui diffère serveur / navigateur : clignotement au chargement
+- [x] Bouton Réécouter qui ne fait rien (PR #29) : `ResultsPage` rejoue la séquence `noteEvents` capturée pendant la séance via `playNoteName` (nouveau sur `useAudioEngine`, `triggerAttackRelease` direct sur le sampler ou le synth de repli), planifiée au `setTimeout` sur les timestamps réels, plafonnée à 22 s, bouton qui bascule ♪ / ■, désactivé sans notes, timeouts nettoyés au démontage
+- [x] Icônes d'action cryptiques : libellés et infobulles : les `ActionBtn` de `ResultsPage` portent déjà `label` visible + `title` + `aria-label` (vérifié)
+- [ ] Texte du jour qui diffère serveur / navigateur : clignotement au chargement : dé-scopé du lancement, versé en dette WS-6. Compromis assumé (seed serveur puis sélection client) ; le corriger vraiment demande de repenser la source du texte du jour
 - [x] Générateur de lien de défi qui peut boucler à l'infini dans un cas extrême (PR #27) : `generateChallengeLink` récursait avec un tronçon de longueur constante du texte d'origine ; sur une entrée limite (baseUrl volumineux, ou texte déjà court) l'appel récursif recevait des arguments identiques → stack overflow. Récursion remplacée par une boucle bornée qui rogne la longueur effective du texte, plancher à zéro, meilleur effort si l'URL reste trop longue. TDD : 2 cas qui levaient `RangeError` avant. `generateReplayLink` (`lib/replay.ts`) a un `while(true)` voisin mais qui se termine (décroissance géométrique + plancher `<= 10`), laissé tel quel
-- [ ] Couleurs codées en dur qui cassent le thème clair
-- [ ] `MILESTONES` récompense des thèmes `noir` et `midnight-sun` absents de `APP_THEMES`
-- [x] `sitemap.xml` absent pour les moteurs de recherche (PR #25) : `app/sitemap.ts` liste les pages publiques (accueil, classement, premium, transparence) dans les deux locales avec alternates hreflang fr/en ; `app/robots.ts` autorise le crawl, `Disallow` sur `/api/` et les zones privées par locale (auth, profil, results, replay, dev-onboarding), pointe vers le sitemap. Auth, profil et pages de session volontairement absents. Tests : couverture publique complète, aucune privée, robots nomme le sitemap. Généré en statique au build
-- [ ] Cohérence entre styles écrits à la main et système de style
+- [x] Couleurs codées en dur qui cassent le thème clair (PR #30) : `ContributionHeatmap` et `WpmProgressChart` passent de hex figés (`#1A1A2E`, `#00D4AA`, `rgba(255,255,255,…)`, `#888`, …) à des `var(--color-*)` et des `color-mix()` sur l'accent ; la ligne de tendance or est conservée volontairement
+- [x] `MILESTONES` récompense des thèmes absents de `APP_THEMES` (PR #31, claude2) : `noir`, `midnight-sun` et `arcade` (de `@typewav/themes`, jusque-là dépendance déclarée mais jamais importée) câblés dans `APP_THEMES` ; `UserProfile.unlockedThemes` (IndexedDB) devient la seule source de vérité, les jalons y poussent via `useProgressionCheck` ; `useThemeStore` réduit à `{ themeId, setTheme }` (le `unlockedThemes` mort retiré). Revue lead : bug attrapé et corrigé sur la branche (un filtre strict masquait les 3 thèmes de base non-`terminal` pour les profils antérieurs au changement), garde de non-régression ajoutée
+- [x] `sitemap.xml` absent pour les moteurs de recherche (PR #25) : `app/sitemap.ts` liste les pages publiques (accueil, classement, transparence) dans les deux locales avec alternates hreflang fr/en ; `app/robots.ts` autorise le crawl, `Disallow` sur `/api/` et les zones privées par locale (profil, results, replay, dev-onboarding), pointe vers le sitemap. Pages de session volontairement absentes. Tests : couverture publique complète, aucune privée, robots nomme le sitemap. Généré en statique au build. `/premium` retiré du sitemap en PR #32
+- [ ] Cohérence entre styles écrits à la main et système de style : dé-scopé du lancement, versé en dette WS-6. Chantier trop large pour une tranche de polissage (audit transversal de tous les styles inline contre les tokens)
 
 ### WS-6 · Dettes connues : à faire (0 / 6)
 
@@ -107,15 +108,16 @@ Périmètre : isolé par item.
 - [ ] Revoir les listes de mots type `WORDS_HOME_ROW` (mineur, différé par le plan lui-même)
 - [ ] `KeyboardDiagram` par défaut en AZERTY plus abstraction de disposition (ne pas démarrer sans demande explicite)
 
-### WS-7 · Premium : bloqué (0 / 3)
+### WS-7 · Premium : retiré de la v1, reversé en v2
 
-Objectif : redécider le contenu et la logique premium une fois le MVP complet et fonctionnel. Décision Mouwafic : ne pas proposer de features premium avant cette conversation.
-Périmètre : `apps/web/lib/featureFlags.ts`, `app/api/stripe/*`, tables premium et RLS.
-Bloqué : décision « MVP complet » non prise.
+Décision Mouwafic (2026-09-03) : la v1 lance sans comptes et sans premium. Supabase, Stripe, l'auth OAuth, la couche sync et tout le code premium sont supprimés (PR #32). Le pseudo local est conservé ; `/profil` et `/classement` restent en IndexedDB.
 
-- [ ] Attendre la conversation MVP complet
-- [ ] Switch premium dev-only marche / arrêt, à côté de `featureFlags.ts`, inerte en build de production
-- [ ] Reprendre webhook Stripe, frontière serveur-client, RLS des tables premium (partiellement fait en Phase 1)
+À reprendre en v2, sur une base propre :
+
+- [ ] Réintroduire l'auth (Supabase ou autre), la synchronisation cloud et le premium. Le JSON d'export de la v1 (`exportAll`, chantier local-first) est la graine de migration des données existantes
+- [ ] Switch premium dev-only marche / arrêt, inerte en build de production (mémoire `premium-dev-toggle`)
+- [ ] Reprendre webhook Stripe, frontière serveur-client, RLS des tables premium
+- Spec de retrait et note de migration v2 : `docs/superpowers/specs/2026-09-03-remove-accounts-v1-design.md`
 
 ## Séquencement
 
@@ -124,10 +126,12 @@ Quatre vagues. À l'intérieur d'une vague, deux chantiers aux arbres de fichier
 - **Vague 1 :** WS-1 (accessibilité et responsive) ∥ WS-4 (sécurité et données). Disjoints : composants et CSS d'un côté, `supabase/` plus `db.ts` plus `next.config.ts` de l'autre. WS-4 démarre bloqué sur le lien Supabase ; ses tâches non-RLS avancent en attendant.
 - **Vague 2 :** WS-2 (i18n et porte d'entrée) ∥ WS-3 (richesse sonore et Peak-End). Disjoints : `messages/*` plus metadata plus `proxy.ts` d'un côté, couche audio plus `warp-engine` de l'autre. Point d'attention : `ResultsPage` est touché par WS-3 et par WS-5, ne pas mener WS-3 et WS-5 en même temps.
 - **Vague 3 :** WS-5 (polissage) en solo ou finement découpé, il touche `HomeClient`, `ResultsPage`, le thème et `progression.ts` ; plus les items isolés de WS-6 intercalés.
-- **Vague 4 :** WS-7 (premium), après le feu vert explicite de Mouwafic sur le périmètre premium.
+- **Vague 4 :** ~~WS-7 (premium)~~ retiré de la v1 (décision Mouwafic 2026-09-03). Le premium, l'auth et la sync repartent en v2 sur une base propre.
 
 ## Journal
 
+- **2026-09-03** : comptes retirés de la v1 (**PR #32**, `90d7383`, +114 / -3171 sur 45 fichiers). Décision Mouwafic : lancer sans comptes, reverser l'auth, la sync et le premium en v2. Supprimés : `app/[locale]/auth/*`, `app/[locale]/premium/*`, `app/api/stripe/*`, `lib/supabase/*`, `lib/sync.ts`, `lib/stripe.ts`, `hooks/useUser.ts`, `hooks/useSyncCloud.ts`, `components/ui/AuthForm.tsx`, plus les deps `@supabase/ssr` + `@supabase/supabase-js` + `stripe` + `@stripe/stripe-js`. `useUser()` remplacé par `usePseudo()` (lecture seule du pseudo IndexedDB). `proxy.ts` réduit au routing de locale next-intl. CSP `connect-src` sans `*.supabase.co`. `featureFlags.ts` : `SYNC_IS_COMING_SOON` retiré, seul `IS_DEV_MODE` reste. `GlobalNav` : `/profil` devient une entrée permanente, plus d'état login ni d'avatar. `transparence` : lignes de coût base de données et Stripe retirées, copie mise à jour (« pas de compte, tout tourne dans votre navigateur »). Messages : namespaces `auth` / `sync` / `premium` supprimés des deux locales. WS-4 : les 2 tâches RLS deviennent sans objet. WS-7 : reversé en v2. Spec : `docs/superpowers/specs/2026-09-03-remove-accounts-v1-design.md`. Gate complet vert (730 tests). Effet attendu, à confirmer par Mouwafic : le signalement « usage commercial » de Vercel doit tomber (plus de Stripe).
+- **2026-09-03** : WS-5 clos (`6 / 8`, `5 / 6` chantiers ; 2 items versés en dette WS-6). **PR #29** bouton Réécouter : `ResultsPage` rejoue les `noteEvents` de la séance via `playNoteName` (nouveau sur `useAudioEngine`, `triggerAttackRelease` direct sur le sampler ou le synth de repli), planifié au `setTimeout` sur les timestamps réels, plafond 22 s, bascule ♪ / ■, désactivé sans notes, timeouts nettoyés au démontage. **PR #30** couleurs de thème : `ContributionHeatmap` et `WpmProgressChart` quittent les hex figés pour des `var(--color-*)` et `color-mix()` sur l'accent ; la ligne de tendance or reste. **PR #31** (claude2) thèmes de jalons : `noir` / `midnight-sun` / `arcade` câblés dans `APP_THEMES`, `UserProfile.unlockedThemes` (IndexedDB) source unique, `useThemeStore` réduit à `{ themeId, setTheme }` ; la revue lead a attrapé un filtre trop strict qui masquait 3 thèmes de base pour les anciens profils, corrigé sur la branche + garde ajoutée. Item « libellés d'icônes » déjà satisfait (vérifié). Dé-scopés du lancement : le clignotement du texte du jour (compromis seed serveur / sélection client) et la cohérence styles inline / tokens (audit transversal, trop large).
 - **2026-09-03** : WS-5 `2 / 8`. **PR #27** : `generateChallengeLink` (`lib/challenge.ts`) récursait avec `text.slice(0, MAX_TEXT_LENGTH * 0.6)`, un tronçon de longueur constante du texte d'origine. Quand l'URL ne pouvait pas tenir sous `MAX_URL_BYTES` (baseUrl volumineux, ou texte déjà plus court que `0.6 * MAX_TEXT_LENGTH`), chaque appel récursif recevait des arguments identiques : récursion infinie, stack overflow. Le chemin n'est pas atteint par l'app aujourd'hui (`ChallengeClient` passe un `baseUrl` vide et un texte déjà borné à 300), mais c'est une récursion non bornée sur une entrée limite. Corrigé : boucle bornée qui rogne la longueur effective (`Math.min(len - 1, floor(len * 0.6))`), plancher à zéro, retour meilleur effort si rien ne fait tenir l'URL. Entrées normales inchangées (retour première passe). TDD : 2 cas dans `challenge.test.ts` (se termine avec un baseUrl surdimensionné ; le texte est rogné), tous deux levaient `RangeError` avant. `generateReplayLink` a un `while(true)` de forme voisine mais qui se termine (rétrécissement géométrique des timings + plancher `<= 10`), laissé tel quel. Repris par claude2 (claude à court de tokens). Gate complet vert (720 tests).
 - **2026-09-03** : WS-5 démarré (`1 / 8`). **PR #25** : `sitemap.xml` et `robots.txt`, jusque-là absents. `app/sitemap.ts` génère les pages publiques (accueil, classement, premium, transparence) dans les deux locales, chacune avec ses alternates hreflang fr/en, à partir de `routing.locales` et `APP_URL` (pas de duplication). `app/robots.ts` autorise le crawl, `Disallow` sur `/api/` et les zones privées glob-préfixées par locale (`/*/auth/`, `/*/profil`, `/*/results`, `/*/replay`, `/*/dev-onboarding`), déclare le sitemap. Auth / profil / états de session délibérément hors index. Vérifié en curl, généré en statique au build. Tests : couverture publique complète dans les deux locales, aucune route privée, robots nomme le sitemap et interdit les chemins privés. Gate complet vert (718 tests).
 - **2026-09-03** : WS-1 clos (`8 / 8`, `3 / 7` chantiers). Trois PRs séquentielles pour les tâches restantes :
