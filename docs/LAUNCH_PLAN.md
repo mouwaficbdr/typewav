@@ -11,7 +11,7 @@ Les identifiants `WS-N` sont la référence dans les messages de commit et dans 
 
 ## Avancement
 
-`3 / 7` chantiers livrés · `22 / 40` tâches · WS-1, WS-2 et WS-3 clos (WS-4 4/6, les 2 RLS bloquées Supabase ; WS-5 1/8 ; WS-6/7 à faire ou bloqués).
+`3 / 7` chantiers livrés · `23 / 40` tâches · WS-1, WS-2 et WS-3 clos (WS-4 4/6, les 2 RLS bloquées Supabase ; WS-5 2/8 ; WS-6/7 à faire ou bloqués).
 
 > Vercel bloque tous les déploiements (plan Hobby, projet signalé usage commercial). `main` n'est plus déployé depuis ~2026-08-21. Action Mouwafic : dashboard Vercel. N'affecte pas la CI GitHub Actions.
 
@@ -79,17 +79,17 @@ Fait par claude2 (PR #6, mergée). Bloqué : les 2 tâches RLS attendent que le 
 - [x] Sérialiser les mises à jour de stats concurrentes qui peuvent se perdre (transaction readwrite + file de promesses par store)
 - [x] Compléter les en-têtes de sécurité (`lib/security-headers.ts` : CSP taillée pour Tone.js/Supabase, HSTS, Permissions-Policy)
 
-### WS-5 · La somme des petites choses : en cours (1 / 8)
+### WS-5 · La somme des petites choses : en cours (2 / 8)
 
 Objectif : retirer l'impression de produit pas tout à fait fini, une fois l'essentiel sécurisé. Audit §8 plus la dette des thèmes de jalons.
 Périmètre : dispersé : ResultsPage / replay, générateur de lien de défi, `HomeClient.tsx`, CSS de thème, `packages/types/src/progression.ts`. Collision : touche `HomeClient` et `ResultsPage`, ne pas paralléliser à l'aveugle.
 
-PR #25 (sitemap et robots).
+PR #25 (sitemap et robots), PR #27 (lien de défi borné).
 
 - [ ] Bouton Réécouter qui ne fait rien
 - [ ] Icônes d'action cryptiques : libellés et infobulles
 - [ ] Texte du jour qui diffère serveur / navigateur : clignotement au chargement
-- [ ] Générateur de lien de défi qui peut boucler à l'infini dans un cas extrême
+- [x] Générateur de lien de défi qui peut boucler à l'infini dans un cas extrême (PR #27) : `generateChallengeLink` récursait avec un tronçon de longueur constante du texte d'origine ; sur une entrée limite (baseUrl volumineux, ou texte déjà court) l'appel récursif recevait des arguments identiques → stack overflow. Récursion remplacée par une boucle bornée qui rogne la longueur effective du texte, plancher à zéro, meilleur effort si l'URL reste trop longue. TDD : 2 cas qui levaient `RangeError` avant. `generateReplayLink` (`lib/replay.ts`) a un `while(true)` voisin mais qui se termine (décroissance géométrique + plancher `<= 10`), laissé tel quel
 - [ ] Couleurs codées en dur qui cassent le thème clair
 - [ ] `MILESTONES` récompense des thèmes `noir` et `midnight-sun` absents de `APP_THEMES`
 - [x] `sitemap.xml` absent pour les moteurs de recherche (PR #25) : `app/sitemap.ts` liste les pages publiques (accueil, classement, premium, transparence) dans les deux locales avec alternates hreflang fr/en ; `app/robots.ts` autorise le crawl, `Disallow` sur `/api/` et les zones privées par locale (auth, profil, results, replay, dev-onboarding), pointe vers le sitemap. Auth, profil et pages de session volontairement absents. Tests : couverture publique complète, aucune privée, robots nomme le sitemap. Généré en statique au build
@@ -128,6 +128,7 @@ Quatre vagues. À l'intérieur d'une vague, deux chantiers aux arbres de fichier
 
 ## Journal
 
+- **2026-09-03** : WS-5 `2 / 8`. **PR #27** : `generateChallengeLink` (`lib/challenge.ts`) récursait avec `text.slice(0, MAX_TEXT_LENGTH * 0.6)`, un tronçon de longueur constante du texte d'origine. Quand l'URL ne pouvait pas tenir sous `MAX_URL_BYTES` (baseUrl volumineux, ou texte déjà plus court que `0.6 * MAX_TEXT_LENGTH`), chaque appel récursif recevait des arguments identiques : récursion infinie, stack overflow. Le chemin n'est pas atteint par l'app aujourd'hui (`ChallengeClient` passe un `baseUrl` vide et un texte déjà borné à 300), mais c'est une récursion non bornée sur une entrée limite. Corrigé : boucle bornée qui rogne la longueur effective (`Math.min(len - 1, floor(len * 0.6))`), plancher à zéro, retour meilleur effort si rien ne fait tenir l'URL. Entrées normales inchangées (retour première passe). TDD : 2 cas dans `challenge.test.ts` (se termine avec un baseUrl surdimensionné ; le texte est rogné), tous deux levaient `RangeError` avant. `generateReplayLink` a un `while(true)` de forme voisine mais qui se termine (rétrécissement géométrique des timings + plancher `<= 10`), laissé tel quel. Repris par claude2 (claude à court de tokens). Gate complet vert (720 tests).
 - **2026-09-03** : WS-5 démarré (`1 / 8`). **PR #25** : `sitemap.xml` et `robots.txt`, jusque-là absents. `app/sitemap.ts` génère les pages publiques (accueil, classement, premium, transparence) dans les deux locales, chacune avec ses alternates hreflang fr/en, à partir de `routing.locales` et `APP_URL` (pas de duplication). `app/robots.ts` autorise le crawl, `Disallow` sur `/api/` et les zones privées glob-préfixées par locale (`/*/auth/`, `/*/profil`, `/*/results`, `/*/replay`, `/*/dev-onboarding`), déclare le sitemap. Auth / profil / états de session délibérément hors index. Vérifié en curl, généré en statique au build. Tests : couverture publique complète dans les deux locales, aucune route privée, robots nomme le sitemap et interdit les chemins privés. Gate complet vert (718 tests).
 - **2026-09-03** : WS-1 clos (`8 / 8`, `3 / 7` chantiers). Trois PRs séquentielles pour les tâches restantes :
   - **PR #20** : erreurs de formulaire annoncées. `AuthForm` gagne `role="alert"` (erreur) et `role="status"` (succès). Les autres formulaires (`ResetPasswordClient`, bannières audio `HomeClient`) portaient déjà ces rôles.
