@@ -1,9 +1,13 @@
 'use client';
 
 /**
- * useThemeStore — thème actif et déverrouillage.
+ * useThemeStore : thème actif (persisté en localStorage).
  * 'use client' : Zustand ne s'exécute que côté client.
- * Spec : docs/ARCHITECTURE.md — Zustand stores
+ *
+ * La liste des thèmes débloqués vit dans `UserProfile.unlockedThemes`
+ * (IndexedDB, alimentée par les jalons via `useProgressionCheck`). C'est la
+ * seule vérité ; l'ancien `unlockedThemes` / `unlockTheme` de ce store était
+ * du code mort (aucun lecteur, aucun appelant) et a été retiré (WS-5 #6).
  */
 
 import { create } from 'zustand';
@@ -11,27 +15,17 @@ import { persist } from 'zustand/middleware';
 
 interface ThemeState {
   themeId: string;
-  unlockedThemes: string[];
 }
 
 interface ThemeActions {
   setTheme: (themeId: string) => void;
-  unlockTheme: (themeId: string) => void;
 }
 
 export const useThemeStore = create<ThemeState & ThemeActions>()(
   persist(
     (set) => ({
       themeId: 'terminal',
-      unlockedThemes: ['terminal', 'deep-burgundy', 'cyprus-sand'],
-
       setTheme: (themeId) => set({ themeId }),
-      unlockTheme: (themeId) =>
-        set((state) => ({
-          unlockedThemes: state.unlockedThemes.includes(themeId)
-            ? state.unlockedThemes
-            : [...state.unlockedThemes, themeId],
-        })),
     }),
     {
       name: 'typewav-theme-storage',

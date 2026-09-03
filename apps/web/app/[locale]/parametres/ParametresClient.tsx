@@ -1,17 +1,34 @@
 'use client';
 
-import { APP_THEMES } from '@/lib/theme/defaultThemes';
+import { getUserProfile } from '@/lib/db';
+import { APP_THEMES, BASE_UNLOCKED_THEME_IDS } from '@/lib/theme/defaultThemes';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { CheckCircle2, Palette } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useTranslations } from 'next-intl';
+import { useEffect, useState } from 'react';
 
 export function ParametresClient() {
   const t = useTranslations('settings');
   const themeId = useThemeStore((s) => s.themeId);
   const setTheme = useThemeStore((s) => s.setTheme);
 
-  const themes = Object.values(APP_THEMES);
+  // Thèmes débloqués : `UserProfile.unlockedThemes` (IndexedDB), alimenté par
+  // les jalons. Avant chargement, on montre les thèmes de base pour éviter un
+  // écran vide (ils n'apparaissent jamais après coup, ils disparaissent
+  // seulement si l'utilisateur n'en a débloqué aucun de plus).
+  const [unlockedThemes, setUnlockedThemes] =
+    useState<readonly string[]>(BASE_UNLOCKED_THEME_IDS);
+
+  useEffect(() => {
+    getUserProfile()
+      .then((profile) => setUnlockedThemes(profile.unlockedThemes))
+      .catch(() => undefined);
+  }, []);
+
+  const themes = Object.values(APP_THEMES).filter((theme) =>
+    unlockedThemes.includes(theme.id),
+  );
 
   return (
     <main className="content-typing flex flex-col gap-12 py-12 max-w-4xl mx-auto w-full px-4">

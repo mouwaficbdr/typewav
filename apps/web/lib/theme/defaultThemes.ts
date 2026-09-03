@@ -1,5 +1,16 @@
+import { arcadeTheme, midnightSunTheme, noirTheme } from '@typewav/themes';
 import type { ThemeConfig } from '@typewav/types';
 
+/**
+ * Thèmes rendus par l'application (sélecteur de /parametres, ThemeProvider,
+ * ThemeScript).
+ *
+ * Les 4 premiers sont les thèmes de base, débloqués d'office
+ * (`BASE_UNLOCKED_THEME_IDS`). `noir` / `midnight-sun` / `arcade` viennent de
+ * `@typewav/themes` (objets `ThemeConfig` complets, déjà AA) et sont
+ * débloqués par les jalons `MILESTONES` (`first_session`, `sessions_50`,
+ * `wpm_70`).
+ */
 export const APP_THEMES: Record<string, ThemeConfig> = {
   terminal: {
     id: 'terminal',
@@ -111,4 +122,20 @@ export const APP_THEMES: Record<string, ThemeConfig> = {
     chordProgressionId: 'terminal',
     defaultSoundPackId: 'piano',
   },
+  // Thèmes de jalon : définis dans `@typewav/themes`, débloqués via MILESTONES.
+  noir: noirTheme,
+  'midnight-sun': midnightSunTheme,
+  arcade: arcadeTheme,
 };
+
+/**
+ * Thèmes débloqués d'office. Seule vérité du défaut, importée par
+ * `db.ts` (`DEFAULT_PROFILE.unlockedThemes`) et par le sélecteur de thème.
+ * Tout ce qui n'est pas là est derrière un jalon.
+ */
+export const BASE_UNLOCKED_THEME_IDS = [
+  'terminal',
+  'deep-burgundy',
+  'cyprus-sand',
+  'night-imperial',
+] as const;
