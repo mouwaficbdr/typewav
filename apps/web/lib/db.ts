@@ -127,6 +127,20 @@ export function migrate(db: IDBPDatabase<TypeWavDB>, oldVersion: number): void {
   }
 }
 
+/**
+ * Local-first : demande au navigateur d'exempter cette origine de l'éviction
+ * de stockage. Best effort, silencieux : l'app fonctionne sans, et l'API peut
+ * être absente (vieux navigateur) ou refuser. Appelé une fois, à l'ouverture
+ * de la DB.
+ */
+function requestPersistentStorage(): void {
+  try {
+    void navigator.storage?.persist?.().catch(() => undefined);
+  } catch {
+    // `navigator` indisponible (SSR, environnement de test) : on ignore.
+  }
+}
+
 async function getDB(): Promise<IDBPDatabase<TypeWavDB>> {
   if (dbInstance) return dbInstance;
 
@@ -145,6 +159,8 @@ async function getDB(): Promise<IDBPDatabase<TypeWavDB>> {
       dbInstance = null;
     },
   });
+
+  requestPersistentStorage();
 
   return dbInstance;
 }
