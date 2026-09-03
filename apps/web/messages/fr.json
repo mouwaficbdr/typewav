@@ -72,6 +72,9 @@
     "registerRomantique": "Romantique",
     "registerFolk": "Folk",
     "changeLanguage": "Changer la langue d entrée",
+    "langFr": "français",
+    "langEn": "anglais",
+    "langBoth": "français + anglais",
     "changeCollection": "Changer la collection de textes",
     "ariaSessionWaveform": "Forme d onde de la session",
     "ariaWpmChart": "Graphique WPM de la session",
@@ -218,7 +221,9 @@
     "pack": "Pack sonore",
     "volume": "Volume",
     "mute": "Couper le son",
-    "unmute": "Activer le son"
+    "unmute": "Activer le son",
+    "samplerFallbackLabel": "Son de secours",
+    "midiErrorLabel": "Erreur MIDI"
   },
   "theme": {
     "select": "Thème",
@@ -253,7 +258,10 @@
     "resetButton": "Envoyer le lien",
     "resetSent": "Email envoyé ! Vérifiez votre boîte de réception.",
     "resetError": "Impossible d'envoyer l'email. Vérifiez l'adresse saisie.",
-    "backToLogin": "Retour à la connexion"
+    "backToLogin": "Retour à la connexion",
+    "notConfigured": "Service d'authentification non configuré. Ajoutez vos variables NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY dans .env.local.",
+    "signupSuccess": "Compte créé ! Vérifiez votre email pour confirmer votre inscription.",
+    "genericError": "Une erreur est survenue."
   },
   "sync": {
     "comingSoon": "Bientôt",
@@ -266,7 +274,8 @@
     "enable": "Activer le mode Fantôme",
     "disable": "Désactiver le mode Fantôme",
     "locked": "Mode Fantôme verrouillé",
-    "lockedTooltip": "Complète un test pour débloquer le mode Fantôme — ton meilleur résultat servira de référence"
+    "lockedTooltip": "Complète un test pour débloquer le mode Fantôme — ton meilleur résultat servira de référence",
+    "noRecordFallback": "Aucun record personnel pour l'instant : terminez une session pour débloquer le mode Fantôme. Cette session se déroule en mode Classic."
   },
   "preview": {
     "play": "Aperçu sonore",

@@ -72,6 +72,9 @@
     "registerRomantique": "Romantic",
     "registerFolk": "Folk",
     "changeLanguage": "Change input language",
+    "langFr": "french",
+    "langEn": "english",
+    "langBoth": "french + english",
     "changeCollection": "Change text collection",
     "ariaSessionWaveform": "Session waveform",
     "ariaWpmChart": "Session WPM chart",
@@ -218,7 +221,9 @@
     "pack": "Sound pack",
     "volume": "Volume",
     "mute": "Mute",
-    "unmute": "Unmute"
+    "unmute": "Unmute",
+    "samplerFallbackLabel": "Fallback sound",
+    "midiErrorLabel": "MIDI error"
   },
   "theme": {
     "select": "Theme",
@@ -253,7 +258,10 @@
     "resetButton": "Send reset link",
     "resetSent": "Email sent! Check your inbox.",
     "resetError": "Could not send email. Please check the address.",
-    "backToLogin": "Back to login"
+    "backToLogin": "Back to login",
+    "notConfigured": "Authentication service not configured. Add your NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY variables to .env.local.",
+    "signupSuccess": "Account created! Check your email to confirm your registration.",
+    "genericError": "Something went wrong."
   },
   "sync": {
     "comingSoon": "Coming soon",
@@ -266,7 +274,8 @@
     "enable": "Enable Ghost mode",
     "disable": "Disable Ghost mode",
     "locked": "Ghost mode locked",
-    "lockedTooltip": "Complete a test to unlock Ghost mode — your best result will be used as reference"
+    "lockedTooltip": "Complete a test to unlock Ghost mode — your best result will be used as reference",
+    "noRecordFallback": "No personal record yet: finish a session to unlock Ghost mode. This session runs in Classic mode."
   },
   "preview": {
     "play": "Hear a preview",

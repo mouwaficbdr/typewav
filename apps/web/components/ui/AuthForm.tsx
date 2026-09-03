@@ -40,9 +40,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     setLoading(true);
 
     if (!supabase) {
-      setError(
-        "Service d'authentification non configuré. Ajoutez vos variables NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY dans .env.local.",
-      );
+      setError(t('notConfigured'));
       setLoading(false);
       return;
     }
@@ -57,9 +55,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           },
         });
         if (signUpError) throw signUpError;
-        setSuccess(
-          'Compte créé ! Vérifiez votre email pour confirmer votre inscription.',
-        );
+        setSuccess(t('signupSuccess'));
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
@@ -70,8 +66,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         router.refresh();
       }
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : 'Une erreur est survenue.';
+      const message = err instanceof Error ? err.message : t('genericError');
       setError(message);
     } finally {
       setLoading(false);
