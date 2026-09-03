@@ -44,10 +44,12 @@ export function buildHeatmapData(
 }
 
 function getColor(count: number): string {
-  if (count === 0) return '#1A1A2E';
-  if (count === 1) return '#005541';
-  if (count <= 3) return '#00A882';
-  return '#00D4AA';
+  if (count === 0) return 'var(--color-surface)';
+  if (count === 1)
+    return 'color-mix(in srgb, var(--color-accent) 35%, var(--color-surface))';
+  if (count <= 3)
+    return 'color-mix(in srgb, var(--color-accent) 65%, var(--color-surface))';
+  return 'var(--color-accent)';
 }
 
 export function ContributionHeatmap({ sessions }: ContributionHeatmapProps) {
