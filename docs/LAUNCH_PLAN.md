@@ -11,7 +11,7 @@ Les identifiants `WS-N` sont la référence dans les messages de commit et dans 
 
 ## Avancement
 
-`0 / 7` chantiers livrés · `5 / 39` tâches · Vague 1 en cours (WS-1 ∥ WS-4).
+`0 / 7` chantiers livrés · `8 / 39` tâches · Vague 1 terminée (WS-1 4/8, WS-4 4/6, restes bloqués/tranches suivantes).
 
 > Vercel bloque tous les déploiements (plan Hobby, projet signalé usage commercial). `main` n'est plus déployé depuis ~2026-08-21. Action Mouwafic : dashboard Vercel. N'affecte pas la CI GitHub Actions.
 
@@ -60,18 +60,18 @@ Périmètre : `hooks/useAudioEngine.ts`, `lib/warp-engine.ts`, `lib/note-express
 - [ ] Rebrancher le mécanisme sans le bourdon, retiré : la proposition d'origine s'appuyait sur `harmonic-drone.ts`
 - [ ] Porter le langage visuel AmbientAura / WaveformBars sur `ResultsPage` (badge record et `SessionWaveform` déjà en place)
 
-### WS-4 · Sécurité et données — bloqué (0 / 6)
+### WS-4 · Sécurité et données — 4 / 6 (les 2 restantes bloquées)
 
 Objectif : fermer les fuites de données discrètes que l'audit signale une fois l'urgent traité. Audit §5 et §8.
 Périmètre : `supabase/migrations/*`, `apps/web/lib/db.ts`, couche sync, `apps/web/next.config.ts`, Supabase MCP.
-Bloqué : lier le vrai projet Supabase (action Mouwafic). Les cinq autres tâches avancent sans lui.
+Fait par claude2 (PR #6, mergée). Bloqué : les 2 tâches RLS attendent que le vrai projet Supabase soit lié (action Mouwafic).
 
 - [ ] Lier le vrai projet Supabase, appliquer `20260713000001_rls_user_premium_and_sessions.sql`
 - [ ] Tester automatiquement les policies RLS (chaque ligne liée à son propriétaire)
-- [ ] Couper réellement la sync cloud tant que `SYNC_IS_COMING_SOON` (elle s'exécute en silence vers une table peut-être absente)
-- [ ] Versionner correctement les évolutions de la base locale IndexedDB (`lib/db.ts`)
-- [ ] Sérialiser les mises à jour de stats concurrentes qui peuvent se perdre
-- [ ] Compléter les en-têtes de sécurité
+- [x] Couper réellement la sync cloud tant que `SYNC_IS_COMING_SOON` (gardes au point d'entrée `syncAll`/`pushSession` + hook)
+- [x] Versionner correctement les évolutions de la base locale IndexedDB (`migrate(db, oldVersion)`, échelle par version, `blocking`/`terminated`)
+- [x] Sérialiser les mises à jour de stats concurrentes qui peuvent se perdre (transaction readwrite + file de promesses par store)
+- [x] Compléter les en-têtes de sécurité (`lib/security-headers.ts` : CSP taillée pour Tone.js/Supabase, HSTS, Permissions-Policy)
 
 ### WS-5 · La somme des petites choses — à faire (0 / 8)
 
@@ -120,7 +120,7 @@ Quatre vagues. À l'intérieur d'une vague, deux chantiers aux arbres de fichier
 
 ## Journal
 
-- **2026-09-03** : WS-1 tranche 2 (reduced-motion côté CSS), PR #5. Bloc `@media (prefers-reduced-motion: reduce)` dans `globals.css` pour le caret, le curseur, le skeleton et le logo nav ; les animations composant étaient déjà couvertes. Gate vert (532 tests). WS-4 : claude2 a livré ses 4 tâches (sync coupée, migrations IndexedDB explicites, mutations stats sérialisées, en-têtes de sécurité), PR à venir.
+- **2026-09-03** : Vague 1 terminée. WS-4 (PR #6, claude2) mergée après revue lead : sync silencieuse coupée, migrations IndexedDB explicites (`migrate(db, oldVersion)`), mutations profil/records sérialisées (transaction + file de promesses), en-têtes de sécurité (CSP/HSTS/Permissions-Policy). 2 retouches de revue appliquées (commentaire CSP exact, HSTS sans `preload`). WS-1 tranche 2 (reduced-motion CSS) mergée (PR #5).
 - **2026-09-03** : WS-1 tranche 1 (zone de frappe accessible) mergée (PR #4, `06feb8b`). `role="application"` au lieu du faux `textbox`, instructions `aria-describedby`, texte cible sr-only, région live polite aux paliers de 25 %, anneau de focus clavier restauré.
 - **2026-09-02** : nettoyage de branches (ancienne `feat/redesign-ux-ui` supprimée, delta AmbientAura sur PR #3 mergée, `main` recalé), Vague 1 ouverte, assignation parallèle écrite dans `HANDOFF.md`.
 - **2026-09-02** : plan de lancement créé à partir de l'audit et des mémoires. Protocole parallèle claude / claude2 écrit dans le `CLAUDE.md` local et `HANDOFF.md`.
