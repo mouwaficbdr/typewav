@@ -31,6 +31,13 @@ export function ActiveSessionHeader({
   const [registerFilter, setRegisterFilter] = useState('all');
   const [composerFilter, setComposerFilter] = useState('all');
   const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const closeMenu = (returnFocus: boolean) => {
+    setIsMenuOpen(false);
+    if (returnFocus) triggerRef.current?.focus();
+  };
 
   const registerOptions = useMemo(
     () => Array.from(new Set(allPieces.map((piece) => piece.register))).sort(),
@@ -84,6 +91,11 @@ export function ActiveSessionHeader({
       document.addEventListener('mousedown', handleClickOutside);
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMenuOpen]);
+
+  // À l'ouverture, le focus clavier entre dans le menu (champ de recherche).
+  useEffect(() => {
+    if (isMenuOpen) searchInputRef.current?.focus();
   }, [isMenuOpen]);
 
   const handleShuffle = () => {
@@ -179,7 +191,10 @@ export function ActiveSessionHeader({
         }}
       >
         <button
+          ref={triggerRef}
           onClick={() => setIsMenuOpen((v) => !v)}
+          aria-haspopup="dialog"
+          aria-expanded={isMenuOpen}
           style={{
             background: 'transparent',
             border: '1px solid var(--color-border)',
@@ -238,6 +253,13 @@ export function ActiveSessionHeader({
               exit={{ opacity: 0, y: -5 }}
               transition={{ duration: 0.15 }}
               role="dialog"
+              aria-label={t('library')}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  e.stopPropagation();
+                  closeMenu(true);
+                }
+              }}
               style={{
                 position: 'absolute',
                 top: '100%',
@@ -282,6 +304,7 @@ export function ActiveSessionHeader({
                 }}
               >
                 <input
+                  ref={searchInputRef}
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
@@ -377,7 +400,7 @@ export function ActiveSessionHeader({
                   onClick={() => {
                     if (!piece.midiPieceId) return;
                     onPieceChange(piece.midiPieceId);
-                    setIsMenuOpen(false);
+                    closeMenu(true);
                   }}
                   disabled={!piece.midiPieceId}
                   style={{
