@@ -131,7 +131,25 @@
     "relistenStop": "Arrêter",
     "duration": "durée",
     "raw": "raw",
-    "characters": "caractères"
+    "characters": "caractères",
+    "encore": "Encore",
+    "encoreKey": "Entrée",
+    "sameText": "Rejouer ce texte",
+    "share": "Partager",
+    "defy": "Défier",
+    "melodyAria": "La mélodie de ta séance, rejouable",
+    "recordKicker": "Record",
+    "verdict": {
+      "flawless": "Pas une seule faute.",
+      "fatigue": "La fin t'a coûté {pct} % de vitesse.",
+      "accelerated": "Tu as fini {pct} % plus vite que tu n'as commencé.",
+      "hesitation": "{count, plural, one {# hésitation marquée.} other {# hésitations marquées.}}",
+      "accuracy": "{count, plural, one {# touche à retravailler.} other {# touches à retravailler.}}",
+      "metronomic": "Ton tempo a tenu jusqu'au bout.",
+      "clean": "Séance propre.",
+      "brief": "Séance courte. Joue-en une vraie."
+    },
+    "copied": "Lien copié"
   },
   "challenge": {
     "title": "Défi TypeWav",
@@ -149,8 +167,8 @@
     "challengeTextAltered": "Le texte du challenge a été altéré.",
     "invalidOrExpiredLink": "Lien de challenge invalide ou expiré.",
     "backHome": "← Retour à l'accueil",
-    "wonWithWpm": "✓ Gagné — {wpm} WPM !",
-    "remainingToBeat": "{wpm} WPM — encore {remaining} WPM à gagner",
+    "wonWithWpm": "✓ Gagné : {wpm} WPM !",
+    "remainingToBeat": "{wpm} WPM, encore {remaining} WPM à gagner",
     "retry": "Réessayer"
   },
   "replay": {
@@ -161,7 +179,7 @@
     "loading": "Chargement du replay…",
     "missingReplayInUrl": "Aucun replay dans cette URL.",
     "invalidOrCorruptedLink": "Lien de replay invalide ou corrompu.",
-    "banner": "Replay — {wpm} WPM · {accuracy}% · {theme}",
+    "banner": "Replay · {wpm} WPM · {accuracy}% · {theme}",
     "preLaunchDescription": "Appuyez sur la première touche pour démarrer votre session. Le curseur fantôme rejoue le record partagé en temps réel.",
     "backHome": "← Retour à l'accueil"
   },
@@ -204,7 +222,7 @@
     "recordWpm": "Record WPM",
     "recordAccuracy": "Record précision",
     "wpmProgress": "Progression WPM",
-    "activity90Days": "Activité — 90 jours",
+    "activity90Days": "Activité sur 90 jours",
     "daysFilter": "{count}j",
     "recentReplays": "Replays récents",
     "openReplay": "Voir le replay",
@@ -256,7 +274,7 @@
     "enable": "Activer le mode Fantôme",
     "disable": "Désactiver le mode Fantôme",
     "locked": "Mode Fantôme verrouillé",
-    "lockedTooltip": "Complète un test pour débloquer le mode Fantôme — ton meilleur résultat servira de référence",
+    "lockedTooltip": "Complète un test pour débloquer le mode Fantôme : ton meilleur résultat servira de référence",
     "noRecordFallback": "Aucun record personnel pour l'instant : terminez une session pour débloquer le mode Fantôme. Cette session se déroule en mode Classic."
   },
   "preview": {
@@ -338,7 +356,7 @@
   },
   "hint": {
     "restart": "Recommencer (Tab + Entrée)",
-    "tabEnter": "tab + entrée — nouveau texte"
+    "tabEnter": "tab + entrée : nouveau texte"
   },
   "source": {
     "label": "Source du texte"
