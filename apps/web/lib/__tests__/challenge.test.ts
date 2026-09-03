@@ -20,7 +20,7 @@ const SAMPLE_PARAMS: ChallengeParams = {
 };
 
 describe('encodeChallenge / decodeChallenge', () => {
-  it('round-trip — encode puis decode retourne les mêmes données', () => {
+  it('round-trip : encode puis decode retourne les mêmes données', () => {
     const encoded = encodeChallenge(SAMPLE_PARAMS);
     const decoded = decodeChallenge(encoded);
     expect(decoded).toEqual(SAMPLE_PARAMS);
@@ -89,6 +89,33 @@ describe('generateChallengeLink', () => {
     const encoded = url.split('?c=')[1]!;
     const params = decodeChallenge(encoded);
     expect(getChallengeText(params)).toBe(original);
+  });
+
+  it("se termine quand l'URL ne peut pas tenir sous la limite", () => {
+    // baseUrl volumineux : l'URL dépasse 2048 quel que soit le texte. L'ancienne
+    // version rappelait `text.slice(0, MAX_TEXT_LENGTH * 0.6)` (constante, pas la
+    // longueur courante) : avec un texte court, l'appel récursif recevait des
+    // arguments identiques → récursion infinie, stack overflow.
+    const longBaseUrl = `https://x.example/${'a'.repeat(2100)}`;
+    expect(() =>
+      generateChallengeLink(
+        'phrase de defi courte',
+        { duration: 60000, mode: 'classic' },
+        longBaseUrl,
+      ),
+    ).not.toThrow();
+  });
+
+  it("rogne le texte jusqu'au minimum quand l'URL reste trop longue", () => {
+    const original = 'phrase de defi originale et lisible';
+    const longBaseUrl = `https://x.example/${'a'.repeat(2100)}`;
+    const url = generateChallengeLink(
+      original,
+      { duration: 60000, mode: 'classic' },
+      longBaseUrl,
+    );
+    const params = decodeChallenge(url.split('?c=')[1]!);
+    expect(getChallengeText(params).length).toBeLessThan(original.length);
   });
 });
 
