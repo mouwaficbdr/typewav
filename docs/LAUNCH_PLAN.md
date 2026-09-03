@@ -5,13 +5,13 @@ Source machine du plan de lancement : ce qui reste entre l'état actuel et un la
 - **Vue de lecture (artifact, tenue par le lead) :** https://claude.ai/code/artifact/72a3dfc5-2943-4ef6-84c6-567487387ded
 - **Baton entre instances :** `~/.claude/projects/-home-mouwaficbdr-Code-Typewav/HANDOFF.md`
 - **Sources du plan :** `TypeWav-Etat-des-lieux.docx`, plan `giggly-drifting-hopper.md`, mémoires persistantes du projet.
-- **Dernière revue :** 2026-09-03 · Vague 2 close ; WS-2 tranche 3 (dates des graphiques profil) livrée
+- **Dernière revue :** 2026-09-03 · WS-2 clos (6 / 6) ; deux chantiers livrés
 
 Les identifiants `WS-N` sont la référence dans les messages de commit et dans `HANDOFF.md`. Ils ne dictent pas l'ordre : voir « Séquencement ».
 
 ## Avancement
 
-`1 / 7` chantiers livrés · `16 / 40` tâches · Vague 2 close (WS-1 4/8, WS-2 5/6, WS-3 3/3, WS-4 4/6 ; restes bloqués/tranches suivantes).
+`2 / 7` chantiers livrés · `17 / 40` tâches · WS-2 et WS-3 clos (WS-1 4/8, WS-4 4/6 ; restes bloqués/tranches suivantes).
 
 > Vercel bloque tous les déploiements (plan Hobby, projet signalé usage commercial). `main` n'est plus déployé depuis ~2026-08-21. Action Mouwafic : dashboard Vercel. N'affecte pas la CI GitHub Actions.
 
@@ -40,19 +40,21 @@ Tranche 1 (PR #4, mergée) : la zone de frappe elle-même. Tranche 2 (PR #5) : r
 - [ ] Erreurs de formulaire annoncées vocalement
 - [ ] Sélecteur de morceau entièrement manipulable au clavier
 
-### WS-2 · i18n complet et porte d'entrée : en cours (5 / 6)
+### WS-2 · i18n complet et porte d'entrée : livré (6 / 6)
 
 Objectif : dé-murer l'adresse nue, rendre le site présentable en recherche et en partage, tenir la promesse bilingue. Audit §3.
-Périmètre : `proxy.ts` / `i18n/*`, metadata de `[locale]/layout.tsx` et `lib/seo.ts`, `[locale]/opengraph-image.tsx`, `messages/{fr,en}.json`, formulaire d'auth, sélecteur de langue, graphiques profil (`components/charts/*`, `lib/weekly.ts`), `app/sitemap.ts`. Note : le namespace `learning` est déjà largement extrait.
+Périmètre : `proxy.ts` / `i18n/*`, `app/layout.tsx` + `[locale]/layout.tsx` (métadonnées + shell HTML), `lib/seo.ts`, `[locale]/opengraph-image.tsx`, `messages/{fr,en}.json`, formulaire d'auth, sélecteur de langue, graphiques profil (`components/charts/*`, `lib/weekly.ts`).
 
-Tranche 1 (PR #8, mergée) : porte d'entrée + SEO tête de page. Tranche 2 (PR #10, mergée) : extraction i18n. Tranche 3 (PR #12, mergée) : dates des graphiques profil. Reste `<html lang>`.
+Tranche 1 (PR #8) : porte d'entrée + SEO tête de page. Tranche 2 (PR #10) : extraction i18n. Tranche 3 (PR #12) : dates des graphiques profil. Tranche 4 (PR #14) : `<html lang>`.
+
+Carve-out (suivis propres, hors WS-2) : `transparence/page.tsx` (page entièrement en FR dur, mérite un namespace dédié) ; chaîne d'invitation à l'écoute au rang-up de `MilestoneToast.tsx` (nouvelle UX).
 
 - [x] Adresse nue `/` : détection de langue et redirection. En fait déjà en place via `proxy.ts` (Next 16 a renommé `middleware.ts` → `proxy.ts`) ; vérifié : `/` → 307 `/fr`, `Accept-Language: en` → 307 `/en`
 - [x] Déclarer les alternates hreflang (`<link rel="alternate" hreflang>` fr / en / x-default en tête de page) ; canonical par locale (`/fr`, `/en`) au lieu de la racine nue qui redirige
 - [x] Aperçus de partage cohérents avec la langue : retrait de la référence morte `/og-image.png`, la convention `opengraph-image` fournit un PNG généré et localisé (texte + `alt` FR/EN), titres OG / Twitter dans la langue de la page
 - [x] Sortir vers next-intl : labels des bannières d'état audio (`audio.samplerFallbackLabel` / `audio.midiErrorLabel`), sélecteur de langue lui-même (`typing.langFr` / `langEn` / `langBoth`, désormais localisé au lieu d'un libellé anglais figé), messages propres au formulaire de connexion (`auth.notConfigured` / `signupSuccess` / `genericError`) ; au passage le repli Fantôme sans record (`ghost.noRecordFallback`)
 - [x] Remplacer les dates FR codées en dur par le formateur localisé (PR #12) : graphiques du dashboard profil (`WpmProgressChart`, `ContributionHeatmap`) via `useFormatter` de next-intl, chaînes des graphiques sorties vers `messages/{fr,en}.json` (namespace `profile`) ; `weekly.ts` `bestDay` → `bestDayIndex` locale-agnostique. Reste carve-out : `transparence/page.tsx` (toute la page est en FR dur, pas juste la date : tranche propre) et la chaîne rang-up de `MilestoneToast.tsx` (nouvelle UX, pas de la date)
-- [ ] `<html lang>` absent (le layout racine ne connaît pas la locale) : demande une restructuration racine / `[locale]`, différé en tranche dédiée
+- [x] `<html lang>` posé depuis la locale de route (PR #14) : `<html>` / `<body>` descendus dans `app/[locale]/layout.tsx`, `app/layout.tsx` devient un pass-through. `/fr` sert `<html lang="fr">`, `/en` sert `<html lang="en">`. Structure next-intl pour Next < 16.3 (`next/root-params` indisponible en 16.1.6). Check de locale via `hasLocale()`
 
 ### WS-3 · Music sells, ce qui reste : livré (3 / 3)
 
@@ -124,6 +126,7 @@ Quatre vagues. À l'intérieur d'une vague, deux chantiers aux arbres de fichier
 
 ## Journal
 
+- **2026-09-03** : WS-2 clos (`6 / 6`, `2 / 7` chantiers). Dernière tâche, `<html lang>` (PR #14, mergée) : le layout racine rendait `<html>` au-dessus du segment `[locale]`, donc sans attribut `lang` du tout. `<html>` / `<body>` (className des polices, `ThemeScript`, `body`) descendent dans `app/[locale]/layout.tsx`, seul niveau qui connaît la locale, qui rend `<html lang={locale}>` ; `app/layout.tsx` devient un pass-through portant encore `metadata` / `viewport` par défaut. Structure documentée par next-intl pour Next < 16.3 (`next/root-params` indisponible, repo en 16.1.6). Check de locale via `hasLocale()` (retrait du cast `as`). Vérifié en curl (RSC async retournant `<html>` non testable en testing-library) : `/fr` sert `<html lang="fr">`, `/en` sert `<html lang="en">`, build vert, les 404 sous `[locale]` gardent le shell.
 - **2026-09-03** : WS-2 tranche 3 (dates localisées, PR #12, mergée). Les graphiques du dashboard profil suivaient un `'fr-FR'` codé en dur : `WpmProgressChart` et `ContributionHeatmap` mettent en forme leurs dates via `useFormatter` de next-intl (helpers purs `groupByDay` / `buildHeatmapData` avec formateur injecté, testable sans mock d'horloge). Chaînes des graphiques sorties vers `messages/{fr,en}.json` namespace `profile` (`chartMedian`, `chartTrend`, `chartEmpty`, `heatmapAria`, `heatmapLess`/`heatmapMore`, `heatmapSessions` en pluriel ICU ; au passage un tiret cadratin retiré du texte de tooltip). `lib/weekly.ts` : `bestDay` (nom de jour `fr-FR` déjà mis en forme) devient `bestDayIndex` (`Date.getDay()`, `-1` si vide), `calculateWeeklySummary` n'ayant aucun consommateur c'est une correction de forme. Carve-out assumé : `transparence/page.tsx` (page entièrement en FR dur, pas juste la date) et la chaîne rang-up de `MilestoneToast.tsx` (nouvelle UX) partent en suivis propres. TDD : +2 cas `weekly.test.ts`, 2 fichiers de test graphiques neufs. Gate complet vert (588 tests).
 - **2026-09-03** : Vague 2 close. WS-3 (PR #9, claude2) mergée après revue lead : le rang façonne l'instrument piano (réverbe, plancher de vélocité, release), sans note ni voix ajoutée ; `lib/rank-sound.ts` fonctions pures ; aura ambiante `AmbientAura` portée sur `ResultsPage` avec un gonflement unique sur nouveau record. Revue lead : frontière disjointe de WS-2 vérifiée, règle produit intacte (chemin d'erreur non touché), pas de crash avant hydratation du rang. 3 nits non bloquants laissés à claude2 (doc « médiane », `config` partiellement mort, vérif manuelle du fond transparent de `ResultsPage`). WS-2 : tranches 1-2 livrées (PR #8 et #10), restent tranche 3 (dates localisées) et `<html lang>`.
 - **2026-09-03** : WS-2 tranche 2 (extraction i18n). Neuf chaînes sorties vers `messages/{fr,en}.json` : sélecteur de langue (`typing.langFr`/`langEn`/`langBoth`, qui affichait un libellé anglais figé même en FR), labels des bannières d'état audio (`audio.samplerFallbackLabel`/`midiErrorLabel`, en dur `Sampler fallback:` / `MIDI error:`), messages propres au formulaire de connexion (`auth.notConfigured`/`signupSuccess`/`genericError`), et le repli Fantôme sans record (`ghost.noRecordFallback`). Parité fr/en vérifiée (321 clés chacune). 3 assertions de test recâblées sur les clés. Nits de doc repliés : « PR à venir » → PR #8 mergée, `510` → `562 tests`, « middleware » → `proxy.ts` dans Séquencement.
