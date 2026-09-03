@@ -11,26 +11,43 @@ vi.mock('@/hooks/useAudioEngine', () => ({
   }),
 }));
 
-vi.mock('@/components/typing/WpmChart', () => ({
-  WpmChart: () => <div data-testid="wpm-chart" />,
+vi.mock('@/components/typing/SessionWaveform', () => ({
+  SessionWaveform: () => <div data-testid="session-waveform" />,
 }));
 
-// prefers-reduced-motion pilotable par test. AmbientAura et WaveformBars
-// lisent tous deux useReducedMotion depuis ce module.
-const mockUseReducedMotion = vi.fn(() => false);
-vi.mock('motion/react', () => ({
-  motion: {
-    div: ({
-      children,
-      ...props
-    }: React.HTMLAttributes<HTMLDivElement> & {
-      initial?: unknown;
-      animate?: unknown;
-      transition?: unknown;
-    }) => <div {...props}>{children}</div>,
-  },
-  useReducedMotion: () => mockUseReducedMotion(),
+vi.mock('@/lib/db', () => ({
+  getSessionById: vi.fn(() => Promise.resolve(null)),
 }));
+
+// prefers-reduced-motion pilotable par test. AmbientAura le lit depuis ce module.
+const { mockUseReducedMotion } = vi.hoisted(() => ({
+  mockUseReducedMotion: vi.fn(() => false),
+}));
+vi.mock('motion/react', () => {
+  const mk = (tag: string) => {
+    const C = ({
+      children,
+      initial: _i,
+      animate: _a,
+      transition: _t,
+      ...props
+    }: Record<string, unknown> & { children?: React.ReactNode }) => {
+      const El = tag as unknown as React.ElementType;
+      return <El {...props}>{children}</El>;
+    };
+    C.displayName = `motion.${tag}`;
+    return C;
+  };
+  return {
+    motion: {
+      div: mk('div'),
+      p: mk('p'),
+      span: mk('span'),
+      rect: mk('rect'),
+    },
+    useReducedMotion: () => mockUseReducedMotion(),
+  };
+});
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
@@ -53,6 +70,10 @@ vi.mock('next/link', () => ({
   ),
 }));
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}));
+
 import { ResultsPage } from '../typing/ResultsPage';
 
 const baseProps = {
@@ -64,84 +85,56 @@ const baseProps = {
   mode: 'classic' as TypingMode,
 };
 
-// L'aura ambiante : conteneur fixed, aria-hidden, 2 blobs enfants.
-// La bande WaveformBars : conteneur aria-hidden, 12 barres enfants.
+// L'aura ambiante : conteneur fixed, aria-hidden, blobs enfants.
 function auraWrapper(container: HTMLElement): HTMLElement | null {
   return container.querySelector<HTMLElement>(
     'div[aria-hidden="true"][style*="position: fixed"]',
   );
 }
-function barsChildren(container: HTMLElement): HTMLElement[] {
-  const hidden = Array.from(
-    container.querySelectorAll<HTMLElement>('div[aria-hidden="true"]'),
-  );
-  const barsRoot = hidden.find((el) => el.children.length === 12) ?? null;
-  return barsRoot
-    ? (Array.from(barsRoot.children) as HTMLElement[])
-    : [];
-}
 
 beforeEach(() => {
   mockUseReducedMotion.mockReturnValue(false);
 });
-
 afterEach(() => {
   mockUseReducedMotion.mockReturnValue(false);
 });
 
-describe('ResultsPage — Peak-End (langage AmbientAura / WaveformBars)', () => {
+describe('ResultsPage : Peak-End (aura ambiante)', () => {
   it("porte l'aura ambiante derrière les résultats, décorative et non bloquante", () => {
     const { container } = render(<ResultsPage {...baseProps} />);
-
     const aura = auraWrapper(container);
     expect(aura).not.toBeNull();
     expect(aura).toHaveAttribute('aria-hidden', 'true');
     expect(aura?.style.pointerEvents).toBe('none');
-    // Derrière tout le contenu réel.
     expect(aura?.style.zIndex).toBe('-1');
   });
 
-  it("porte une bande d'égaliseur WaveformBars (12 barres, aria-hidden)", () => {
-    const { container } = render(<ResultsPage {...baseProps} />);
-    expect(barsChildren(container)).toHaveLength(12);
-  });
-
-  it("teinte l'aura avec l'accent de marque, pas une couleur de rang à froid", () => {
+  it("teinte l'aura avec l'accent de marque (juste même en chargement à froid)", () => {
     const { container } = render(<ResultsPage {...baseProps} />);
     const glow = auraWrapper(container)?.querySelector<HTMLElement>('div');
     expect(glow?.style.background).toContain('var(--color-accent)');
   });
 
-  it('respecte prefers-reduced-motion : aura figée, aucune pulsation de bande', () => {
+  it('respecte prefers-reduced-motion : aura figée', () => {
     mockUseReducedMotion.mockReturnValue(true);
     const { container } = render(
       <ResultsPage {...baseProps} isNewWpmRecord isNewAccuracyRecord />,
     );
-
     const glow = auraWrapper(container)?.querySelector<HTMLElement>('div');
     expect(glow?.style.animation).toBe('none');
-
-    const bars = barsChildren(container);
-    expect(bars).toHaveLength(12);
-    expect(
-      bars.every((bar) => !bar.style.animation.includes('typewav-idle-pulse')),
-    ).toBe(true);
   });
 
   it('sur un nouveau record, déclenche un unique swell (celebrate) sans planter', async () => {
     const { container } = render(
       <ResultsPage {...baseProps} isNewWpmRecord isNewAccuracyRecord={false} />,
     );
-
     await act(async () => {
       await Promise.resolve();
     });
-
     const glow = auraWrapper(container)?.querySelector<HTMLElement>('div');
-    // Le swell pousse l'opacité du color-mix bien au-dessus du repos (35%).
-    const mixMatch = glow?.style.background.match(/var\(--color-accent\)\s+(\d+)%/);
-    expect(mixMatch).not.toBeNull();
-    expect(Number(mixMatch?.[1])).toBeGreaterThan(60);
+    const mix = glow?.style.background.match(/var\(--color-accent\)\s+(\d+)%/);
+    expect(mix).not.toBeNull();
+    expect(Number(mix?.[1])).toBeGreaterThan(60);
   });
 
   it('sans record, pas de swell : aura au repos', async () => {
@@ -152,13 +145,11 @@ describe('ResultsPage — Peak-End (langage AmbientAura / WaveformBars)', () => 
         isNewAccuracyRecord={false}
       />,
     );
-
     await act(async () => {
       await Promise.resolve();
     });
-
     const glow = auraWrapper(container)?.querySelector<HTMLElement>('div');
-    const mixMatch = glow?.style.background.match(/var\(--color-accent\)\s+(\d+)%/);
-    expect(Number(mixMatch?.[1])).toBeLessThanOrEqual(35);
+    const mix = glow?.style.background.match(/var\(--color-accent\)\s+(\d+)%/);
+    expect(Number(mix?.[1])).toBeLessThanOrEqual(35);
   });
 });

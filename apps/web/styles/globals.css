@@ -1,8 +1,8 @@
 @import 'tailwindcss';
 
 /**
- * TypeWav — Design System "Dark Terminal Luxury"
- * Tailwind CSS 4.0 — CSS-first, pas de tailwind.config.js
+ * TypeWav : Design System "Dark Terminal Luxury"
+ * Tailwind CSS 4.0 : CSS-first, pas de tailwind.config.js
  * Spec : docs/specs/04-design-system.md
  */
 @theme {
@@ -171,7 +171,7 @@ body {
   border-radius: var(--radius-md);
 }
 
-/* ---- Logo nav — animation barres SVG (one-shot au chargement) ---- */
+/* ---- Logo nav : animation barres SVG (one-shot au chargement) ---- */
 @keyframes barRise {
   from {
     transform: scaleY(0);
@@ -218,14 +218,14 @@ body {
   }
 }
 
-/* ---- Zone de frappe — largeur conteneur centré (MonkeyType-style) ---- */
+/* ---- Zone de frappe : largeur conteneur centré (MonkeyType-style) ---- */
 .content-typing {
   max-width: 100%; /* Will be constrained by the parent container in HomeClient (1600px) */
   width: 100%;
   margin-inline: auto;
 }
 
-/* ---- Aura ligne active — fond ultra-subtil sur la ligne courante ---- */
+/* ---- Aura ligne active : fond ultra-subtil sur la ligne courante ---- */
 .char-line-focus {
   background: color-mix(in srgb, var(--color-accent) 3%, transparent);
   border-radius: var(--radius-sm);
@@ -238,4 +238,33 @@ body {
 .hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* ---- Écran de résultats : états de survol des actions ---- */
+.results-encore {
+  transition:
+    transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.18s ease;
+}
+.results-encore:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 22%, transparent);
+}
+.results-encore:active {
+  transform: translateY(0);
+}
+.results-relisten:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+.results-inline-action:hover:not(:disabled) {
+  color: var(--color-text-primary);
+}
+@media (prefers-reduced-motion: reduce) {
+  .results-encore {
+    transition: box-shadow 0.18s ease;
+  }
+  .results-encore:hover {
+    transform: none;
+  }
 }
