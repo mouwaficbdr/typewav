@@ -26,6 +26,20 @@ interface AmbientAuraProps {
   pitch: number | null;
   isError: boolean;
   isPhraseBoundary: boolean;
+  /**
+   * Couleur de l'aura. Par défaut celle du rang courant (RANKS) : sur la zone
+   * de frappe, où le rang est fiablement hydraté et où « mon rang colore ma
+   * pratique » est le propos. Passer une couleur explicite (ex.
+   * `var(--color-accent)`) pour un écran qui doit rester juste même en
+   * chargement à froid, comme les résultats.
+   */
+  accentColor?: string;
+  /**
+   * Un unique gonflement de lumière à l'arrivée du composant, puis retour au
+   * calme. Aucune boucle. Pensé pour l'écran de fin sur un nouveau record :
+   * le pic du Peak-End. Ignoré sous prefers-reduced-motion.
+   */
+  celebrate?: boolean;
 }
 
 // Bornes du rythme de respiration : au-delà, la sensation devient un
@@ -35,12 +49,14 @@ const MIN_BEAT_MS = 250;
 const MAX_BEAT_MS = 1500;
 const IDLE_BEAT_MS = 750; // 80 BPM — même défaut que warpEngine au repos.
 
-type PulseKind = 'none' | 'note' | 'peak' | 'error';
+type PulseKind = 'none' | 'note' | 'peak' | 'error' | 'celebrate';
 
 export function AmbientAura({
   pitch,
   isError,
   isPhraseBoundary,
+  accentColor: accentColorProp,
+  celebrate = false,
 }: AmbientAuraProps) {
   const rank = useProgressionStore((s) => s.rank);
   const liveBpm = useAudioStore((s) => s.liveBpm);
@@ -50,7 +66,7 @@ export function AmbientAura({
   const [pulse, setPulse] = useState<PulseKind>('none');
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const accentColor = RANKS[rank].accentColor;
+  const accentColor = accentColorProp ?? RANKS[rank].accentColor;
 
   // Écrit --beat-ms directement en DOM plutôt que via un objet de style React
   // : évite de re-render (et de re-diffuser un nouvel objet style) à chaque
@@ -90,6 +106,26 @@ export function AmbientAura({
     };
   }, [pitch, isError, isPhraseBoundary, shouldReduceMotion]);
 
+  // Swell unique à l'arrivée sur un nouveau record : la pièce respire fort une
+  // fois autour du résultat, puis retombe. Aucune boucle, rien sous
+  // prefers-reduced-motion (l'aura reste alors un halo fixe).
+  useEffect(() => {
+    if (!celebrate || shouldReduceMotion) return undefined;
+
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setPulse('celebrate');
+    });
+    const settle = setTimeout(() => {
+      if (!cancelled) setPulse('none');
+    }, 1100);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(settle);
+    };
+  }, [celebrate, shouldReduceMotion]);
+
   // Une erreur adoucit l'aura au lieu de l'alarmer en rouge : cohérent avec
   // la Phase 1 (l'erreur baisse la musique en fondu, ne la coupe jamais net
   // ni ne la sanctionne) — la pièce respire un peu moins fort, elle ne
@@ -102,9 +138,25 @@ export function AmbientAura({
   // passages (7-22% puis 6-42%) restaient invisibles en capture, l'exact
   // défaut que cette phase devait corriger sur WaveformBars.
   const topOpacityPct =
-    pulse === 'error' ? 10 : pulse === 'peak' ? 65 : pulse === 'note' ? 50 : 35;
+    pulse === 'error'
+      ? 10
+      : pulse === 'celebrate'
+        ? 82
+        : pulse === 'peak'
+          ? 65
+          : pulse === 'note'
+            ? 50
+            : 35;
   const bottomOpacityPct =
-    pulse === 'error' ? 7 : pulse === 'peak' ? 50 : pulse === 'note' ? 38 : 26;
+    pulse === 'error'
+      ? 7
+      : pulse === 'celebrate'
+        ? 64
+        : pulse === 'peak'
+          ? 50
+          : pulse === 'note'
+            ? 38
+            : 26;
 
   return (
     <div
