@@ -1,23 +1,61 @@
+import { routing } from '@/i18n/routing';
+import { buildMetadata } from '@/lib/seo';
 import type { Metadata } from 'next';
+import { hasLocale } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
-  title: 'Transparence',
-  description:
-    "Revenus, coûts d'infrastructure et modèle économique de TypeWav.",
+type Props = {
+  params: Promise<{ locale: string }>;
 };
 
+function resolveLocale(raw: string): (typeof routing.locales)[number] {
+  return hasLocale(routing.locales, raw) ? raw : routing.defaultLocale;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const locale = resolveLocale((await params).locale);
+  const t = await getTranslations({ locale, namespace: 'transparence' });
+  return buildMetadata({
+    locale,
+    title: t('metaTitle'),
+    description: t('metaDescription'),
+  });
+}
+
 /**
- * Page de transparence financière — Server Component (statique).
- * Spec : docs/specs/00-project-overview.md — Principe directeur
+ * Page de transparence financière : Server Component.
+ * Spec : docs/specs/00-project-overview.md, principe directeur.
  */
-export default function TransparencePage() {
-  const currentMonth = new Intl.DateTimeFormat('fr-FR', {
+export default async function TransparencePage({ params }: Props) {
+  const locale = resolveLocale((await params).locale);
+  const t = await getTranslations({ locale, namespace: 'transparence' });
+
+  const currentMonth = new Intl.DateTimeFormat(locale, {
     month: 'long',
     year: 'numeric',
   }).format(new Date());
+
+  const costRows = [
+    {
+      label: t('hostingLabel'),
+      cost: t('hostingCost'),
+      note: t('hostingNote'),
+    },
+    { label: t('dbLabel'), cost: t('dbCost'), note: t('dbNote') },
+    {
+      label: t('stripeLabel'),
+      cost: t('stripeCost'),
+      note: t('stripeNote'),
+    },
+    {
+      label: t('domainLabel'),
+      cost: t('domainCost'),
+      note: t('domainNote'),
+    },
+  ];
 
   return (
     <main
@@ -38,7 +76,7 @@ export default function TransparencePage() {
             letterSpacing: '0.05em',
           }}
         >
-          Transparence
+          {t('title')}
         </h1>
         <p
           style={{
@@ -48,7 +86,7 @@ export default function TransparencePage() {
             marginTop: '8px',
           }}
         >
-          Mise à jour : {currentMonth}
+          {t('lastUpdated', { month: currentMonth })}
         </p>
       </header>
 
@@ -64,7 +102,7 @@ export default function TransparencePage() {
             marginBottom: '16px',
           }}
         >
-          Notre principe
+          {t('principleHeading')}
         </h2>
         <p
           style={{
@@ -74,12 +112,9 @@ export default function TransparencePage() {
             lineHeight: '1.7',
           }}
         >
-          TypeWav est open source et gratuit à 100 % en fonctionnalités core. La
-          version Premium débloque des packs sonores cinématiques et la sync
-          cloud, mais{' '}
-          <strong>aucune fonctionnalité de typing n&apos;est paywallée</strong>.
-          Tous les revenus couvrent l&apos;infrastructure et financent le
-          développement futur.
+          {t.rich('principleBody', {
+            strong: (chunks) => <strong>{chunks}</strong>,
+          })}
         </p>
       </section>
 
@@ -95,31 +130,10 @@ export default function TransparencePage() {
             marginBottom: '16px',
           }}
         >
-          Modèle économique
+          {t('economicsHeading')}
         </h2>
         <div className="flex flex-col gap-4">
-          {[
-            {
-              label: 'Hébergement Vercel (Hobby)',
-              cost: '0 €/mois',
-              note: 'Gratuit pour projets personnels',
-            },
-            {
-              label: 'Supabase (Free tier)',
-              cost: '0 €/mois',
-              note: '500 MB DB, 50 000 MAU — suffisant Phase 4',
-            },
-            {
-              label: 'Stripe (frais transaction)',
-              cost: '1,4 % + 0,25 €',
-              note: 'Par transaction EU',
-            },
-            {
-              label: 'Domaine typewav.app',
-              cost: '~15 €/an',
-              note: 'Renouvellement annuel',
-            },
-          ].map((item) => (
+          {costRows.map((item) => (
             <div
               key={item.label}
               className="flex items-start justify-between gap-4"
@@ -177,7 +191,7 @@ export default function TransparencePage() {
             marginBottom: '16px',
           }}
         >
-          Construit sur l&apos;open source
+          {t('opensourceHeading')}
         </h2>
         <p
           style={{
@@ -187,10 +201,7 @@ export default function TransparencePage() {
             lineHeight: '1.7',
           }}
         >
-          Next.js, Tone.js, Tailwind CSS, Supabase, Vitest, idb, Zustand,
-          Motion, Recharts — des centaines de contributeurs rendent TypeWav
-          possible. Le code source de TypeWav est lui-même disponible sur
-          GitHub.
+          {t('opensourceBody')}
         </p>
       </section>
 
@@ -206,7 +217,7 @@ export default function TransparencePage() {
             marginBottom: '16px',
           }}
         >
-          Soutenir le projet
+          {t('supportHeading')}
         </h2>
         <p
           style={{
@@ -217,9 +228,7 @@ export default function TransparencePage() {
             marginBottom: '20px',
           }}
         >
-          TypeWav est développé bénévolement. Si l&apos;outil vous est utile, un
-          soutien ponctuel ou récurrent aide à financer le temps de
-          développement, les packs sonores, et les collections de contenu.
+          {t('supportBody')}
         </p>
         <div className="flex flex-wrap gap-4">
           <a
@@ -242,7 +251,7 @@ export default function TransparencePage() {
             }}
             className="hover:opacity-80"
           >
-            ☕ Ko-fi — Soutien ponctuel
+            ☕ {t('koFiLabel')}
           </a>
           <a
             href="https://github.com/sponsors/mouwaficbdr"
@@ -264,13 +273,13 @@ export default function TransparencePage() {
             }}
             className="hover:opacity-80"
           >
-            ♥ GitHub Sponsors — Soutien mensuel
+            ♥ {t('sponsorsLabel')}
           </a>
         </div>
       </section>
 
       <Link
-        href="/"
+        href={`/${locale}`}
         style={{
           color: 'var(--color-text-muted)',
           fontFamily: 'var(--font-ui)',
@@ -279,7 +288,7 @@ export default function TransparencePage() {
         }}
         className="hover:underline"
       >
-        ← Retour au typing
+        ← {t('backToTyping')}
       </Link>
     </main>
   );

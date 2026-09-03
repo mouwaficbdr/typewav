@@ -88,4 +88,28 @@ describe('MilestoneToast — i18n', () => {
 
     expect(screen.getAllByText('Test FR Label')).toHaveLength(1);
   });
+
+  it('ajoute une invitation à l\'écoute quand le jalon est un rang (le rang façonne le son du piano, WS-3)', () => {
+    mockLocale.mockReturnValue('fr');
+    mockPendingMilestones.length = 0;
+    mockPendingMilestones.push({
+      ...mockMilestone,
+      id: 'rank_architect',
+      condition: { type: 'rank', tier: 'architect' },
+    });
+
+    render(<MilestoneToast />);
+
+    expect(screen.getByText('rankSoundHint')).toBeInTheDocument();
+  });
+
+  it("n'affiche pas l'invitation à l'écoute pour un jalon non lié au rang", () => {
+    mockLocale.mockReturnValue('fr');
+    mockPendingMilestones.length = 0;
+    mockPendingMilestones.push(mockMilestone); // condition.type === 'sessions'
+
+    render(<MilestoneToast />);
+
+    expect(screen.queryByText('rankSoundHint')).not.toBeInTheDocument();
+  });
 });
