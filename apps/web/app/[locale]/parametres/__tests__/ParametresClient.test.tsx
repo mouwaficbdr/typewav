@@ -6,6 +6,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mockGetUserProfile = vi.fn();
 vi.mock('@/lib/db', () => ({
   getUserProfile: () => mockGetUserProfile(),
+  exportAll: vi.fn(),
+  importAll: vi.fn(),
 }));
 
 const mockSetTheme = vi.fn();
@@ -38,6 +40,9 @@ vi.mock('motion/react', () => ({
 vi.mock('lucide-react', () => ({
   CheckCircle2: () => null,
   Palette: () => null,
+  HardDrive: () => null,
+  Download: () => null,
+  Upload: () => null,
 }));
 
 import { ParametresClient } from '../ParametresClient';
@@ -121,5 +126,16 @@ describe('ParametresClient : sélecteur de thème', () => {
     for (const name of GATED_NAMES) {
       expect(screen.queryByText(name)).toBeNull();
     }
+  });
+});
+
+describe('ParametresClient : gestion des données', () => {
+  it('rend la section export / import (DataManagement)', () => {
+    mockGetUserProfile.mockReturnValue(new Promise(() => {}));
+
+    render(<ParametresClient />);
+
+    expect(screen.getByText('dataOnDevice')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'dataExport' })).toBeTruthy();
   });
 });
