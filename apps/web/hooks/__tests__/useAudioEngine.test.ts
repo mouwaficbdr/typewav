@@ -351,3 +351,71 @@ describe('useAudioEngine — cycle de vie partagé', () => {
     expect(useAudioStore.getState().initialized).toBe(false);
   });
 });
+
+describe('useAudioEngine : prime au premier geste de la page', () => {
+  it("un pointerdown sur window initialise le moteur, sans appel explicite à initialize()", async () => {
+    loadPieceFromData(TEST_PIECE);
+    const { unmount } = renderHook(() => useAudioEngine());
+
+    await act(async () => {
+      window.dispatchEvent(new Event('pointerdown'));
+      await Promise.resolve();
+    });
+
+    await waitFor(() =>
+      expect(useAudioStore.getState().initialized).toBe(true),
+    );
+    unmount();
+  });
+
+  it('un keydown sur window amorce aussi le prime', async () => {
+    loadPieceFromData(TEST_PIECE);
+    const { unmount } = renderHook(() => useAudioEngine());
+
+    await act(async () => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+      await Promise.resolve();
+    });
+
+    await waitFor(() =>
+      expect(useAudioStore.getState().initialized).toBe(true),
+    );
+    unmount();
+  });
+
+  it('un second geste ne reconstruit pas le graphe audio', async () => {
+    loadPieceFromData(TEST_PIECE);
+    const { unmount } = renderHook(() => useAudioEngine());
+
+    await act(async () => {
+      window.dispatchEvent(new Event('pointerdown'));
+      await Promise.resolve();
+    });
+    await waitFor(() =>
+      expect(useAudioStore.getState().initialized).toBe(true),
+    );
+    samplerConstructor.mockClear();
+
+    await act(async () => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'b' }));
+      await Promise.resolve();
+    });
+
+    expect(samplerConstructor).not.toHaveBeenCalled();
+    unmount();
+  });
+
+  it("après démontage, un geste n'initialise plus rien (pas de listener fuité)", async () => {
+    loadPieceFromData(TEST_PIECE);
+    const { unmount } = renderHook(() => useAudioEngine());
+    unmount();
+
+    await act(async () => {
+      window.dispatchEvent(new Event('pointerdown'));
+      await Promise.resolve();
+    });
+    await Promise.resolve();
+
+    expect(useAudioStore.getState().initialized).toBe(false);
+  });
+});
