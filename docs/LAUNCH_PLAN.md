@@ -5,13 +5,13 @@ Source machine du plan de lancement : ce qui reste entre l'état actuel et un la
 - **Vue de lecture (artifact, tenue par le lead) :** https://claude.ai/code/artifact/72a3dfc5-2943-4ef6-84c6-567487387ded
 - **Baton entre instances :** `~/.claude/projects/-home-mouwaficbdr-Code-Typewav/HANDOFF.md`
 - **Sources du plan :** `TypeWav-Etat-des-lieux.docx`, plan `giggly-drifting-hopper.md`, mémoires persistantes du projet.
-- **Dernière revue :** 2026-09-03 · WS-2 clos (6 / 6) ; deux chantiers livrés
+- **Dernière revue :** 2026-09-03 · WS-2 clos ; round parallèle carve-outs WS-2 (PR #16) ∥ WS-1 contrastes (PR #17)
 
 Les identifiants `WS-N` sont la référence dans les messages de commit et dans `HANDOFF.md`. Ils ne dictent pas l'ordre : voir « Séquencement ».
 
 ## Avancement
 
-`2 / 7` chantiers livrés · `17 / 40` tâches · WS-2 et WS-3 clos (WS-1 4/8, WS-4 4/6 ; restes bloqués/tranches suivantes).
+`2 / 7` chantiers livrés · `18 / 40` tâches · WS-2 et WS-3 clos (WS-1 5/8, WS-4 4/6 ; restes bloqués/tranches suivantes).
 
 > Vercel bloque tous les déploiements (plan Hobby, projet signalé usage commercial). `main` n'est plus déployé depuis ~2026-08-21. Action Mouwafic : dashboard Vercel. N'affecte pas la CI GitHub Actions.
 
@@ -24,7 +24,7 @@ Les identifiants `WS-N` sont la référence dans les messages de commit et dans 
 
 ## Chantiers
 
-### WS-1 · Accessibilité et responsive : en cours (4 / 8)
+### WS-1 · Accessibilité et responsive : en cours (5 / 8)
 
 Objectif : le produit utilisable au clavier seul, au lecteur d'écran, au zoom et sur mobile. Obligation légale en Europe. Audit §6.
 Périmètre : `apps/web/components/typing/*`, `app/[locale]/layout.tsx`, `components/nav/*`, `AmbientAura.tsx`, `WaveformBars.tsx`, variables CSS, formulaires.
@@ -36,7 +36,7 @@ Tranche 1 (PR #4, mergée) : la zone de frappe elle-même. Tranche 2 (PR #5) : r
 - [x] Restaurer un indicateur de focus visible (`outline: none` retiré, anneau accent au focus clavier)
 - [x] Respecter `prefers-reduced-motion` : les animations pilotées par composant l'étaient déjà (`useReducedMotion`) ; ajout d'un bloc `@media` pour les keyframes CSS (caret, curseur, skeleton, logo nav)
 - [ ] Layout fluide avec points de rupture ; ne plus figer la hauteur sur une nav supposée ; nav repliable
-- [ ] Remonter les contrastes de couleur sous le seuil lisible
+- [x] Remonter les contrastes de couleur sous le seuil lisible (PR #17, claude2, revue lead) : `textMuted` / `error` (et les `char*` miroirs) remontés à WCAG 2.2 AA sur `bg` et `surface`, éclaircissement multiplicatif minimal, teinte préservée. Garde de non-régression `apps/web/lib/__tests__/theme-contrast.test.ts` (calc WCAG autonome, itère les deux sources de thèmes). `--color-border` hors périmètre (filet décoratif). **Finding :** seul **Cyprus Sand** était un thème *livré* qui échouait (`textMuted` 4.22, `error` 3.87) ; `@typewav/themes` (noir / arcade / midnight-sun) est une dépendance déclarée de `apps/web` mais jamais importée (données mortes), corrigée quand même
 - [ ] Erreurs de formulaire annoncées vocalement
 - [ ] Sélecteur de morceau entièrement manipulable au clavier
 
@@ -126,7 +126,10 @@ Quatre vagues. À l'intérieur d'une vague, deux chantiers aux arbres de fichier
 
 ## Journal
 
-- **2026-09-03** : round parallèle carve-outs WS-2 (lead) ∥ WS-1 contrastes (follower, PR #17 en revue). Carve-outs WS-2 livrés (PR #16, mergée) : `transparence/page.tsx` entièrement localisée (toute la copie FR sort vers un namespace `transparence`, `metadata` statique devient `generateMetadata` locale-aware, le mois « Mise à jour » et le `<title>` suivent la locale, `<strong>` via `t.rich`, deux tirets cadratins retirés du texte source) ; `MilestoneToast` gagne `progression.rankSoundHint`, une ligne d'invitation à l'écoute affichée uniquement pour un jalon de rang (le rang façonne le son du piano depuis WS-3). Chaînes EN validées par Mouwafic. TDD : MilestoneToast +2, `transparence` `generateMetadata` +3. Gate complet vert (593 tests).
+- **2026-09-03** : round parallèle carve-outs WS-2 (lead) ∥ WS-1 contrastes (follower). Les deux mergés, round refermé.
+  - **Carve-outs WS-2 (PR #16, mergée)** : `transparence/page.tsx` entièrement localisée (toute la copie FR sort vers un namespace `transparence`, `metadata` statique devient `generateMetadata` locale-aware, le mois « Mise à jour » et le `<title>` suivent la locale, `<strong>` via `t.rich`, deux tirets cadratins retirés du texte source) ; `MilestoneToast` gagne `progression.rankSoundHint`, une ligne d'invitation à l'écoute affichée uniquement pour un jalon de rang (le rang façonne le son du piano depuis WS-3). Chaînes EN validées par Mouwafic. TDD : MilestoneToast +2, `transparence` `generateMetadata` +3.
+  - **WS-1 contrastes (PR #17, claude2, revue lead + 1 retouche)** : `textMuted` / `error` (et `char*` miroirs) remontés à WCAG 2.2 AA sur `bg` et `surface`, éclaircissement multiplicatif minimal. Garde `theme-contrast.test.ts` (calc WCAG autonome, 112 assertions). Retouche de revue : 12 tirets cadratins retirés du code de claude2. Finding : `@typewav/themes` (noir / arcade / midnight-sun) est une dépendance déclarée de `apps/web` mais jamais importée (données mortes) ; seul **Cyprus Sand** (`APP_THEMES` dans `defaultThemes.ts`) est un thème livré qui échouait. À décider (Mouwafic) : retirer la dépendance morte ou câbler ces thèmes.
+  - WS-1 passe à `5 / 8`. Gate complet vert sur `main` (705 tests, 74 fichiers).
 - **2026-09-03** : WS-2 clos (`6 / 6`, `2 / 7` chantiers). Dernière tâche, `<html lang>` (PR #14, mergée) : le layout racine rendait `<html>` au-dessus du segment `[locale]`, donc sans attribut `lang` du tout. `<html>` / `<body>` (className des polices, `ThemeScript`, `body`) descendent dans `app/[locale]/layout.tsx`, seul niveau qui connaît la locale, qui rend `<html lang={locale}>` ; `app/layout.tsx` devient un pass-through portant encore `metadata` / `viewport` par défaut. Structure documentée par next-intl pour Next < 16.3 (`next/root-params` indisponible, repo en 16.1.6). Check de locale via `hasLocale()` (retrait du cast `as`). Vérifié en curl (RSC async retournant `<html>` non testable en testing-library) : `/fr` sert `<html lang="fr">`, `/en` sert `<html lang="en">`, build vert, les 404 sous `[locale]` gardent le shell.
 - **2026-09-03** : WS-2 tranche 3 (dates localisées, PR #12, mergée). Les graphiques du dashboard profil suivaient un `'fr-FR'` codé en dur : `WpmProgressChart` et `ContributionHeatmap` mettent en forme leurs dates via `useFormatter` de next-intl (helpers purs `groupByDay` / `buildHeatmapData` avec formateur injecté, testable sans mock d'horloge). Chaînes des graphiques sorties vers `messages/{fr,en}.json` namespace `profile` (`chartMedian`, `chartTrend`, `chartEmpty`, `heatmapAria`, `heatmapLess`/`heatmapMore`, `heatmapSessions` en pluriel ICU ; au passage un tiret cadratin retiré du texte de tooltip). `lib/weekly.ts` : `bestDay` (nom de jour `fr-FR` déjà mis en forme) devient `bestDayIndex` (`Date.getDay()`, `-1` si vide), `calculateWeeklySummary` n'ayant aucun consommateur c'est une correction de forme. Carve-out assumé : `transparence/page.tsx` (page entièrement en FR dur, pas juste la date) et la chaîne rang-up de `MilestoneToast.tsx` (nouvelle UX) partent en suivis propres. TDD : +2 cas `weekly.test.ts`, 2 fichiers de test graphiques neufs. Gate complet vert (588 tests).
 - **2026-09-03** : Vague 2 close. WS-3 (PR #9, claude2) mergée après revue lead : le rang façonne l'instrument piano (réverbe, plancher de vélocité, release), sans note ni voix ajoutée ; `lib/rank-sound.ts` fonctions pures ; aura ambiante `AmbientAura` portée sur `ResultsPage` avec un gonflement unique sur nouveau record. Revue lead : frontière disjointe de WS-2 vérifiée, règle produit intacte (chemin d'erreur non touché), pas de crash avant hydratation du rang. 3 nits non bloquants laissés à claude2 (doc « médiane », `config` partiellement mort, vérif manuelle du fond transparent de `ResultsPage`). WS-2 : tranches 1-2 livrées (PR #8 et #10), restent tranche 3 (dates localisées) et `<html lang>`.
