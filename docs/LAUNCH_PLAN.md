@@ -5,40 +5,40 @@ Source machine du plan de lancement : ce qui reste entre l'état actuel et un la
 - **Vue de lecture (artifact, tenue par le lead) :** https://claude.ai/code/artifact/72a3dfc5-2943-4ef6-84c6-567487387ded
 - **Baton entre instances :** `~/.claude/projects/-home-mouwaficbdr-Code-Typewav/HANDOFF.md`
 - **Sources du plan :** `TypeWav-Etat-des-lieux.docx`, plan `giggly-drifting-hopper.md`, mémoires persistantes du projet.
-- **Dernière revue :** 2026-09-03 · WS-2 clos ; round parallèle carve-outs WS-2 (PR #16) ∥ WS-1 contrastes (PR #17)
+- **Dernière revue :** 2026-09-03 · WS-1 clos (8 / 8) ; trois chantiers livrés
 
 Les identifiants `WS-N` sont la référence dans les messages de commit et dans `HANDOFF.md`. Ils ne dictent pas l'ordre : voir « Séquencement ».
 
 ## Avancement
 
-`2 / 7` chantiers livrés · `18 / 40` tâches · WS-2 et WS-3 clos (WS-1 5/8, WS-4 4/6 ; restes bloqués/tranches suivantes).
+`3 / 7` chantiers livrés · `21 / 40` tâches · WS-1, WS-2 et WS-3 clos (WS-4 4/6, les 2 RLS bloquées Supabase ; WS-5/6/7 à faire ou bloqués).
 
 > Vercel bloque tous les déploiements (plan Hobby, projet signalé usage commercial). `main` n'est plus déployé depuis ~2026-08-21. Action Mouwafic : dashboard Vercel. N'affecte pas la CI GitHub Actions.
 
 ## Déjà sécurisé (hors périmètre restant)
 
-- Audit §7, le filet : intégration continue GitHub Actions, 588 tests, planchers de couverture appliqués.
+- Audit §7, le filet : intégration continue GitHub Actions, 713 tests, planchers de couverture appliqués.
 - Audit §4, la caisse : webhook Stripe qui échoue en fermé, déduplication des événements rejoués, prix annuel aligné.
 - Audit §5, redirection : open redirect fermé dans le retour de connexion OAuth.
 - Audit §1 et §2, les deux cœurs : moteur audio en singleton, écho sur vraie correction, position MIDI remise à zéro chaque tentative ; formule WPM nette corrigée, clôture de séance idempotente, modes détente hors classement.
 
 ## Chantiers
 
-### WS-1 · Accessibilité et responsive : en cours (5 / 8)
+### WS-1 · Accessibilité et responsive : livré (8 / 8)
 
 Objectif : le produit utilisable au clavier seul, au lecteur d'écran, au zoom et sur mobile. Obligation légale en Europe. Audit §6.
-Périmètre : `apps/web/components/typing/*`, `app/[locale]/layout.tsx`, `components/nav/*`, `AmbientAura.tsx`, `WaveformBars.tsx`, variables CSS, formulaires.
+Périmètre : `apps/web/components/typing/*`, `components/ui/GlobalNav.tsx`, `components/ui/AuthForm.tsx`, `lib/theme/*`, `packages/themes/*`, `styles/globals.css`, formulaires.
 
-Tranche 1 (PR #4, mergée) : la zone de frappe elle-même. Tranche 2 (PR #5) : reduced-motion côté CSS.
+PR #4, #5 (tranches 1-2, zone de frappe + reduced-motion). PR #17 (contrastes, claude2). PR #20 (erreurs de formulaire annoncées). PR #21 (sélecteur de morceau au clavier). PR #23 (layout fluide, token `--nav-height`).
 
 - [x] Zone de frappe : retirer le faux rôle de champ texte, annoncer sa vraie nature (`role="application"`, `aria-describedby`)
 - [x] Exposer texte, progression et stats vivantes via des régions live dédiées (texte cible sr-only, région live polite aux paliers de 25 %)
 - [x] Restaurer un indicateur de focus visible (`outline: none` retiré, anneau accent au focus clavier)
 - [x] Respecter `prefers-reduced-motion` : les animations pilotées par composant l'étaient déjà (`useReducedMotion`) ; ajout d'un bloc `@media` pour les keyframes CSS (caret, curseur, skeleton, logo nav)
-- [ ] Layout fluide avec points de rupture ; ne plus figer la hauteur sur une nav supposée ; nav repliable
+- [x] Layout fluide ; ne plus figer la hauteur sur une nav supposée ; nav repliable (PR #23) : token CSS `--nav-height` (88px desktop / 56px sous 640px), source unique remplaçant huit `calc(100dvh - {48,100}px)` en dur ; padding et gaps de `GlobalNav` en `clamp()`, la barre wrappe au lieu de déborder. Décision design : pas de hamburger pour une nav de 5 icônes. Garde `nav-height-token.test.ts`. QA responsive navigateur réel encore à faire
 - [x] Remonter les contrastes de couleur sous le seuil lisible (PR #17, claude2, revue lead) : `textMuted` / `error` (et les `char*` miroirs) remontés à WCAG 2.2 AA sur `bg` et `surface`, éclaircissement multiplicatif minimal, teinte préservée. Garde de non-régression `apps/web/lib/__tests__/theme-contrast.test.ts` (calc WCAG autonome, itère les deux sources de thèmes). `--color-border` hors périmètre (filet décoratif). **Finding :** seul **Cyprus Sand** était un thème *livré* qui échouait (`textMuted` 4.22, `error` 3.87) ; `@typewav/themes` (noir / arcade / midnight-sun) est une dépendance déclarée de `apps/web` mais jamais importée (données mortes), corrigée quand même
-- [ ] Erreurs de formulaire annoncées vocalement
-- [ ] Sélecteur de morceau entièrement manipulable au clavier
+- [x] Erreurs de formulaire annoncées vocalement (PR #20) : `AuthForm` gagne `role="alert"` sur l'erreur et `role="status"` sur le succès. `ResetPasswordClient` et les bannières audio de `HomeClient` portaient déjà ces rôles
+- [x] Sélecteur de morceau entièrement manipulable au clavier (PR #21) : `ActiveSessionHeader` (le vrai sélecteur) gagne `aria-haspopup` + `aria-expanded`, `aria-label` sur le `role="dialog"`, Échap qui ferme et rend le focus au déclencheur, focus déplacé dans le menu à l'ouverture. `components/typing/MusicChip.tsx` est une version orpheline sans import (code mort, à nettoyer en WS-5/6)
 
 ### WS-2 · i18n complet et porte d'entrée : livré (6 / 6)
 
@@ -126,6 +126,12 @@ Quatre vagues. À l'intérieur d'une vague, deux chantiers aux arbres de fichier
 
 ## Journal
 
+- **2026-09-03** : WS-1 clos (`8 / 8`, `3 / 7` chantiers). Trois PRs séquentielles pour les tâches restantes :
+  - **PR #20** : erreurs de formulaire annoncées. `AuthForm` gagne `role="alert"` (erreur) et `role="status"` (succès). Les autres formulaires (`ResetPasswordClient`, bannières audio `HomeClient`) portaient déjà ces rôles.
+  - **PR #21** : sélecteur de morceau au clavier. `ActiveSessionHeader` gagne `aria-haspopup`/`aria-expanded`, un nom accessible sur le `role="dialog"`, Échap qui ferme et rend le focus, focus déplacé dans le menu à l'ouverture. `components/typing/MusicChip.tsx` identifié comme code mort orphelin (nettoyage WS-5/6).
+  - **PR #23** : layout fluide. Token CSS `--nav-height` unique (88px / 56px mobile) remplaçant huit `calc(100dvh - {48,100}px)` en dur incohérents ; padding et gaps de `GlobalNav` en `clamp()`, la barre wrappe. Décision design : pas de hamburger pour 5 icônes. Garde `nav-height-token.test.ts`.
+  - **PR #22** (chore) : `.claude/` et le `.docx` de travail ajoutés au `.gitignore` (un `git add -A` les avait aspirés dans une PR, retirés avant merge).
+  - QA responsive en navigateur réel encore à faire (jsdom sans moteur de layout).
 - **2026-09-03** : round parallèle carve-outs WS-2 (lead) ∥ WS-1 contrastes (follower). Les deux mergés, round refermé.
   - **Carve-outs WS-2 (PR #16, mergée)** : `transparence/page.tsx` entièrement localisée (toute la copie FR sort vers un namespace `transparence`, `metadata` statique devient `generateMetadata` locale-aware, le mois « Mise à jour » et le `<title>` suivent la locale, `<strong>` via `t.rich`, deux tirets cadratins retirés du texte source) ; `MilestoneToast` gagne `progression.rankSoundHint`, une ligne d'invitation à l'écoute affichée uniquement pour un jalon de rang (le rang façonne le son du piano depuis WS-3). Chaînes EN validées par Mouwafic. TDD : MilestoneToast +2, `transparence` `generateMetadata` +3.
   - **WS-1 contrastes (PR #17, claude2, revue lead + 1 retouche)** : `textMuted` / `error` (et `char*` miroirs) remontés à WCAG 2.2 AA sur `bg` et `surface`, éclaircissement multiplicatif minimal. Garde `theme-contrast.test.ts` (calc WCAG autonome, 112 assertions). Retouche de revue : 12 tirets cadratins retirés du code de claude2. Finding : `@typewav/themes` (noir / arcade / midnight-sun) est une dépendance déclarée de `apps/web` mais jamais importée (données mortes) ; seul **Cyprus Sand** (`APP_THEMES` dans `defaultThemes.ts`) est un thème livré qui échouait. À décider (Mouwafic) : retirer la dépendance morte ou câbler ces thèmes.
