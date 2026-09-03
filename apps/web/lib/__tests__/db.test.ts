@@ -129,6 +129,11 @@ describe('getUserProfile', () => {
 
     const profile3 = await getUserProfile();
     expect(profile3.currentRank).toBe('novice');
-    expect(profile3.unlockedThemes).toEqual(['terminal']);
+    expect(profile3.unlockedThemes).toEqual([
+      'terminal',
+      'deep-burgundy',
+      'cyprus-sand',
+      'night-imperial',
+    ]);
   });
 });
