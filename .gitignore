@@ -56,10 +56,14 @@ Thumbs.db
 /*.mid
 !/apps/web/public/midi/*.mid
 
-# AI tooling — local only, never push
+# AI tooling: local only, never push
 .github/copilot-instructions.md
 CLAUDE.md
 AGENTS.md
 .copilot/
 .cursor/
+.claude/
 *.instructions.md
+
+# Working docs kept out of the repo
+TypeWav-Etat-des-lieux.docx
