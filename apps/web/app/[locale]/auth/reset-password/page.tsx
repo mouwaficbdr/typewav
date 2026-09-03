@@ -20,7 +20,7 @@ export default async function ResetPasswordPage({
     <main
       className="flex flex-col items-center justify-center p-8"
       style={{
-        minHeight: 'calc(100dvh - 48px)',
+        minHeight: 'calc(100dvh - var(--nav-height))',
         backgroundColor: 'var(--color-bg)',
       }}
     >

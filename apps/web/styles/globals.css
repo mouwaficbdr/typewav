@@ -26,6 +26,12 @@
   --radius-md: 4px;
   --radius-lg: 8px;
 
+  /* Hauteur reservee par la barre de nav (GlobalNav, position: sticky).
+     Les pages qui veulent remplir le reste du viewport utilisent
+     calc(100dvh - var(--nav-height)) au lieu d'une valeur figee.
+     Override mobile plus bas. */
+  --nav-height: 88px;
+
   /* ---- Transitions ---- */
   --transition-fast: 120ms ease;
   --transition-normal: 200ms ease;
@@ -53,6 +59,13 @@ body {
   margin: 0;
   min-height: 100dvh;
   background-color: var(--color-bg);
+}
+
+/* La nav se resserre en dessous de 640px : la hauteur reservee suit. */
+@media (max-width: 640px) {
+  :root {
+    --nav-height: 56px;
+  }
 }
 
 /* ---- Focus visible accessible ---- */

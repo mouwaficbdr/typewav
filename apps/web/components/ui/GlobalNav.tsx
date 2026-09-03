@@ -53,9 +53,13 @@ export function GlobalNav() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '36px 40px 24px', // Bigger padding for premium feel
+        flexWrap: 'wrap',
+        rowGap: 8,
+        // Padding fluide : se resserre sur mobile (cf. --nav-height dans globals.css).
+        padding:
+          'clamp(16px, 4vw, 36px) clamp(16px, 4vw, 40px) clamp(12px, 2.5vw, 24px)',
         margin: '0 auto',
-        maxWidth: '1600px', // A bit wider to accommodate text
+        maxWidth: '1600px',
         width: '100%',
         background: 'transparent',
       }}
@@ -64,9 +68,21 @@ export function GlobalNav() {
       <NavLogo locale={locale} />
 
       {/* Nav Items groupés à droite */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 36 }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'clamp(12px, 3vw, 36px)',
+        }}
+      >
         {/* Menu principal */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'clamp(12px, 2.5vw, 28px)',
+          }}
+        >
           {NAV_ITEMS.map(({ key, label, Icon, path }) => {
             const href = path === '' ? `/${locale}` : `/${locale}/${path}`;
             const isActive =

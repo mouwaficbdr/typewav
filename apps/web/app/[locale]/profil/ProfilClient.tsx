@@ -72,7 +72,7 @@ export function ProfilClient() {
     return (
       <main
         style={{
-          minHeight: 'calc(100dvh - 48px)',
+          minHeight: 'calc(100dvh - var(--nav-height))',
           background: 'var(--color-bg)',
           padding: '48px 24px',
           maxWidth: 860,
@@ -148,7 +148,7 @@ export function ProfilClient() {
   return (
     <main
       style={{
-        minHeight: 'calc(100dvh - 48px)',
+        minHeight: 'calc(100dvh - var(--nav-height))',
         background: 'var(--color-bg)',
         padding: '48px 24px',
         maxWidth: 860,
