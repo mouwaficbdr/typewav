@@ -22,6 +22,7 @@ import type {
   UserProfile,
 } from '@typewav/types';
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
+import { BASE_UNLOCKED_THEME_IDS } from './theme/defaultThemes';
 
 // ─── Types locaux DB ──────────────────────────────────────────────────────────
 
@@ -295,7 +296,7 @@ export async function deletePreference(key: string): Promise<void> {
 // ─── Profil utilisateur ───────────────────────────────────────────────────────
 
 const DEFAULT_PROFILE: UserProfile = {
-  unlockedThemes: ['terminal'],
+  unlockedThemes: [...BASE_UNLOCKED_THEME_IDS],
   unlockedCollections: ['litterature'],
   unlockedMilestoneIds: [],
   currentRank: 'novice',
