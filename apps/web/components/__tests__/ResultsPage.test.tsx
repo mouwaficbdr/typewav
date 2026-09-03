@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import type { TypingMode } from '@typewav/types';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -45,6 +45,15 @@ vi.mock('next/link', () => ({
       {children}
     </a>
   ),
+}));
+
+const mockInitialize = vi.fn().mockResolvedValue(undefined);
+const mockPlayNoteName = vi.fn().mockResolvedValue(undefined);
+vi.mock('@/hooks/useAudioEngine', () => ({
+  useAudioEngine: () => ({
+    initialize: mockInitialize,
+    playNoteName: mockPlayNoteName,
+  }),
 }));
 
 import { ResultsPage } from '../typing/ResultsPage';
@@ -114,6 +123,42 @@ describe('ResultsPage — barre d\u2019actions', () => {
     expect(() =>
       render(<ResultsPage {...baseProps} noteEvents={[]} />),
     ).not.toThrow();
+  });
+});
+
+describe('ResultsPage : réécoute de la mélodie', () => {
+  const noteEvents = [
+    { noteName: 'C4', timestamp: 0, charIndex: 0, isError: false as const },
+    { noteName: 'E4', timestamp: 120, charIndex: 1, isError: false as const },
+    { noteName: 'G4', timestamp: 300, charIndex: 2, isError: false as const },
+  ];
+
+  it('le bouton ♪ initialise l’audio et rejoue chaque note', async () => {
+    vi.useFakeTimers();
+    vi.clearAllMocks();
+    mockInitialize.mockResolvedValue(undefined);
+    mockPlayNoteName.mockResolvedValue(undefined);
+
+    render(<ResultsPage {...baseProps} noteEvents={noteEvents} />);
+    fireEvent.click(screen.getByRole('button', { name: 'relisten' }));
+
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
+
+    expect(mockInitialize).toHaveBeenCalledTimes(1);
+    expect(mockPlayNoteName).toHaveBeenCalledWith('C4');
+    expect(mockPlayNoteName).toHaveBeenCalledWith('E4');
+    expect(mockPlayNoteName).toHaveBeenCalledWith('G4');
+
+    vi.useRealTimers();
+  });
+
+  it('le bouton ♪ est désactivé sans noteEvents', () => {
+    render(<ResultsPage {...baseProps} noteEvents={[]} />);
+    expect(
+      screen.getByRole('button', { name: 'relisten' }),
+    ).toBeDisabled();
   });
 });
 

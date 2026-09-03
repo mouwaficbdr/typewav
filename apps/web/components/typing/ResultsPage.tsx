@@ -13,6 +13,7 @@
 import { AmbientAura } from '@/components/typing/AmbientAura';
 import { WaveformBars } from '@/components/typing/WaveformBars';
 import { WpmChart } from '@/components/typing/WpmChart';
+import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useUser } from '@/hooks/useUser';
 import { getSessionById } from '@/lib/db';
 import { generateReplayLink } from '@/lib/replay';
@@ -21,7 +22,10 @@ import type { NoteEvent, SessionResult, TypingMode } from '@typewav/types';
 import { motion, useReducedMotion } from 'motion/react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+/** Fenêtre max de réécoute : au-delà, la mélodie est tronquée. */
+const RELISTEN_MAX_MS = 22_000;
 
 interface ResultsPageProps {
   // ── Métriques core ────────────────────────────────────────────────────────
@@ -182,6 +186,16 @@ export function ResultsPage({
   const [wpmPoints, setWpmPoints] = useState<WpmPoint[]>([]);
   const [sessionForReplay, setSessionForReplay] =
     useState<SessionResult | null>(null);
+  const [isReplaying, setIsReplaying] = useState(false);
+
+  const { initialize, playNoteName } = useAudioEngine();
+  const replayTimeouts = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const stopRelisten = () => {
+    for (const id of replayTimeouts.current) clearTimeout(id);
+    replayTimeouts.current = [];
+    setIsReplaying(false);
+  };
 
   useEffect(() => {
     if (!sessionId) return;
@@ -193,6 +207,37 @@ export function ResultsPage({
       setSessionForReplay(session);
     });
   }, [sessionId]);
+
+  // Coupe la réécoute si l'écran est quitté.
+  useEffect(() => stopRelisten, []);
+
+  const handleRelisten = () => {
+    if (isReplaying) {
+      stopRelisten();
+      return;
+    }
+    if (!noteEvents || noteEvents.length === 0) return;
+
+    const start = noteEvents[0]!.timestamp;
+    const window = noteEvents.filter(
+      (e) => e.timestamp - start <= RELISTEN_MAX_MS,
+    );
+
+    setIsReplaying(true);
+    void initialize().then(() => {
+      for (const event of window) {
+        const id = setTimeout(() => {
+          void playNoteName(event.noteName);
+        }, event.timestamp - start);
+        replayTimeouts.current.push(id);
+      }
+      const endId = setTimeout(
+        () => setIsReplaying(false),
+        (window.at(-1)?.timestamp ?? start) - start + 700,
+      );
+      replayTimeouts.current.push(endId);
+    });
+  };
 
   const handleShare = () => {
     if (!sessionId || !sessionForReplay?.text) return;
@@ -383,9 +428,10 @@ export function ResultsPage({
             ↺
           </Link>
           <ActionBtn
-            icon="♪"
-            label={t('relisten')}
+            icon={isReplaying ? '■' : '♪'}
+            label={isReplaying ? t('relistenStop') : t('relisten')}
             disabled={!noteEvents || noteEvents.length === 0}
+            onClick={handleRelisten}
           />
           <ActionBtn
             icon="|◄"
