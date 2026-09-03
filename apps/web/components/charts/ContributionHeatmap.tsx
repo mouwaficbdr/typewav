@@ -7,15 +7,23 @@
  */
 
 import type { SessionResult } from '@typewav/types';
+import { useFormatter, useTranslations } from 'next-intl';
 
 interface ContributionHeatmapProps {
   sessions: SessionResult[];
 }
 
-function buildHeatmapData(sessions: SessionResult[]) {
-  const now = Date.now();
-  const DAY_MS = 86_400_000;
+const DAY_MS = 86_400_000;
 
+/**
+ * Construit la grille 90 jours. La mise en forme de la date de chaque cellule
+ * est déléguée à `formatDate` (locale-aware côté composant via `useFormatter`).
+ */
+export function buildHeatmapData(
+  sessions: SessionResult[],
+  formatDate: (timestamp: number) => string,
+  now: number = Date.now(),
+) {
   // Compter les sessions par jour (90 derniers jours)
   const countByDay = new Map<string, number>();
   for (const s of sessions) {
@@ -29,12 +37,7 @@ function buildHeatmapData(sessions: SessionResult[]) {
   const cells: { daysAgo: number; count: number; date: string }[] = [];
   for (let d = 89; d >= 0; d--) {
     const count = countByDay.get(String(d)) ?? 0;
-    const date = new Date(now - d * DAY_MS).toLocaleDateString('fr-FR', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    });
-    cells.push({ daysAgo: d, count, date });
+    cells.push({ daysAgo: d, count, date: formatDate(now - d * DAY_MS) });
   }
 
   return cells;
@@ -48,7 +51,16 @@ function getColor(count: number): string {
 }
 
 export function ContributionHeatmap({ sessions }: ContributionHeatmapProps) {
-  const cells = buildHeatmapData(sessions);
+  const t = useTranslations('profile');
+  const format = useFormatter();
+
+  const cells = buildHeatmapData(sessions, (ts) =>
+    format.dateTime(new Date(ts), {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    }),
+  );
 
   // Organiser en colonnes de 7 (semaines)
   const WEEKS = Math.ceil(cells.length / 7);
@@ -62,7 +74,7 @@ export function ContributionHeatmap({ sessions }: ContributionHeatmapProps) {
       <svg
         viewBox={`0 0 ${totalWidth} ${totalHeight}`}
         style={{ minWidth: totalWidth, maxWidth: '100%' }}
-        aria-label="Heatmap des sessions des 90 derniers jours"
+        aria-label={t('heatmapAria')}
       >
         {cells.map((cell, i) => {
           const week = Math.floor(i / 7);
@@ -82,7 +94,7 @@ export function ContributionHeatmap({ sessions }: ContributionHeatmapProps) {
               style={{ transition: 'fill 0.2s' }}
             >
               <title>
-                {cell.date} — {cell.count} session{cell.count !== 1 ? 's' : ''}
+                {cell.date} · {t('heatmapSessions', { count: cell.count })}
               </title>
             </rect>
           );
@@ -101,7 +113,7 @@ export function ContributionHeatmap({ sessions }: ContributionHeatmapProps) {
           color: 'var(--color-text-muted)',
         }}
       >
-        <span>Moins</span>
+        <span>{t('heatmapLess')}</span>
         {[0, 1, 2, 4].map((count) => (
           <div
             key={count}
@@ -113,7 +125,7 @@ export function ContributionHeatmap({ sessions }: ContributionHeatmapProps) {
             }}
           />
         ))}
-        <span>Plus</span>
+        <span>{t('heatmapMore')}</span>
       </div>
     </div>
   );

@@ -210,7 +210,14 @@
     "daysFilter": "{count}j",
     "recentReplays": "Replays récents",
     "openReplay": "Voir le replay",
-    "noReplays": "Aucun replay sauvegardé"
+    "noReplays": "Aucun replay sauvegardé",
+    "chartMedian": "Médiane",
+    "chartTrend": "Tendance",
+    "chartEmpty": "Pas encore de sessions sur cette période.",
+    "heatmapAria": "Activité des 90 derniers jours",
+    "heatmapLess": "Moins",
+    "heatmapMore": "Plus",
+    "heatmapSessions": "{count, plural, one {# session} other {# sessions}}"
   },
   "progression": {
     "rank": "Rang",

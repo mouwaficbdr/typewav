@@ -62,6 +62,22 @@ describe('calculateWeeklySummary', () => {
     expect(summary.avgWpm).toBe(0);
     expect(summary.sessionsCount).toBe(0);
     expect(summary.wpmDelta).toBe(0);
+    expect(summary.bestDayIndex).toBe(-1);
+  });
+
+  it('bestDayIndex est le jour de semaine (0-6) le plus fréquenté', () => {
+    // 3 sessions groupées sur un même jour, 1 sur un autre.
+    const heavyDay = NOW - 2 * DAY;
+    const lightDay = NOW - 4 * DAY;
+    const sessions = [
+      makeSession({ wpm: 60 }, heavyDay),
+      makeSession({ wpm: 61 }, heavyDay - 60_000),
+      makeSession({ wpm: 62 }, heavyDay - 120_000),
+      makeSession({ wpm: 70 }, lightDay),
+    ];
+    const summary = calculateWeeklySummary(sessions, NOW);
+    // Indice locale-agnostique : Date.getDay() côté impl comme côté test.
+    expect(summary.bestDayIndex).toBe(new Date(heavyDay).getDay());
   });
 });
 

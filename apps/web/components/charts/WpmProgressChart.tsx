@@ -8,6 +8,7 @@
  */
 
 import type { SessionResult } from '@typewav/types';
+import { useFormatter, useTranslations } from 'next-intl';
 import {
   CartesianGrid,
   Legend,
@@ -31,18 +32,24 @@ interface ChartDataPoint {
   trend: number | null;
 }
 
-function groupByDay(sessions: SessionResult[], days: number): ChartDataPoint[] {
-  const now = Date.now();
+/**
+ * Regroupe les sessions par jour et calcule la médiane WPM + une tendance
+ * linéaire. La mise en forme de l'étiquette de date est déléguée à `formatDate`
+ * (locale-aware côté composant via `useFormatter`).
+ */
+export function groupByDay(
+  sessions: SessionResult[],
+  days: number,
+  formatDate: (timestamp: number) => string,
+  now: number = Date.now(),
+): ChartDataPoint[] {
   const cutoff = now - days * 86_400_000;
   const recent = sessions.filter((s) => s.timestamp >= cutoff);
 
-  // Grouper par date (YYYY-MM-DD)
+  // Grouper par étiquette de jour localisée
   const byDay = new Map<string, number[]>();
   for (const s of recent) {
-    const date = new Date(s.timestamp).toLocaleDateString('fr-FR', {
-      month: 'short',
-      day: 'numeric',
-    });
+    const date = formatDate(s.timestamp);
     if (!byDay.has(date)) byDay.set(date, []);
     byDay.get(date)!.push(s.wpm);
   }
@@ -81,7 +88,12 @@ export function WpmProgressChart({
   sessions,
   days = 30,
 }: WpmProgressChartProps) {
-  const data = groupByDay(sessions, days);
+  const t = useTranslations('profile');
+  const format = useFormatter();
+
+  const data = groupByDay(sessions, days, (ts) =>
+    format.dateTime(new Date(ts), { month: 'short', day: 'numeric' }),
+  );
 
   if (data.length === 0) {
     return (
@@ -96,7 +108,7 @@ export function WpmProgressChart({
           fontSize: 14,
         }}
       >
-        Pas encore de sessions sur cette période.
+        {t('chartEmpty')}
       </div>
     );
   }
@@ -130,7 +142,7 @@ export function WpmProgressChart({
           }}
           labelStyle={{ color: '#888', fontSize: 11 }}
           itemStyle={{ color: '#00D4AA' }}
-          formatter={(value) => [`${value} WPM`, 'Médiane']}
+          formatter={(value) => [`${value} WPM`, t('chartMedian')]}
         />
         <Legend
           wrapperStyle={{
@@ -155,7 +167,7 @@ export function WpmProgressChart({
           strokeWidth={1.5}
           strokeDasharray="5 3"
           dot={false}
-          name="Tendance"
+          name={t('chartTrend')}
         />
       </LineChart>
     </ResponsiveContainer>

@@ -61,7 +61,12 @@ export interface WeeklySummary {
   avgWpm: number;
   /** Delta WPM par rapport à la semaine précédente */
   wpmDelta: number;
-  bestDay: string;
+  /**
+   * Jour de semaine le plus fréquenté cette semaine, en indice `Date.getDay()`
+   * (0 = dimanche, 6 = samedi), `-1` si aucune session. Indice brut,
+   * locale-agnostique : la mise en forme du nom de jour revient au consommateur.
+   */
+  bestDayIndex: number;
   mostImprovedBigram: string;
 }
 
