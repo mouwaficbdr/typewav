@@ -152,7 +152,7 @@ beforeEach(() => {
 });
 
 describe('useAudioEngine — triggerResume', () => {
-  it('ramène le reverb au niveau du pack, jamais à zéro', async () => {
+  it('ramène le reverb au wet de base du rang, jamais à zéro, avec un pic au-dessus', async () => {
     const { result, unmount } = renderHook(() => useAudioEngine());
 
     await act(async () => {
@@ -160,14 +160,25 @@ describe('useAudioEngine — triggerResume', () => {
     });
     await waitFor(() => expect(samplerInstances.length).toBe(1));
 
+    const reverb = reverbInstances[0]!;
+    // initialize() réaligne déjà le wet sur le rang courant (applyRankProfile) :
+    // on repart d'une ardoise propre pour n'observer que triggerResume.
+    reverb.wet.rampTo.mockClear();
+
     await act(async () => {
       await result.current.triggerResume();
     });
 
-    const reverb = reverbInstances[0]!;
     const rampCalls = reverb.wet.rampTo.mock.calls;
-    expect(rampCalls[0]?.[0]).toBe(0.4); // pic de correction
-    expect(rampCalls[1]?.[0]).toBe(0.25); // retour au wet du pack piano, pas 0
+    expect(rampCalls).toHaveLength(2);
+
+    const peakWet = rampCalls[0]![0] as number; // pic de correction
+    const restWet = rampCalls[1]![0] as number; // retour au repos
+    // Rang par défaut 'novice' : wet de base 0.25 (voir lib/rank-sound.ts).
+    expect(restWet).toBe(0.25);
+    expect(restWet).toBeGreaterThan(0); // jamais coupé pour le reste de la séance
+    expect(peakWet).toBeGreaterThan(restWet); // un pic, pas un creux (vrai à tout rang)
+    expect(peakWet).toBeLessThanOrEqual(0.9);
 
     unmount();
   });
