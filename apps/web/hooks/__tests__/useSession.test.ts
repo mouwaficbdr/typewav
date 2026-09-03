@@ -79,11 +79,27 @@ describe('useSession — navigation vers /results', () => {
     mockSessionStore.endedAt = null;
   });
 
+  /**
+   * Monte le hook avec une séance en cours (endedAt null), puis fait
+   * transiter endedAt : c'est le vrai signal « la séance vient de finir ».
+   */
+  async function endSessionAndWait() {
+    const { rerender } = renderHook(() =>
+      useSession({ text: 'hello world', autoNavigate: true }),
+    );
+    act(() => {
+      mockSessionStore.endedAt = (mockSessionStore.startedAt ?? 0) + 30_000;
+    });
+    rerender();
+    await vi.waitFor(() => expect(mockPush).toHaveBeenCalled());
+    const pushedUrl = mockPush.mock.calls[0]?.[0] as string;
+    return new URLSearchParams(pushedUrl.split('?')[1]);
+  }
+
   it('inclut wpmNet dans les params URL en fin de session avec erreurs', async () => {
     const start = Date.now() - 30_000;
-
-    // Simuler 50 frappes correctes + 10 incorrectes → wpmNet < wpm
-    const keystrokes: import('@typewav/types').KeystrokeEntry[] = [
+    mockSessionStore.startedAt = start;
+    mockSessionStore.keystrokes = [
       ...Array.from({ length: 50 }, (_, i) => ({
         char: 'a',
         timestamp: start + i * 500,
@@ -98,61 +114,51 @@ describe('useSession — navigation vers /results', () => {
       })),
     ];
 
-    mockSessionStore.startedAt = start;
-    mockSessionStore.endedAt = start + 30_000;
-    mockSessionStore.keystrokes = keystrokes;
-
-    renderHook(() => useSession({ text: 'hello world', autoNavigate: true }));
-
-    // Attendre que saveSession soit appelé et la navigation se produise
-    await vi.waitFor(() => {
-      expect(mockPush).toHaveBeenCalled();
-    });
-
-    const pushedUrl = mockPush.mock.calls[0]?.[0] as string;
-    const urlParams = new URLSearchParams(pushedUrl.split('?')[1]);
+    const urlParams = await endSessionAndWait();
 
     expect(urlParams.has('wpmNet')).toBe(true);
     expect(urlParams.has('wpm')).toBe(true);
-
     const wpm = Number(urlParams.get('wpm'));
     const wpmNet = Number(urlParams.get('wpmNet'));
-
-    // wpmNet doit être inférieur à wpm quand des erreurs existent
     expect(wpmNet).toBeLessThanOrEqual(wpm);
   });
 
   it('inclut wpmNet ≈ wpm si aucune erreur commise (session parfaite)', async () => {
     const start = Date.now() - 30_000;
-
-    const keystrokes: import('@typewav/types').KeystrokeEntry[] = Array.from(
-      { length: 60 },
-      (_, i) => ({
-        char: 'a',
-        timestamp: start + i * 500,
-        correct: true,
-        deltaMs: 500,
-      }),
-    );
-
     mockSessionStore.startedAt = start;
-    mockSessionStore.endedAt = start + 30_000;
-    mockSessionStore.keystrokes = keystrokes;
+    mockSessionStore.keystrokes = Array.from({ length: 60 }, (_, i) => ({
+      char: 'a',
+      timestamp: start + i * 500,
+      correct: true,
+      deltaMs: 500,
+    }));
 
-    renderHook(() => useSession({ text: 'hello world', autoNavigate: true }));
-
-    await vi.waitFor(() => {
-      expect(mockPush).toHaveBeenCalled();
-    });
-
-    const pushedUrl = mockPush.mock.calls[0]?.[0] as string;
-    const urlParams = new URLSearchParams(pushedUrl.split('?')[1]);
+    const urlParams = await endSessionAndWait();
 
     const wpm = Number(urlParams.get('wpm'));
     const wpmNet = Number(urlParams.get('wpmNet'));
-
-    // Session parfaite : wpmNet doit être égal à wpm
     expect(wpmNet).toBe(wpm);
+  });
+
+  it('ne re-navigue PAS vers /results si on monte avec une séance déjà terminée (retour depuis /results via « Encore »)', async () => {
+    const start = Date.now() - 30_000;
+    mockSessionStore.startedAt = start;
+    mockSessionStore.endedAt = start + 30_000; // séance périmée déjà dans le store au montage
+    mockSessionStore.keystrokes = Array.from({ length: 40 }, (_, i) => ({
+      char: 'a',
+      timestamp: start + i * 500,
+      correct: true,
+      deltaMs: 500,
+    }));
+
+    renderHook(() => useSession({ text: 'hello world', autoNavigate: true }));
+
+    // Laisser tous les effets + microtâches se dérouler.
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 50));
+    });
+
+    expect(mockPush).not.toHaveBeenCalled();
   });
 });
 
