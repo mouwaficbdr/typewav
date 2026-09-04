@@ -48,6 +48,7 @@
     "clickToFocus": "Click to focus",
     "nextTest": "Next test",
     "restartTestTooltip": "Restart Test",
+    "restartKeys": "Tab + Enter",
     "restartHintSuffix": "to restart",
     "library": "Music Library",
     "noPiece": "No Piece",
@@ -288,7 +289,7 @@
     "locked": "Ghost mode locked",
     "lockedTooltip": "Complete a test to unlock Ghost mode: your best result will be used as reference",
     "noRecordFallback": "No personal record yet: finish a session to unlock Ghost mode. This session runs in Classic mode.",
-    "replayingRecord": "Replaying your personal record: {wpm} WPM."
+    "replayingRecord": "Playing against your personal record: {wpm} WPM."
   },
   "preview": {
     "play": "Hear a preview",
