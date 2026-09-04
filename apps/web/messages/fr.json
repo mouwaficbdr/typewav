@@ -421,10 +421,10 @@
   },
   "about": {
     "metaTitle": "À propos",
-    "metaDescription": "Ce qu'est TypeWav : un entraîneur de frappe où chaque touche juste joue la note suivante d'un vrai morceau de piano, sans compte, dans le navigateur.",
+    "metaDescription": "Un test de frappe bâti autour de la musique : chaque touche juste joue la note suivante d'un vrai morceau de piano, une faute ne joue rien. Sans compte, dans le navigateur.",
     "kicker": "À propos",
     "masthead": "Tape juste. La note tombe.",
-    "lead": "TypeWav est un entraîneur de frappe musical : chaque frappe correcte joue la note suivante d'un vrai morceau de piano. Tout se passe dans ton navigateur, sans compte.",
+    "lead": "Un test de frappe complet (plusieurs modes, progression suivie séance après séance, thèmes, sons, retour immédiat sur chaque faute), bâti autour d'une seule idée : la musique. Chaque frappe juste déclenche la note suivante d'un vrai morceau de piano ; une faute ne joue rien, jamais une fausse note. Ton oreille repère l'erreur avant tes yeux, et le morceau ne sonne juste que si tu tapes juste. On s'entraîne plus longtemps, sans fixer un chronomètre, parce que la récompense n'est pas un chiffre : c'est une mélodie qui prend forme sous tes doigts.",
     "manifesto": {
       "heading": "Le manifeste",
       "body": "La partition n'avance que si tu tapes juste. Le morceau existe déjà en entier ; ta frappe en est la baguette.",
@@ -490,8 +490,10 @@
     },
     "links": {
       "heading": "Liens",
-      "github": "Code source sur GitHub",
-      "terms": "Transparence et conditions"
+      "github": "Code source",
+      "readme": "README",
+      "profile": "L'auteur",
+      "terms": "Transparence"
     },
     "closing": "Assez lu. Retour au clavier."
   }
