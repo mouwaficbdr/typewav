@@ -91,6 +91,8 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const [ghostData, setGhostData] = useState<{
     timings: number[];
     text: string;
+    /** WPM du record rejoué — affiché comme repère (audit configbar, B8). */
+    wpm: number;
   } | null>(null);
   const [collectionsCache, setCollectionsCache] = useState<
     Partial<Record<CollectionId, CollectionConfig>>
@@ -224,6 +226,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
       setGhostData({
         timings: session.keystrokeData.map((k) => k.deltaMs),
         text: session.text,
+        wpm: session.wpm,
       });
     }
     void loadData();
@@ -680,6 +683,30 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               }}
             >
               {tGhost('noRecordFallback')}
+            </div>
+          )}
+
+          {/* Repère sur ce qui est rejoué (audit configbar, B8) : avant,
+              rien ne distinguait "je tape mon record" de "je tape un texte
+              quelconque" une fois le fantôme actif. */}
+          {ghostEnabled && ghostData && (
+            <div
+              role="status"
+              style={{
+                width: '100%',
+                maxWidth: '980px',
+                fontSize: '0.78rem',
+                color: 'var(--color-text-muted)',
+                border:
+                  '1px solid color-mix(in srgb, var(--color-accent) 35%, transparent)',
+                background:
+                  'color-mix(in srgb, var(--color-accent) 8%, transparent)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '8px 10px',
+                textAlign: 'left',
+              }}
+            >
+              {tGhost('replayingRecord', { wpm: Math.round(ghostData.wpm) })}
             </div>
           )}
 

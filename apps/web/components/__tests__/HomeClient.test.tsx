@@ -880,6 +880,39 @@ describe('HomeClient — mode Fantôme', () => {
     expect(screen.queryByTitle('changeCollection')).not.toBeInTheDocument();
   });
 
+  it("affiche un repère explicite sur le record rejoué (audit B8)", async () => {
+    mockGetPersonalRecords.mockResolvedValue({
+      maxWpm: { value: 85, sessionId: 'session-1', achievedAt: Date.now() },
+    });
+    mockGetSessionById.mockResolvedValue({
+      id: 'session-1',
+      timestamp: Date.now(),
+      wpm: 85,
+      wpmNet: 82,
+      accuracy: 97,
+      consistency: 88,
+      duration: 30_000,
+      mode: 'classic',
+      themeId: 'terminal',
+      soundPackId: 'piano',
+      keystrokeData: [
+        { char: 'x', timestamp: 1000, correct: true, deltaMs: 0 },
+      ],
+      text: 'Texte du record.',
+    });
+
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'ghost' });
+    });
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    // Avant : rien ne distinguait "je tape mon record" d'un texte quelconque.
+    expect(await screen.findByText('replayingRecord')).toBeInTheDocument();
+  });
+
   it("sans donnée personnelle, la session tourne réellement en Classic : sélecteurs visibles et texte régénéré depuis la collection active", async () => {
     const { HomeClient } = await import('../typing/HomeClient');
     const { useConfigStore } = await import('@/stores/useConfigStore');
