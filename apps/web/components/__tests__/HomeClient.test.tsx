@@ -46,10 +46,28 @@ vi.mock('@/lib/db', () => ({
   }),
 }));
 
+const typingAreaPropsRef: {
+  current: null | {
+    onNoteChange?: (
+      note: string | null,
+      isError: boolean,
+      isPhraseBoundary: boolean,
+    ) => void;
+  };
+} = { current: null };
+
 vi.mock('@/components/typing/TypingArea', () => ({
-  TypingArea: ({ text }: { text: string }) => (
-    <div data-testid="typing-area">{text}</div>
-  ),
+  TypingArea: (props: {
+    text: string;
+    onNoteChange?: (
+      note: string | null,
+      isError: boolean,
+      isPhraseBoundary: boolean,
+    ) => void;
+  }) => {
+    typingAreaPropsRef.current = props;
+    return <div data-testid="typing-area">{props.text}</div>;
+  },
 }));
 
 const learningModePropsRef: {
@@ -566,6 +584,26 @@ describe('HomeClient — attribution mode citation', () => {
   });
 });
 
+describe('HomeClient — la config bar se verrouille dès la première frappe (audit A7)', () => {
+  it("passe en inert au premier événement de frappe, correcte ou en erreur, empêchant toute bascule silencieuse en cours de session", async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    const configBar = await screen.findByTestId('config-bar');
+    expect(configBar.closest('[inert]')).toBeNull();
+
+    // Une frappe en erreur (silence, pas de note) marque déjà le début de
+    // séance au même titre qu'une frappe correcte.
+    act(() => {
+      typingAreaPropsRef.current?.onNoteChange?.(null, true, false);
+    });
+
+    expect(configBar.closest('[inert]')).not.toBeNull();
+  });
+});
+
 describe('HomeClient — bascule automatique de collection', () => {
   it("bascule la collection sur 'code' en passant en mode Code", async () => {
     mockFetchCollection.mockResolvedValueOnce(mockLitterature);
@@ -581,6 +619,28 @@ describe('HomeClient — bascule automatique de collection', () => {
 
     await waitFor(() => {
       expect(useConfigStore.getState().activeCollection).toBe('code');
+    });
+  });
+
+  it("ramène la collection sur 'litterature' en quittant Code pour un mode qui n'en a pas conscience (audit B7)", async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'code', activeCollection: 'code' });
+    });
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+    expect(useConfigStore.getState().activeCollection).toBe('code');
+
+    // Sans ce fix : la collection restait sur 'code' sous le mode Temps,
+    // masquant ponctuation/chiffres derrière un libellé qui n'en parle pas.
+    await act(async () => {
+      useConfigStore.setState({ activeMode: 'classic' });
+    });
+
+    await waitFor(() => {
+      expect(useConfigStore.getState().activeCollection).toBe('litterature');
     });
   });
 

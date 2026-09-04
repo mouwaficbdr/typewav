@@ -302,14 +302,41 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     void loadMidiPiece(selectedPieceId);
   }, [selectedPieceId, loadMidiPiece]);
 
+  // Traque le mode précédent pour détecter une vraie TRANSITION hors de
+  // Code (voir l'effet symétrique ci-dessous), sans réagir à un changement
+  // de collection isolé.
+  const prevModeRef = useRef<TypingMode>(activeMode);
+
   // Défaut sensé à l'entrée en mode Code — pas un verrou : l'utilisateur
   // reste libre de changer la collection ensuite via CollectionSelector.
   // Ne se déclenche qu'à la transition vers 'code' (dépendance activeMode),
   // jamais à chaque rendu.
+  //
+  // Symétrique en sortie (audit configbar, B7) : quitter Code sans changer
+  // de collection laissait 'code' actif sous un mode qui parle de temps ou
+  // de mots — ConfigBar masque alors ses bascules ponctuation/chiffres
+  // (verrouillées par la collection Code, voir ConfigBar) sous un libellé de
+  // mode qui n'a plus rien à voir. Ne se déclenche que sur la transition
+  // Code → autre mode ; une sélection manuelle de la collection Code depuis
+  // un autre mode (légitime, voir le test dédié) n'est jamais défaite.
   useEffect(() => {
+    const prevMode = prevModeRef.current;
+    prevModeRef.current = activeMode;
+
     if (activeMode === 'code') {
       setCollection('code');
+    } else if (
+      prevMode === 'code' &&
+      useConfigStore.getState().activeCollection === 'code'
+    ) {
+      setCollection('litterature');
     }
+    // activeCollection volontairement absent des dépendances (lu via
+    // getState() ci-dessus) : cet effet ne doit réagir qu'à une vraie
+    // TRANSITION de mode, jamais à un changement de collection isolé — sinon
+    // il re-forcerait 'code' à chaque re-rendu tant que le mode Code reste
+    // actif, écrasant un choix manuel de collection (voir le test « ne force
+    // pas la collection à chaque rendu »).
   }, [activeMode, setCollection]);
 
   // Le mode Citation présente son texte comme une citation attribuée (voir
@@ -738,7 +765,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
                   margin: 0,
                 }}
               >
-                — {source}
+                - {source}
               </p>
             )}
           </div>
