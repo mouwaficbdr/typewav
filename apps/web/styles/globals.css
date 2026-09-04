@@ -47,20 +47,16 @@ body {
   margin: 0;
   min-height: 100dvh;
   background-color: var(--color-bg);
-  /* Halo d'accent en haut + vignette en bas, exprimés en tokens de thème
-     (endpoints transparents) : l'effet se pose sur background-color sans bande
-     opaque et ne casse pas les thèmes clairs / colorés. */
-  background-image:
-    radial-gradient(
-      ellipse at top,
-      color-mix(in srgb, var(--color-accent) 6%, transparent) 0%,
-      transparent 60%
-    ),
-    radial-gradient(
-      ellipse at bottom,
-      color-mix(in srgb, var(--color-surface) 55%, transparent) 0%,
-      transparent 100%
-    );
+  /* Seule une vignette basse, en tokens de thème (endpoints transparents).
+     Le halo d'accent en haut a été retiré : sous une nav sticky opaque il
+     créait une bande claire nette au ras du header (thème-dépendante), en
+     rupture avec le reste de la page. La page doit rester une seule surface
+     continue du header au pied. */
+  background-image: radial-gradient(
+    ellipse at bottom,
+    color-mix(in srgb, var(--color-surface) 55%, transparent) 0%,
+    transparent 100%
+  );
 }
 
 @media (max-width: 640px) {

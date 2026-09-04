@@ -456,23 +456,22 @@ export function TypingArea({
           />
         )}
 
-        {/* Focus Overlay — Seamless glass effect */}
+        {/* Invitation au focus. Pas de panneau : c'est le texte lui-même qui
+            est flouté (voir le conteneur des mots ci-dessous), l'invite se
+            pose dessus sans cadre visible. */}
         <div
           aria-hidden="true"
           data-testid="typing-activation-overlay"
           style={{
             position: 'absolute',
-            inset: -20, // stretch over edges for cleaner blur
+            inset: 0,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'color-mix(in srgb, var(--color-bg) 75%, transparent)',
             zIndex: 1,
             pointerEvents: 'none',
-            backdropFilter: 'blur(8px)',
             opacity: !isFocused && !isComplete ? 1 : 0,
             transition: 'opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-            borderRadius: 'var(--radius-lg)',
           }}
         >
           <span
@@ -488,7 +487,9 @@ export function TypingArea({
           </span>
         </div>
 
-        {/* Conteneur des mots — scroll par translateY, transition ultra douce */}
+        {/* Conteneur des mots — scroll par translateY, transition ultra douce.
+            À l'attente (pas encore focus), le texte est flouté et estompé sur
+            place, sans rectangle par-dessus. */}
         <div
           ref={wordsRef}
           aria-hidden="true"
@@ -496,7 +497,11 @@ export function TypingArea({
           data-testid="typing-area"
           style={{
             transform: `translateY(${translateY}px)`,
-            transition: 'transform 0.25s cubic-bezier(0.2, 0, 0, 1)',
+            transition:
+              'transform 0.25s cubic-bezier(0.2, 0, 0, 1), filter 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+            // blur(0px) plutôt que none : la transition de flou s'interpole.
+            filter: !isFocused && !isComplete ? 'blur(4px)' : 'blur(0px)',
+            opacity: !isFocused && !isComplete ? 0.55 : 1,
             userSelect: 'none',
             columnGap: '0.6em',
             justifyContent: mode === 'learning' ? 'center' : 'flex-start',
