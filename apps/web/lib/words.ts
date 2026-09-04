@@ -167,37 +167,45 @@ export const WORDS_EXPERT = [
   'investigation',
 ];
 
-/** Mots Home Row (uniquement les touches asdf jkl;) */
+/**
+ * Mots Home Row : lettres tirées uniquement des touches a s d f j k l.
+ * generateLearningText(1) refiltre par les touches réelles du niveau, donc
+ * un mot avec une lettre hors home row (jade, flash, balls...) n'y arrivait
+ * jamais : c'était du poids mort. Retiré aussi 'jall', qui passait le filtre
+ * sans être un mot. Tout ce qui reste est un vrai mot 100 % home row.
+ */
 export const WORDS_HOME_ROW = [
-  'flask',
+  'ad',
+  'as',
+  'add',
+  'ads',
+  'ala',
+  'all',
+  'ask',
+  'dad',
+  'fad',
+  'lad',
+  'sad',
+  'ska',
+  'adds',
+  'alas',
+  'alfa',
+  'asks',
+  'dads',
+  'fads',
+  'fall',
+  'flak',
   'lads',
   'lass',
-  'ala',
-  'fads',
-  'jade',
-  'jades',
-  'fake',
-  'faked',
-  'dads',
-  'adds',
-  'asks',
-  'sash',
-  'flash',
-  'slash',
+  'sass',
+  'flask',
   'salad',
+  'salsa',
   'falls',
-  'halls',
-  'balls',
-  'calls',
-  // Mots Home Row anglais purs (a, s, d, f, j, k, l uniquement)
-  'alas',
-  'fall',
-  'hall',
-  'jall',
-  'salads',
-  'flak',
-  'flags',
   'flasks',
+  'salads',
+  'salsas',
+  'alfalfa',
 ];
 
 /** Sélectionne des mots aléatoires d'une liste */
