@@ -23,6 +23,10 @@ import { Play } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { motion } from 'motion/react';
+import { ProfileSpotlight } from '@/components/profile/ProfileSpotlight';
+import { NumberTicker } from '@/components/ui/NumberTicker';
+import { ScrambleText } from '@/components/ui/ScrambleText';
 import { useEffect, useState } from 'react';
 
 type ChartDays = 7 | 30 | 90;
@@ -142,12 +146,6 @@ export function ProfilClient() {
     router.push(`/${locale}${relativePath}`);
   };
 
-import { motion } from 'motion/react';
-import { ProfileSpotlight } from '@/components/profile/ProfileSpotlight';
-import { NumberTicker } from '@/components/ui/NumberTicker';
-import { ScrambleText } from '@/components/ui/ScrambleText';
-
-// ... (We will keep the imports and logic, and replace the return block)
 
   const containerVariants = {
     hidden: { opacity: 0 },
