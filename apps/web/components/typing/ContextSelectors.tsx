@@ -22,9 +22,15 @@ export function ContextSelectors({ controlsMode }: ContextSelectorsProps = {}) {
   const setTextLanguage = useConfigStore((s) => s.setTextLanguage);
   const activeMode = useConfigStore((s) => s.activeMode);
 
-  const showLanguage = MODES_WITH_TEXT_CONFIG.includes(
-    controlsMode ?? activeMode,
-  );
+  // 'code' est volontairement absent de MODES_WITH_TEXT_CONFIG côté partagé
+  // (CollectionSelector en a besoin pour verrouiller la collection sur
+  // 'code', voir ce composant) mais le filtre langue, lui, a du sens en mode
+  // Code : la collection contient de vrais snippets fr et en (audit
+  // configbar, décision 8). Ajout local à ce composant, sans toucher à la
+  // liste partagée pour ne pas rouvrir CollectionSelector par effet de bord.
+  const effectiveMode = controlsMode ?? activeMode;
+  const showLanguage =
+    MODES_WITH_TEXT_CONFIG.includes(effectiveMode) || effectiveMode === 'code';
 
   const langLabel = (lang: 'fr' | 'en' | 'both') =>
     lang === 'both' ? t('langBoth') : lang === 'fr' ? t('langFr') : t('langEn');

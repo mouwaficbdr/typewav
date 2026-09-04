@@ -60,10 +60,10 @@ describe('ContextSelectors', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('reste masqué en mode Code', () => {
+  it('est visible en mode Code : la collection a de vrais snippets fr et en (décision 8)', () => {
     useConfigStore.setState({ activeMode: 'code' });
-    const { container } = render(<ContextSelectors />);
-    expect(container).toBeEmptyDOMElement();
+    render(<ContextSelectors />);
+    expect(screen.getByTitle('changeLanguage')).toBeInTheDocument();
   });
 
   it('affiche la langue active en mode classic', () => {
