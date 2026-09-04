@@ -38,6 +38,7 @@ function sessionToEntry(
 export function ClassementClient() {
   const t = useTranslations('leaderboard');
   const tCommon = useTranslations('common');
+  const tNav = useTranslations('nav');
 
   const [sessions, setSessions] = useState<SessionResult[]>([]);
   const [pseudo, setPseudo] = useState('');
@@ -73,90 +74,66 @@ export function ClassementClient() {
   ];
 
   return (
-    <main
-      className="flex flex-col items-start gap-7 max-w-3xl mx-auto w-full"
-      style={{
-        minHeight: 'calc(100dvh - var(--nav-height))',
-        padding: 'clamp(28px, 6vh, 64px) 24px',
-      }}
-    >
-      <div>
-        <h1
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(2rem, 4vw, 2.6rem)',
-            fontWeight: 600,
-            lineHeight: 1.1,
-            margin: 0,
-            color: 'var(--color-text-primary)',
-          }}
-        >
-          {t('myBestSessions')}
-        </h1>
-        <p
-          style={{
-            color: 'var(--color-text-muted)',
-            fontFamily: 'var(--font-ui)',
-            fontSize: '0.95rem',
-            margin: '10px 0 0',
-          }}
-        >
-          {t('subtitle')}
-        </p>
-      </div>
-
-      <div
-        role="group"
-        aria-label={t('filterAll')}
-        className="flex gap-2 flex-wrap w-full"
-      >
-        {filterButtons.map(({ label, value }) => {
-          const active = modeFilter === value;
-          return (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setModeFilter(value)}
-              aria-pressed={active}
-              style={{
-                padding: '0.4rem 0.9rem',
-                fontFamily: 'var(--font-ui)',
-                fontSize: '0.75rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.07em',
-                cursor: 'pointer',
-                background: active ? 'var(--color-accent)' : 'transparent',
-                color: active ? 'var(--color-bg)' : 'var(--color-text-muted)',
-                border: '1px solid',
-                borderColor: active
-                  ? 'var(--color-accent)'
-                  : 'var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                transition: 'all 0.15s',
-              }}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="w-full">
-        {loading ? (
-          <p
-            style={{
-              color: 'var(--color-text-muted)',
-              fontFamily: 'var(--font-ui)',
-              fontSize: '0.85rem',
-              padding: '2rem 0',
-            }}
-          >
-            {tCommon('loading')}
+    <main className="min-h-screen text-[var(--color-text-primary)] pb-32">
+      <div className="max-w-4xl mx-auto px-6 pt-12 md:pt-24 flex flex-col gap-10">
+        
+        {/* Header Section. Même patron que le masthead de /about : l'eyebrow
+            porte le libellé court de rubrique (celui de la nav), le H1 porte
+            le vrai texte traduit. Aucun des deux n'est un literal figé. */}
+        <div className="flex flex-col gap-3 border-b border-[var(--color-border)] pb-6">
+          <p className="font-mono text-xs md:text-sm text-[var(--color-accent)] uppercase tracking-[0.5em]">
+            {tNav('leaderboard')}
           </p>
-        ) : (
-          <LeaderboardTable entries={entries} />
-        )}
+          <h1 className="font-display text-4xl md:text-6xl leading-[0.85] tracking-tighter uppercase text-[var(--color-text-primary)]">
+            {t('title')}
+          </h1>
+          <p className="font-ui text-sm text-[var(--color-text-muted)] max-w-xl mt-2">
+            {t('subtitle')}
+          </p>
+        </div>
+
+        {/* Filters */}
+        <div 
+          role="group" 
+          aria-label={t('filterAll')} 
+          className="flex flex-wrap gap-2 w-full"
+        >
+          {filterButtons.map(({ label, value }) => {
+            const active = modeFilter === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setModeFilter(value)}
+                aria-pressed={active}
+                className={`
+                  px-3 py-1.5 font-mono text-[10px] sm:text-xs uppercase tracking-widest border transition-all duration-200
+                  ${active 
+                    ? 'bg-[var(--color-text-primary)] text-[var(--color-bg)] border-[var(--color-text-primary)]' 
+                    : 'bg-transparent text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[var(--color-text-primary)] hover:text-[var(--color-text-primary)]'
+                  }
+                `}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* List Section */}
+        <div className="w-full">
+          {loading ? (
+            <div className="flex items-center justify-center py-20 border-t border-[var(--color-border)]">
+              <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-text-muted)] animate-pulse">
+                {tCommon('loading')}
+              </p>
+            </div>
+          ) : (
+            <LeaderboardTable entries={entries} />
+          )}
+        </div>
       </div>
     </main>
   );
 }
+
