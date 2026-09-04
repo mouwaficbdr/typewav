@@ -1,5 +1,5 @@
 /**
- * recommendation.ts — sélection musicale contextuelle.
+ * recommendation.ts : sélection musicale contextuelle.
  *
  * Fonction pure, zéro état, zéro side-effect.
  * Testable unitairement sans mock.

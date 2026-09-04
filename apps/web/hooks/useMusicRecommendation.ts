@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * useMusicRecommendation — recommandation musicale contextuelle.
+ * useMusicRecommendation : recommandation musicale contextuelle.
  *
  * Lit le mode et la collection depuis useSessionStore,
  * calcule le registre recommandé, retourne la pièce courante et les actions.
@@ -98,7 +98,7 @@ export function useMusicRecommendation() {
     }
   }, [register, recentIds]);
 
-  /** Override manuel — sélection explicite par l'utilisateur */
+  /** Override manuel : sélection explicite par l'utilisateur */
   const selectPiece = useCallback((piece: UnifiedMusicPiece) => {
     setRecentIds((prev) => [...prev.slice(-4), piece.id]);
     setCurrentPiece(piece);
