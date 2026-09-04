@@ -92,27 +92,30 @@ export function ConfigBar({ controlsMode }: ConfigBarProps = {}) {
     const isSignature = variant === 'signature';
     return {
       background: isSignature
-        ? `color-mix(in srgb, var(--color-accent) ${active ? 20 : 9}%, transparent)`
+        ? `color-mix(in srgb, var(--color-accent) ${active ? 20 : 5}%, transparent)`
         : active
-          ? 'color-mix(in srgb, var(--color-text-muted) 15%, transparent)'
+          ? 'color-mix(in srgb, var(--color-text-primary) 12%, transparent)'
           : 'transparent',
       border: 'none',
-      borderRadius: 'var(--radius-sm)',
+      borderRadius: 'var(--radius-full)',
       color:
         isSignature || active
-          ? 'var(--color-accent)'
+          ? 'var(--color-text-primary)'
           : 'var(--color-text-muted)',
       cursor: 'pointer',
       fontFamily: 'var(--font-ui)',
-      fontSize: '0.75rem',
+      fontSize: '0.8rem',
       fontWeight: active || isSignature ? 500 : 400,
-      padding: '0 8px' /* Removed vertical padding, relying on fixed height */,
-      height: '26px' /* Strict height for buttons */,
+      padding: '0 12px',
+      height: '32px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-      transform: active ? 'scale(1.02)' : 'scale(1)',
+      transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+      boxShadow:
+        active && isSignature
+          ? '0 0 12px color-mix(in srgb, var(--color-accent) 40%, transparent)'
+          : 'none',
       // Respire doucement pour attirer l'œil vers le mode signature, mais
       // s'arrête net une fois sélectionné : Zen promet le calme, un glow
       // qui continue de pulser pendant la frappe serait le contredire.
@@ -177,22 +180,19 @@ export function ConfigBar({ controlsMode }: ConfigBarProps = {}) {
           justifyContent: 'center',
           width: 'fit-content',
           maxWidth: '1200px',
-          height: '42px' /* Strict height */,
-          // Élément de chrome permanent : ne doit jamais être écrasé par du
-          // contenu voisin trop haut (ex. mode Apprentissage). Sans ça, le
-          // parent flex-column à hauteur fixe (overflow: hidden) le réduit à
-          // 0px — la barre reste dans le DOM mais devient invisible, et donc
-          // impossible de changer de mode depuis là.
+          // Élément de chrome permanent : hauteur stricte + flexShrink: 0 pour
+          // qu'il ne soit jamais écrasé par du contenu voisin trop haut (ex.
+          // mode Apprentissage). Sans ça, le parent flex-column à hauteur fixe
+          // (overflow: hidden) le réduit à 0px : la barre reste dans le DOM
+          // mais devient invisible, donc impossible de changer de mode.
+          height: '46px',
           flexShrink: 0,
           margin: '0 auto',
-          padding: '0 16px',
-          background:
-            'color-mix(in srgb, var(--color-text-muted) 10%, transparent)',
-          borderRadius: 'var(--radius-md)',
-          backdropFilter: 'blur(8px)',
-          gap: '4px',
+          padding: '0 12px',
+          gap: '6px',
+          borderRadius: 'var(--radius-full)',
         }}
-        className="hide-scrollbar"
+        className="hide-scrollbar glass-panel"
       >
         {/* ── Modificateurs ─────────────────────────────── */}
         {supportsModifiers && (

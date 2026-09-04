@@ -79,10 +79,10 @@ describe('GlobalNav', () => {
     );
   });
 
-  it('nav utilise un fond transparent', () => {
+  it('nav utilise un fond plein pour occulter le contenu qui défile dessous', () => {
     render(<GlobalNav />);
     const nav = screen.getByRole('navigation');
-    expect(nav).toHaveStyle({ background: 'transparent' });
+    expect(nav).toHaveStyle({ background: 'var(--color-bg)' });
   });
 });
 

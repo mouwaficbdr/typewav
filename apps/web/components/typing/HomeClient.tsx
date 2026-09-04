@@ -94,6 +94,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     Partial<Record<CollectionId, CollectionConfig>>
   >({ litterature: initialCollection });
   const [loadingCollection, setLoadingCollection] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
   const [lastNote, setLastNote] = useState<{
     pitch: number | null;
     isError: boolean;
@@ -382,19 +383,35 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
   const handleShuffle = useCallback(() => {
     setShuffleOffset((prev) => prev + 1);
+    setHasStarted(false);
   }, []);
 
   const handleRestart = useCallback(() => {
     setRestartKey((k) => k + 1);
+    setHasStarted(false);
   }, []);
 
   const handleNoteChange = useCallback(
     (note: string | null, isError: boolean, isPhraseBoundary: boolean) => {
+      setHasStarted(true);
       const pitch = note ? noteNameToMidi(note) : null;
       setLastNote({ pitch, isError, isPhraseBoundary });
     },
     [],
   );
+
+  // Chrome périphérique qui s'efface pendant la frappe (« focus mode »). Le
+  // fondu est visuel ; `inert` retire vraiment le sous-arbre de l'ordre de
+  // tabulation et de l'arbre d'accessibilité (opacity:0 + pointer-events:none
+  // ne suffit pas, un utilisateur clavier tomberait dans des contrôles
+  // invisibles). Sous prefers-reduced-motion, bascule instantanée.
+  const fadeOnStart = (translateYpx: number) => ({
+    opacity: hasStarted ? 0 : 1,
+    transform: hasStarted ? `translateY(${translateYpx}px)` : 'translateY(0)',
+    transition: shouldReduceMotion
+      ? 'none'
+      : 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+  });
 
   const { text, source, collectionId } = useMemo(() => {
     // Mode Libre : texte personnel affiché tel quel, jamais filtré (A3) —
@@ -475,27 +492,50 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
       {/* En-tête de Configuration */}
       {!isLearningMode ? (
         <div
+          inert={hasStarted}
           style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 36,
-            minHeight: '166px', // Réservation stricte de l'espace pour éviter les sauts
+            gap: 16,
+            // Réservation d'espace pour limiter les sauts de mise en page au
+            // changement de mode (mode Libre ajoute un bouton). Valeur Gemini.
+            minHeight: '130px',
             width: '100%',
+            position: 'relative',
+            zIndex: 10,
+            ...fadeOnStart(-10),
           }}
         >
           {/* Zone 2 — ConfigBar */}
           <ConfigBar controlsMode={effectiveMode} />
 
-          {/* Zone 3 — Active Session Header */}
-          <ActiveSessionHeader
-            selectedPieceId={selectedPieceId}
-            onPieceChange={handlePieceChange}
-          />
+          <div
+            className="glass-panel"
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 12,
+              padding: '6px 16px',
+              borderRadius: '9999px',
+            }}
+          >
+            {/* Zone 3 : Active Session Header */}
+            <ActiveSessionHeader
+              selectedPieceId={selectedPieceId}
+              onPieceChange={handlePieceChange}
+            />
 
-          {/* Zone 3.5 — Context Selectors (Language + Collection) */}
-          <ContextSelectors controlsMode={effectiveMode} />
-          <CollectionSelector controlsMode={effectiveMode} />
+            <div style={{ width: '1px', height: '16px', background: 'var(--color-border)' }} />
+
+            {/* Zone 3.5 : Context Selectors (Language + Collection) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <ContextSelectors controlsMode={effectiveMode} />
+              <CollectionSelector controlsMode={effectiveMode} />
+            </div>
+          </div>
 
           {activeMode === 'custom' && (
             <button
@@ -706,25 +746,41 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         )}
       </div>
 
-      {/* Zone 5 — Controls & Hints (Centered under TypingArea) - Masqué en mode apprentissage */}
+      {/* Zone 5 : Controls, Hints & Visualizer (centrés sous TypingArea), masqués en mode apprentissage */}
       {!isLearningMode && (
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 16,
+            gap: 24,
             width: '100%',
-            marginTop: '16px',
+            marginTop: '24px',
           }}
         >
+          {/* WaveformBars : Reste toujours visible, agit comme le feedback musical central */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <WaveformBars
+              pitch={lastNote.pitch}
+              isError={lastNote.isError}
+              isPhraseBoundary={lastNote.isPhraseBoundary}
+              numBars={24} /* Doubled for a wider, more premium look */
+              maxHeightPx={32}
+              idlePulse
+              style={{ width: 180 }}
+            />
+          </div>
+
+          {/* Contrôles et indices de redémarrage : Disparaissent pendant la frappe */}
           <div
+            inert={hasStarted}
             style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               gap: 12,
               color: 'var(--color-text-muted)',
+              ...fadeOnStart(10),
             }}
           >
             {/* Shuffle / Next Test (MonkeyType style, centered below text) */}
@@ -772,17 +828,23 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
       {/* Zone 6 — Footer minimal avec les contrôles secondaires éparpillés */}
       <footer
+        inert={hasStarted}
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           width: '100%',
           marginTop: 'auto',
-          marginBottom: '14px',
+          // Respiration sous le footer : il était quasi collé au bord bas
+          // (main a seulement 16px de padding bas). marginTop:auto absorbe
+          // l'espace libre en premier, donc sur écran court ça se resserre
+          // proprement sans pousser le contenu hors du cadre overflow:hidden.
+          marginBottom: '30px',
           fontFamily: 'var(--font-ui)',
           fontSize: '0.75rem',
           color: 'var(--color-text-muted)',
           paddingTop: '32px',
+          ...fadeOnStart(10),
         }}
       >
         {/* === GAUCHE: Liens externes === */}
@@ -819,20 +881,6 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
         {/* === DROITE: Musique, Outils contextuels et versioning === */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          {!isLearningMode && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <WaveformBars
-                pitch={lastNote.pitch}
-                isError={lastNote.isError}
-                isPhraseBoundary={lastNote.isPhraseBoundary}
-                numBars={12}
-                maxHeightPx={20}
-                idlePulse
-                style={{ width: 80 }}
-              />
-            </div>
-          )}
-
           <span
             className="hover:text-text-primary cursor-pointer transition-colors"
             style={{ display: 'flex', alignItems: 'center', gap: 6 }}
