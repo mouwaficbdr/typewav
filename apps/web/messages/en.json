@@ -48,7 +48,7 @@
     "clickToFocus": "Click to focus",
     "nextTest": "Next test",
     "restartTestTooltip": "Restart Test",
-    "tabEnterToRestart": "Tab + Enter to restart",
+    "restartHintSuffix": "to restart",
     "library": "Music Library",
     "noPiece": "No Piece",
     "shuffleTrack": "Shuffle track",
