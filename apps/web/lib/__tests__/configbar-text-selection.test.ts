@@ -50,8 +50,8 @@ describe('mode Temps (classic) : pas de troncature', () => {
   });
 });
 
-describe('toggle ponctuation OFF : abîme le texte littéraire', () => {
-  it('retire les apostrophes internes des citations françaises', () => {
+describe('toggle ponctuation OFF : garde ce qui vit dans le mot', () => {
+  it('conserve les apostrophes internes des citations françaises', () => {
     const src = "L'histoire n'est que le tableau des crimes et des malheurs";
     const out = applyTextFilters(src, {
       punctuationEnabled: false,
@@ -59,12 +59,24 @@ describe('toggle ponctuation OFF : abîme le texte littéraire', () => {
       mode: 'classic',
       wordCount: 25,
     });
-    expect(out).toBe('L histoire n est que le tableau des crimes et des malheurs');
-    expect(out).not.toContain("'");
+    expect(out).toBe(src);
+    expect(out).toContain("'");
   });
 
-  it("retire les tirets et points internes d'un incipit anglais", () => {
-    const src = 'Call me Ishmael. Some years ago, never mind how long precisely.';
+  it('conserve le trait d\'union des mots composés', () => {
+    const src = 'un je-ne-sais-quoi de peut-être bien vu';
+    const out = applyTextFilters(src, {
+      punctuationEnabled: false,
+      numbersEnabled: true,
+      mode: 'classic',
+      wordCount: 25,
+    });
+    expect(out).toBe(src);
+  });
+
+  it("retire la ponctuation de phrase d'un incipit anglais (points, virgules, tirets isolés)", () => {
+    const emDash = String.fromCharCode(0x2014);
+    const src = `Call me Ishmael. Some years ago${emDash} never mind, how long precisely.`;
     const out = applyTextFilters(src, {
       punctuationEnabled: false,
       numbersEnabled: true,
