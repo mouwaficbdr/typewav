@@ -1,3 +1,13 @@
+/**
+ * note-expression : variation d'octave par mot pour colorer la mélodie.
+ *
+ * Attention au discours produit : ce module NE réagit PAS à la vitesse ni au
+ * rythme de frappe. Il applique un motif d'octave FIXE indexé par le numéro
+ * du mot (WORD_OCTAVE_PATTERN), identique quelle que soit la façon de taper.
+ * Seul le TEMPO réagit vraiment à la frappe, et c'est le warp-engine qui s'en
+ * charge, pas ici.
+ */
+
 const NOTE_REGEX = /^([A-G][b#]?)(-?\d+)$/;
 const WORD_OCTAVE_PATTERN = [-1, 0, 1, 0] as const;
 
