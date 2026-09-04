@@ -1,15 +1,30 @@
 'use client';
 
 import { DataManagement } from '@/components/settings/DataManagement';
+import {
+  KEYBOARD_LAYOUTS,
+  useKeyboardLayoutPreference,
+} from '@/hooks/useKeyboardLayoutPreference';
 import { getUserProfile } from '@/lib/db';
+import { routing } from '@/i18n/routing';
 import { APP_THEMES, BASE_UNLOCKED_THEME_IDS } from '@/lib/theme/defaultThemes';
 import { useThemeStore } from '@/stores/useThemeStore';
-import { CheckCircle2, Palette } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { CheckCircle2, Languages, Palette } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+
+const LANGUAGE_LABEL_KEYS: Record<string, string> = {
+  fr: 'languageFr',
+  en: 'languageEn',
+};
 
 export function ParametresClient() {
   const t = useTranslations('settings');
+  const locale = useLocale();
+  const pathname = usePathname();
+  const { layout, setLayout } = useKeyboardLayoutPreference();
   const themeId = useThemeStore((s) => s.themeId);
   const setTheme = useThemeStore((s) => s.setTheme);
 
@@ -114,6 +129,97 @@ export function ParametresClient() {
                 );
               })}
             </div>
+          </div>
+        </section>
+
+        {/* Section : langue & clavier */}
+        <section className="flex flex-col gap-10">
+          <div className="flex items-center gap-2 text-[var(--color-text-muted)] font-mono mb-4 border-b border-[var(--color-border)] pb-2">
+            <Languages className="w-4 h-4" aria-hidden="true" />
+            <h2 className="text-lg">{t('localeGroup')}</h2>
+          </div>
+
+          {/* Langue d'affichage : chaque option navigue vers la même page
+              sous l'autre locale (next-intl mémorise le choix via son
+              cookie NEXT_LOCALE, posé automatiquement par le middleware dès
+              qu'une route préfixée est visitée). Pas de préférence séparée
+              à stocker : le routing en est déjà la source de vérité. */}
+          <div className="flex flex-col gap-4">
+            <h3 className="font-mono text-sm text-[var(--color-text-primary)]">
+              {t('languageTitle')}
+            </h3>
+            <div className="flex gap-3">
+              {routing.locales.map((loc) => {
+                const isActive = loc === locale;
+                const href = pathname.replace(`/${locale}`, `/${loc}`);
+                const label = t(LANGUAGE_LABEL_KEYS[loc] ?? loc);
+                return (
+                  <Link
+                    key={loc}
+                    href={href}
+                    aria-current={isActive ? 'page' : undefined}
+                    aria-label={t('selectLanguage', { name: label })}
+                    className="relative flex items-center gap-2 px-3 py-2 rounded font-mono text-xs transition-transform hover:scale-[1.02] focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--color-accent)]"
+                    style={{
+                      color: isActive
+                        ? 'var(--color-text-primary)'
+                        : 'var(--color-text-muted)',
+                      border: `1px solid ${isActive ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                      background: isActive
+                        ? 'color-mix(in srgb, var(--color-accent) 10%, transparent)'
+                        : 'transparent',
+                    }}
+                  >
+                    {isActive && (
+                      <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
+                    )}
+                    {label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Disposition du clavier physique : préférence IndexedDB, pas de
+              consommateur pour l'instant (voir ticket #62, clavier visuel du
+              mode Apprentissage). */}
+          <div className="flex flex-col gap-4">
+            <h3 className="font-mono text-sm text-[var(--color-text-primary)]">
+              {t('keyboardLayoutTitle')}
+            </h3>
+            <div className="flex gap-3">
+              {KEYBOARD_LAYOUTS.map((kl) => {
+                const isActive = kl === layout;
+                const label = t(kl === 'qwerty' ? 'layoutQwerty' : 'layoutAzerty');
+                return (
+                  <button
+                    key={kl}
+                    type="button"
+                    onClick={() => setLayout(kl)}
+                    aria-pressed={isActive}
+                    aria-label={t('selectLayout', { name: label })}
+                    className="relative flex items-center gap-2 px-3 py-2 rounded font-mono text-xs transition-transform hover:scale-[1.02] focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--color-accent)]"
+                    style={{
+                      color: isActive
+                        ? 'var(--color-text-primary)'
+                        : 'var(--color-text-muted)',
+                      border: `1px solid ${isActive ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                      background: isActive
+                        ? 'color-mix(in srgb, var(--color-accent) 10%, transparent)'
+                        : 'transparent',
+                    }}
+                  >
+                    {isActive && (
+                      <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
+                    )}
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-[var(--color-text-muted)] font-mono">
+              {t('keyboardLayoutHint')}
+            </p>
           </div>
         </section>
 

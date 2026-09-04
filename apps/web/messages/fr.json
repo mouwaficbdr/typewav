@@ -396,7 +396,17 @@
     "dataExport": "Télécharger mes données",
     "dataImport": "Importer un fichier",
     "dataImportConfirm": "Remplacer toutes vos données locales par ce fichier ? Cette action est irréversible.",
-    "dataImportError": "Ce fichier n'a pas pu être importé."
+    "dataImportError": "Ce fichier n'a pas pu être importé.",
+    "localeGroup": "langue et clavier",
+    "languageTitle": "Langue d'affichage",
+    "languageFr": "Français",
+    "languageEn": "English",
+    "selectLanguage": "Passer l'interface en {name}",
+    "keyboardLayoutTitle": "Disposition du clavier",
+    "layoutQwerty": "QWERTY",
+    "layoutAzerty": "AZERTY",
+    "selectLayout": "Utiliser la disposition {name}",
+    "keyboardLayoutHint": "Utilisée par le clavier visuel du mode Apprentissage."
   },
   "about": {
     "metaTitle": "À propos",

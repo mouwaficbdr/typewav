@@ -1,13 +1,19 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
 const mockGetUserProfile = vi.fn();
+const mockGetPreference = vi.fn().mockResolvedValue(undefined);
+const mockSetPreference = vi.fn().mockResolvedValue(undefined);
 vi.mock('@/lib/db', () => ({
   getUserProfile: () => mockGetUserProfile(),
   exportAll: vi.fn(),
   importAll: vi.fn(),
+  getPreference: (key: string) => mockGetPreference(key),
+  setPreference: (key: string, value: unknown) =>
+    mockSetPreference(key, value),
 }));
 
 const mockSetTheme = vi.fn();
@@ -18,6 +24,27 @@ vi.mock('@/stores/useThemeStore', () => ({
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
+  useLocale: () => 'fr',
+}));
+
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/fr/parametres',
+}));
+
+vi.mock('next/link', () => ({
+  default: ({
+    children,
+    href,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href: string;
+    [key: string]: unknown;
+  }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
 }));
 
 vi.mock('motion/react', () => ({
@@ -40,6 +67,7 @@ vi.mock('motion/react', () => ({
 vi.mock('lucide-react', () => ({
   CheckCircle2: () => null,
   Palette: () => null,
+  Languages: () => null,
   HardDrive: () => null,
   Download: () => null,
   Upload: () => null,
@@ -59,6 +87,8 @@ const GATED_NAMES = ['noir', 'arcade', 'soleil de minuit'];
 
 beforeEach(() => {
   mockGetUserProfile.mockReset();
+  mockGetPreference.mockReset().mockResolvedValue(undefined);
+  mockSetPreference.mockReset().mockResolvedValue(undefined);
 });
 
 describe('ParametresClient : sélecteur de thème', () => {
@@ -183,5 +213,82 @@ describe('ParametresClient : gestion des données', () => {
 
     expect(screen.getByText('dataOnDevice')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'dataExport' })).toBeTruthy();
+  });
+});
+
+describe('ParametresClient : langue d’affichage (ticket #60)', () => {
+  it('propose un lien vers chaque locale, avec la locale courante marquée', () => {
+    mockGetUserProfile.mockReturnValue(new Promise(() => {}));
+
+    render(<ParametresClient />);
+
+    // Deux liens portent le même aria-label ('selectLanguage', clé brute
+    // via le mock i18n) : on retrouve chacun par son href localisé.
+    const links = screen.getAllByRole('link', { name: 'selectLanguage' });
+    expect(links).toHaveLength(2);
+    const frLink = links.find((l) => l.getAttribute('href') === '/fr/parametres')!;
+    const enLink = links.find((l) => l.getAttribute('href') === '/en/parametres')!;
+    expect(frLink).toBeTruthy();
+    expect(enLink).toBeTruthy();
+    expect(frLink).toHaveAttribute('aria-current', 'page');
+    expect(enLink).not.toHaveAttribute('aria-current');
+  });
+
+  it('le lien vers la locale active pointe vers la même page, pas la racine', () => {
+    mockGetUserProfile.mockReturnValue(new Promise(() => {}));
+
+    render(<ParametresClient />);
+
+    const enLink = screen
+      .getAllByRole('link', { name: 'selectLanguage' })
+      .find((l) => l.getAttribute('href') === '/en/parametres');
+    expect(enLink).toBeTruthy();
+  });
+});
+
+describe('ParametresClient : disposition du clavier (ticket #60)', () => {
+  it('affiche qwerty comme disposition active par défaut', async () => {
+    mockGetUserProfile.mockReturnValue(new Promise(() => {}));
+
+    render(<ParametresClient />);
+
+    await waitFor(() => expect(mockGetPreference).toHaveBeenCalled());
+    const buttons = screen.getAllByRole('button', { name: 'selectLayout' });
+    expect(buttons).toHaveLength(2);
+    // Le mock i18n renvoie la clé brute, pas le libellé traduit.
+    const qwerty = buttons.find((b) => b.textContent?.includes('layoutQwerty'))!;
+    expect(qwerty).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('charge la disposition déjà stockée', async () => {
+    mockGetUserProfile.mockReturnValue(new Promise(() => {}));
+    mockGetPreference.mockResolvedValue('azerty');
+
+    render(<ParametresClient />);
+
+    await waitFor(() => {
+      const azerty = screen
+        .getAllByRole('button', { name: 'selectLayout' })
+        .find((b) => b.textContent?.includes('layoutAzerty'))!;
+      expect(azerty).toHaveAttribute('aria-pressed', 'true');
+    });
+  });
+
+  it('cliquer sur une disposition la persiste', async () => {
+    mockGetUserProfile.mockReturnValue(new Promise(() => {}));
+    const user = userEvent.setup();
+
+    render(<ParametresClient />);
+
+    await waitFor(() => expect(mockGetPreference).toHaveBeenCalled());
+    const azerty = screen
+      .getAllByRole('button', { name: 'selectLayout' })
+      .find((b) => b.textContent?.includes('layoutAzerty'))!;
+    await user.click(azerty);
+
+    await waitFor(() =>
+      expect(mockSetPreference).toHaveBeenCalledWith('keyboardLayout', 'azerty'),
+    );
+    expect(azerty).toHaveAttribute('aria-pressed', 'true');
   });
 });
