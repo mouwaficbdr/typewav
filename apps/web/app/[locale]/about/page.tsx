@@ -77,14 +77,13 @@ export default async function AboutPage({ params }: Props) {
   return (
     <main
       style={{
-        maxWidth: '660px',
+        maxWidth: '900px',
         margin: '0 auto',
-        padding: 'clamp(24px, 5vw, 48px) clamp(20px, 5vw, 32px) 96px',
+        padding: 'clamp(24px, 5vw, 48px) clamp(20px, 6vw, 48px) 96px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-start',
         gap: '44px',
-        backgroundColor: 'var(--color-bg)',
       }}
     >
       {/* Masthead : le titre de rubrique en mono, la thèse en display, la
@@ -118,7 +117,7 @@ export default async function AboutPage({ params }: Props) {
         <p
           style={{
             margin: '20px 0 0',
-            maxWidth: '46ch',
+            maxWidth: '58ch',
             fontFamily: 'var(--font-ui)',
             fontSize: '1.02rem',
             lineHeight: 1.7,
