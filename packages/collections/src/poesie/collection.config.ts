@@ -1,5 +1,5 @@
 /**
- * Collection Poésie — textes du domaine public (auteur mort > 70 ans).
+ * Collection Poésie : textes du domaine public (auteur mort > 70 ans).
  * Sources : Wikisource, Project Gutenberg.
  * Spec : docs/specs/06-content.md
  */
@@ -10,7 +10,7 @@ export const poesieCollection: CollectionConfig = {
   id: 'poesie',
   name: 'Poésie',
   nameEn: 'Poetry',
-  description: 'Poèmes emblématiques du patrimoine mondial — domaine public.',
+  description: 'Poèmes emblématiques du patrimoine mondial : domaine public.',
   language: 'multi',
   recommendedTheme: 'midnight-sun',
   isPremium: false,
@@ -18,7 +18,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-01',
       content: `Mon enfant, ma sœur, songe à la douceur d'aller là-bas vivre ensemble.`,
-      source: 'Charles Baudelaire — L\'Invitation au voyage (1857)',
+      source: 'Charles Baudelaire, L\'Invitation au voyage (1857)',
       language: 'fr',
       difficulty: 3,
       wordCount: 12,
@@ -28,7 +28,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-02',
       content: `Demain, dès l'aube, à l'heure où blanchit la campagne, je partirai. Vois-tu, je sais que tu m'attends.`,
-      source: 'Victor Hugo — Les Contemplations (1856)',
+      source: 'Victor Hugo, Les Contemplations (1856)',
       language: 'fr',
       difficulty: 3,
       wordCount: 17,
@@ -38,7 +38,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-03',
       content: `Sous le pont Mirabeau coule la Seine et nos amours faut-il qu'il m'en souvienne la joie venait toujours après la peine.`,
-      source: 'Guillaume Apollinaire — Le Pont Mirabeau (1913)',
+      source: 'Guillaume Apollinaire, Le Pont Mirabeau (1913)',
       language: 'fr',
       difficulty: 3,
       wordCount: 21,
@@ -48,7 +48,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-04',
       content: `Heureux qui, comme Ulysse, a fait un beau voyage, ou comme cestuy-là qui conquit la toison.`,
-      source: 'Joachim du Bellay — Les Regrets (1558)',
+      source: 'Joachim du Bellay, Les Regrets (1558)',
       language: 'fr',
       difficulty: 5,
       wordCount: 16,
@@ -58,7 +58,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-05',
       content: `Sois sage, ô ma Douleur, et tiens-toi plus tranquille. Tu réclamais le Soir; il descend; le voici.`,
-      source: 'Charles Baudelaire — Recueillement (1861)',
+      source: 'Charles Baudelaire, Recueillement (1861)',
       language: 'fr',
       difficulty: 5,
       wordCount: 17,
@@ -68,7 +68,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-06',
       content: `Il pleure dans mon cœur comme il pleut sur la ville. Quelle est cette langueur qui pénètre mon cœur?`,
-      source: 'Paul Verlaine — Romances sans paroles (1874)',
+      source: 'Paul Verlaine, Romances sans paroles (1874)',
       language: 'fr',
       difficulty: 3,
       wordCount: 19,
@@ -78,7 +78,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-07',
       content: `Ma bohème. Je m'en allais, les poings dans mes poches crevées; mon paletot aussi devenait idéal.`,
-      source: 'Arthur Rimbaud — Ma Bohème (1870)',
+      source: 'Arthur Rimbaud, Ma Bohème (1870)',
       language: 'fr',
       difficulty: 3,
       wordCount: 16,
@@ -88,7 +88,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-08',
       content: `La terre est bleue comme une orange. Jamais une erreur les mots ne mentent pas.`,
-      source: 'Paul Éluard — L\'Amour la Poésie (1929)',
+      source: 'Paul Éluard, L\'Amour la Poésie (1929)',
       language: 'fr',
       difficulty: 1,
       wordCount: 15,
@@ -98,7 +98,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-09',
       content: `Liberté. J'ai écrit ton nom sur mes cahiers d'écolier sur mon pupitre et les arbres.`,
-      source: 'Paul Éluard — Liberté (1942)',
+      source: 'Paul Éluard, Liberté (1942)',
       language: 'fr',
       difficulty: 1,
       wordCount: 15,
@@ -108,7 +108,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-10',
       content: `Qui fait l'ange fait la bête. Le cœur a ses raisons que la raison ne connaît point.`,
-      source: 'Blaise Pascal — Pensées (1670)',
+      source: 'Blaise Pascal, Pensées (1670)',
       language: 'fr',
       difficulty: 3,
       wordCount: 17,
@@ -118,7 +118,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-11',
       content: `Roses, vous avez dit : pour qui suis-je si belle ?`,
-      source: 'Pierre de Ronsard — Odes (1550)',
+      source: 'Pierre de Ronsard, Odes (1550)',
       language: 'fr',
       difficulty: 2,
       wordCount: 11,
@@ -128,7 +128,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-12',
       content: `Mes vers fuiraient, doux et frêles, vers votre jardin si beau.`,
-      source: 'Victor Hugo — Vous avez le regard serein (1835)',
+      source: 'Victor Hugo, Vous avez le regard serein (1835)',
       language: 'fr',
       difficulty: 2,
       wordCount: 11,
@@ -138,7 +138,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-13',
       content: `Et rose elle a vécu ce que vivent les roses, l'espace d'un matin.`,
-      source: 'François de Malherbe — Consolation (1599)',
+      source: 'François de Malherbe, Consolation (1599)',
       language: 'fr',
       difficulty: 2,
       wordCount: 13,
@@ -148,7 +148,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-14',
       content: `Je suis l'empire à la fin de la décadence, qui regarde passer les grands barbares blancs.`,
-      source: 'Paul Verlaine — Langeur (1883)',
+      source: 'Paul Verlaine, Langeur (1883)',
       language: 'fr',
       difficulty: 5,
       wordCount: 16,
@@ -158,7 +158,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-15',
       content: `Le vent se lève, il faut tenter de vivre.`,
-      source: 'Paul Valéry — Le Cimetière marin (1920)',
+      source: 'Paul Valéry, Le Cimetière marin (1920)',
       language: 'fr',
       difficulty: 2,
       wordCount: 9,
@@ -168,7 +168,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-16',
       content: `Ô saisons, ô châteaux! Quelle âme est sans défauts?`,
-      source: 'Arthur Rimbaud — Ô Saisons (1872)',
+      source: 'Arthur Rimbaud, Ô Saisons (1872)',
       language: 'fr',
       difficulty: 3,
       wordCount: 9,
@@ -178,7 +178,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-17',
       content: `Maître Corbeau, sur un arbre perché, tenait en son bec un fromage.`,
-      source: 'Jean de La Fontaine — Le Corbeau et le Renard (1668)',
+      source: 'Jean de La Fontaine, Le Corbeau et le Renard (1668)',
       language: 'fr',
       difficulty: 1,
       wordCount: 12,
@@ -188,7 +188,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-18',
       content: `Ces nymphes, je les veux perpétuer.`,
-      source: 'Stéphane Mallarmé — L\'Après-midi d\'un faune (1876)',
+      source: 'Stéphane Mallarmé, L\'Après-midi d\'un faune (1876)',
       language: 'fr',
       difficulty: 4,
       wordCount: 6,
@@ -198,7 +198,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-19',
       content: `Tout ce qui est beau est difficile autant que rare.`,
-      source: 'Baruch Spinoza — Éthique (1677)',
+      source: 'Baruch Spinoza, Éthique (1677)',
       language: 'fr',
       difficulty: 2,
       wordCount: 10,
@@ -218,7 +218,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-21',
       content: `Ô nuit désastreuse ! Ô nuit effroyable, où retentit tout à coup comme un éclat de tonnerre cette étonnante nouvelle.`,
-      source: 'Jacques-Bénigne Bossuet — Oraison funèbre (1686)',
+      source: 'Jacques-Bénigne Bossuet, Oraison funèbre (1686)',
       language: 'fr',
       difficulty: 5,
       wordCount: 20,
@@ -228,7 +228,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-22',
       content: `Minuit. La pluie. Une rue éclatante et noire.`,
-      source: 'Émile Verhaeren — La Pluie (1895)',
+      source: 'Émile Verhaeren, La Pluie (1895)',
       language: 'fr',
       difficulty: 2,
       wordCount: 8,
@@ -238,7 +238,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-23',
       content: `J'ai plus de souvenirs que si j'avais mille ans.`,
-      source: 'Charles Baudelaire — Spleen (1857)',
+      source: 'Charles Baudelaire, Spleen (1857)',
       language: 'fr',
       difficulty: 2,
       wordCount: 9,
@@ -248,7 +248,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-24',
       content: `On vit, on parle, on a le ciel et les nuages sur la tête.`,
-      source: 'Victor Hugo — Les Contemplations (1856)',
+      source: 'Victor Hugo, Les Contemplations (1856)',
       language: 'fr',
       difficulty: 1,
       wordCount: 14,
@@ -258,7 +258,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-25',
       content: `Beau soir de printemps à travers les nuages, doux reflets de lune sur les eaux dormantes.`,
-      source: 'Paul Verlaine — Poèmes saturniens (1866)',
+      source: 'Paul Verlaine, Poèmes saturniens (1866)',
       language: 'fr',
       difficulty: 3,
       wordCount: 16,
@@ -268,7 +268,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-26',
       content: `Il faut qu'une porte soit ouverte ou fermée.`,
-      source: 'Alfred de Musset — Il faut qu\'une porte soit ouverte ou fermée (1845)',
+      source: 'Alfred de Musset, Il faut qu\'une porte soit ouverte ou fermée (1845)',
       language: 'fr',
       difficulty: 1,
       wordCount: 8,
@@ -278,7 +278,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-27',
       content: `Le repos est une illusion. La paix est quelque chose que je n'ai jamais connu.`,
-      source: 'Guillaume Apollinaire — Alcools (1913)',
+      source: 'Guillaume Apollinaire, Alcools (1913)',
       language: 'fr',
       difficulty: 3,
       wordCount: 15,
@@ -298,7 +298,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-29',
       content: `Le bonheur est une chose rare et difficile à garder.`,
-      source: 'Stendhal — De l\'Amour (1822)',
+      source: 'Stendhal, De l\'Amour (1822)',
       language: 'fr',
       difficulty: 2,
       wordCount: 10,
@@ -308,7 +308,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-30',
       content: `Avoir été aimé une seule fois sincèrement vaut mieux que d'être adulé par des milliers.`,
-      source: 'Honoré de Balzac — Aux gens qui rient (1830)',
+      source: 'Honoré de Balzac, Aux gens qui rient (1830)',
       language: 'fr',
       difficulty: 3,
       wordCount: 15,
@@ -318,7 +318,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-01',
       content: `Shall I compare thee to a summer's day? Thou art more lovely and more temperate.`,
-      source: 'William Shakespeare — Sonnet 18 (1609)',
+      source: 'William Shakespeare, Sonnet 18 (1609)',
       language: 'en',
       difficulty: 3,
       wordCount: 15,
@@ -338,7 +338,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-03',
       content: `Do not go gentle into that good night. Old age should burn and rave at close of day.`,
-      source: 'Dylan Thomas — Do Not Go Gentle (1947)',
+      source: 'Dylan Thomas, Do Not Go Gentle (1947)',
       language: 'en',
       difficulty: 3,
       wordCount: 18,
@@ -348,7 +348,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-04',
       content: `Because I could not stop for Death, he kindly stopped for me; the carriage held but just ourselves and Immortality.`,
-      source: 'Emily Dickinson — Because I Could Not Stop for Death (c.1863)',
+      source: 'Emily Dickinson, Because I Could Not Stop for Death (c.1863)',
       language: 'en',
       difficulty: 3,
       wordCount: 20,
@@ -368,7 +368,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-06',
       content: `In Xanadu did Kubla Khan a stately pleasure-dome decree: where Alph, the sacred river, ran through caverns measureless to man down to a sunless sea.`,
-      source: 'Samuel Taylor Coleridge — Kubla Khan (1816)',
+      source: 'Samuel Taylor Coleridge, Kubla Khan (1816)',
       language: 'en',
       difficulty: 5,
       wordCount: 25,
@@ -378,7 +378,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-07',
       content: `Hope is the thing with feathers that perches in the soul, and sings the tune without the words, and never stops at all.`,
-      source: 'Emily Dickinson — Hope is the Thing with Feathers (c.1861)',
+      source: 'Emily Dickinson, Hope is the Thing with Feathers (c.1861)',
       language: 'en',
       difficulty: 1,
       wordCount: 23,
@@ -388,7 +388,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-08',
       content: `Tyger Tyger, burning bright, in the forests of the night; what immortal hand or eye, could frame thy fearful symmetry?`,
-      source: 'William Blake — Songs of Experience (1794)',
+      source: 'William Blake, Songs of Experience (1794)',
       language: 'en',
       difficulty: 3,
       wordCount: 20,
@@ -398,7 +398,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-09',
       content: `I wandered lonely as a cloud that floats on high o'er vales and hills, when all at once I saw a crowd, a host, of golden daffodils.`,
-      source: 'William Wordsworth — Daffodils (1807)',
+      source: 'William Wordsworth, Daffodils (1807)',
       language: 'en',
       difficulty: 3,
       wordCount: 27,
@@ -418,7 +418,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-11',
       content: `Thou still unravish'd bride of quietness, thou foster-child of silence and slow time.`,
-      source: 'John Keats — Ode on a Grecian Urn (1819)',
+      source: 'John Keats, Ode on a Grecian Urn (1819)',
       language: 'en',
       difficulty: 5,
       wordCount: 13,
@@ -428,7 +428,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-12',
       content: `Water, water, everywhere, nor any drop to drink.`,
-      source: 'Samuel Taylor Coleridge — The Rime of the Ancient Mariner (1798)',
+      source: 'Samuel Taylor Coleridge, The Rime of the Ancient Mariner (1798)',
       language: 'en',
       difficulty: 1,
       wordCount: 8,
@@ -438,7 +438,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-13',
       content: `How do I love thee? Let me count the ways. I love thee to the depth and breadth and height my soul can reach.`,
-      source: 'Elizabeth Barrett Browning — Sonnets from the Portuguese (1850)',
+      source: 'Elizabeth Barrett Browning, Sonnets from the Portuguese (1850)',
       language: 'en',
       difficulty: 3,
       wordCount: 24,
@@ -448,7 +448,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-14',
       content: `If you can keep your head when all about you are losing theirs and blaming it on you.`,
-      source: 'Rudyard Kipling — If (1910)',
+      source: 'Rudyard Kipling, If (1910)',
       language: 'en',
       difficulty: 3,
       wordCount: 18,
@@ -468,7 +468,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-16',
       content: `Shall I compare thee to a winter's night? More harsh, more cold, and more inconstant far.`,
-      source: 'Anonymous — After Shakespeare',
+      source: 'Anonymous, After Shakespeare',
       language: 'en',
       difficulty: 3,
       wordCount: 16,
@@ -478,7 +478,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-17',
       content: `Death, be not proud, though some have called thee mighty and dreadful, for thou art not so.`,
-      source: 'John Donne — Death Be Not Proud (1633)',
+      source: 'John Donne, Death Be Not Proud (1633)',
       language: 'en',
       difficulty: 5,
       wordCount: 17,
@@ -488,7 +488,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-18',
       content: `Gather ye rosebuds while ye may, old time is still a-flying.`,
-      source: 'Robert Herrick — To the Virgins (1648)',
+      source: 'Robert Herrick, To the Virgins (1648)',
       language: 'en',
       difficulty: 2,
       wordCount: 11,
@@ -498,7 +498,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-19',
       content: `What immortal hand or eye dare frame thy fearful symmetry?`,
-      source: 'William Blake — The Tyger (1794)',
+      source: 'William Blake, The Tyger (1794)',
       language: 'en',
       difficulty: 3,
       wordCount: 10,
@@ -508,7 +508,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-20',
       content: `Breathes there the man with soul so dead who never to himself hath said, this is my own, my native land?`,
-      source: 'Sir Walter Scott — The Lay of the Last Minstrel (1805)',
+      source: 'Sir Walter Scott, The Lay of the Last Minstrel (1805)',
       language: 'en',
       difficulty: 5,
       wordCount: 21,
@@ -518,7 +518,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-21',
       content: `Tell me not, in mournful numbers, life is but an empty dream.`,
-      source: 'Henry Wadsworth Longfellow — A Psalm of Life (1838)',
+      source: 'Henry Wadsworth Longfellow, A Psalm of Life (1838)',
       language: 'en',
       difficulty: 3,
       wordCount: 12,
@@ -538,7 +538,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-23',
       content: `Beauty is truth, truth beauty, that is all ye know on earth and all ye need to know.`,
-      source: 'John Keats — Ode on a Grecian Urn (1819)',
+      source: 'John Keats, Ode on a Grecian Urn (1819)',
       language: 'en',
       difficulty: 3,
       wordCount: 18,
@@ -558,7 +558,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-25',
       content: `To see a World in a Grain of Sand and a Heaven in a Wild Flower.`,
-      source: 'William Blake — Auguries of Innocence (c.1803)',
+      source: 'William Blake, Auguries of Innocence (c.1803)',
       language: 'en',
       difficulty: 2,
       wordCount: 16,
@@ -568,7 +568,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-26',
       content: `O Captain! My Captain! our fearful trip is done.`,
-      source: 'Walt Whitman — O Captain! My Captain! (1865)',
+      source: 'Walt Whitman, O Captain! My Captain! (1865)',
       language: 'en',
       difficulty: 2,
       wordCount: 9,
@@ -578,7 +578,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-27',
       content: `Half a league, half a league, half a league onward, all in the valley of Death rode the six hundred.`,
-      source: 'Alfred Lord Tennyson — The Charge of the Light Brigade (1854)',
+      source: 'Alfred Lord Tennyson, The Charge of the Light Brigade (1854)',
       language: 'en',
       difficulty: 3,
       wordCount: 20,
@@ -588,7 +588,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-28',
       content: `Let me not to the marriage of true minds admit impediments.`,
-      source: 'William Shakespeare — Sonnet 116 (1609)',
+      source: 'William Shakespeare, Sonnet 116 (1609)',
       language: 'en',
       difficulty: 3,
       wordCount: 11,
@@ -598,7 +598,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-29',
       content: `Once upon a midnight dreary, while I pondered, weak and weary, over many a quaint and curious volume of forgotten lore.`,
-      source: 'Edgar Allan Poe — The Raven (1845)',
+      source: 'Edgar Allan Poe, The Raven (1845)',
       language: 'en',
       difficulty: 5,
       wordCount: 21,
@@ -608,7 +608,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-30',
       content: `Bright star, would I were steadfast as thou art.`,
-      source: 'John Keats — Bright Star (1819)',
+      source: 'John Keats, Bright Star (1819)',
       language: 'en',
       difficulty: 2,
       wordCount: 9,
@@ -618,7 +618,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-31',
       content: `Ainsi, toujours poussés vers de nouveaux rivages, Dans la nuit éternelle emportés sans retour, Ne pourrons-nous jamais sur l'océan des âges Jeter l'ancre un seul jour ? Ô lac ! l'année à peine a fini sa carrière, Et près des flots chéris qu'elle devait revoir, Regarde ! je viens seul m'asseoir sur cette pierre Où tu la vis s'asseoir !`,
-      source: 'Alphonse de Lamartine — Le Lac (1820)',
+      source: 'Alphonse de Lamartine, Le Lac (1820)',
       language: 'fr',
       difficulty: 3,
       wordCount: 60,
@@ -628,7 +628,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-32',
       content: `Oui, l'œuvre sort plus belle D'une forme au travail Rebelle, Vers, marbre, onyx, émail. Point de contraintes fausses ! Mais que pour marcher droit Tu chausses, Muse, un cothurne étroit ! Fi du rythme commode, Comme un soulier trop grand, Du mode Que tout pied quitte et prend !`,
-      source: 'Théophile Gautier — L\'Art (1857)',
+      source: 'Théophile Gautier, L\'Art (1857)',
       language: 'fr',
       difficulty: 4,
       wordCount: 49,
@@ -638,7 +638,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-33',
       content: `Poëte, prends ton luth et me donne un baiser ; La fleur de l'églantier sent ses bourgeons éclore. Le printemps naît ce soir ; les vents vont s'embraser ; Et la bergeronnette, en attendant l'aurore, Aux premiers buissons verts commence à se poser. Poëte, prends ton luth, et me donne un baiser.`,
-      source: 'Alfred de Musset — La Nuit de mai (1835)',
+      source: 'Alfred de Musset, La Nuit de mai (1835)',
       language: 'fr',
       difficulty: 3,
       wordCount: 52,
@@ -648,7 +648,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-34',
       content: `Souvent, pour s'amuser, les hommes d'équipage Prennent des albatros, vastes oiseaux des mers, Qui suivent, indolents compagnons de voyage, Le navire glissant sur les gouffres amers. À peine les ont-ils déposés sur les planches, Que ces rois de l'azur, maladroits et honteux, Laissent piteusement leurs grandes ailes blanches Comme des avirons traîner à côté d'eux. Ce voyageur ailé, comme il est gauche et veule ! Lui, naguère si beau, qu'il est comique et laid ! L'un agace son bec avec un brûle-gueule, L'autre mime, en boitant, l'infirme qui volait ! Le Poëte est semblable au prince des nuées Qui hante la tempête et se rit de l'archer ; Exilé sur le sol au milieu des huées, Ses ailes de géant l'empêchent de marcher.`,
-      source: 'Charles Baudelaire — L\'Albatros (1861)',
+      source: 'Charles Baudelaire, L\'Albatros (1861)',
       language: 'fr',
       difficulty: 4,
       wordCount: 123,
@@ -658,7 +658,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-35',
       content: `Comme un vol de gerfauts hors du charnier natal, Fatigués de porter leurs misères hautaines, De Palos de Moguer, routiers et capitaines Partaient, ivres d'un rêve héroïque et brutal. Ils allaient conquérir le fabuleux métal Que Cipango mûrit dans ses mines lointaines, Et les vents alizés inclinaient leurs antennes Aux bords mystérieux du monde Occidental. Chaque soir, espérant des lendemains épiques, L'azur phosphorescent de la mer des Tropiques Enchantait leur sommeil d'un mirage doré ; Ou penchés à l'avant des blanches caravelles, Ils regardaient monter en un ciel ignoré Du fond de l'Océan des étoiles nouvelles.`,
-      source: 'José-Maria de Heredia — Les Conquérants (1893)',
+      source: 'José-Maria de Heredia, Les Conquérants (1893)',
       language: 'fr',
       difficulty: 4,
       wordCount: 96,
@@ -668,7 +668,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-36',
       content: `Booz s'était couché de fatigue accablé ; Il avait tout le jour travaillé dans son aire ; Puis avait fait son lit à sa place ordinaire ; Booz dormait auprès des boisseaux pleins de blé. Ce vieillard possédait des champs de blés et d'orge ; Il était, quoique riche, à la justice enclin ; Il n'avait pas de fange en l'eau de son moulin ; Il n'avait pas d'enfer dans le feu de sa forge. Sa barbe était d'argent comme un ruisseau d'avril. Sa gerbe n'était point avare ni haineuse ; Quand il voyait passer quelque pauvre glaneuse : « Laissez tomber exprès des épis », disait-il.`,
-      source: 'Victor Hugo — Booz endormi (1859)',
+      source: 'Victor Hugo, Booz endormi (1859)',
       language: 'fr',
       difficulty: 3,
       wordCount: 107,
@@ -678,7 +678,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-31',
       content: `I'm Nobody! Who are you? Are you nobody, too? Then there's a pair of us—don't tell! They'd banish us, you know. How dreary to be somebody! How public, like a frog, To tell your name the livelong day To an admiring bog!`,
-      source: 'Emily Dickinson — I\'m Nobody! Who are you? (c.1861)',
+      source: 'Emily Dickinson, I\'m Nobody! Who are you? (c.1861)',
       language: 'en',
       difficulty: 2,
       wordCount: 42,
@@ -688,7 +688,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-32',
       content: `She walks in beauty, like the night Of cloudless climes and starry skies; And all that's best of dark and bright Meet in her aspect and her eyes: Thus mellow'd to that tender light Which heaven to gaudy day denies.`,
-      source: 'Lord Byron — She Walks in Beauty (1815)',
+      source: 'Lord Byron, She Walks in Beauty (1815)',
       language: 'en',
       difficulty: 3,
       wordCount: 40,
@@ -698,7 +698,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-33',
       content: `It was many and many a year ago, In a kingdom by the sea, That a maiden there lived whom you may know By the name of Annabel Lee;— And this maiden she lived with no other thought Than to love and be loved by me.`,
-      source: 'Edgar Allan Poe — Annabel Lee (1849)',
+      source: 'Edgar Allan Poe, Annabel Lee (1849)',
       language: 'en',
       difficulty: 3,
       wordCount: 46,
@@ -708,7 +708,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-34',
       content: `When I have fears that I may cease to be Before my pen has glean'd my teeming brain, Before high pilèd books, in charactry, Hold like rich garners the full-ripen'd grain; When I behold, upon the night's starr'd face, Huge cloudy symbols of a high romance, And think that I may never live to trace Their shadows, with the magic hand of chance; And when I feel, fair creature of an hour! That I shall never look upon thee more, Never have relish in the faery power Of unreflecting love;—then on the shore Of the wide world I stand alone, and think Till Love and Fame to nothingness do sink.`,
-      source: 'John Keats — When I Have Fears That I May Cease to Be (1818)',
+      source: 'John Keats, When I Have Fears That I May Cease to Be (1818)',
       language: 'en',
       difficulty: 5,
       wordCount: 110,
@@ -718,7 +718,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-35',
       content: `The world is too much with us; late and soon, Getting and spending, we lay waste our powers: Little we see in nature that is ours; We have given our hearts away, a sordid boon! This Sea that bares her bosom to the moon; The Winds that will be howling at all hours And are up-gathered now like sleeping flowers; For this, for every thing, we are out of tune; It moves us not— Great God! I'd rather be A Pagan suckled in a creed outworn; So might I, standing on this pleasant lea, Have glimpses that would make me less forlorn Have sight of Proteus coming from the sea; Or hear old Triton blow his wreathed horn.`,
-      source: 'William Wordsworth — The World Is Too Much with Us (1807)',
+      source: 'William Wordsworth, The World Is Too Much with Us (1807)',
       language: 'en',
       difficulty: 4,
       wordCount: 118,
@@ -728,7 +728,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-36',
       content: `I celebrate myself, and sing myself, And what I assume you shall assume, For every atom belonging to me as good belongs to you. I loafe and invite my soul, I lean and loafe at my ease observing a spear of summer grass. My tongue, every atom of my blood, form'd from this soil, this air, Born here of parents born here from parents the same, and their parents the same, I, now thirty-seven years old in perfect health begin, Hoping to cease not till death.`,
-      source: 'Walt Whitman — Song of Myself (1855)',
+      source: 'Walt Whitman, Song of Myself (1855)',
       language: 'en',
       difficulty: 3,
       wordCount: 86,
@@ -738,7 +738,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-37',
       content: `Voilà la poésie ce matin et pour la prose il y a les journaux. Il y a les livraisons à 25 centimes pleines d'aventures policières.`,
-      source: 'Guillaume Apollinaire — Zone (1913)',
+      source: 'Guillaume Apollinaire, Zone (1913)',
       language: 'fr',
       difficulty: 3,
       wordCount: 25,
@@ -748,7 +748,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-fr-38',
       content: `L'éclatante victoire de Sarrebrück, remportée aux cris de vive l'Empereur! Gravure belge brillamment coloriée, se vend à Charleroi, 35 centimes.`,
-      source: 'Arthur Rimbaud — L\'Éclatante Victoire de Sarrebrück (1870)',
+      source: 'Arthur Rimbaud, L\'Éclatante Victoire de Sarrebrück (1870)',
       language: 'fr',
       difficulty: 4,
       wordCount: 20,
@@ -758,7 +758,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-37',
       content: `IN FIELDING FORCE SERVICE. Encampment, 10th Jan. Dear Sir, I have honour to send, as you said, for final approval (see under) Boh's Head.`,
-      source: 'Rudyard Kipling — The Ballad of Boh Da Thone (1892)',
+      source: 'Rudyard Kipling, The Ballad of Boh Da Thone (1892)',
       language: 'en',
       difficulty: 4,
       wordCount: 24,
@@ -768,7 +768,7 @@ export const poesieCollection: CollectionConfig = {
     {
       id: 'poe-en-38',
       content: `The mediaeval navigators rise before me, the world of 1492, with its awaken'd enterprise, something swelling in humanity now like the sap of the earth in spring, the sunset splendor of chivalry declining.`,
-      source: 'Walt Whitman — Passage to India (1871)',
+      source: 'Walt Whitman, Passage to India (1871)',
       language: 'en',
       difficulty: 3,
       wordCount: 33,

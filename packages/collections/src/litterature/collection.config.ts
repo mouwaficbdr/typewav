@@ -1,5 +1,5 @@
 /**
- * Collection Littérature — textes du domaine public (auteur mort > 70 ans).
+ * Collection Littérature : textes du domaine public (auteur mort > 70 ans).
  * Sources : Project Gutenberg, Wikisource.
  * Spec : docs/specs/06-content.md
  */
@@ -10,7 +10,7 @@ export const litteratureCollection: CollectionConfig = {
   id: 'litterature',
   name: 'Littérature',
   nameEn: 'Literature',
-  description: 'Grands textes de la littérature mondiale — domaine public.',
+  description: 'Grands textes de la littérature mondiale : domaine public.',
   language: 'multi',
   recommendedTheme: 'noir',
   isPremium: false,
@@ -29,7 +29,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-02',
       content: `Longtemps, je me suis couché de bonne heure. Parfois, à peine ma bougie éteinte, mes yeux se fermaient si vite que je n'avais pas le temps de me dire : «Je m'endors.»`,
-      source: 'Marcel Proust — Du côté de chez Swann (1913)',
+      source: 'Marcel Proust, Du côté de chez Swann (1913)',
       language: 'fr',
       difficulty: 5,
       wordCount: 32,
@@ -49,7 +49,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-04',
       content: `Toutes les familles heureuses se ressemblent ; chaque famille malheureuse est malheureuse à sa façon.`,
-      source: 'Léon Tolstoï — Anna Karénine (1877)',
+      source: 'Léon Tolstoï, Anna Karénine (1877)',
       language: 'fr',
       difficulty: 3,
       wordCount: 15,
@@ -59,7 +59,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-05',
       content: `La nuit était sombre et orageuse. Raskolnikov se leva et sortit de sa mansarde.`,
-      source: 'Fiodor Dostoïevski — Crime et Châtiment (1866)',
+      source: 'Fiodor Dostoïevski, Crime et Châtiment (1866)',
       language: 'fr',
       difficulty: 1,
       wordCount: 14,
@@ -79,7 +79,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-07',
       content: `C'était le meilleur des temps, c'était le pire des temps, c'était l'âge de la sagesse, c'était l'âge de la folie.`,
-      source: 'Charles Dickens — Le Conte de deux villes (1859)',
+      source: 'Charles Dickens, Le Conte de deux villes (1859)',
       language: 'fr',
       difficulty: 3,
       wordCount: 20,
@@ -109,7 +109,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-10',
       content: `La vie est courte et l'art est long, l'occasion fugitive, l'expérience trompeuse, le jugement difficile.`,
-      source: 'Hippocrate — Aphorismes (IVe siècle av. J.-C.)',
+      source: 'Hippocrate, Aphorismes (IVe siècle av. J.-C.)',
       language: 'fr',
       difficulty: 3,
       wordCount: 15,
@@ -119,7 +119,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-11',
       content: `Il est des parfums frais comme des chairs d'enfants, doux comme les hautbois, verts comme les prairies.`,
-      source: 'Charles Baudelaire — Correspondances (1857)',
+      source: 'Charles Baudelaire, Correspondances (1857)',
       language: 'fr',
       difficulty: 4,
       wordCount: 17,
@@ -129,7 +129,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-12',
       content: `Jean Valjean fut traduit devant les tribunaux alors qu'il avait volé un pain pour nourrir sa famille affamée.`,
-      source: 'Victor Hugo — Les Misérables (1862)',
+      source: 'Victor Hugo, Les Misérables (1862)',
       language: 'fr',
       difficulty: 3,
       wordCount: 18,
@@ -139,7 +139,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-13',
       content: `La vie est une longue préparation à quelque chose qui ne vient jamais peut-être.`,
-      source: 'William Butler Yeats — trad.',
+      source: 'William Butler Yeats, trad.',
       language: 'fr',
       difficulty: 2,
       wordCount: 14,
@@ -159,7 +159,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-15',
       content: `Mon Dieu, mon Dieu ! Pourquoi m'avez-vous abandonné ? Les paroles se perdent dans le désert.`,
-      source: 'Gustave Flaubert — La Tentation de saint Antoine (1874)',
+      source: 'Gustave Flaubert, La Tentation de saint Antoine (1874)',
       language: 'fr',
       difficulty: 4,
       wordCount: 16,
@@ -169,7 +169,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-16',
       content: `Il avait rêvé d'une gloire littéraire et finissait clerc de notaire dans une ville de province.`,
-      source: 'Stendhal — Le Rouge et le Noir (1830)',
+      source: 'Stendhal, Le Rouge et le Noir (1830)',
       language: 'fr',
       difficulty: 3,
       wordCount: 16,
@@ -179,7 +179,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-17',
       content: `La mer, la mer, toujours recommencée ! Ô récompense après une pensée qu'un long regard sur le calme des dieux !`,
-      source: 'Paul Valéry — Le Cimetière marin (1920)',
+      source: 'Paul Valéry, Le Cimetière marin (1920)',
       language: 'fr',
       difficulty: 5,
       wordCount: 21,
@@ -199,7 +199,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-19',
       content: `L'amour est aveugle ; voilà pourquoi il ne voit pas les imperfections de ceux que nous aimons.`,
-      source: 'Molière — L\'École des femmes (1662)',
+      source: 'Molière, L\'École des femmes (1662)',
       language: 'fr',
       difficulty: 3,
       wordCount: 17,
@@ -209,7 +209,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-20',
       content: `Paris, cette immense et ardente capitale, dressait ses tours et ses toits dans le ciel gris de novembre.`,
-      source: 'Guy de Maupassant — Bel-Ami (1885)',
+      source: 'Guy de Maupassant, Bel-Ami (1885)',
       language: 'fr',
       difficulty: 3,
       wordCount: 18,
@@ -219,7 +219,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-21',
       content: `La nature est un temple où de vivants piliers laissent parfois sortir de confuses paroles.`,
-      source: 'Charles Baudelaire — Correspondances (1857)',
+      source: 'Charles Baudelaire, Correspondances (1857)',
       language: 'fr',
       difficulty: 4,
       wordCount: 15,
@@ -249,7 +249,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-24',
       content: `Deux choses me remplissent d'admiration : le ciel étoilé au-dessus de moi et la loi morale en moi.`,
-      source: 'Emmanuel Kant — Critique de la raison pratique (1788)',
+      source: 'Emmanuel Kant, Critique de la raison pratique (1788)',
       language: 'fr',
       difficulty: 4,
       wordCount: 18,
@@ -289,7 +289,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-28',
       content: `Tout est pour le mieux dans le meilleur des mondes possibles.`,
-      source: 'Voltaire — Candide (1759)',
+      source: 'Voltaire, Candide (1759)',
       language: 'fr',
       difficulty: 2,
       wordCount: 11,
@@ -299,7 +299,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-29',
       content: `Il faut cultiver notre jardin.`,
-      source: 'Voltaire — Candide (1759)',
+      source: 'Voltaire, Candide (1759)',
       language: 'fr',
       difficulty: 1,
       wordCount: 5,
@@ -309,7 +309,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-30',
       content: `La douleur est une leçon. La douleur bien portée apprend la mesure des choses.`,
-      source: 'Léon Bloy — Journal (1892)',
+      source: 'Léon Bloy, Journal (1892)',
       language: 'fr',
       difficulty: 3,
       wordCount: 14,
@@ -319,7 +319,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-31',
       content: `La vérité est en marche et rien ne l'arrêtera.`,
-      source: 'Émile Zola — J\'accuse (1898)',
+      source: 'Émile Zola, J\'accuse (1898)',
       language: 'fr',
       difficulty: 1,
       wordCount: 9,
@@ -339,7 +339,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-33',
       content: `Germinal. Le mot sonnait comme un coup de feu. L'aube levait sur les mines.`,
-      source: 'Émile Zola — Germinal (1885)',
+      source: 'Émile Zola, Germinal (1885)',
       language: 'fr',
       difficulty: 2,
       wordCount: 14,
@@ -349,7 +349,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-34',
       content: `Monsieur Moreau avait passé sa vie à travailler pour une retraite qu'il n'eut jamais le temps de prendre.`,
-      source: 'Gustave Flaubert — L\'Éducation sentimentale (1869)',
+      source: 'Gustave Flaubert, L\'Éducation sentimentale (1869)',
       language: 'fr',
       difficulty: 3,
       wordCount: 18,
@@ -369,7 +369,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-36',
       content: `Ce que nous savons est une goutte d'eau, ce que nous ignorons est un océan.`,
-      source: 'Isaac Newton — attribué',
+      source: 'Isaac Newton, attribué',
       language: 'fr',
       difficulty: 2,
       wordCount: 15,
@@ -379,7 +379,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-37',
       content: `La lecture est à l'esprit ce que l'exercice est au corps.`,
-      source: 'Joseph Addison — The Spectator (1711, trad.)',
+      source: 'Joseph Addison, The Spectator (1711, trad.)',
       language: 'fr',
       difficulty: 1,
       wordCount: 11,
@@ -389,7 +389,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-38',
       content: `Il n'est pire misère que d'avoir été heureux autrefois.`,
-      source: 'Dante Alighieri — La Divine Comédie (XIVe siècle, trad.)',
+      source: 'Dante Alighieri, La Divine Comédie (XIVe siècle, trad.)',
       language: 'fr',
       difficulty: 2,
       wordCount: 9,
@@ -399,7 +399,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-39',
       content: `Éduquer c'est allumer un feu, non remplir un vase.`,
-      source: 'Michel de Montaigne — Essais (1580)',
+      source: 'Michel de Montaigne, Essais (1580)',
       language: 'fr',
       difficulty: 1,
       wordCount: 9,
@@ -409,7 +409,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-40',
       content: `Jamais un grand homme ne fut puni pour ses crimes. Il fut seulement remplacé.`,
-      source: 'Honoré de Balzac — attribué',
+      source: 'Honoré de Balzac, attribué',
       language: 'fr',
       difficulty: 3,
       wordCount: 14,
@@ -429,7 +429,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-42',
       content: `Les livres sont les testaments que les génies lèguent à l'humanité.`,
-      source: 'Jules Renard — Journal (1890)',
+      source: 'Jules Renard, Journal (1890)',
       language: 'fr',
       difficulty: 2,
       wordCount: 11,
@@ -449,7 +449,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-44',
       content: `On ne peut pas plaire à tout le monde et à son père.`,
-      source: 'La Fontaine — Le Meunier, son fils et l\'âne (1668)',
+      source: 'La Fontaine, Le Meunier, son fils et l\'âne (1668)',
       language: 'fr',
       difficulty: 1,
       wordCount: 13,
@@ -479,7 +479,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-47',
       content: `Le silence est une réponse assez claire pour celui qui sait interpréter.`,
-      source: 'Honoré de Balzac — attribué',
+      source: 'Honoré de Balzac, attribué',
       language: 'fr',
       difficulty: 3,
       wordCount: 12,
@@ -489,7 +489,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-48',
       content: `L'homme est la mesure de toutes choses.`,
-      source: 'Protagoras — fragment (Ve siècle av. J.-C., trad.)',
+      source: 'Protagoras, fragment (Ve siècle av. J.-C., trad.)',
       language: 'fr',
       difficulty: 1,
       wordCount: 7,
@@ -499,7 +499,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-49',
       content: `La générosité consiste à donner plus qu'on ne peut et l'orgueil à recevoir moins qu'on ne peut.`,
-      source: 'Khalil Gibran — Le Prophète (1923)',
+      source: 'Khalil Gibran, Le Prophète (1923)',
       language: 'fr',
       difficulty: 4,
       wordCount: 17,
@@ -509,7 +509,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-50',
       content: `Mieux vaut être seul que mal accompagné.`,
-      source: 'Molière — attribué',
+      source: 'Molière, attribué',
       language: 'fr',
       difficulty: 1,
       wordCount: 7,
@@ -520,7 +520,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-01',
       content: `Call me Ishmael. Some years ago — never mind how long precisely — having little money in my purse, I thought I would sail about a little and see the watery part of the world.`,
-      source: 'Herman Melville — Moby-Dick (1851)',
+      source: 'Herman Melville, Moby-Dick (1851)',
       language: 'en',
       difficulty: 5,
       wordCount: 35,
@@ -530,7 +530,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-02',
       content: `It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness.`,
-      source: 'Charles Dickens — A Tale of Two Cities (1859)',
+      source: 'Charles Dickens, A Tale of Two Cities (1859)',
       language: 'en',
       difficulty: 3,
       wordCount: 24,
@@ -540,7 +540,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-03',
       content: `Whether I shall turn out to be the hero of my own life, or whether that station will be held by anybody else, these pages must show.`,
-      source: 'Charles Dickens — David Copperfield (1850)',
+      source: 'Charles Dickens, David Copperfield (1850)',
       language: 'en',
       difficulty: 3,
       wordCount: 27,
@@ -550,7 +550,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-04',
       content: `Happy families are all alike; every unhappy family is unhappy in its own way.`,
-      source: 'Leo Tolstoy — Anna Karenina (1877)',
+      source: 'Leo Tolstoy, Anna Karenina (1877)',
       language: 'en',
       difficulty: 1,
       wordCount: 14,
@@ -560,7 +560,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-05',
       content: `It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.`,
-      source: 'Jane Austen — Pride and Prejudice (1813)',
+      source: 'Jane Austen, Pride and Prejudice (1813)',
       language: 'en',
       difficulty: 3,
       wordCount: 23,
@@ -570,7 +570,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-06',
       content: `So we beat on, boats against the current, borne back ceaselessly into the past.`,
-      source: 'F. Scott Fitzgerald — The Great Gatsby (1925)',
+      source: 'F. Scott Fitzgerald, The Great Gatsby (1925)',
       language: 'en',
       difficulty: 3,
       wordCount: 14,
@@ -580,7 +580,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-07',
       content: `In the beginning God created the heavens and the earth. Now the earth was formless and empty, darkness was over the surface of the deep.`,
-      source: 'Genesis 1:1 — King James Bible (1611)',
+      source: 'Genesis 1:1, King James Bible (1611)',
       language: 'en',
       difficulty: 1,
       wordCount: 25,
@@ -590,7 +590,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-08',
       content: `To be, or not to be, that is the question: Whether 'tis nobler in the mind to suffer the slings and arrows of outrageous fortune.`,
-      source: 'William Shakespeare — Hamlet (1603)',
+      source: 'William Shakespeare, Hamlet (1603)',
       language: 'en',
       difficulty: 5,
       wordCount: 25,
@@ -600,7 +600,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-09',
       content: `All animals are equal, but some animals are more equal than others.`,
-      source: 'George Orwell — Animal Farm (1945)',
+      source: 'George Orwell, Animal Farm (1945)',
       language: 'en',
       difficulty: 1,
       wordCount: 12,
@@ -610,7 +610,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-10',
       content: `It was a bright cold day in April, and the clocks were striking thirteen.`,
-      source: 'George Orwell — Nineteen Eighty-Four (1949)',
+      source: 'George Orwell, Nineteen Eighty-Four (1949)',
       language: 'en',
       difficulty: 1,
       wordCount: 14,
@@ -620,7 +620,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-11',
       content: `It is a far, far better thing that I do, than I have ever done before.`,
-      source: 'Charles Dickens — A Tale of Two Cities (1859)',
+      source: 'Charles Dickens, A Tale of Two Cities (1859)',
       language: 'en',
       difficulty: 2,
       wordCount: 16,
@@ -630,7 +630,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-12',
       content: `I am not afraid of storms, for I am learning how to sail my ship.`,
-      source: 'Louisa May Alcott — Little Women (1868)',
+      source: 'Louisa May Alcott, Little Women (1868)',
       language: 'en',
       difficulty: 2,
       wordCount: 15,
@@ -740,7 +740,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-23',
       content: `The sea is everything. It covers seven-tenths of the terrestrial globe.`,
-      source: 'Jules Verne — Twenty Thousand Leagues Under the Sea (1870)',
+      source: 'Jules Verne, Twenty Thousand Leagues Under the Sea (1870)',
       language: 'en',
       difficulty: 2,
       wordCount: 11,
@@ -750,7 +750,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-24',
       content: `Adventure is worthwhile in itself.`,
-      source: 'Amelia Earhart — attributed',
+      source: 'Amelia Earhart, attributed',
       language: 'en',
       difficulty: 1,
       wordCount: 5,
@@ -790,7 +790,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-28',
       content: `That is part of the beauty of all literature. You discover that your longings are universal longings.`,
-      source: 'F. Scott Fitzgerald — attributed',
+      source: 'F. Scott Fitzgerald, attributed',
       language: 'en',
       difficulty: 4,
       wordCount: 17,
@@ -800,7 +800,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-29',
       content: `Do not wait to strike till the iron is hot, but make it hot by striking.`,
-      source: 'W.B. Yeats — attributed',
+      source: 'W.B. Yeats, attributed',
       language: 'en',
       difficulty: 2,
       wordCount: 16,
@@ -820,7 +820,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-31',
       content: `The very ink with which all history is written is merely fluid prejudice.`,
-      source: 'Mark Twain — Following the Equator (1897)',
+      source: 'Mark Twain, Following the Equator (1897)',
       language: 'en',
       difficulty: 4,
       wordCount: 13,
@@ -830,7 +830,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-32',
       content: `Every book is a quotation; and every house is a quotation out of all forests.`,
-      source: 'Ralph Waldo Emerson — Plato (1850)',
+      source: 'Ralph Waldo Emerson, Plato (1850)',
       language: 'en',
       difficulty: 4,
       wordCount: 15,
@@ -880,7 +880,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-37',
       content: `He who has a why to live for can bear almost any how.`,
-      source: 'Friedrich Nietzsche — Twilight of the Idols (1889)',
+      source: 'Friedrich Nietzsche, Twilight of the Idols (1889)',
       language: 'en',
       difficulty: 3,
       wordCount: 13,
@@ -890,7 +890,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-38',
       content: `Art is not what you see, but what you make others see.`,
-      source: 'Edgar Degas — attributed',
+      source: 'Edgar Degas, attributed',
       language: 'en',
       difficulty: 2,
       wordCount: 12,
@@ -900,7 +900,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-39',
       content: `Wherever you go, go with all your heart.`,
-      source: 'Confucius — Analects (classical translation)',
+      source: 'Confucius, Analects (classical translation)',
       language: 'en',
       difficulty: 1,
       wordCount: 8,
@@ -910,7 +910,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-40',
       content: `The secret to getting ahead is getting started.`,
-      source: 'Mark Twain — attributed',
+      source: 'Mark Twain, attributed',
       language: 'en',
       difficulty: 1,
       wordCount: 8,
@@ -970,7 +970,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-46',
       content: `It always seems impossible until it's done.`,
-      source: 'Nelson Mandela — attributed',
+      source: 'Nelson Mandela, attributed',
       language: 'en',
       difficulty: 1,
       wordCount: 7,
@@ -980,7 +980,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-47',
       content: `In the beginning was the Word, and the Word was with God, and the Word was God.`,
-      source: 'John 1:1 — King James Bible (1611)',
+      source: 'John 1:1, King James Bible (1611)',
       language: 'en',
       difficulty: 2,
       wordCount: 17,
@@ -990,7 +990,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-48',
       content: `Love is patient, love is kind. It does not envy, it does not boast, it is not proud.`,
-      source: '1 Corinthians 13:4 — King James Bible (1611)',
+      source: '1 Corinthians 13:4, King James Bible (1611)',
       language: 'en',
       difficulty: 2,
       wordCount: 18,
@@ -1000,7 +1000,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-49',
       content: `Life appears to me too short to be spent in nursing animosity or registering wrongs.`,
-      source: 'Charlotte Brontë — Jane Eyre (1847)',
+      source: 'Charlotte Brontë, Jane Eyre (1847)',
       language: 'en',
       difficulty: 4,
       wordCount: 15,
@@ -1010,7 +1010,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-50',
       content: `Second star to the right and straight on till morning.`,
-      source: 'J.M. Barrie — Peter Pan (1911)',
+      source: 'J.M. Barrie, Peter Pan (1911)',
       language: 'en',
       difficulty: 1,
       wordCount: 10,
@@ -1020,7 +1020,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-51',
       content: `C'était une de ces jolies et charmantes filles, nées, comme par une erreur du destin, dans une famille d'employés. Elle n'avait pas de dot, pas d'espérances, aucun moyen d'être connue, comprise, aimée, épousée par un homme riche et distingué ; et elle se laissa marier avec un petit commis du ministère de l'instruction publique.`,
-      source: 'Guy de Maupassant — La Parure (1884)',
+      source: 'Guy de Maupassant, La Parure (1884)',
       language: 'fr',
       difficulty: 3,
       wordCount: 54,
@@ -1030,7 +1030,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-52',
       content: `Nous étions à l'étude, quand le Proviseur entra, suivi d'un nouveau habillé en bourgeois et d'un garçon de classe qui portait un grand pupitre. Ceux qui dormaient se réveillèrent, et chacun se leva comme surpris dans son travail. Le Proviseur nous fit signe de nous rasseoir ; puis, se tournant vers le maître d'études :`,
-      source: 'Gustave Flaubert — Madame Bovary (1857)',
+      source: 'Gustave Flaubert, Madame Bovary (1857)',
       language: 'fr',
       difficulty: 4,
       wordCount: 55,
@@ -1040,7 +1040,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-53',
       content: `Madame Vauquer, née de Conflans, est une vieille femme qui, depuis quarante ans, tient à Paris une pension bourgeoise établie rue Neuve-Sainte-Geneviève, entre le quartier latin et le faubourg Saint-Marcel. Cette pension, connue sous le nom de la maison Vauquer, admet également des hommes et des femmes, des jeunes gens et des vieillards.`,
-      source: 'Honoré de Balzac — Le Père Goriot (1835)',
+      source: 'Honoré de Balzac, Le Père Goriot (1835)',
       language: 'fr',
       difficulty: 3,
       wordCount: 53,
@@ -1050,7 +1050,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-54',
       content: `Le premier lundi du mois d'avril 1626, le bourg de Meung, où naquit l'auteur du Roman de la Rose, semblait être dans une révolution aussi entière que si les huguenots en fussent venus faire une seconde Rochelle. Plusieurs bourgeois, voyant s'enfuir les femmes le long de la grande rue, entendant les enfants crier sur le seuil des portes, se hâtaient d'endosser la cuirasse, et appuyant leur contenance quelque peu incertaine d'un mousquet ou d'une pertuisane, se dirigeaient vers l'hôtellerie du Franc-Meunier, devant laquelle s'empressait, en grossissant de minute en minute, un groupe compacte, bruyant et plein de curiosité.`,
-      source: 'Alexandre Dumas — Les Trois Mousquetaires (1844)',
+      source: 'Alexandre Dumas, Les Trois Mousquetaires (1844)',
       language: 'fr',
       difficulty: 4,
       wordCount: 98,
@@ -1060,7 +1060,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-55',
       content: `Quoique ce détail ne touche en aucune manière au fond même de ce que nous avons à raconter, il n'est peut-être pas inutile, ne fût-ce que pour être exact en tout, d'indiquer ici les bruits et les propos qui avaient couru sur son compte au moment où il était arrivé dans le diocèse. Vrai ou faux, ce qu'on dit des hommes tient souvent autant de place dans leur vie et souvent dans leur destinée que ce qu'ils font. M. Myriel était fils d'un conseiller au parlement d'Aix ; noblesse de robe. On contait que son père, le réservant pour hériter de sa charge, l'avait marié de fort bonne heure, à dix-huit ou vingt ans, suivant un usage assez répandu dans les familles parlementaires.`,
-      source: 'Victor Hugo — Les Misérables (1862)',
+      source: 'Victor Hugo, Les Misérables (1862)',
       language: 'fr',
       difficulty: 5,
       wordCount: 123,
@@ -1070,7 +1070,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-56',
       content: `Dans la plaine rase, sous la nuit sans étoiles, d'une obscurité et d'une épaisseur d'encre, un homme suivait seul la grande route de Marchiennes à Montsou, dix kilomètres de pavé coupant tout droit, à travers les champs de betteraves. Devant lui, il ne voyait même pas le sol noir, et il n'avait la sensation de l'immense horizon plat que par les souffles du vent de mars, des rafales larges comme sur une mer, glacées d'avoir balayé des lieues de marais et de terres nues.`,
-      source: 'Émile Zola — Germinal (1885)',
+      source: 'Émile Zola, Germinal (1885)',
       language: 'fr',
       difficulty: 3,
       wordCount: 84,
@@ -1080,7 +1080,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-51',
       content: `A throng of bearded men, in sad-colored garments, and gray, steeple-crowned hats, intermixed with women, some wearing hoods and others bareheaded, was assembled in front of a wooden edifice, the door of which was heavily timbered with oak, and studded with iron spikes.`,
-      source: 'Nathaniel Hawthorne — The Scarlet Letter (1850)',
+      source: 'Nathaniel Hawthorne, The Scarlet Letter (1850)',
       language: 'en',
       difficulty: 4,
       wordCount: 43,
@@ -1090,7 +1090,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-52',
       content: `Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do: once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it, 'and what is the use of a book,' thought Alice 'without pictures or conversations?'`,
-      source: 'Lewis Carroll — Alice\'s Adventures in Wonderland (1865)',
+      source: 'Lewis Carroll, Alice\'s Adventures in Wonderland (1865)',
       language: 'en',
       difficulty: 2,
       wordCount: 57,
@@ -1100,7 +1100,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-53',
       content: `There was no possibility of taking a walk that day. We had been wandering, indeed, in the leafless shrubbery an hour in the morning; but since dinner (Mrs. Reed, when there was no company, dined early) the cold winter wind had brought with it clouds so sombre, and a rain so penetrating, that further outdoor exercise was now out of the question.`,
-      source: 'Charlotte Brontë — Jane Eyre (1847)',
+      source: 'Charlotte Brontë, Jane Eyre (1847)',
       language: 'en',
       difficulty: 3,
       wordCount: 62,
@@ -1110,7 +1110,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-54',
       content: `During the whole of a dull, dark, and soundless day in the autumn of the year, when the clouds hung oppressively low in the heavens, I had been passing alone, on horseback, through a singularly dreary tract of country, and at length found myself, as the shades of the evening drew on, within view of the melancholy House of Usher. I know not how it was—but, with the first glimpse of the building, a sense of insufferable gloom pervaded my spirit.`,
-      source: 'Edgar Allan Poe — The Fall of the House of Usher (1839)',
+      source: 'Edgar Allan Poe, The Fall of the House of Usher (1839)',
       language: 'en',
       difficulty: 4,
       wordCount: 81,
@@ -1120,7 +1120,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-55',
       content: `"Christmas won't be Christmas without any presents," grumbled Jo, lying on the rug. "It's so dreadful to be poor!" sighed Meg, looking down at her old dress. "I don't think it's fair for some girls to have plenty of pretty things, and other girls nothing at all," added little Amy, with an injured sniff. "We've got Father and Mother, and each other," said Beth contentedly from her corner. The four young faces on which the firelight shone brightened at the cheerful words, but darkened again as Jo said sadly, "We haven't got Father, and shall not have him for a long time."`,
-      source: 'Louisa May Alcott — Little Women (1868)',
+      source: 'Louisa May Alcott, Little Women (1868)',
       language: 'en',
       difficulty: 2,
       wordCount: 102,
@@ -1130,7 +1130,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-56',
       content: `1801—I have just returned from a visit to my landlord—the solitary neighbour that I shall be troubled with. This is certainly a beautiful country! In all England, I do not believe that I could have fixed on a situation so completely removed from the stir of society. A perfect misanthropist's Heaven—and Mr. Heathcliff and I are such a suitable pair to divide the desolation between us. A capital fellow! He little imagined how my heart warmed towards him when I beheld his black eyes withdraw so suspiciously under their brows, as I rode up.`,
-      source: 'Emily Brontë — Wuthering Heights (1847)',
+      source: 'Emily Brontë, Wuthering Heights (1847)',
       language: 'en',
       difficulty: 4,
       wordCount: 94,
@@ -1140,7 +1140,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-57',
       content: `L'année 1866 fut marquée par un événement bizarre, un phénomène inexpliqué et inexplicable que personne n'a sans doute oublié.`,
-      source: 'Jules Verne — Vingt mille lieues sous les mers (1870)',
+      source: 'Jules Verne, Vingt mille lieues sous les mers (1870)',
       language: 'fr',
       difficulty: 2,
       wordCount: 19,
@@ -1150,7 +1150,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-fr-58',
       content: `Le 24 février 1815, la vigie de Notre-Dame de la Garde signala le trois-mâts le Pharaon, venant de Smyrne, Trieste et Naples.`,
-      source: 'Alexandre Dumas — Le Comte de Monte-Cristo (1844)',
+      source: 'Alexandre Dumas, Le Comte de Monte-Cristo (1844)',
       language: 'fr',
       difficulty: 2,
       wordCount: 22,
@@ -1160,7 +1160,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-57',
       content: `Exclusive of the Lake basin and of 300,000 square miles in Texas and New Mexico, which in many aspects form a part of it, this basin contains about 1,250,000 square miles.`,
-      source: 'Mark Twain — Life on the Mississippi (1883)',
+      source: 'Mark Twain, Life on the Mississippi (1883)',
       language: 'en',
       difficulty: 3,
       wordCount: 31,
@@ -1170,7 +1170,7 @@ export const litteratureCollection: CollectionConfig = {
     {
       id: 'lit-en-58',
       content: `In the year 1820 the ship Essex, Captain Pollard, of Nantucket, was cruising in the Pacific Ocean. One day she saw spouts, lowered her boats, and gave chase to a shoal of sperm whales.`,
-      source: 'Herman Melville — Moby-Dick (1851)',
+      source: 'Herman Melville, Moby-Dick (1851)',
       language: 'en',
       difficulty: 3,
       wordCount: 34,
