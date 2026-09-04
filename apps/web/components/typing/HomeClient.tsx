@@ -498,7 +498,10 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             flexDirection: 'column',
             alignItems: 'center',
             gap: 16,
-            minHeight: '130px',
+            // Réservation stricte : la hauteur ne doit pas dépendre du contenu
+            // (bouton en plus en mode Libre, chip pièce plus large...) sinon la
+            // mise en page saute au chargement / au changement de mode.
+            minHeight: '150px',
             width: '100%',
             position: 'relative',
             zIndex: 10,

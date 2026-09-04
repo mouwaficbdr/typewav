@@ -119,7 +119,10 @@ body {
 
 .char-correct {
   color: var(--color-text-primary);
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
+  /* Pas de glow ici : un text-shadow sur CHAQUE glyphe validé (100+ à l'écran,
+     recouvrements) coûte à la composition sur la surface où l'on veut 60fps, et
+     le halo diffuse les bords sur la zone qu'on lit. Le glow est réservé au
+     caractère courant (.char-current), un seul élément et le point focal. */
 }
 
 .char-error {
