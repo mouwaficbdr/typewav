@@ -117,23 +117,16 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
               </div>
             </div>
 
-            {/* Badges: Tier & Mode */}
-            <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 mt-4 sm:mt-0 relative z-10">
-              {/* Tier Badge */}
-              <div
-                className="px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest transition-colors duration-300 border-l-2 bg-gradient-to-r"
-                style={{
-                  color: RANKS[tier].accentColor,
-                  borderColor: RANKS[tier].accentColor,
-                  backgroundImage: `linear-gradient(to right, color-mix(in srgb, ${RANKS[tier].accentColor} 15%, transparent), transparent)`,
-                }}
-              >
-                {tRanks(tier)}
+            {/* Metadata: Tier & Mode (Pure Typographic Readout) */}
+            <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 mt-4 sm:mt-0 relative z-10">
+              <div className="flex items-center gap-2 font-mono text-[10px] md:text-xs uppercase tracking-widest">
+                <span className="text-[var(--color-text-muted)] opacity-50">MODE //</span>
+                <span className="text-[var(--color-text-primary)]">{entry.mode}</span>
               </div>
-
-              {/* Mode */}
-              <div className="font-mono text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest">
-                [ {entry.mode} ]
+              
+              <div className="flex items-center gap-2 font-mono text-[10px] md:text-xs uppercase tracking-widest">
+                <span className="text-[var(--color-text-muted)] opacity-50">TIER //</span>
+                <span style={{ color: RANKS[tier].accentColor }}>{tRanks(tier)}</span>
               </div>
             </div>
           </motion.li>
