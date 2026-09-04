@@ -386,11 +386,16 @@ describe('useSession — compte à rebours (audit configbar, décision 1)', () =
     mockSessionStore.endedAt = null;
   });
 
-  it("expose la durée complète tant que la séance n'a pas commencé", () => {
+  it("expose la durée complète tant que la séance n'a pas commencé", async () => {
     const { result } = renderHook(() =>
       useSession({ text: 'hello', mode: 'classic', durationSeconds: 30 }),
     );
 
+    // La valeur passe par une microtâche (pas de setState synchrone dans le
+    // corps de l'effet, voir react-hooks/set-state-in-effect).
+    await act(async () => {
+      await Promise.resolve();
+    });
     expect(result.current.secondsRemaining).toBe(30);
   });
 
@@ -401,6 +406,11 @@ describe('useSession — compte à rebours (audit configbar, décision 1)', () =
     const { result } = renderHook(() =>
       useSession({ text: 'hello', mode: 'classic', durationSeconds: 3 }),
     );
+
+    // Premier tick sur un setTimeout(0) plutôt que dans le corps de l'effet.
+    act(() => {
+      vi.advanceTimersByTime(0);
+    });
     expect(result.current.secondsRemaining).toBe(3);
 
     act(() => {
@@ -416,11 +426,15 @@ describe('useSession — compte à rebours (audit configbar, décision 1)', () =
     vi.useRealTimers();
   });
 
-  it('reste à null hors des modes chronométrés (ex: sprint)', () => {
+  it('reste à null hors des modes chronométrés (ex: sprint)', async () => {
     mockSessionStore.startedAt = Date.now();
     const { result } = renderHook(() =>
       useSession({ text: 'hello', mode: 'sprint', durationSeconds: 30 }),
     );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     expect(result.current.secondsRemaining).toBeNull();
   });

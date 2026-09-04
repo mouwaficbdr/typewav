@@ -193,12 +193,17 @@ export function useSession({
   );
   useEffect(() => {
     const isTimedMode = mode === 'classic' || mode === 'challenge';
+
+    // setState jamais synchrone dans le corps de l'effet
+    // (react-hooks/set-state-in-effect) : les deux branches "valeur statique"
+    // passent par une microtâche, comme ailleurs dans ce fichier/le reste du
+    // code (voir ScrambleText, AmbientAura).
     if (!isTimedMode) {
-      setSecondsRemaining(null);
+      queueMicrotask(() => setSecondsRemaining(null));
       return;
     }
     if (startedAt === null || endedAt !== null) {
-      setSecondsRemaining(durationSeconds);
+      queueMicrotask(() => setSecondsRemaining(durationSeconds));
       return;
     }
 
@@ -208,9 +213,16 @@ export function useSession({
         Math.max(0, Math.ceil(durationSeconds - elapsedSeconds)),
       );
     };
-    tick();
+    // Premier tick dans un callback d'intervalle (pas le corps de l'effet) :
+    // setInterval(tick, 1000) appellerait tick() seulement après 1s, donc un
+    // setTimeout(tick, 0) affiche la valeur juste dès ce même tour d'event
+    // loop plutôt que d'attendre la première seconde pleine.
+    const firstTick = setTimeout(tick, 0);
     const interval = setInterval(tick, 1000);
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(firstTick);
+      clearInterval(interval);
+    };
   }, [mode, durationSeconds, startedAt, endedAt]);
 
   // Fin de session : sauvegarder + naviguer
