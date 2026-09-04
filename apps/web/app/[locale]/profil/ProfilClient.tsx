@@ -201,7 +201,7 @@ export function ProfilClient() {
                   marginBottom: '16px',
                 }}
               >
-                Current Status
+                {tProfile('currentStatus')}
               </span>
               <h1
                 style={{
@@ -359,7 +359,7 @@ export function ProfilClient() {
                   margin: '0 0 32px 0',
                 }}
               >
-                Personal Records
+                {tProfile('personalRecords')}
               </h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                 <div>
