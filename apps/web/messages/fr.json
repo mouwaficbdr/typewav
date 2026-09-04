@@ -384,6 +384,8 @@
   },
   "settings": {
     "title": "Paramètres",
+    "appearance": "apparence",
+    "dataGroup": "données",
     "description": "Personnalisez votre expérience de frappe.",
     "themeTitle": "Thème",
     "selectTheme": "Sélectionner le thème {name}",

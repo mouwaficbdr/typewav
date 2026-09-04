@@ -28,7 +28,6 @@ export function ParametresClient() {
   }, []);
 
   // Les thèmes de base sont toujours proposés, quel que soit le profil stocké
-  // (un profil d'avant WS-5 #6 peut n'avoir que `['terminal']`).
   const visibleIds = new Set<string>([
     ...BASE_UNLOCKED_THEME_IDS,
     ...unlockedThemes,
@@ -38,143 +37,70 @@ export function ParametresClient() {
   );
 
   return (
-    <main className="content-typing flex flex-col gap-12 py-12 max-w-4xl mx-auto w-full px-4">
-      {/* Header */}
-      <div className="flex flex-col gap-2">
-        <h1 className="font-display text-4xl font-bold text-[var(--color-text-primary)] tracking-tight">
-          {t('title')}
-        </h1>
-        <p className="text-lg text-[var(--color-text-muted)]">
-          {t('description')}
-        </p>
+    <main className="min-h-screen text-[var(--color-text-primary)] pb-32">
+      {/* Top Bar / Breadcrumb */}
+      <nav className="w-full flex justify-between items-center px-6 py-6 max-w-5xl mx-auto">
+        <div className="flex items-center gap-2 font-mono text-xs text-[var(--color-text-muted)]">
+          <Palette className="w-4 h-4" />
+          <span>/</span>
+          <span>{t('title').toLowerCase()}</span>
+        </div>
+      </nav>
+
+      <div className="max-w-5xl mx-auto px-6 flex flex-col gap-16 mt-8">
+        
+        {/* Section: Appearance */}
+        <section className="flex flex-col gap-6">
+          <div className="flex items-center gap-2 text-[var(--color-text-muted)] font-mono mb-4 border-b border-[var(--color-border)] pb-2">
+            <Palette className="w-4 h-4" />
+            <h2 className="text-lg">{t('appearance')}</h2>
+          </div>
+
+          {/* Theme Row */}
+          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+              <h3 className="font-mono text-sm text-[var(--color-text-primary)]">
+                {t('themeTitle')}
+              </h3>
+              <p className="font-ui text-xs text-[var(--color-text-muted)]">
+                {t('description')}
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mt-2">
+              {themes.map((theme) => {
+                const isActive = theme.id === themeId;
+                return (
+                  <button
+                    key={theme.id}
+                    onClick={() => setTheme(theme.id)}
+                    className="relative group flex items-center justify-between px-3 py-2 rounded font-mono text-xs transition-transform hover:scale-[1.02] focus:outline-none"
+                    style={{
+                      backgroundColor: theme.colors.bg,
+                      color: theme.colors.textPrimary,
+                      border: `1px solid ${isActive ? theme.colors.accent : 'transparent'}`,
+                      boxShadow: isActive ? `0 0 0 1px ${theme.colors.accent}` : 'none'
+                    }}
+                  >
+                    <span>{theme.name.toLowerCase()}</span>
+                    
+                    {/* Tiny color preview dots */}
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: theme.colors.surface }} />
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: theme.colors.accent }} />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* Section: Data */}
+        <section className="flex flex-col gap-6">
+          <DataManagement />
+        </section>
       </div>
-
-      {/* Themes Section */}
-      <section className="flex flex-col gap-6">
-        <div className="flex items-center gap-3 border-b border-[var(--color-border)] pb-4">
-          <Palette className="w-6 h-6 text-[var(--color-accent)]" />
-          <h2 className="font-ui text-2xl font-semibold text-[var(--color-text-primary)]">
-            {t('themeTitle')}
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {themes.map((theme) => {
-            const isActive = theme.id === themeId;
-            return (
-              <button
-                key={theme.id}
-                onClick={() => setTheme(theme.id)}
-                className={`
-                  group relative flex flex-col w-full text-left overflow-hidden
-                  rounded-xl border-2 transition-all duration-300 ease-out
-                  hover:-translate-y-1 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]
-                  ${isActive ? 'border-[var(--color-accent)]' : 'border-[var(--color-border)] hover:border-[var(--color-text-muted)]'}
-                `}
-                style={{ backgroundColor: 'var(--color-surface)' }}
-                aria-label={t('selectTheme', { name: theme.name })}
-                aria-pressed={isActive}
-              >
-                {/* Visual Preview Area */}
-                <div
-                  className="w-full h-24 p-4 flex flex-col justify-between"
-                  style={{ backgroundColor: theme.colors.bg }}
-                >
-                  <div className="flex justify-between items-start">
-                    <span
-                      className="text-sm font-bold font-mono px-2 py-1 rounded"
-                      style={{
-                        color: theme.colors.textPrimary,
-                        backgroundColor: theme.colors.surface,
-                      }}
-                    >
-                      Typewav
-                    </span>
-                    {isActive && (
-                      <motion.div
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{
-                          type: 'spring',
-                          stiffness: 300,
-                          damping: 20,
-                        }}
-                      >
-                        <CheckCircle2
-                          className="w-5 h-5 drop-shadow-md"
-                          style={{ color: theme.colors.accent }}
-                        />
-                      </motion.div>
-                    )}
-                  </div>
-
-                  {/* Fake Typing Line */}
-                  <div className="flex gap-1 font-mono text-sm opacity-90 mt-auto">
-                    <span style={{ color: theme.colors.charCorrect }}>typ</span>
-                    <span
-                      style={{
-                        color: theme.colors.charCurrent,
-                        borderBottom: `2px solid ${theme.colors.cursor}`,
-                      }}
-                    >
-                      i
-                    </span>
-                    <span style={{ color: theme.colors.charPending }}>
-                      ng...
-                    </span>
-                  </div>
-                </div>
-
-                {/* Theme Info Area */}
-                <div className="flex flex-col gap-3 p-4 bg-[var(--color-surface)] z-10">
-                  <div className="flex items-center justify-between">
-                    <h3
-                      className={`font-ui text-lg font-bold transition-colors ${isActive ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)]'}`}
-                    >
-                      {theme.name}
-                    </h3>
-                  </div>
-
-                  {/* Mini Palette Dots */}
-                  <div className="flex items-center gap-1.5 opacity-90">
-                    {[
-                      theme.colors.bg,
-                      theme.colors.surface,
-                      theme.colors.textMuted,
-                      theme.colors.textPrimary,
-                      theme.colors.accent,
-                    ].map((color, i) => (
-                      <div
-                        key={i}
-                        className="w-4 h-4 rounded-full shadow-sm border border-black/10"
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
-                  </div>
-
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeThemeBg"
-                      className="absolute inset-0 pointer-events-none"
-                      style={{
-                        background:
-                          'linear-gradient(to top, color-mix(in srgb, var(--color-accent) 8%, transparent), transparent)',
-                      }}
-                      transition={{
-                        type: 'spring',
-                        bounce: 0.15,
-                        duration: 0.5,
-                      }}
-                    />
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      <DataManagement />
     </main>
   );
 }

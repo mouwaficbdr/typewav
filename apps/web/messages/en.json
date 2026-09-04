@@ -384,6 +384,8 @@
   },
   "settings": {
     "title": "Settings",
+    "appearance": "appearance",
+    "dataGroup": "data",
     "description": "Customize your typing experience.",
     "themeTitle": "Theme",
     "selectTheme": "Select theme {name}",
