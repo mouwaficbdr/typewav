@@ -127,7 +127,7 @@ describe('AboutPage', () => {
     expect(settingsLink).toHaveAttribute('href', '/en/parametres');
   });
 
-  it('rend la rangée de liens : dépôt, README, auteur, transparence', async () => {
+  it('rend la rangée de liens : dépôt, README, profil de l’auteur', async () => {
     await renderPage();
     expect(
       screen.getByRole('link', { name: 'Code source' }),
@@ -140,9 +140,7 @@ describe('AboutPage', () => {
       'href',
       'https://github.com/mouwaficbdr',
     );
-    expect(
-      screen.getByRole('link', { name: 'Transparence' }),
-    ).toHaveAttribute('href', '/fr/transparence');
+    expect(screen.queryByRole('link', { name: 'Transparence' })).toBeNull();
   });
 
   it('ferme sur un retour vers le clavier', async () => {

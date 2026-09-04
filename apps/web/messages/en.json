@@ -49,7 +49,6 @@
     "nextTest": "Next test",
     "restartTestTooltip": "Restart Test",
     "tabEnterToRestart": "Tab + Enter to restart",
-    "terms": "terms",
     "library": "Music Library",
     "noPiece": "No Piece",
     "shuffleTrack": "Shuffle track",
@@ -397,28 +396,6 @@
     "dataImportConfirm": "Replace all your local data with this file? This cannot be undone.",
     "dataImportError": "This file could not be imported."
   },
-  "transparence": {
-    "metaTitle": "Transparency",
-    "metaDescription": "TypeWav's revenue, infrastructure costs and business model.",
-    "title": "Transparency",
-    "lastUpdated": "Last updated: {month}",
-    "principleHeading": "Our principle",
-    "principleBody": "TypeWav is open source and 100% free. Nothing is paid, there are no accounts: everything runs in your browser. Donations cover hosting and fund future development.",
-    "economicsHeading": "Business model",
-    "hostingLabel": "Vercel hosting (Hobby)",
-    "hostingCost": "€0/mo",
-    "hostingNote": "Free for personal projects",
-    "domainLabel": "typewav.app domain",
-    "domainCost": "~€15/yr",
-    "domainNote": "Annual renewal",
-    "opensourceHeading": "Built on open source",
-    "opensourceBody": "Next.js, Tone.js, Tailwind CSS, Vitest, idb, Zustand, Motion, Recharts: hundreds of contributors make TypeWav possible. TypeWav's own source code is available on GitHub.",
-    "supportHeading": "Support the project",
-    "supportBody": "TypeWav is built by volunteers. If the tool is useful to you, a one-time or recurring contribution helps fund development time, sound packs and content collections.",
-    "koFiLabel": "Ko-fi: one-time support",
-    "sponsorsLabel": "GitHub Sponsors: monthly support",
-    "backToTyping": "Back to typing"
-  },
   "about": {
     "metaTitle": "About",
     "metaDescription": "A typing test built around music: every correct key plays the next note of a real piano piece, a mistake plays nothing. No account, all in the browser.",
@@ -492,8 +469,7 @@
       "heading": "Links",
       "github": "Source code",
       "readme": "README",
-      "profile": "The author",
-      "terms": "Transparency"
+      "profile": "The author"
     },
     "closing": "Enough reading. Back to the keyboard."
   }
