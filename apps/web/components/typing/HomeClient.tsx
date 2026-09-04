@@ -100,6 +100,13 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     /** WPM du record rejoué — affiché comme repère (audit configbar, B8). */
     wpm: number;
   } | null>(null);
+  // `ghostData === null` est ambigu à lui seul : "pas encore lu depuis
+  // IndexedDB" (lecture async, même sur un vrai record existant) et "lu,
+  // confirmé qu'il n'y a aucun record" ont la même valeur. Sans ce
+  // deuxième état, la notice "aucun record" (voir plus bas) flashait à
+  // tort au chargement le temps que la lecture IndexedDB résolve, avant de
+  // basculer sur la vraie bannière fantôme.
+  const [ghostDataLoaded, setGhostDataLoaded] = useState(false);
   const [collectionsCache, setCollectionsCache] = useState<
     Partial<Record<CollectionId, CollectionConfig>>
   >({ litterature: initialCollection });
@@ -224,18 +231,21 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   useEffect(() => {
     async function loadData() {
       const fetchedRecords = await getPersonalRecords();
-      if (!fetchedRecords?.maxWpm?.sessionId) return;
+      if (!fetchedRecords?.maxWpm?.sessionId) return null;
       const session = await getSessionById(fetchedRecords.maxWpm.sessionId);
       if (!session || session.keystrokeData.length === 0 || !session.text) {
-        return;
+        return null;
       }
-      setGhostData({
+      return {
         timings: session.keystrokeData.map((k) => k.deltaMs),
         text: session.text,
         wpm: session.wpm,
-      });
+      };
     }
-    void loadData();
+    void loadData().then((data) => {
+      setGhostData(data);
+      setGhostDataLoaded(true);
+    });
   }, []);
 
   // Charger la collection quand activeCollection change
@@ -671,7 +681,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             </div>
           )}
 
-          {activeMode === 'ghost' && !hasGhostData && (
+          {activeMode === 'ghost' && ghostDataLoaded && !hasGhostData && (
             <div
               role="status"
               style={{
