@@ -97,6 +97,7 @@ export function TypingArea({
     liveStats,
     finalStats,
     secondsRemaining,
+    isActive,
     isComplete,
     handleKeystroke,
     handleBackspace,
@@ -482,6 +483,7 @@ export function TypingArea({
             ghostTimings={ghostTimings}
             textLength={text.length}
             wordsRef={wordsRef}
+            isSessionActive={isActive}
           />
         )}
 
