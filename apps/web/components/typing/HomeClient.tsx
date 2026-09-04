@@ -28,6 +28,7 @@ import { ContextSelectors } from '@/components/typing/ContextSelectors';
 import { PersonalTextsPanel } from '@/components/typing/PersonalTextsPanel';
 import { TypingArea } from '@/components/typing/TypingArea';
 import { WaveformBars } from '@/components/typing/WaveformBars';
+import { Keycap } from '@/components/ui/Keycap';
 import { MusicNoteIcon, PenIcon, RepeatIcon } from '@/components/ui/icons';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { NON_CITABLE_COLLECTIONS } from '@/lib/collection-support';
@@ -901,11 +902,16 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               <RepeatIcon size={20} />
             </button>
 
-            {/* Restart Hint */}
+            {/* Restart Hint : touches en Keycap façon MonkeyType (rectangle
+                à jupe), plus le libellé en texte plat, pas une seule chaîne
+                "Tab + Entrée pour recommencer". */}
             <button
               onClick={handleRestart}
               aria-label={tHint('restart')}
               style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
                 background: 'transparent',
                 border: 'none',
                 color: 'inherit',
@@ -918,7 +924,11 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               className="hover:text-text-primary hover:opacity-100 transition-colors"
               title={tHint('restartTestTooltip')}
             >
-              {tHint('tabEnterToRestart')}
+              <span style={{ display: 'inline-flex', gap: '4px' }}>
+                <Keycap size="sm">Tab</Keycap>
+                <Keycap size="sm">↵</Keycap>
+              </span>
+              {tHint('restartHintSuffix')}
             </button>
           </div>
         </div>
