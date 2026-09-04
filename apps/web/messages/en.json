@@ -396,7 +396,17 @@
     "dataExport": "Download my data",
     "dataImport": "Import a file",
     "dataImportConfirm": "Replace all your local data with this file? This cannot be undone.",
-    "dataImportError": "This file could not be imported."
+    "dataImportError": "This file could not be imported.",
+    "localeGroup": "language and keyboard",
+    "languageTitle": "Display language",
+    "languageFr": "Français",
+    "languageEn": "English",
+    "selectLanguage": "Switch the interface to {name}",
+    "keyboardLayoutTitle": "Keyboard layout",
+    "layoutQwerty": "QWERTY",
+    "layoutAzerty": "AZERTY",
+    "selectLayout": "Use the {name} layout",
+    "keyboardLayoutHint": "Used by the visual keyboard in Learning mode."
   },
   "about": {
     "metaTitle": "About",
