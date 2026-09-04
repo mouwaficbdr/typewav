@@ -74,43 +74,66 @@ export function ProfilClient() {
       <main
         style={{
           minHeight: 'calc(100dvh - var(--nav-height))',
-          background: 'var(--color-bg)',
-          padding: '48px 24px',
-          maxWidth: 860,
+          padding: '64px 32px',
+          maxWidth: 1200,
           margin: '0 auto',
         }}
       >
-        {/* Stats skeleton */}
-        <div
+        <header
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-            gap: 16,
-            marginBottom: 40,
+            display: 'flex',
+            flexDirection: 'column',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
+            paddingBottom: '48px',
+            marginBottom: '64px',
           }}
         >
-          {[0, 1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="skeleton"
-              style={{ height: 96, borderRadius: 'var(--radius-lg)' }}
-            />
-          ))}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '32px' }}>
+            <div style={{ width: '60%' }}>
+              <div className="skeleton" style={{ width: '120px', height: '14px', marginBottom: '24px' }} />
+              <div className="skeleton" style={{ width: '80%', height: '80px', marginBottom: '24px' }} />
+              <div style={{ display: 'flex', gap: '24px' }}>
+                <div className="skeleton" style={{ width: '100px', height: '32px' }} />
+                <div className="skeleton" style={{ width: '100px', height: '32px' }} />
+              </div>
+            </div>
+            <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', width: '20%' }}>
+              <div className="skeleton" style={{ width: '80px', height: '14px', marginBottom: '16px' }} />
+              <div className="skeleton" style={{ width: '120px', height: '64px' }} />
+            </div>
+          </div>
+        </header>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '80px' }}>
+          {/* Left Column */}
+          <div style={{ flex: '2 1 600px', display: 'flex', flexDirection: 'column', gap: '80px' }}>
+            <section>
+              <div className="skeleton" style={{ width: '200px', height: '32px', marginBottom: '32px' }} />
+              <div className="skeleton" style={{ width: '100%', height: '300px' }} />
+            </section>
+            <section>
+              <div className="skeleton" style={{ width: '250px', height: '32px', marginBottom: '32px' }} />
+              <div className="skeleton" style={{ width: '100%', height: '160px' }} />
+            </section>
+          </div>
+
+          {/* Right Column */}
+          <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '80px' }}>
+            <section>
+              <div className="skeleton" style={{ width: '150px', height: '16px', marginBottom: '32px' }} />
+              <div className="skeleton" style={{ width: '120px', height: '64px', marginBottom: '24px' }} />
+              <div className="skeleton" style={{ width: '100px', height: '48px' }} />
+            </section>
+            <section>
+              <div className="skeleton" style={{ width: '150px', height: '16px', marginBottom: '32px' }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className="skeleton" style={{ width: '100%', height: '72px' }} />
+                <div className="skeleton" style={{ width: '100%', height: '72px' }} />
+                <div className="skeleton" style={{ width: '100%', height: '72px' }} />
+              </div>
+            </section>
+          </div>
         </div>
-        {/* Chart skeleton */}
-        <div
-          className="skeleton"
-          style={{
-            height: 200,
-            marginBottom: 40,
-            borderRadius: 'var(--radius-lg)',
-          }}
-        />
-        {/* Heatmap skeleton */}
-        <div
-          className="skeleton"
-          style={{ height: 120, borderRadius: 'var(--radius-lg)' }}
-        />
       </main>
     );
   }
