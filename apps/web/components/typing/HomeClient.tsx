@@ -112,6 +112,36 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   >({ litterature: initialCollection });
   const [loadingCollection, setLoadingCollection] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
+  // Réouverture de la config bar au survol pendant la frappe (ticket #61) :
+  // survoler la zone (même en focus mode) la ramène à pleine opacité et
+  // interactive, sans interrompre la frappe en cours. Un vrai clic sur un
+  // mode l'abandonne (voir l'effet sur activeMode plus bas).
+  const [configBarRevealed, setConfigBarRevealed] = useState(false);
+  const configBarHoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const handleConfigBarHoverEnter = useCallback(() => {
+    if (configBarHoverTimeoutRef.current) {
+      clearTimeout(configBarHoverTimeoutRef.current);
+      configBarHoverTimeoutRef.current = null;
+    }
+    setConfigBarRevealed(true);
+  }, []);
+  const handleConfigBarHoverLeave = useCallback(() => {
+    // Courte grâce : la souris qui traverse la zone en sortant vers le
+    // contenu revélé ne doit pas la faire claquer immédiatement.
+    configBarHoverTimeoutRef.current = setTimeout(() => {
+      setConfigBarRevealed(false);
+    }, 200);
+  }, []);
+  useEffect(() => {
+    return () => {
+      if (configBarHoverTimeoutRef.current) {
+        clearTimeout(configBarHoverTimeoutRef.current);
+      }
+    };
+  }, []);
+  const configBarInert = hasStarted && !configBarRevealed;
   const [lastNote, setLastNote] = useState<{
     pitch: number | null;
     isError: boolean;
@@ -470,6 +500,26 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     setHasStarted(false);
   }, []);
 
+  // Changer de mode en pleine frappe (config bar rouverte au survol, ticket
+  // #61) doit réellement abandonner la frappe en cours plutôt que la
+  // laisser continuer sous un mode qui ne correspond plus à l'UI : mêmes
+  // effets que handleRestart (remontage propre de TypingArea via
+  // restartKey, sortie du focus mode). Ref plutôt que dépendance directe
+  // sur l'ancienne valeur : ne doit réagir qu'à un vrai changement, jamais
+  // au montage initial.
+  const activeModeRef = useRef(activeMode);
+  useEffect(() => {
+    if (activeModeRef.current === activeMode) return;
+    activeModeRef.current = activeMode;
+    // setState jamais synchrone dans le corps de l'effet
+    // (react-hooks/set-state-in-effect), même idiome qu'ailleurs dans ce
+    // fichier/le reste du code (voir ScrambleText, AmbientAura, useSession).
+    queueMicrotask(() => {
+      setRestartKey((k) => k + 1);
+      setHasStarted(false);
+    });
+  }, [activeMode]);
+
   const handleNoteChange = useCallback(
     (note: string | null, isError: boolean, isPhraseBoundary: boolean) => {
       setHasStarted(true);
@@ -484,9 +534,12 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   // tabulation et de l'arbre d'accessibilité (opacity:0 + pointer-events:none
   // ne suffit pas, un utilisateur clavier tomberait dans des contrôles
   // invisibles). Sous prefers-reduced-motion, bascule instantanée.
-  const fadeOnStart = (translateYpx: number) => ({
-    opacity: hasStarted ? 0 : 1,
-    transform: hasStarted ? `translateY(${translateYpx}px)` : 'translateY(0)',
+  // `hidden` par défaut = hasStarted ; la config bar passe explicitement
+  // `configBarInert` à la place (ticket #61 : reste révélée au survol même
+  // pendant la frappe, indépendamment des autres blocs qui s'effacent).
+  const fadeOnStart = (translateYpx: number, hidden: boolean = hasStarted) => ({
+    opacity: hidden ? 0 : 1,
+    transform: hidden ? `translateY(${translateYpx}px)` : 'translateY(0)',
     transition: shouldReduceMotion
       ? 'none'
       : 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -570,54 +623,83 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
       {/* En-tête de Configuration */}
       {!isLearningMode ? (
+        // Enveloppe extérieure jamais inert (sinon elle ne recevrait plus
+        // elle-même d'événements souris) : c'est elle qui capte le survol
+        // pour rouvrir la config bar en pleine frappe (ticket #61). Le
+        // contenu réel est dans le div interne, seul concerné par
+        // inert/fadeOnStart.
         <div
-          inert={hasStarted}
+          data-testid="config-header-hover-zone"
+          onMouseEnter={handleConfigBarHoverEnter}
+          onMouseLeave={handleConfigBarHoverLeave}
           style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 16,
             // Réservation d'espace pour limiter les sauts de mise en page au
             // changement de mode (mode Libre ajoute un bouton). Valeur Gemini.
             minHeight: '130px',
             width: '100%',
             position: 'relative',
             zIndex: 10,
-            ...fadeOnStart(-10),
           }}
         >
-          {/* Zone 2 — ConfigBar */}
-          <ConfigBar controlsMode={effectiveMode} />
-
           <div
-            className="glass-panel"
+            inert={configBarInert}
             style={{
               display: 'flex',
-              flexWrap: 'wrap',
+              flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center',
-              gap: 12,
-              padding: '6px 16px',
-              borderRadius: '9999px',
+              gap: 16,
+              width: '100%',
+              ...fadeOnStart(-10, configBarInert),
             }}
           >
-            {/* Zone 3 : Active Session Header */}
-            <ActiveSessionHeader
-              selectedPieceId={selectedPieceId}
-              onPieceChange={handlePieceChange}
-            />
+            {/* Zone 2 — ConfigBar */}
+            <ConfigBar controlsMode={effectiveMode} />
 
-            <div style={{ width: '1px', height: '16px', background: 'var(--color-border)' }} />
+            <div
+              className="glass-panel"
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 12,
+                padding: '6px 16px',
+                borderRadius: '9999px',
+              }}
+            >
+              {/* Zone 3 : Active Session Header */}
+              <ActiveSessionHeader
+                selectedPieceId={selectedPieceId}
+                onPieceChange={handlePieceChange}
+              />
 
-            {/* Zone 3.5 : Context Selectors (Language + Collection) */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <ContextSelectors controlsMode={effectiveMode} />
-              <CollectionSelector controlsMode={effectiveMode} />
+              <div style={{ width: '1px', height: '16px', background: 'var(--color-border)' }} />
+
+              {/* Zone 3.5 : Context Selectors (Language + Collection) */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <ContextSelectors controlsMode={effectiveMode} />
+                <CollectionSelector controlsMode={effectiveMode} />
+              </div>
             </div>
           </div>
 
-          {activeMode === 'custom' && (
-            <button
+          {/* Boutons/bannières secondaires (mode Libre, erreurs, Fantôme) :
+              gardent le comportement d'origine, s'effacent avec hasStarted
+              sans réagir au survol — seule la config bar proprement dite se
+              rouvre au survol ci-dessus. */}
+          <div
+            inert={hasStarted}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 16,
+              width: '100%',
+              ...fadeOnStart(-10),
+            }}
+          >
+            {activeMode === 'custom' && (
+              <button
               data-testid="my-texts-button"
               onClick={() => setIsPersonalTextsPanelOpen(true)}
               style={{
@@ -772,6 +854,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               </button>
             </div>
           )}
+          </div>
         </div>
       ) : (
         // La ConfigBar reste visible même pendant l'onboarding : sans elle,
@@ -834,6 +917,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               mode={effectiveMode}
               durationSeconds={durationSeconds}
               onNoteChange={handleNoteChange}
+              onRestart={handleRestart}
               // Zen ne juge jamais : pas de redirection vers /results, pas
               // de WPM/précision/verdict affichés (décision 3 / B1). Le flux
               // enchaîne plutôt un nouvel extrait, voir handleZenComplete.

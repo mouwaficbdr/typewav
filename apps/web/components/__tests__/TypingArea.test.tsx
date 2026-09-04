@@ -229,6 +229,64 @@ describe('TypingArea — compte à rebours (audit configbar, décision 1)', () =
   });
 });
 
+describe('TypingArea — redémarrer à tout moment (Tab + Entrée, ticket #61)', () => {
+  // mockHandleKeystroke n'est pas remis à zéro entre tests par défaut
+  // (pas de clearMocks global dans vitest.config.ts) : sans ce nettoyage
+  // local, une assertion .not.toHaveBeenCalled() ici pourrait accuser un
+  // appel laissé par un describe précédent, pas notre propre logique.
+  beforeEach(() => {
+    mockHandleKeystroke.mockClear();
+  });
+
+  it('Tab puis Entrée appelle onRestart pendant la frappe active', async () => {
+    const user = userEvent.setup();
+    const onRestart = vi.fn();
+    render(<TypingArea text="hello world" onRestart={onRestart} />);
+
+    const container = screen.getByRole('application');
+    await user.click(container);
+    await user.keyboard('{Tab}{Enter}');
+
+    expect(onRestart).toHaveBeenCalledOnce();
+    expect(mockHandleKeystroke).not.toHaveBeenCalled();
+  });
+
+  it('Tab puis Entrée appelle onRestart même après la fin de session (modes sans navigation auto)', async () => {
+    mockSessionState.isComplete = true;
+    const user = userEvent.setup();
+    const onRestart = vi.fn();
+    render(<TypingArea text="hello world" onRestart={onRestart} />);
+
+    const container = screen.getByRole('application');
+    await user.click(container);
+    await user.keyboard('{Tab}{Enter}');
+
+    expect(onRestart).toHaveBeenCalledOnce();
+  });
+
+  it("Tab puis une autre touche désarme sans redémarrer, et la frappe suivante est traitée normalement", async () => {
+    const user = userEvent.setup();
+    const onRestart = vi.fn();
+    render(<TypingArea text="hello world" onRestart={onRestart} />);
+
+    const container = screen.getByRole('application');
+    await user.click(container);
+    await user.keyboard('{Tab}x');
+
+    expect(onRestart).not.toHaveBeenCalled();
+    expect(mockHandleKeystroke).toHaveBeenCalledWith('x');
+  });
+
+  it('ne casse rien si onRestart n’est pas fourni', async () => {
+    const user = userEvent.setup();
+    render(<TypingArea text="hello world" />);
+
+    const container = screen.getByRole('application');
+    await user.click(container);
+    await expect(user.keyboard('{Tab}{Enter}')).resolves.not.toThrow();
+  });
+});
+
 describe('TypingArea — fin de session', () => {
   it('reporte finalStats.wpm, pas liveStats.wpm (qui peut être resté à 0)', () => {
     mockSessionState.isComplete = true;
