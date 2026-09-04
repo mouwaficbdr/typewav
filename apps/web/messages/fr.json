@@ -49,7 +49,6 @@
     "nextTest": "Test suivant",
     "restartTestTooltip": "Recommencer le test",
     "tabEnterToRestart": "Tab + Entrée pour recommencer",
-    "terms": "conditions",
     "library": "Bibliothèque musicale",
     "noPiece": "Aucun morceau",
     "shuffleTrack": "Piste aléatoire",
@@ -397,28 +396,6 @@
     "dataImportConfirm": "Remplacer toutes vos données locales par ce fichier ? Cette action est irréversible.",
     "dataImportError": "Ce fichier n'a pas pu être importé."
   },
-  "transparence": {
-    "metaTitle": "Transparence",
-    "metaDescription": "Revenus, coûts d'infrastructure et modèle économique de TypeWav.",
-    "title": "Transparence",
-    "lastUpdated": "Mise à jour : {month}",
-    "principleHeading": "Notre principe",
-    "principleBody": "TypeWav est open source et gratuit à 100 %. Aucune fonctionnalité n'est payante, il n'y a pas de compte : tout tourne dans votre navigateur. Les dons couvrent l'hébergement et financent le développement futur.",
-    "economicsHeading": "Modèle économique",
-    "hostingLabel": "Hébergement Vercel (Hobby)",
-    "hostingCost": "0 €/mois",
-    "hostingNote": "Gratuit pour projets personnels",
-    "domainLabel": "Domaine typewav.app",
-    "domainCost": "~15 €/an",
-    "domainNote": "Renouvellement annuel",
-    "opensourceHeading": "Construit sur l'open source",
-    "opensourceBody": "Next.js, Tone.js, Tailwind CSS, Vitest, idb, Zustand, Motion, Recharts : des centaines de contributeurs rendent TypeWav possible. Le code source de TypeWav est lui-même disponible sur GitHub.",
-    "supportHeading": "Soutenir le projet",
-    "supportBody": "TypeWav est développé bénévolement. Si l'outil vous est utile, un soutien ponctuel ou récurrent aide à financer le temps de développement, les packs sonores et les collections de contenu.",
-    "koFiLabel": "Ko-fi : soutien ponctuel",
-    "sponsorsLabel": "GitHub Sponsors : soutien mensuel",
-    "backToTyping": "Retour au typing"
-  },
   "about": {
     "metaTitle": "À propos",
     "metaDescription": "Un test de frappe bâti autour de la musique : chaque touche juste joue la note suivante d'un vrai morceau de piano, une faute ne joue rien. Sans compte, dans le navigateur.",
@@ -492,8 +469,7 @@
       "heading": "Liens",
       "github": "Code source",
       "readme": "README",
-      "profile": "L'auteur",
-      "terms": "Transparence"
+      "profile": "L'auteur"
     },
     "closing": "Assez lu. Retour au clavier."
   }

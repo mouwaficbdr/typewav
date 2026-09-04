@@ -7,7 +7,7 @@ import type { MetadataRoute } from 'next';
  * `/replay` `/challenge` `/dev-onboarding` (états de session ou dashboard local,
  * sans valeur d'entrée), `/parametres` (utilitaire).
  */
-const PUBLIC_PATHS = ['', '/classement', '/transparence'] as const;
+const PUBLIC_PATHS = ['', '/classement', '/about'] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();

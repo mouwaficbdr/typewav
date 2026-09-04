@@ -7,7 +7,7 @@ describe('sitemap', () => {
   const urls = entries.map((e) => e.url);
 
   it('liste chaque page publique dans les deux locales', () => {
-    for (const path of ['', '/classement', '/transparence']) {
+    for (const path of ['', '/classement', '/about']) {
       expect(urls).toContain(`https://typewav.app/fr${path}`);
       expect(urls).toContain(`https://typewav.app/en${path}`);
     }
