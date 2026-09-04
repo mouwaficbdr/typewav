@@ -324,10 +324,15 @@ describe("TypingArea — accessibilité lecteur d'écran (WS-1)", () => {
     );
   });
 
-  it('ne supprime plus le contour de focus de la zone de frappe', () => {
-    render(<TypingArea text="hello world" />);
+  it('ne montre pas d\'anneau de focus : le caret est l\'indicateur, la zone reste focusable', () => {
+    const { container } = render(<TypingArea text="hello world" />);
     const area = screen.getByRole('application');
-    expect(area.style.outline).not.toBe('none');
-    expect(area).toHaveClass('typing-focus-ring');
+    // Pas de hack : aucun outline:none en style inline ni en classe Tailwind.
+    expect(area.style.outline).toBe('');
+    expect(area.className).not.toContain('outline-none');
+    // La zone reste atteignable au clavier.
+    expect(area).toHaveAttribute('tabindex', '0');
+    // Le caret (.char-current) porte la position et le focus.
+    expect(container.querySelector('.char-current')).not.toBeNull();
   });
 });

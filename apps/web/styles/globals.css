@@ -74,14 +74,16 @@ body {
   outline-offset: 2px;
 }
 
-/* ---- Focus ring zone de frappe ----
-   Visible uniquement au focus clavier (:focus-visible) : un utilisateur au
-   clavier doit voir où il se trouve. Le clic souris, lui, n'affiche rien,
-   donc l'esthétique « MonkeyType » est préservée pendant la frappe. */
+/* ---- Zone de frappe : aucun anneau de focus ----
+   Le caret clignotant (.char-current::after) porte à lui seul la position ET
+   le focus de cette surface. Un contour teal en plus, permanent dans une appli
+   de frappe (le dernier geste est toujours une touche, donc :focus-visible
+   matche en continu), alourdit sans rien apporter. La zone reste focusable au
+   clavier (tabindex=0) et l'overlay « cliquer pour activer » signale l'état
+   inactif. */
+.typing-focus-ring:focus,
 .typing-focus-ring:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 4px;
-  border-radius: var(--radius-lg);
+  outline: none;
 }
 
 /* ---- Focus ring champs de formulaire ---- */
