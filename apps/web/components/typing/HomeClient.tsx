@@ -835,7 +835,11 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           justifyContent: 'space-between',
           width: '100%',
           marginTop: 'auto',
-          marginBottom: '14px',
+          // Respiration sous le footer : il était quasi collé au bord bas
+          // (main a seulement 16px de padding bas). marginTop:auto absorbe
+          // l'espace libre en premier, donc sur écran court ça se resserre
+          // proprement sans pousser le contenu hors du cadre overflow:hidden.
+          marginBottom: '30px',
           fontFamily: 'var(--font-ui)',
           fontSize: '0.75rem',
           color: 'var(--color-text-muted)',

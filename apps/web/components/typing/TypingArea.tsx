@@ -33,6 +33,13 @@ import {
 /** Hauteur de ligne fixe = 3.5rem à 16px base = 56px */
 const LINE_HEIGHT_PX = 56;
 
+/**
+ * Débord du calque de flou d'attente au-delà de la fenêtre visible, sur chaque
+ * bord (marge négative + padding compensatoire) : le bord adouci du filtre
+ * blur tombe dans cette zone, hors du cadre `overflow: hidden` du parent.
+ */
+const BLUR_BLEED_PX = 48;
+
 interface TypingAreaProps {
   text: string;
   mode?: TypingMode;
@@ -487,27 +494,39 @@ export function TypingArea({
           </span>
         </div>
 
-        {/* Conteneur des mots — scroll par translateY, transition ultra douce.
-            À l'attente (pas encore focus), le texte est flouté et estompé sur
-            place, sans rectangle par-dessus. */}
+        {/* À l'attente (pas encore focus), le texte est flouté et estompé sur
+            place, sans rectangle par-dessus. Le flou est porté par un calque
+            débordant la fenêtre de 48px sur chaque bord (marge négative +
+            padding compensatoire) : le bord adouci du filtre tombe hors cadre,
+            l'overflow:hidden du parent n'en laisse voir qu'un flou plein, sans
+            liseré net révélé sur les côtés. blur(0px) plutôt que none pour que
+            la transition de flou s'interpole. */}
         <div
-          ref={wordsRef}
-          aria-hidden="true"
-          className="m-0 flex flex-wrap"
-          data-testid="typing-area"
+          className={!isFocused && !isComplete ? 'typing-await' : undefined}
           style={{
-            transform: `translateY(${translateY}px)`,
+            margin: -BLUR_BLEED_PX,
+            padding: BLUR_BLEED_PX,
+            filter: !isFocused && !isComplete ? 'blur(5px)' : 'blur(0px)',
+            opacity: !isFocused && !isComplete ? 0.5 : 1,
             transition:
-              'transform 0.25s cubic-bezier(0.2, 0, 0, 1), filter 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-            // blur(0px) plutôt que none : la transition de flou s'interpole.
-            filter: !isFocused && !isComplete ? 'blur(4px)' : 'blur(0px)',
-            opacity: !isFocused && !isComplete ? 0.55 : 1,
-            userSelect: 'none',
-            columnGap: '0.6em',
-            justifyContent: mode === 'learning' ? 'center' : 'flex-start',
-            rowGap: '0',
+              'filter 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
+          {/* Conteneur des mots — scroll par translateY, transition ultra douce. */}
+          <div
+            ref={wordsRef}
+            aria-hidden="true"
+            className="m-0 flex flex-wrap"
+            data-testid="typing-area"
+            style={{
+              transform: `translateY(${translateY}px)`,
+              transition: 'transform 0.25s cubic-bezier(0.2, 0, 0, 1)',
+              userSelect: 'none',
+              columnGap: '0.6em',
+              justifyContent: mode === 'learning' ? 'center' : 'flex-start',
+              rowGap: '0',
+            }}
+          >
           {(() => {
             let globalIndex = 0;
             return text.split(' ').map((wordStr, wIndex, arr) => {
@@ -565,6 +584,7 @@ export function TypingArea({
               return wordNode;
             });
           })()}
+          </div>
         </div>
       </div>
     </div>

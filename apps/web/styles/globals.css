@@ -20,7 +20,11 @@
   --radius-lg: 20px;
   --radius-full: 9999px;
 
-  --nav-height: 88px;
+  /* Hauteur réelle de GlobalNav (logo ~60px + padding vertical). L'ancienne
+     valeur 88px la sous-estimait de ~32px : sur l'écran de frappe, où <main>
+     fait `height: calc(100dvh - var(--nav-height))` avec overflow:hidden, ça
+     débordait le bas du viewport et rabotait le footer. */
+  --nav-height: 120px;
 }
 
 *,
@@ -61,7 +65,9 @@ body {
 
 @media (max-width: 640px) {
   :root {
-    --nav-height: 56px;
+    /* Nav mobile : padding resserré mais le logo reste ~60px, et les entrées
+       peuvent passer sous le logo. 56px sous-estimait fortement. */
+    --nav-height: 104px;
   }
 }
 
@@ -156,6 +162,17 @@ body {
 @keyframes smooth-blink {
   0%, 100% { opacity: 1; transform: scaleY(1); }
   50% { opacity: 0.3; transform: scaleY(0.95); }
+}
+
+/* Zone de frappe en attente (pas encore focus) : le texte est flouté sur
+   place. Caret, halo et sur-brillance du caractère courant sont neutralisés
+   pour que le flou reste uniforme et ne « révèle » pas la position. */
+.typing-await .char-current::after {
+  visibility: hidden;
+}
+.typing-await .char-current {
+  text-shadow: none;
+  color: color-mix(in srgb, var(--color-text-primary) 35%, transparent);
 }
 
 @keyframes shimmer {
