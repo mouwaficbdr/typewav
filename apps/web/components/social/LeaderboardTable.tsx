@@ -3,27 +3,29 @@
 /**
  * LeaderboardTable : classement local, rendu en tableau.
  *
- * Les entrées viennent des sessions IndexedDB de l'appareil et des pseudos
- * saisis lors des challenges. Aucun serveur, aucune sync : la v1 n'a ni
- * comptes ni classement mondial (comptes retirés en PR #32).
+ * Les entrées viennent des sessions IndexedDB de l'appareil. Aucun serveur,
+ * aucune sync : la v1 n'a ni comptes ni classement mondial (comptes retirés
+ * en PR #32), donc chaque ligne appartient déjà à l'utilisateur, une colonne
+ * pseudo n'apporte rien. À la place, chaque performance affiche son palier
+ * de tempo (RANKS, mêmes indications qu'ailleurs dans l'app : Largo,
+ * Andante...) plutôt qu'un « vous » redondant.
  *
  * Spec : docs/specs/08 (Leaderboards contextuels)
  * 'use client' justifié : state, filtres interactifs
  */
 
+import { rankTierForWpm } from '@/lib/progression';
+import { RANKS } from '@typewav/types';
 import type { LeaderboardEntry } from '@typewav/types';
 import { useTranslations } from 'next-intl';
 
 interface LeaderboardTableProps {
   entries: LeaderboardEntry[];
-  currentUserPseudo?: string;
 }
 
-export function LeaderboardTable({
-  entries,
-  currentUserPseudo,
-}: LeaderboardTableProps) {
+export function LeaderboardTable({ entries }: LeaderboardTableProps) {
   const t = useTranslations('leaderboard');
+  const tRanks = useTranslations('ranks');
 
   if (entries.length === 0) {
     return (
@@ -67,27 +69,19 @@ export function LeaderboardTable({
             <th style={{ padding: '0.5rem 1rem 0.5rem 0' }}>
               {t('rankHeader')}
             </th>
-            <th style={{ padding: '0.5rem 1rem' }}>{t('pseudoHeader')}</th>
             <th style={{ padding: '0.5rem 1rem' }}>{t('wpmHeader')}</th>
             <th style={{ padding: '0.5rem 1rem' }}>{t('accuracyHeader')}</th>
             <th style={{ padding: '0.5rem 1rem' }}>{t('modeHeader')}</th>
+            <th style={{ padding: '0.5rem 1rem' }}>{t('levelHeader')}</th>
           </tr>
         </thead>
         <tbody>
           {sorted.map((entry, i) => {
-            const isCurrentUser = entry.pseudo === currentUserPseudo;
+            const tier = rankTierForWpm(entry.wpm);
             return (
               <tr
-                key={`${entry.pseudo}-${entry.achievedAt}-${i}`}
-                style={{
-                  borderBottom: '1px solid var(--color-border)',
-                  color: isCurrentUser
-                    ? 'var(--color-accent)'
-                    : 'var(--color-text-primary)',
-                  background: isCurrentUser
-                    ? 'color-mix(in srgb, var(--color-accent) 4%, transparent)'
-                    : 'transparent',
-                }}
+                key={`${entry.achievedAt}-${i}`}
+                style={{ borderBottom: '1px solid var(--color-border)' }}
               >
                 <td
                   style={{
@@ -101,26 +95,12 @@ export function LeaderboardTable({
                 >
                   {i + 1}
                 </td>
-                <td style={{ padding: '0.75rem 1rem' }}>
-                  {entry.pseudo || '·'}
-                  {isCurrentUser && (
-                    <span
-                      style={{
-                        marginLeft: '0.5rem',
-                        fontSize: '0.65rem',
-                        color: 'var(--color-accent)',
-                        opacity: 0.7,
-                      }}
-                    >
-                      {t('you')}
-                    </span>
-                  )}
-                </td>
                 <td
                   style={{
                     padding: '0.75rem 1rem',
                     fontWeight: 600,
                     fontFamily: 'var(--font-mono)',
+                    color: 'var(--color-text-primary)',
                   }}
                 >
                   {entry.wpm}
@@ -144,6 +124,17 @@ export function LeaderboardTable({
                   }}
                 >
                   {entry.mode}
+                </td>
+                <td
+                  style={{
+                    padding: '0.75rem 1rem',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.05em',
+                    color: RANKS[tier].accentColor,
+                  }}
+                >
+                  {tRanks(tier)}
                 </td>
               </tr>
             );
