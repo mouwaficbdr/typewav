@@ -143,37 +143,38 @@ export function WpmProgressChart({
         />
         <Tooltip
           contentStyle={{
-            background: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 8,
+            background: 'var(--color-bg)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 0,
             fontFamily: 'var(--font-ui)',
           }}
-          labelStyle={{ color: 'var(--color-text-muted)', fontSize: 11 }}
-          itemStyle={{ color: 'var(--color-accent)' }}
+          labelStyle={{ color: 'var(--color-text-muted)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}
+          itemStyle={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-mono)' }}
           formatter={(value) => [`${value} WPM`, t('chartMedian')]}
         />
         <Legend
           wrapperStyle={{
-            fontFamily: 'var(--font-ui)',
-            fontSize: 12,
+            fontFamily: 'var(--font-mono)',
+            fontSize: 10,
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
             color: 'var(--color-text-muted)',
           }}
         />
         <Line
-          type="monotone"
+          type="stepAfter"
           dataKey="wpm"
-          stroke="var(--color-accent)"
-          strokeWidth={2}
-          dot={{ r: 3, fill: 'var(--color-accent)' }}
+          stroke="var(--color-text-primary)"
+          strokeWidth={1}
+          dot={{ r: 2, fill: 'var(--color-text-primary)', strokeWidth: 0 }}
           name="WPM"
-          activeDot={{ r: 5 }}
+          activeDot={{ r: 4, fill: 'var(--color-bg)', stroke: 'var(--color-text-primary)', strokeWidth: 1 }}
         />
         <Line
           type="monotone"
           dataKey="trend"
-          stroke="#FFD70066"
-          strokeWidth={1.5}
-          strokeDasharray="5 3"
+          stroke="rgba(255,255,255,0.1)"
+          strokeWidth={1}
           dot={false}
           name={t('chartTrend')}
         />
