@@ -46,6 +46,13 @@ interface UseSessionOptions {
   durationSeconds?: number | undefined;
   /** Si true, navigue automatiquement vers /results en fin de session */
   autoNavigate?: boolean | undefined;
+  /**
+   * Si false, la session n'est ni sauvegardée (IndexedDB) ni comptée pour la
+   * progression (rang, jalons, records) : la séance ne laisse aucune trace.
+   * Utilisé pour Zen, où la promesse produit est justement l'absence de
+   * notation.
+   */
+  trackProgress?: boolean | undefined;
 }
 
 export function useSession({
@@ -54,6 +61,7 @@ export function useSession({
   collectionId,
   durationSeconds = 60,
   autoNavigate = true,
+  trackProgress = true,
 }: UseSessionOptions) {
   const router = useRouter();
   const {
@@ -182,10 +190,54 @@ export function useSession({
     return () => clearTimeout(timeout);
   }, [mode, durationSeconds, startedAt, endedAt, endSession]);
 
+  // Compte à rebours visible pour les modes chronométrés (audit configbar,
+  // décision 1) : avant, rien n'affichait le temps restant, seul repère de
+  // fin en mode Temps. `durationSeconds` tant que la séance n'a pas
+  // commencé (le timer démarre à la première frappe, voir startSession) ;
+  // ticke ensuite chaque seconde jusqu'à 0, calé sur le même `startedAt` que
+  // le timeout ci-dessus donc jamais en désaccord avec la fin réelle.
+  const [secondsRemaining, setSecondsRemaining] = useState<number | null>(
+    null,
+  );
+  useEffect(() => {
+    const isTimedMode = mode === 'classic' || mode === 'challenge';
+
+    // setState jamais synchrone dans le corps de l'effet
+    // (react-hooks/set-state-in-effect) : les deux branches "valeur statique"
+    // passent par une microtâche, comme ailleurs dans ce fichier/le reste du
+    // code (voir ScrambleText, AmbientAura).
+    if (!isTimedMode) {
+      queueMicrotask(() => setSecondsRemaining(null));
+      return;
+    }
+    if (startedAt === null || endedAt !== null) {
+      queueMicrotask(() => setSecondsRemaining(durationSeconds));
+      return;
+    }
+
+    const tick = () => {
+      const elapsedSeconds = (Date.now() - startedAt) / 1000;
+      setSecondsRemaining(
+        Math.max(0, Math.ceil(durationSeconds - elapsedSeconds)),
+      );
+    };
+    // Premier tick dans un callback d'intervalle (pas le corps de l'effet) :
+    // setInterval(tick, 1000) appellerait tick() seulement après 1s, donc un
+    // setTimeout(tick, 0) affiche la valeur juste dès ce même tour d'event
+    // loop plutôt que d'attendre la première seconde pleine.
+    const firstTick = setTimeout(tick, 0);
+    const interval = setInterval(tick, 1000);
+    return () => {
+      clearTimeout(firstTick);
+      clearInterval(interval);
+    };
+  }, [mode, durationSeconds, startedAt, endedAt]);
+
   // Fin de session : sauvegarder + naviguer
   useEffect(() => {
     if (endedAt === null || startedAt === null || !finalStats) return;
     if (skipEndNavRef.current) return; // séance périmée au montage, pas de rebond
+    if (!trackProgress) return; // Zen : ni sauvegarde ni progression
 
     const duration = endedAt - startedAt;
     const { wpm, wpmNet, accuracy, consistency } = finalStats;
@@ -268,6 +320,7 @@ export function useSession({
     keystrokes,
     liveStats,
     finalStats,
+    secondsRemaining,
     isActive: startedAt !== null && endedAt === null,
     isComplete: endedAt !== null,
     handleKeystroke,

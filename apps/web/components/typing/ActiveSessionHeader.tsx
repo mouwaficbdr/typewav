@@ -18,14 +18,8 @@ export function ActiveSessionHeader({
   onPieceChange,
 }: ActiveSessionHeaderProps) {
   const t = useTranslations('typing');
-  const {
-    currentPiece,
-    register,
-    refresh,
-    allPieces,
-    playablePieces,
-    recommendedPlayablePieceId,
-  } = useMusicRecommendation();
+  const { currentPiece, register, refresh, allPieces, playablePieces } =
+    useMusicRecommendation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [registerFilter, setRegisterFilter] = useState('all');
@@ -109,18 +103,18 @@ export function ActiveSessionHeader({
   };
 
   const handleRefreshRecommendation = () => {
-    refresh();
-
-    if (recommendedPlayablePieceId) {
-      onPieceChange(recommendedPlayablePieceId);
-      return;
-    }
-
-    const fallback = playablePieces.find(
-      (piece) => piece.register === register,
-    );
-    if (fallback?.midiPieceId) {
-      onPieceChange(fallback.midiPieceId);
+    // Lit le retour direct de refresh() plutôt que
+    // recommendedPlayablePieceId : ce dernier ne reflète le nouveau tirage
+    // qu'au rendu suivant (setCurrentPiece est async), donc le lire ici
+    // renvoyait encore l'ancienne pièce — le chip semblait ne rien faire
+    // (audit configbar, décision 5 / B4).
+    const next = refresh();
+    const midiId =
+      next?.midiPieceId ??
+      playablePieces.find((piece) => piece.register === register)
+        ?.midiPieceId;
+    if (midiId) {
+      onPieceChange(midiId);
     }
   };
 

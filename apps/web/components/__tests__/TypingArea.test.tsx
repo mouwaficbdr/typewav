@@ -20,6 +20,7 @@ const defaultMockSessionState = {
     accuracy: number;
     consistency: number;
   } | null,
+  secondsRemaining: null as number | null,
   isActive: true,
   isComplete: false,
   handleKeystroke: mockHandleKeystroke,
@@ -205,6 +206,26 @@ describe('TypingArea — mode zen', () => {
   it('affiche le bandeau de stats live dans les autres modes', () => {
     render(<TypingArea text="hello world" mode="classic" />);
     expect(screen.getByTestId('live-stats-overlay')).toBeInTheDocument();
+  });
+});
+
+describe('TypingArea — compte à rebours (audit configbar, décision 1)', () => {
+  it('affiche le temps restant en mode classic', () => {
+    Object.assign(mockSessionState, { secondsRemaining: 12 });
+    render(<TypingArea text="hello world" mode="classic" />);
+    expect(screen.getByTestId('time-remaining')).toHaveTextContent('12');
+  });
+
+  it("n'affiche rien si secondsRemaining est null, même en mode classic", () => {
+    Object.assign(mockSessionState, { secondsRemaining: null });
+    render(<TypingArea text="hello world" mode="classic" />);
+    expect(screen.queryByTestId('time-remaining')).not.toBeInTheDocument();
+  });
+
+  it('ne s’affiche pas hors du mode classic, même si secondsRemaining est fourni', () => {
+    Object.assign(mockSessionState, { secondsRemaining: 12 });
+    render(<TypingArea text="hello world" mode="sprint" />);
+    expect(screen.queryByTestId('time-remaining')).not.toBeInTheDocument();
   });
 });
 

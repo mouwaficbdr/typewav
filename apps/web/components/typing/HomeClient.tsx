@@ -66,6 +66,9 @@ interface HomeClientProps {
  * Calcule un index de texte déterministe basé sur le jour de l'année.
  * Garantit l'absence de hydration mismatch (même valeur serveur/client).
  */
+/** Fenêtre d'historique anti-répétition (voir recentEntryIdsRef). */
+const RECENT_ENTRIES_WINDOW = 5;
+
 function getDailyIndex(length: number, offset = 0): number {
   const now = new Date();
   const start = new Date(now.getFullYear(), 0, 0);
@@ -88,6 +91,8 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const [ghostData, setGhostData] = useState<{
     timings: number[];
     text: string;
+    /** WPM du record rejoué — affiché comme repère (audit configbar, B8). */
+    wpm: number;
   } | null>(null);
   const [collectionsCache, setCollectionsCache] = useState<
     Partial<Record<CollectionId, CollectionConfig>>
@@ -104,10 +109,15 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const [isPersonalTextsPanelOpen, setIsPersonalTextsPanelOpen] =
     useState(false);
 
-  // Dernier texte sélectionné — passé comme excludeIds à selectFromTexts
-  // pour éviter une répétition immédiate au shuffle ou à un changement de
-  // réglage.
-  const lastEntryIdRef = useRef<string | undefined>(undefined);
+  // Historique des derniers textes sélectionnés — passé comme excludeIds à
+  // selectFromTexts pour éviter une répétition au shuffle ou à un changement
+  // de réglage. Une fenêtre de plusieurs entrées (pas juste la dernière,
+  // audit configbar C3) : sur un pool réduit, exclure un seul id produit une
+  // alternance figée A→B→A→B dès qu'il ne reste que deux textes ciblés.
+  // selectFromTexts retombe déjà sur le pool complet si l'exclusion le
+  // viderait (voir _applyFilters), donc élargir cette fenêtre ne risque
+  // aucun blocage, même sur les pools les plus étroits.
+  const recentEntryIdsRef = useRef<string[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<{
     content: string;
     source: string;
@@ -216,6 +226,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
       setGhostData({
         timings: session.keystrokeData.map((k) => k.deltaMs),
         text: session.text,
+        wpm: session.wpm,
       });
     }
     void loadData();
@@ -277,13 +288,16 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         ...(effectiveMode === 'sprint' ? { wordCount } : {}),
         ...(effectiveMode === 'classic' ? { durationSeconds } : {}),
         ...(numbersEnabled ? { numbersEnabled: true } : {}),
-        ...(lastEntryIdRef.current
-          ? { excludeIds: [lastEntryIdRef.current] }
+        ...(recentEntryIdsRef.current.length > 0
+          ? { excludeIds: recentEntryIdsRef.current }
           : {}),
       });
       if (!entry) return;
 
-      lastEntryIdRef.current = entry.id;
+      recentEntryIdsRef.current = [
+        entry.id,
+        ...recentEntryIdsRef.current,
+      ].slice(0, RECENT_ENTRIES_WINDOW);
       setSelectedEntry({ content: entry.content, source: entry.source ?? '' });
     });
   }, [
@@ -302,14 +316,41 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     void loadMidiPiece(selectedPieceId);
   }, [selectedPieceId, loadMidiPiece]);
 
+  // Traque le mode précédent pour détecter une vraie TRANSITION hors de
+  // Code (voir l'effet symétrique ci-dessous), sans réagir à un changement
+  // de collection isolé.
+  const prevModeRef = useRef<TypingMode>(activeMode);
+
   // Défaut sensé à l'entrée en mode Code — pas un verrou : l'utilisateur
   // reste libre de changer la collection ensuite via CollectionSelector.
   // Ne se déclenche qu'à la transition vers 'code' (dépendance activeMode),
   // jamais à chaque rendu.
+  //
+  // Symétrique en sortie (audit configbar, B7) : quitter Code sans changer
+  // de collection laissait 'code' actif sous un mode qui parle de temps ou
+  // de mots — ConfigBar masque alors ses bascules ponctuation/chiffres
+  // (verrouillées par la collection Code, voir ConfigBar) sous un libellé de
+  // mode qui n'a plus rien à voir. Ne se déclenche que sur la transition
+  // Code → autre mode ; une sélection manuelle de la collection Code depuis
+  // un autre mode (légitime, voir le test dédié) n'est jamais défaite.
   useEffect(() => {
+    const prevMode = prevModeRef.current;
+    prevModeRef.current = activeMode;
+
     if (activeMode === 'code') {
       setCollection('code');
+    } else if (
+      prevMode === 'code' &&
+      useConfigStore.getState().activeCollection === 'code'
+    ) {
+      setCollection('litterature');
     }
+    // activeCollection volontairement absent des dépendances (lu via
+    // getState() ci-dessus) : cet effet ne doit réagir qu'à une vraie
+    // TRANSITION de mode, jamais à un changement de collection isolé — sinon
+    // il re-forcerait 'code' à chaque re-rendu tant que le mode Code reste
+    // actif, écrasant un choix manuel de collection (voir le test « ne force
+    // pas la collection à chaque rendu »).
   }, [activeMode, setCollection]);
 
   // Le mode Citation présente son texte comme une citation attribuée (voir
@@ -383,6 +424,29 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const handleShuffle = useCallback(() => {
     setShuffleOffset((prev) => prev + 1);
     setHasStarted(false);
+  }, []);
+
+  // Zen ne navigue jamais vers /results (voir autoNavigate plus bas) : sans
+  // suite, l'extrait terminé resterait figé à l'écran sans action évidente.
+  // Un court silence puis un nouvel extrait enchaîne le flux (audit
+  // configbar, décision 3 / B1 : « un vrai Zen, sans verdict »).
+  const zenContinueTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const handleZenComplete = useCallback(() => {
+    if (zenContinueTimeoutRef.current) {
+      clearTimeout(zenContinueTimeoutRef.current);
+    }
+    zenContinueTimeoutRef.current = setTimeout(() => {
+      handleShuffle();
+    }, 1200);
+  }, [handleShuffle]);
+  useEffect(() => {
+    return () => {
+      if (zenContinueTimeoutRef.current) {
+        clearTimeout(zenContinueTimeoutRef.current);
+      }
+    };
   }, []);
 
   const handleRestart = useCallback(() => {
@@ -622,6 +686,30 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             </div>
           )}
 
+          {/* Repère sur ce qui est rejoué (audit configbar, B8) : avant,
+              rien ne distinguait "je tape mon record" de "je tape un texte
+              quelconque" une fois le fantôme actif. */}
+          {ghostEnabled && ghostData && (
+            <div
+              role="status"
+              style={{
+                width: '100%',
+                maxWidth: '980px',
+                fontSize: '0.78rem',
+                color: 'var(--color-text-muted)',
+                border:
+                  '1px solid color-mix(in srgb, var(--color-accent) 35%, transparent)',
+                background:
+                  'color-mix(in srgb, var(--color-accent) 8%, transparent)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '8px 10px',
+                textAlign: 'left',
+              }}
+            >
+              {tGhost('replayingRecord', { wpm: Math.round(ghostData.wpm) })}
+            </div>
+          )}
+
           {activeMode === 'custom' && !activePersonalText && (
             <div
               role="status"
@@ -724,6 +812,17 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               mode={effectiveMode}
               durationSeconds={durationSeconds}
               onNoteChange={handleNoteChange}
+              // Zen ne juge jamais : pas de redirection vers /results, pas
+              // de WPM/précision/verdict affichés (décision 3 / B1). Le flux
+              // enchaîne plutôt un nouvel extrait, voir handleZenComplete.
+              autoNavigate={effectiveMode !== 'zen'}
+              // Ni sauvegarde ni progression pour Zen : une séance sans
+              // notation ne doit laisser aucune trace (rang, records,
+              // classement) une fois terminée.
+              trackProgress={effectiveMode !== 'zen'}
+              {...(effectiveMode === 'zen'
+                ? { onComplete: handleZenComplete }
+                : {})}
               {...(ghostEnabled && ghostData
                 ? { ghostTimings: ghostData.timings }
                 : {})}
@@ -738,7 +837,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
                   margin: 0,
                 }}
               >
-                — {source}
+                - {source}
               </p>
             )}
           </div>
