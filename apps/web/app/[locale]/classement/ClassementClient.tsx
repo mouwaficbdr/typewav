@@ -38,6 +38,7 @@ function sessionToEntry(
 export function ClassementClient() {
   const t = useTranslations('leaderboard');
   const tCommon = useTranslations('common');
+  const tNav = useTranslations('nav');
 
   const [sessions, setSessions] = useState<SessionResult[]>([]);
   const [pseudo, setPseudo] = useState('');
@@ -76,13 +77,15 @@ export function ClassementClient() {
     <main className="min-h-screen text-[var(--color-text-primary)] pb-32">
       <div className="max-w-4xl mx-auto px-6 pt-12 md:pt-24 flex flex-col gap-10">
         
-        {/* Header Section */}
+        {/* Header Section. Même patron que le masthead de /about : l'eyebrow
+            porte le libellé court de rubrique (celui de la nav), le H1 porte
+            le vrai texte traduit. Aucun des deux n'est un literal figé. */}
         <div className="flex flex-col gap-3 border-b border-[var(--color-border)] pb-6">
           <p className="font-mono text-xs md:text-sm text-[var(--color-accent)] uppercase tracking-[0.5em]">
-            {t('title')}
+            {tNav('leaderboard')}
           </p>
           <h1 className="font-display text-4xl md:text-6xl leading-[0.85] tracking-tighter uppercase text-[var(--color-text-primary)]">
-            ARCHIVE
+            {t('title')}
           </h1>
           <p className="font-ui text-sm text-[var(--color-text-muted)] max-w-xl mt-2">
             {t('subtitle')}

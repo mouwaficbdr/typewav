@@ -24,13 +24,23 @@ describe('ClassementClient : séances personnelles, sans promesse cloud', () => 
   it('titre + sous-titre honnêtes, aucun bandeau « bientôt »', async () => {
     render(<ClassementClient />);
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'myBestSessions' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'title' })).toBeInTheDocument();
     });
     expect(screen.getByText('subtitle')).toBeInTheDocument();
     // Plus de bandeau « classement mondial disponible dès la sync cloud ».
     expect(screen.queryByText('comingSoonMessage')).not.toBeInTheDocument();
     expect(screen.queryByText('soon')).not.toBeInTheDocument();
     expect(screen.queryByTestId('coming-soon-banner')).not.toBeInTheDocument();
+  });
+
+  it("l'eyebrow porte le libellé court de rubrique, pas un literal figé", async () => {
+    render(<ClassementClient />);
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'title' })).toBeInTheDocument();
+    });
+    // Mock next-intl : useTranslations() ignore le namespace, renvoie la clé.
+    // 'leaderboard' est la clé de nav.leaderboard, jamais un mot en dur.
+    expect(screen.getByText('leaderboard')).toBeInTheDocument();
   });
 
   it('les filtres de mode portent aria-pressed et pilotent la sélection', async () => {

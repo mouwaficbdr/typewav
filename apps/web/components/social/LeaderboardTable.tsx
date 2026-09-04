@@ -17,7 +17,7 @@
 import { rankTierForWpm } from '@/lib/progression';
 import { RANKS } from '@typewav/types';
 import type { LeaderboardEntry } from '@typewav/types';
-import { motion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import { useTranslations } from 'next-intl';
 
 interface LeaderboardTableProps {
@@ -27,6 +27,7 @@ interface LeaderboardTableProps {
 export function LeaderboardTable({ entries }: LeaderboardTableProps) {
   const t = useTranslations('leaderboard');
   const tRanks = useTranslations('ranks');
+  const reduceMotion = useReducedMotion();
 
   if (entries.length === 0) {
     return (
@@ -53,28 +54,31 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
     show: {
       opacity: 1,
       x: 0,
-      transition: { type: 'spring', stiffness: 200, damping: 20 },
+      transition: { type: 'spring' as const, stiffness: 200, damping: 20 },
     },
   };
 
   return (
     <motion.ul
       variants={containerVariants}
-      initial="hidden"
-      animate="show"
+      initial={reduceMotion ? false : 'hidden'}
+      animate={reduceMotion ? false : 'show'}
       className="flex flex-col w-full border-t border-[var(--color-border)]"
     >
       {sorted.map((entry, i) => {
         const tier = rankTierForWpm(entry.wpm);
-        const isTop3 = i < 3;
-        const rankColor =
+        // Podium en 2 tons (or/argent), le reste en text-muted plein (pas de
+        // fondu supplémentaire : color-mix vers transparent sur un fond
+        // sombre tombait sous 2:1 de contraste, illisible au-delà du top 3).
+        // Classes Tailwind plutôt que style inline : group-hover a besoin de
+        // pouvoir gagner sur la couleur de repos, un style inline l'aurait
+        // toujours emporté.
+        const rankColorClass =
           i === 0
-            ? 'var(--color-accent)'
+            ? 'text-[var(--color-accent)]'
             : i === 1
-              ? 'var(--color-text-primary)'
-              : i === 2
-                ? 'var(--color-text-muted)'
-                : 'color-mix(in srgb, var(--color-text-muted) 30%, transparent)';
+              ? 'text-[var(--color-text-primary)]'
+              : 'text-[var(--color-text-muted)]';
 
         return (
           <motion.li
@@ -88,8 +92,7 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
             <div className="flex flex-col sm:flex-row sm:items-center gap-4 md:gap-8 relative z-10">
               {/* Massive Rank Number (reduced) */}
               <div
-                className="font-display text-4xl md:text-5xl leading-none tracking-tighter w-16 md:w-20 shrink-0 transition-colors duration-300 group-hover:text-[var(--color-accent)]"
-                style={{ color: rankColor }}
+                className={`font-display text-4xl md:text-5xl leading-none tracking-tighter w-16 md:w-20 shrink-0 transition-colors duration-300 ${rankColorClass} group-hover:text-[var(--color-accent)]`}
               >
                 {String(i + 1).padStart(2, '0')}
               </div>
