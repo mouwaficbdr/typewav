@@ -498,10 +498,9 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             flexDirection: 'column',
             alignItems: 'center',
             gap: 16,
-            // Réservation stricte : la hauteur ne doit pas dépendre du contenu
-            // (bouton en plus en mode Libre, chip pièce plus large...) sinon la
-            // mise en page saute au chargement / au changement de mode.
-            minHeight: '150px',
+            // Réservation d'espace pour limiter les sauts de mise en page au
+            // changement de mode (mode Libre ajoute un bouton). Valeur Gemini.
+            minHeight: '130px',
             width: '100%',
             position: 'relative',
             zIndex: 10,

@@ -119,10 +119,11 @@ body {
 
 .char-correct {
   color: var(--color-text-primary);
-  /* Pas de glow ici : un text-shadow sur CHAQUE glyphe validé (100+ à l'écran,
-     recouvrements) coûte à la composition sur la surface où l'on veut 60fps, et
-     le halo diffuse les bords sur la zone qu'on lit. Le glow est réservé au
-     caractère courant (.char-current), un seul élément et le point focal. */
+  /* Glow conservé (choix Mouwafic) mais allégé : rayon et alpha réduits, et
+     exprimé en token (pas de blanc figé) pour rester correct sur tout thème.
+     Le text-shadow reste sur chaque glyphe : à surveiller si la frappe rapide
+     accroche sur machine modeste. */
+  text-shadow: 0 0 5px color-mix(in srgb, var(--color-text-primary) 10%, transparent);
 }
 
 .char-error {

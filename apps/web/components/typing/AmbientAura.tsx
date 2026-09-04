@@ -186,10 +186,11 @@ export function AmbientAura({
           maxWidth: 700,
           maxHeight: 700,
           borderRadius: '50%',
-          // Le radial-gradient (fondu à transparent 70%) EST l'aura : pas de
-          // filter: blur ici, coûteux à composer chaque frame sur un élément de
-          // 700px animé en boucle (règle produit : 60fps pendant la frappe).
           background: `radial-gradient(circle, color-mix(in srgb, ${accentColor} ${topOpacityPct}%, transparent) 0%, transparent 70%)`,
+          // Blur atmosphérique conservé (choix Mouwafic) mais ramené de 40 à
+          // 16px : ~2,5x moins cher à composer chaque frame sur cet élément de
+          // 700px animé en boucle, l'effet visuel reste très proche.
+          filter: 'blur(16px)',
           animation: shouldReduceMotion
             ? 'none'
             : `ambient-breathe var(--beat-ms, ${IDLE_BEAT_MS}ms) ease-in-out infinite`,
@@ -207,6 +208,7 @@ export function AmbientAura({
           maxHeight: 640,
           borderRadius: '50%',
           background: `radial-gradient(circle, color-mix(in srgb, ${accentColor} ${bottomOpacityPct}%, transparent) 0%, transparent 70%)`,
+          filter: 'blur(16px)',
           animation: shouldReduceMotion
             ? 'none'
             : `ambient-breathe var(--beat-ms, ${IDLE_BEAT_MS}ms) ease-in-out infinite 0.4s`,
