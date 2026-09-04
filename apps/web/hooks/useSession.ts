@@ -182,6 +182,37 @@ export function useSession({
     return () => clearTimeout(timeout);
   }, [mode, durationSeconds, startedAt, endedAt, endSession]);
 
+  // Compte à rebours visible pour les modes chronométrés (audit configbar,
+  // décision 1) : avant, rien n'affichait le temps restant, seul repère de
+  // fin en mode Temps. `durationSeconds` tant que la séance n'a pas
+  // commencé (le timer démarre à la première frappe, voir startSession) ;
+  // ticke ensuite chaque seconde jusqu'à 0, calé sur le même `startedAt` que
+  // le timeout ci-dessus donc jamais en désaccord avec la fin réelle.
+  const [secondsRemaining, setSecondsRemaining] = useState<number | null>(
+    null,
+  );
+  useEffect(() => {
+    const isTimedMode = mode === 'classic' || mode === 'challenge';
+    if (!isTimedMode) {
+      setSecondsRemaining(null);
+      return;
+    }
+    if (startedAt === null || endedAt !== null) {
+      setSecondsRemaining(durationSeconds);
+      return;
+    }
+
+    const tick = () => {
+      const elapsedSeconds = (Date.now() - startedAt) / 1000;
+      setSecondsRemaining(
+        Math.max(0, Math.ceil(durationSeconds - elapsedSeconds)),
+      );
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [mode, durationSeconds, startedAt, endedAt]);
+
   // Fin de session : sauvegarder + naviguer
   useEffect(() => {
     if (endedAt === null || startedAt === null || !finalStats) return;
@@ -268,6 +299,7 @@ export function useSession({
     keystrokes,
     liveStats,
     finalStats,
+    secondsRemaining,
     isActive: startedAt !== null && endedAt === null,
     isComplete: endedAt !== null,
     handleKeystroke,

@@ -376,3 +376,52 @@ describe('useSession — duration timeout', () => {
     vi.useRealTimers();
   });
 });
+
+describe('useSession — compte à rebours (audit configbar, décision 1)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSessionStore.position = 0;
+    mockSessionStore.keystrokes = [];
+    mockSessionStore.startedAt = null;
+    mockSessionStore.endedAt = null;
+  });
+
+  it("expose la durée complète tant que la séance n'a pas commencé", () => {
+    const { result } = renderHook(() =>
+      useSession({ text: 'hello', mode: 'classic', durationSeconds: 30 }),
+    );
+
+    expect(result.current.secondsRemaining).toBe(30);
+  });
+
+  it('ticke chaque seconde une fois la séance démarrée, jusqu’à 0', () => {
+    vi.useFakeTimers();
+    mockSessionStore.startedAt = Date.now();
+
+    const { result } = renderHook(() =>
+      useSession({ text: 'hello', mode: 'classic', durationSeconds: 3 }),
+    );
+    expect(result.current.secondsRemaining).toBe(3);
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(result.current.secondsRemaining).toBe(2);
+
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    expect(result.current.secondsRemaining).toBe(0);
+
+    vi.useRealTimers();
+  });
+
+  it('reste à null hors des modes chronométrés (ex: sprint)', () => {
+    mockSessionStore.startedAt = Date.now();
+    const { result } = renderHook(() =>
+      useSession({ text: 'hello', mode: 'sprint', durationSeconds: 30 }),
+    );
+
+    expect(result.current.secondsRemaining).toBeNull();
+  });
+});

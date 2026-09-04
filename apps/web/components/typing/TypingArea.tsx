@@ -93,6 +93,7 @@ export function TypingArea({
     keystrokes,
     liveStats,
     finalStats,
+    secondsRemaining,
     isComplete,
     handleKeystroke,
     handleBackspace,
@@ -409,6 +410,23 @@ export function TypingArea({
             pointerEvents: 'none',
           }}
         >
+          {/* Compte à rebours — mode Temps uniquement (audit configbar,
+              décision 1) : seul repère de fin d'un test chronométré, sinon
+              absent de l'écran. */}
+          {mode === 'classic' && secondsRemaining !== null && (
+            <>
+              <span
+                data-testid="time-remaining"
+                style={{
+                  color: 'var(--color-accent)',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {secondsRemaining}
+              </span>
+              {'s · '}
+            </>
+          )}
           <span
             style={{
               color: 'var(--color-accent)',
