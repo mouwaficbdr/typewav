@@ -53,10 +53,11 @@ export function GlobalNav() {
         margin: '0 auto',
         maxWidth: '1600px',
         width: '100%',
-        // Fond plein : la barre est sticky, elle doit occulter ce qui défile
-        // dessous. Un fond transparent laissait le halo du <body> (globals.css)
-        // transparaître comme une bande claire sur la nav, thème-dépendante.
-        background: 'var(--color-bg)',
+        // Aucun fond : la nav doit être la même surface que la page, sans
+        // rupture visible au ras du header. Le halo d'accent supérieur du
+        // <body> qui justifiait un fond plein a été retiré de globals.css ;
+        // il ne reste que la vignette basse, quasi nulle en haut de page.
+        background: 'transparent',
       }}
     >
       {/* Logo at extreme left */}
