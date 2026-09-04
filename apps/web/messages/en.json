@@ -287,7 +287,8 @@
     "disable": "Disable Ghost mode",
     "locked": "Ghost mode locked",
     "lockedTooltip": "Complete a test to unlock Ghost mode: your best result will be used as reference",
-    "noRecordFallback": "No personal record yet: finish a session to unlock Ghost mode. This session runs in Classic mode."
+    "noRecordFallback": "No personal record yet: finish a session to unlock Ghost mode. This session runs in Classic mode.",
+    "replayingRecord": "Replaying your personal record: {wpm} WPM."
   },
   "preview": {
     "play": "Hear a preview",
@@ -307,6 +308,9 @@
   },
   "config": {
     "label": "Configuration",
+    "modifiersGroup": "Modifiers",
+    "modesGroup": "Modes",
+    "optionsGroup": "Options",
     "punctuation": "Enable punctuation",
     "punctuationShort": "punctuation",
     "numbers": "Enable numbers",

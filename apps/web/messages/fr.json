@@ -287,7 +287,8 @@
     "disable": "Désactiver le mode Fantôme",
     "locked": "Mode Fantôme verrouillé",
     "lockedTooltip": "Complète un test pour débloquer le mode Fantôme : ton meilleur résultat servira de référence",
-    "noRecordFallback": "Aucun record personnel pour l'instant : terminez une session pour débloquer le mode Fantôme. Cette session se déroule en mode Classic."
+    "noRecordFallback": "Aucun record personnel pour l'instant : terminez une session pour débloquer le mode Fantôme. Cette session se déroule en mode Classic.",
+    "replayingRecord": "Vous rejouez votre record personnel : {wpm} WPM."
   },
   "preview": {
     "play": "Aperçu sonore",
@@ -307,6 +308,9 @@
   },
   "config": {
     "label": "Configuration",
+    "modifiersGroup": "Modificateurs",
+    "modesGroup": "Modes",
+    "optionsGroup": "Options",
     "punctuation": "Activer la ponctuation",
     "punctuationShort": "ponctuation",
     "numbers": "Activer les chiffres",

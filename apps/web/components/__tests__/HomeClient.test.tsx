@@ -46,10 +46,34 @@ vi.mock('@/lib/db', () => ({
   }),
 }));
 
+const typingAreaPropsRef: {
+  current: null | {
+    onNoteChange?: (
+      note: string | null,
+      isError: boolean,
+      isPhraseBoundary: boolean,
+    ) => void;
+    autoNavigate?: boolean;
+    trackProgress?: boolean;
+    onComplete?: (wpm: number) => void;
+  };
+} = { current: null };
+
 vi.mock('@/components/typing/TypingArea', () => ({
-  TypingArea: ({ text }: { text: string }) => (
-    <div data-testid="typing-area">{text}</div>
-  ),
+  TypingArea: (props: {
+    text: string;
+    onNoteChange?: (
+      note: string | null,
+      isError: boolean,
+      isPhraseBoundary: boolean,
+    ) => void;
+    autoNavigate?: boolean;
+    trackProgress?: boolean;
+    onComplete?: (wpm: number) => void;
+  }) => {
+    typingAreaPropsRef.current = props;
+    return <div data-testid="typing-area">{props.text}</div>;
+  },
 }));
 
 const learningModePropsRef: {
@@ -543,6 +567,133 @@ describe('HomeClient — application des filtres config', () => {
   });
 });
 
+describe('HomeClient — anti-répétition sur plusieurs essais (audit C3)', () => {
+  const manyTextsCollection = {
+    id: 'litterature',
+    name: 'Littérature',
+    texts: Array.from({ length: 8 }, (_, i) => ({
+      id: `lit-${i}`,
+      content: `Texte numero ${i} pour le test anti repetition, assez long pour cibler la meme fenetre de duree a chaque fois.`,
+      source: 'Auteur Test',
+      language: 'fr',
+      difficulty: 2,
+      wordCount: 18,
+      charCount: 108,
+    })),
+  };
+
+  it('exclut plusieurs textes récents, pas seulement le dernier, après plusieurs essais consécutifs', async () => {
+    mockFetchCollection.mockResolvedValueOnce(manyTextsCollection);
+    const collectionsModule = await import('@typewav/collections');
+    const selectSpy = vi.spyOn(collectionsModule, 'selectFromTexts');
+
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={manyTextsCollection as never} />);
+
+    await waitFor(() => expect(selectSpy).toHaveBeenCalled());
+
+    const shuffleButton = screen.getByTitle('nextTest');
+    for (let i = 0; i < 4; i++) {
+      const callsBefore = selectSpy.mock.calls.length;
+      fireEvent.click(shuffleButton);
+      await waitFor(() =>
+        expect(selectSpy.mock.calls.length).toBeGreaterThan(callsBefore),
+      );
+    }
+
+    // Avant ce correctif : excludeIds ne portait jamais qu'un seul id, quel
+    // que soit le nombre d'essais déjà faits.
+    const lastCallOptions = selectSpy.mock.calls.at(-1)?.[1];
+    expect(lastCallOptions?.excludeIds?.length ?? 0).toBeGreaterThan(1);
+  });
+});
+
+describe('HomeClient — mode Zen sans notation (audit configbar, décision 3 / B1)', () => {
+  it("ne navigue jamais vers /results (autoNavigate=false transmis à TypingArea)", async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'zen' });
+    });
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(typingAreaPropsRef.current?.autoNavigate).toBe(false);
+    });
+  });
+
+  it('un autre mode chronométré (classic) navigue normalement', async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(typingAreaPropsRef.current?.autoNavigate).toBe(true);
+    });
+  });
+
+  it("n'est ni sauvegardée ni comptée pour la progression (trackProgress=false transmis à TypingArea)", async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'zen' });
+    });
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(typingAreaPropsRef.current?.trackProgress).toBe(false);
+    });
+  });
+
+  it('un autre mode chronométré (classic) reste compté pour la progression', async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(typingAreaPropsRef.current?.trackProgress).toBe(true);
+    });
+  });
+
+  it('enchaîne un nouvel extrait après un court délai, sans action de l’utilisateur', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const collectionsModule = await import('@typewav/collections');
+    const selectSpy = vi.spyOn(collectionsModule, 'selectFromTexts');
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'zen' });
+    });
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => expect(typingAreaPropsRef.current).not.toBeNull());
+    const callsBeforeCompletion = selectSpy.mock.calls.length;
+
+    act(() => {
+      typingAreaPropsRef.current?.onComplete?.(60);
+    });
+    // Rien ne se passe tant que le court délai n'est pas écoulé (pas de
+    // rebond instantané, le temps de "voir" que l'extrait est terminé).
+    expect(selectSpy.mock.calls.length).toBe(callsBeforeCompletion);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1300);
+    });
+
+    expect(selectSpy.mock.calls.length).toBeGreaterThan(callsBeforeCompletion);
+
+    vi.useRealTimers();
+  });
+});
+
 describe('HomeClient — attribution mode citation', () => {
   it('affiche la source du texte en mode citation', async () => {
     const { useConfigStore } = await import('@/stores/useConfigStore');
@@ -566,6 +717,26 @@ describe('HomeClient — attribution mode citation', () => {
   });
 });
 
+describe('HomeClient — la config bar se verrouille dès la première frappe (audit A7)', () => {
+  it("passe en inert au premier événement de frappe, correcte ou en erreur, empêchant toute bascule silencieuse en cours de session", async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    const configBar = await screen.findByTestId('config-bar');
+    expect(configBar.closest('[inert]')).toBeNull();
+
+    // Une frappe en erreur (silence, pas de note) marque déjà le début de
+    // séance au même titre qu'une frappe correcte.
+    act(() => {
+      typingAreaPropsRef.current?.onNoteChange?.(null, true, false);
+    });
+
+    expect(configBar.closest('[inert]')).not.toBeNull();
+  });
+});
+
 describe('HomeClient — bascule automatique de collection', () => {
   it("bascule la collection sur 'code' en passant en mode Code", async () => {
     mockFetchCollection.mockResolvedValueOnce(mockLitterature);
@@ -581,6 +752,28 @@ describe('HomeClient — bascule automatique de collection', () => {
 
     await waitFor(() => {
       expect(useConfigStore.getState().activeCollection).toBe('code');
+    });
+  });
+
+  it("ramène la collection sur 'litterature' en quittant Code pour un mode qui n'en a pas conscience (audit B7)", async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'code', activeCollection: 'code' });
+    });
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+    expect(useConfigStore.getState().activeCollection).toBe('code');
+
+    // Sans ce fix : la collection restait sur 'code' sous le mode Temps,
+    // masquant ponctuation/chiffres derrière un libellé qui n'en parle pas.
+    await act(async () => {
+      useConfigStore.setState({ activeMode: 'classic' });
+    });
+
+    await waitFor(() => {
+      expect(useConfigStore.getState().activeCollection).toBe('litterature');
     });
   });
 
@@ -713,6 +906,39 @@ describe('HomeClient — mode Fantôme', () => {
     // de collection n'ont pas de sens ici, ils doivent rester masqués.
     expect(screen.queryByTitle('changeLanguage')).not.toBeInTheDocument();
     expect(screen.queryByTitle('changeCollection')).not.toBeInTheDocument();
+  });
+
+  it("affiche un repère explicite sur le record rejoué (audit B8)", async () => {
+    mockGetPersonalRecords.mockResolvedValue({
+      maxWpm: { value: 85, sessionId: 'session-1', achievedAt: Date.now() },
+    });
+    mockGetSessionById.mockResolvedValue({
+      id: 'session-1',
+      timestamp: Date.now(),
+      wpm: 85,
+      wpmNet: 82,
+      accuracy: 97,
+      consistency: 88,
+      duration: 30_000,
+      mode: 'classic',
+      themeId: 'terminal',
+      soundPackId: 'piano',
+      keystrokeData: [
+        { char: 'x', timestamp: 1000, correct: true, deltaMs: 0 },
+      ],
+      text: 'Texte du record.',
+    });
+
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'ghost' });
+    });
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    // Avant : rien ne distinguait "je tape mon record" d'un texte quelconque.
+    expect(await screen.findByText('replayingRecord')).toBeInTheDocument();
   });
 
   it("sans donnée personnelle, la session tourne réellement en Classic : sélecteurs visibles et texte régénéré depuis la collection active", async () => {

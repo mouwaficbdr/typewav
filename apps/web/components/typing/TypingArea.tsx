@@ -47,6 +47,8 @@ interface TypingAreaProps {
   durationSeconds?: number;
   /** Si false, ne navigue pas vers /results automatiquement (ex: LearningMode) */
   autoNavigate?: boolean;
+  /** Si false, la session n'est ni sauvegardée ni comptée pour la progression (ex: Zen) */
+  trackProgress?: boolean;
   /** Callback : touche attendue actuellement (pour KeyboardDiagram) */
   onActiveKeyChange?: (key: string | undefined) => void;
   /** Timings inter-frappe du record personnel (ms) — active le ghost mode */
@@ -82,6 +84,7 @@ export function TypingArea({
   collectionId,
   durationSeconds,
   autoNavigate = true,
+  trackProgress = true,
   onActiveKeyChange,
   ghostTimings,
   onComplete,
@@ -93,6 +96,7 @@ export function TypingArea({
     keystrokes,
     liveStats,
     finalStats,
+    secondsRemaining,
     isComplete,
     handleKeystroke,
     handleBackspace,
@@ -102,6 +106,7 @@ export function TypingArea({
     ...(collectionId !== undefined ? { collectionId } : {}),
     ...(durationSeconds !== undefined ? { durationSeconds } : {}),
     autoNavigate,
+    trackProgress,
   });
   const { initialize, playNote, triggerSilence, triggerResume } =
     useAudioEngine();
@@ -409,6 +414,23 @@ export function TypingArea({
             pointerEvents: 'none',
           }}
         >
+          {/* Compte à rebours — mode Temps uniquement (audit configbar,
+              décision 1) : seul repère de fin d'un test chronométré, sinon
+              absent de l'écran. */}
+          {mode === 'classic' && secondsRemaining !== null && (
+            <>
+              <span
+                data-testid="time-remaining"
+                style={{
+                  color: 'var(--color-accent)',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {secondsRemaining}
+              </span>
+              {'s · '}
+            </>
+          )}
           <span
             style={{
               color: 'var(--color-accent)',

@@ -84,19 +84,36 @@ export function useMusicRecommendation() {
     };
   }, [mode, collectionId, activePieceId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /** Demande une nouvelle suggestion dans le même registre */
-  const refresh = useCallback(() => {
-    const next = pickPiece(register, recentIds);
-    if (next) {
-      setRecentIds((prev) => [...prev.slice(-4), next.id]);
-      const midiPieceId = getMidiPieceIdFromLibraryId(next.id);
-      setCurrentPiece({
-        ...next,
-        midiPieceId,
-        isPlayableNow: midiPieceId !== null,
-      });
-    }
-  }, [register, recentIds]);
+  /**
+   * Demande une nouvelle suggestion dans le même registre, et la retourne
+   * directement (en plus de mettre à jour currentPiece).
+   *
+   * Le retour synchrone est ce qui permet à l'appelant (le chip
+   * "Recommandation" d'ActiveSessionHeader) de changer réellement la
+   * musique jouée : lire `recommendedPlayablePieceId` juste après avoir
+   * appelé `refresh()` renvoyait encore l'ancienne valeur (setCurrentPiece
+   * est asynchrone), donc le clic semblait ne rien faire — l'audit
+   * configbar B4 le décrit précisément. Exclut aussi la pièce actuellement
+   * active (currentPiece.id, pas seulement recentIds) : sans ça, le tout
+   * premier clic pouvait re-tirer exactement la pièce déjà en cours.
+   */
+  const refresh = useCallback((): UnifiedMusicPiece | null => {
+    const excludeIds = currentPiece
+      ? [...recentIds, currentPiece.id]
+      : recentIds;
+    const next = pickPiece(register, excludeIds);
+    if (!next) return null;
+
+    setRecentIds((prev) => [...prev.slice(-4), next.id]);
+    const midiPieceId = getMidiPieceIdFromLibraryId(next.id);
+    const piece: UnifiedMusicPiece = {
+      ...next,
+      midiPieceId,
+      isPlayableNow: midiPieceId !== null,
+    };
+    setCurrentPiece(piece);
+    return piece;
+  }, [register, recentIds, currentPiece]);
 
   /** Override manuel : sélection explicite par l'utilisateur */
   const selectPiece = useCallback((piece: UnifiedMusicPiece) => {
