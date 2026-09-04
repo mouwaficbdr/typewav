@@ -848,6 +848,39 @@ describe('HomeClient — bascule automatique de collection', () => {
 });
 
 describe('HomeClient — mode Fantôme', () => {
+  it("n'affiche pas la notice \"aucun record\" tant que le chargement IndexedDB n'est pas resolu (evite le flash au rechargement)", async () => {
+    let resolveRecords!: (value: unknown) => void;
+    mockGetPersonalRecords.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveRecords = resolve;
+        }),
+    );
+
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'ghost' });
+    });
+
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    // Tant que getPersonalRecords() n'a pas resolu, on ne sait pas encore
+    // s'il existe un record : la notice "aucun record, terminez une
+    // session..." ne doit pas s'afficher a tort le temps de la lecture
+    // IndexedDB (async par nature, meme sur un vrai record existant).
+    expect(screen.queryByText('noRecordFallback')).not.toBeInTheDocument();
+
+    await act(async () => {
+      resolveRecords(null);
+    });
+
+    // Une fois confirme qu'il n'y a vraiment aucun record, la notice peut
+    // legitimement s'afficher.
+    expect(await screen.findByText('noRecordFallback')).toBeInTheDocument();
+  });
+
   it("affiche une notice explicite quand aucun record personnel n'existe", async () => {
     const { HomeClient } = await import('../typing/HomeClient');
     const { useConfigStore } = await import('@/stores/useConfigStore');
