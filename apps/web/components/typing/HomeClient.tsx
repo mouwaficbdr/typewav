@@ -479,23 +479,42 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 36,
-            minHeight: '166px', // Réservation stricte de l'espace pour éviter les sauts
+            gap: 16, // Much tighter gap for luxury feel
+            minHeight: '130px', 
             width: '100%',
+            position: 'relative',
+            zIndex: 10,
           }}
         >
           {/* Zone 2 — ConfigBar */}
           <ConfigBar controlsMode={effectiveMode} />
 
-          {/* Zone 3 — Active Session Header */}
-          <ActiveSessionHeader
-            selectedPieceId={selectedPieceId}
-            onPieceChange={handlePieceChange}
-          />
+          <div
+            className="glass-panel"
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 12,
+              padding: '6px 16px',
+              borderRadius: '9999px',
+            }}
+          >
+            {/* Zone 3 — Active Session Header */}
+            <ActiveSessionHeader
+              selectedPieceId={selectedPieceId}
+              onPieceChange={handlePieceChange}
+            />
 
-          {/* Zone 3.5 — Context Selectors (Language + Collection) */}
-          <ContextSelectors controlsMode={effectiveMode} />
-          <CollectionSelector controlsMode={effectiveMode} />
+            <div style={{ width: '1px', height: '16px', background: 'var(--color-border)' }} />
+
+            {/* Zone 3.5 — Context Selectors (Language + Collection) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <ContextSelectors controlsMode={effectiveMode} />
+              <CollectionSelector controlsMode={effectiveMode} />
+            </div>
+          </div>
 
           {activeMode === 'custom' && (
             <button

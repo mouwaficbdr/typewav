@@ -1,48 +1,36 @@
 @import 'tailwindcss';
 
-/**
- * TypeWav : Design System "Dark Terminal Luxury"
- * Tailwind CSS 4.0 : CSS-first, pas de tailwind.config.js
- * Spec : docs/specs/04-design-system.md
- */
 @theme {
-  /* ---- Palette ---- */
-  --color-bg: #000000;
-  --color-surface: #0a0a0a;
-  --color-border: #1a1a2e;
-  --color-accent: #00d4aa;
-  --color-text-primary: #e8e8e8;
-  --color-text-muted: #888888;
-  --color-error: #ff4444;
+  /* ---- Palette Premium Dark ---- */
+  --color-bg: #030712; /* Gray 950 */
+  --color-surface: #111827; /* Gray 900 */
+  --color-border: #1f2937; /* Gray 800 */
+  --color-accent: #14b8a6; /* Teal 500 */
+  --color-text-primary: #f9fafb; /* Gray 50 */
+  --color-text-muted: #6b7280; /* Gray 500 */
+  --color-error: #f43f5e; /* Rose 500 */
 
-  /* ---- Typographie ---- */
-  /* Les variables CSS --font-* sont injectées par next/font dans le layout */
+  /* Typographie */
   --font-display: var(--font-display, 'Cormorant Garamond', serif);
-  --font-ui: var(--font-ui, 'Sora', sans-serif);
-  --font-mono: var(--font-mono, 'JetBrains Mono', monospace);
+  --font-ui: var(--font-ui, 'Inter', 'SF Pro Display', 'Sora', sans-serif);
+  --font-mono: var(--font-mono, 'JetBrains Mono', 'Fira Code', monospace);
 
-  /* ---- Espacement & rayon ---- */
-  --radius-sm: 2px;
-  --radius-md: 4px;
-  --radius-lg: 8px;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
 
-  /* Hauteur reservee par la barre de nav (GlobalNav, position: sticky).
-     Les pages qui veulent remplir le reste du viewport utilisent
-     calc(100dvh - var(--nav-height)) au lieu d'une valeur figee.
-     Override mobile plus bas. */
   --nav-height: 88px;
-
-  /* ---- Transitions ---- */
-  --transition-fast: 120ms ease;
-  --transition-normal: 200ms ease;
-  --transition-slow: 350ms ease;
 }
 
-/* ---- Base ---- */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+:root {
+  color-scheme: dark;
 }
 
 html {
@@ -59,41 +47,34 @@ body {
   margin: 0;
   min-height: 100dvh;
   background-color: var(--color-bg);
+  background-image: 
+    radial-gradient(ellipse at top, rgba(20, 184, 166, 0.05) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom, rgba(17, 24, 39, 1) 0%, var(--color-bg) 100%);
 }
 
-/* La nav se resserre en dessous de 640px : la hauteur reservee suit. */
 @media (max-width: 640px) {
   :root {
     --nav-height: 56px;
   }
 }
 
-/* ---- Focus visible accessible ---- */
 :focus-visible {
   outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
 }
 
-/* ---- Zone de frappe : aucun anneau de focus ----
-   Le caret clignotant (.char-current::after) porte à lui seul la position ET
-   le focus de cette surface. Un contour teal en plus, permanent dans une appli
-   de frappe (le dernier geste est toujours une touche, donc :focus-visible
-   matche en continu), alourdit sans rien apporter. La zone reste focusable au
-   clavier (tabindex=0) et l'overlay « cliquer pour activer » signale l'état
-   inactif. */
 .typing-focus-ring:focus,
 .typing-focus-ring:focus-visible {
   outline: none;
 }
 
-/* ---- Focus ring champs de formulaire ---- */
 .form-input:focus-visible {
   outline: none;
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 30%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 20%, transparent);
 }
 
-/* ---- Accessibilité : label visible uniquement pour les lecteurs d'écran ---- */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -106,7 +87,6 @@ body {
   border-width: 0;
 }
 
-/* ---- Curseur de typing ---- */
 .cursor-blink {
   animation: blink 1s step-end infinite;
 }
@@ -117,41 +97,41 @@ body {
   }
 }
 
-/* ---- Zones de frappe ---- */
 .char-pending {
-  color: var(
-    --color-char-pending,
-    color-mix(in srgb, var(--color-text-muted) 50%, transparent)
-  );
+  color: color-mix(in srgb, var(--color-text-primary) 35%, transparent);
 }
 
 .char-correct {
-  color: var(--color-char-correct, var(--color-text-primary));
+  color: var(--color-text-primary);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
 }
 
 .char-error {
-  color: var(--color-char-error, var(--color-error));
-  text-decoration: none;
+  color: var(--color-error);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--color-error) 40%, transparent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--color-error) 40%, transparent);
+  text-underline-offset: 4px;
 }
 
 .char-current {
   position: relative;
-  color: var(--color-char-current, inherit);
+  color: var(--color-text-primary);
 }
 
 .char-current::after {
   content: '';
   position: absolute;
   left: -0.1em;
-  bottom: 0.1em;
-  width: 0.12em;
-  height: 1.2em;
-  background-color: var(--color-cursor, var(--color-accent));
-  animation: blink 1s step-end infinite;
-  border-radius: 2px;
+  bottom: 0.15em;
+  width: 0.15em;
+  height: 1.1em;
+  background-color: var(--color-accent);
+  animation: blink 1.1s cubic-bezier(0.8, 0, 0.2, 1) infinite;
+  border-radius: 4px;
+  box-shadow: 0 0 10px var(--color-accent);
 }
 
-/* ---- Skeleton loading ---- */
 @keyframes shimmer {
   0% {
     background-position: -200% 0;
@@ -173,7 +153,6 @@ body {
   border-radius: var(--radius-md);
 }
 
-/* ---- Logo nav : animation barres SVG (one-shot au chargement) ---- */
 @keyframes barRise {
   from {
     transform: scaleY(0);
@@ -185,24 +164,18 @@ body {
 
 .nav-logo-bars rect {
   transform-origin: bottom;
-  animation: barRise 0.4s ease-out 1 forwards;
+  animation: barRise 0.5s cubic-bezier(0.16, 1, 0.3, 1) 1 forwards;
 }
 .nav-logo-bars rect:nth-child(1) {
   animation-delay: 0ms;
 }
 .nav-logo-bars rect:nth-child(2) {
-  animation-delay: 80ms;
+  animation-delay: 100ms;
 }
 .nav-logo-bars rect:nth-child(3) {
-  animation-delay: 160ms;
+  animation-delay: 200ms;
 }
 
-/* ---- prefers-reduced-motion : neutraliser les animations CSS en boucle ----
-   Les animations pilotées par les composants passent déjà par
-   useReducedMotion (motion/react). Ici on couvre les keyframes définies
-   dans cette feuille. Le caret reste VISIBLE (on retire juste le
-   clignotement) ; le skeleton garde un fond figé ; les barres du logo
-   apparaissent directement à leur état final. */
 @media (prefers-reduced-motion: reduce) {
   .cursor-blink,
   .char-current::after {
@@ -220,20 +193,17 @@ body {
   }
 }
 
-/* ---- Zone de frappe : largeur conteneur centré (MonkeyType-style) ---- */
 .content-typing {
-  max-width: 100%; /* Will be constrained by the parent container in HomeClient (1600px) */
+  max-width: 100%;
   width: 100%;
   margin-inline: auto;
 }
 
-/* ---- Aura ligne active : fond ultra-subtil sur la ligne courante ---- */
 .char-line-focus {
-  background: color-mix(in srgb, var(--color-accent) 3%, transparent);
-  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-accent) 5%, transparent);
+  border-radius: var(--radius-md);
 }
 
-/* ---- Utilitaires ---- */
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -242,15 +212,12 @@ body {
   scrollbar-width: none;
 }
 
-/* ---- Écran de résultats : états de survol des actions ---- */
 .results-encore {
-  transition:
-    transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.18s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
 }
 .results-encore:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 22%, transparent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-accent) 25%, transparent);
 }
 .results-encore:active {
   transform: translateY(0);
@@ -263,22 +230,27 @@ body {
   color: var(--color-text-primary);
 }
 
-/* ---- Lien partagé illisible : le CTA de repli s'affirme au survol ----
-   Bordure faible qui vire à l'accent plein, aucun fill (sur certains thèmes
-   bg et accent sont trop proches et un fill efface le libellé). */
 .shared-link-fallback-cta:hover {
   border-color: var(--color-accent);
 }
 .shared-link-fallback-cta:focus-visible {
   outline: 2px solid var(--color-accent);
-  outline-offset: 3px;
+  outline-offset: 4px;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .results-encore {
-    transition: box-shadow 0.18s ease;
+    transition: box-shadow 0.2s ease;
   }
   .results-encore:hover {
     transform: none;
   }
+}
+
+/* Utils for glassmorphism */
+.glass-panel {
+  background: rgba(17, 24, 39, 0.45);
+  backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }

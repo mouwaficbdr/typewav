@@ -30,8 +30,8 @@ import {
   useState,
 } from 'react';
 
-/** Hauteur de ligne fixe = 3rem à 16px base = 48px */
-const LINE_HEIGHT_PX = 48;
+/** Hauteur de ligne fixe = 3.5rem à 16px base = 56px */
+const LINE_HEIGHT_PX = 56;
 
 interface TypingAreaProps {
   text: string;
@@ -440,9 +440,9 @@ export function TypingArea({
           height: `${LINE_HEIGHT_PX * 3}px`,
           overflow: 'hidden',
           fontFamily: 'var(--font-mono)',
-          fontSize: '1.75rem' /* MonkeyType scale */,
+          fontSize: '2.1rem' /* Increased for premium feel */,
           lineHeight: `${LINE_HEIGHT_PX}px`,
-          letterSpacing: '0.02em',
+          letterSpacing: '0.01em',
         }}
       >
         {ghostTimings && ghostTimings.length > 0 && (
