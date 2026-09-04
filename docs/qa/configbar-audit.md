@@ -385,6 +385,61 @@ Ces points touchent des fichiers de la branche de refonte UI (`HomeClient.tsx`,
 - `apps/web/lib/__tests__/configbar-text-selection.test.ts` : `applyTextFilters` en mode sprint tronque à N et peut rendre moins de N mots ; ponctuation OFF retire les apostrophes internes ; chiffres OFF ; `mode` non-sprint ne tronque pas.
 - `apps/web/lib/__tests__/words.no-duplicates.test.ts` : les pools de mots n'ont pas de doublon ; le pool niveau 1 d'Apprentissage reste non vide après filtrage home row.
 
+## Suivi d'implémentation (branche feat/configbar-rework-p1, 2026-09-04)
+
+Actions prises côté follower, sur des fichiers hors de la frontière de refonte
+visuelle (celle-ci tourne en parallèle sur `components/typing/*` et `globals.css`).
+
+- **Décision 4 (B2)** : `hooks/useAdaptive.ts`, `lib/adaptive.ts` et leur test
+  supprimés. La difficulté adaptative n'existe plus, ni en code ni en promesse.
+- **Décision 7 (B3)** : commentaire d'en-tête ajouté à `lib/note-expression.ts`.
+  Le seul texte qui affirmait "l'octave réagit au rythme" est le `CLAUDE.md`
+  gitignoré : à reformuler par le lead ("Tempo and octave react..." devient
+  "le tempo réagit ; l'octave suit un motif mélodique fixe par mot").
+- **A2** : `text-filters.removePunctuation` garde désormais les apostrophes de
+  contraction et les traits d'union internes aux mots composés. Les tests de
+  `configbar-text-selection.test.ts` ont été retournés pour pinner le
+  comportement corrigé.
+- **B4** : `useMusicRecommendation` lit la vraie durée depuis `useConfigStore`
+  au lieu de `60` en dur. Le chip "Recommandation" ne change toujours pas la
+  pièce jouée : ça reste à faire côté lead (`ActiveSessionHeader`).
+- **B5** : `recommendation.getRecommendedRegister` ne référence plus les modes
+  fantômes `endurance` / `bigrams`.
+- **C5 / C6** : doublons des pools de `lib/words.ts` déjà retirés en PR #51 ;
+  `WORDS_HOME_ROW` purgé du non-mot `jall` et des mots hors home row.
+- **Décision 2** : `WORDS_EASY/NORMAL/HARD/EXPERT` étoffés d'environ 2,5x
+  (contenu seul, rien de câblé dans `HomeClient`).
+- **Décision 6** : les 5 collections passent de **427** à **573** entrées,
+  priorité aux textes longs (voir tableau ci-dessous). Le pool "Mots >= 50"
+  par collection passe d'un intervalle 8 à 25 à un intervalle 20 à 39 ; la
+  fenêtre "Temps 120 s" passe de 6 à 10 par collection à 18 à 36. Le pool
+  "Mots >= 100" reste étroit (4 à 6 par collection) : les extraits du domaine
+  public de qualité dépassent rarement 100 mots. Ce n'est pas le x3 brut visé,
+  mais tout l'écart est concentré sur les textes longs, là où l'audit signalait
+  1 à 6 textes seulement.
+
+| Collection | Avant | Après | fr / en après |
+|---|---|---|---|
+| Littérature | 116 | 145 | 72 / 73 |
+| Poésie | 76 | 89 | 44 / 45 |
+| Philosophie | 73 | 94 | 44 / 50 |
+| Gaming | 78 | 128 | 64 / 64 |
+| Code | 84 | 117 | 33 / 84 |
+| **Total** | **427** | **573** | |
+
+Provenance : gaming et code sont des textes originaux TypeWav (aucun copyright
+tiers). Littérature, poésie et philosophie sont des extraits du domaine public
+d'auteurs morts avant 1955, d'œuvres non déjà présentes dans la collection
+(vérifié contre la liste des `source`). Ces extraits littéraires méritent une
+relecture contre Gutenberg / Wikisource avant mise en ligne, comme les entrées
+issues de PR #34.
+
+Reste au lead (frontière) : A1 compte à rebours, A3/A4/A5 logique de durée et
+de fin de session pour Temps/Mots/Zen, A6 chip signature, A7 relance
+silencieuse sur changement de modificateur, B1 grading du mode Zen, B4 le chip
+qui doit changer la pièce, C3 historique d'exclusion plus long dans
+`HomeClient`.
+
 ## Annexe : méthode de comptage
 
 Extraction par script depuis les 5 `collection.config.ts` (un bloc = `id` +
