@@ -11,8 +11,12 @@
  *
  * Canal strictement périphérique : `pointer-events: none`, `aria-hidden`, et
  * un `z-index` négatif pour rester derrière tout le contenu réel. Aucune
- * information n'est portée uniquement par cette couleur — le rang et le WPM
+ * information n'est portée uniquement par cette couleur : le rang et le WPM
  * restent lisibles ailleurs en texte (ActiveSessionHeader, /profil).
+ *
+ * Les deux halos sont ancrés dans la moitié basse de l'écran : la zone header
+ * (nav + config) doit rester une surface plane et continue, aucun dégradé ne
+ * doit y remonter.
  */
 
 import { useAudioStore } from '@/stores/useAudioStore';
@@ -131,13 +135,11 @@ export function AmbientAura({
   // ni ne la sanctionne) — la pièce respire un peu moins fort, elle ne
   // clignote pas de rouge.
   //
-  // Pourcentages volontairement hauts (vérifiés en navigateur avec capture
-  // d'écran réelle, pas seulement en lisant le code) : contre un fond quasi
-  // noir (#000000), un color-mix composite vers une couleur si sombre
-  // qu'elle disparaît à l'écran en dessous d'environ 30% — deux premiers
-  // passages (7-22% puis 6-42%) restaient invisibles en capture, l'exact
-  // défaut que cette phase devait corriger sur WaveformBars.
-  const topOpacityPct =
+  // Les pics de pulsation (note / peak / celebrate) restent francs : c'est la
+  // respiration au tempo, le vrai payoff. Le repos est plus discret : les deux
+  // halos vivent maintenant dans la moitié basse (voir plus bas), il ne faut
+  // pas qu'ils remontent en zone lumineuse jusqu'au contenu au repos.
+  const primaryOpacityPct =
     pulse === 'error'
       ? 10
       : pulse === 'celebrate'
@@ -146,8 +148,8 @@ export function AmbientAura({
           ? 65
           : pulse === 'note'
             ? 50
-            : 35;
-  const bottomOpacityPct =
+            : 24;
+  const secondaryOpacityPct =
     pulse === 'error'
       ? 7
       : pulse === 'celebrate'
@@ -156,7 +158,7 @@ export function AmbientAura({
           ? 50
           : pulse === 'note'
             ? 38
-            : 26;
+            : 17;
 
   return (
     <div
@@ -176,20 +178,24 @@ export function AmbientAura({
           50% { transform: scale(1.08); }
         }
       `}</style>
+      {/* Les deux halos vivent dans la moitié basse de l'écran, ancrés au bas.
+          La zone header (nav + config) doit rester une surface plane et
+          continue : aucun dégradé ne doit y remonter. L'aura éclaire donc le
+          bas et les côtés, comme une rampe, sans jamais toucher le haut. */}
       <div
         style={{
           position: 'absolute',
-          top: '-20vh',
-          left: '-15vw',
-          width: '55vw',
-          height: '55vw',
-          maxWidth: 700,
-          maxHeight: 700,
+          bottom: '-12vh',
+          left: '-14vw',
+          width: '48vw',
+          height: '48vw',
+          maxWidth: 620,
+          maxHeight: 620,
           borderRadius: '50%',
-          background: `radial-gradient(circle, color-mix(in srgb, ${accentColor} ${topOpacityPct}%, transparent) 0%, transparent 70%)`,
+          background: `radial-gradient(circle, color-mix(in srgb, ${accentColor} ${primaryOpacityPct}%, transparent) 0%, transparent 70%)`,
           // Blur atmosphérique conservé (choix Mouwafic) mais ramené de 40 à
-          // 16px : ~2,5x moins cher à composer chaque frame sur cet élément de
-          // 700px animé en boucle, l'effet visuel reste très proche.
+          // 16px : ~2,5x moins cher à composer chaque frame sur cet élément
+          // animé en boucle, l'effet visuel reste très proche.
           filter: 'blur(16px)',
           animation: shouldReduceMotion
             ? 'none'
@@ -200,14 +206,14 @@ export function AmbientAura({
       <div
         style={{
           position: 'absolute',
-          bottom: '-25vh',
+          bottom: '-22vh',
           right: '-15vw',
           width: '50vw',
           height: '50vw',
           maxWidth: 640,
           maxHeight: 640,
           borderRadius: '50%',
-          background: `radial-gradient(circle, color-mix(in srgb, ${accentColor} ${bottomOpacityPct}%, transparent) 0%, transparent 70%)`,
+          background: `radial-gradient(circle, color-mix(in srgb, ${accentColor} ${secondaryOpacityPct}%, transparent) 0%, transparent 70%)`,
           filter: 'blur(16px)',
           animation: shouldReduceMotion
             ? 'none'
