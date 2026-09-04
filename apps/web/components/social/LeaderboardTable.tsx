@@ -80,15 +80,15 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
           <motion.li
             key={`${entry.achievedAt}-${i}`}
             variants={itemVariants}
-            className="group flex flex-col md:flex-row md:items-center justify-between px-4 md:px-8 py-6 md:py-8 border-b border-[var(--color-border)] hover:bg-[var(--color-surface)] transition-colors duration-300 relative overflow-hidden"
+            className="group flex flex-col sm:flex-row sm:items-center justify-between px-3 md:px-6 py-4 md:py-5 border-b border-[var(--color-border)] hover:bg-[var(--color-surface)] transition-colors duration-300 relative overflow-hidden"
           >
             {/* Background Hover Effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-surface)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-surface)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-            <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-12 relative z-10">
-              {/* Massive Rank Number */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 md:gap-8 relative z-10">
+              {/* Massive Rank Number (reduced) */}
               <div
-                className="font-display text-6xl md:text-8xl leading-none tracking-tighter w-24 shrink-0 transition-colors duration-300 group-hover:text-[var(--color-accent)]"
+                className="font-display text-4xl md:text-5xl leading-none tracking-tighter w-16 md:w-20 shrink-0 transition-colors duration-300 group-hover:text-[var(--color-accent)]"
                 style={{ color: rankColor }}
               >
                 {String(i + 1).padStart(2, '0')}
@@ -97,20 +97,20 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
               {/* Primary Metric: WPM */}
               <div className="flex flex-col">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-mono text-5xl md:text-6xl text-[var(--color-text-primary)] font-bold tracking-tight">
+                  <span className="font-mono text-3xl md:text-4xl text-[var(--color-text-primary)] font-bold tracking-tight">
                     {entry.wpm}
                   </span>
-                  <span className="font-mono text-sm text-[var(--color-text-muted)] uppercase tracking-widest">
+                  <span className="font-mono text-xs text-[var(--color-text-muted)] uppercase tracking-widest">
                     {t('wpmHeader')}
                   </span>
                 </div>
                 
                 {/* Secondary Metric: Accuracy */}
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="font-mono text-sm text-[var(--color-text-muted)] uppercase tracking-widest">
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="font-mono text-[10px] md:text-xs text-[var(--color-text-muted)] uppercase tracking-widest">
                     {t('accuracyHeader')}:
                   </span>
-                  <span className="font-mono text-sm text-[var(--color-text-primary)]">
+                  <span className="font-mono text-[10px] md:text-xs text-[var(--color-text-primary)]">
                     {entry.accuracy.toFixed(1)}%
                   </span>
                 </div>
@@ -118,10 +118,10 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
             </div>
 
             {/* Badges: Tier & Mode */}
-            <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-4 mt-6 md:mt-0 relative z-10">
+            <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 mt-4 sm:mt-0 relative z-10">
               {/* Tier Badge */}
               <div
-                className="px-3 py-1 border rounded-full font-mono text-xs uppercase tracking-widest transition-colors duration-300"
+                className="px-2.5 py-0.5 border rounded-full font-mono text-[10px] uppercase tracking-widest transition-colors duration-300"
                 style={{
                   color: RANKS[tier].accentColor,
                   borderColor: RANKS[tier].accentColor,
@@ -132,7 +132,7 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
               </div>
 
               {/* Mode */}
-              <div className="font-mono text-xs text-[var(--color-text-muted)] uppercase tracking-widest">
+              <div className="font-mono text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest">
                 [ {entry.mode} ]
               </div>
             </div>

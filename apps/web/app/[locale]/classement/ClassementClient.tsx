@@ -74,17 +74,17 @@ export function ClassementClient() {
 
   return (
     <main className="min-h-screen text-[var(--color-text-primary)] pb-32">
-      <div className="max-w-5xl mx-auto px-6 pt-16 md:pt-32 flex flex-col gap-16">
+      <div className="max-w-4xl mx-auto px-6 pt-12 md:pt-24 flex flex-col gap-10">
         
         {/* Header Section */}
-        <div className="flex flex-col gap-4 border-b border-[var(--color-border)] pb-8">
-          <p className="font-mono text-sm md:text-base text-[var(--color-accent)] uppercase tracking-[0.5em]">
+        <div className="flex flex-col gap-3 border-b border-[var(--color-border)] pb-6">
+          <p className="font-mono text-xs md:text-sm text-[var(--color-accent)] uppercase tracking-[0.5em]">
             {t('title')}
           </p>
-          <h1 className="font-display text-5xl md:text-[8vw] leading-[0.85] tracking-tighter uppercase text-[var(--color-text-primary)]">
+          <h1 className="font-display text-4xl md:text-6xl leading-[0.85] tracking-tighter uppercase text-[var(--color-text-primary)]">
             ARCHIVE
           </h1>
-          <p className="font-ui text-sm md:text-base text-[var(--color-text-muted)] max-w-xl mt-4">
+          <p className="font-ui text-sm text-[var(--color-text-muted)] max-w-xl mt-2">
             {t('subtitle')}
           </p>
         </div>
@@ -104,7 +104,7 @@ export function ClassementClient() {
                 onClick={() => setModeFilter(value)}
                 aria-pressed={active}
                 className={`
-                  px-4 py-2 font-mono text-xs uppercase tracking-widest border transition-all duration-200
+                  px-3 py-1.5 font-mono text-[10px] sm:text-xs uppercase tracking-widest border transition-all duration-200
                   ${active 
                     ? 'bg-[var(--color-text-primary)] text-[var(--color-bg)] border-[var(--color-text-primary)]' 
                     : 'bg-transparent text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[var(--color-text-primary)] hover:text-[var(--color-text-primary)]'
@@ -120,8 +120,8 @@ export function ClassementClient() {
         {/* List Section */}
         <div className="w-full">
           {loading ? (
-            <div className="flex items-center justify-center py-32 border-t border-[var(--color-border)]">
-              <p className="font-mono text-sm uppercase tracking-widest text-[var(--color-text-muted)] animate-pulse">
+            <div className="flex items-center justify-center py-20 border-t border-[var(--color-border)]">
+              <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-text-muted)] animate-pulse">
                 {tCommon('loading')}
               </p>
             </div>
@@ -133,3 +133,4 @@ export function ClassementClient() {
     </main>
   );
 }
+
