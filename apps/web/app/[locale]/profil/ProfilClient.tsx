@@ -459,7 +459,7 @@ export function ProfilClient() {
             }}
             className="hover:text-text-primary"
           >
-            &larr; {tCommon('backToTyping')}
+            {tCommon('backToTyping')}
           </Link>
         </motion.div>
       </motion.main>
