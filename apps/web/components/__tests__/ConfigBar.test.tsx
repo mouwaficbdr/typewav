@@ -101,6 +101,32 @@ describe('ConfigBar', () => {
     expect(screen.getByRole('button', { name: '50' })).toBeInTheDocument();
   });
 
+  it('le chip Zen inactif ne se confond plus avec un mode sélectionné (audit A6)', () => {
+    // Avant : un Zen inactif portait déjà `--color-text-primary`, la même
+    // couleur que n'importe quel autre chip une fois sélectionné, donc il
+    // semblait allumé en permanence.
+    render(<ConfigBar />); // activeMode = 'classic' par défaut, Zen inactif
+    const zenChip = screen.getByTitle('zen');
+    expect(zenChip.style.color).not.toBe('var(--color-text-primary)');
+    expect(zenChip.style.background).not.toBe(
+      'color-mix(in srgb, var(--color-text-primary) 12%, transparent)',
+    );
+  });
+
+  it('le chip Zen actif est visuellement distinct du chip Zen inactif', () => {
+    useConfigStore.setState({ activeMode: 'classic' });
+    const { rerender } = render(<ConfigBar />);
+    const inactiveStyle = { ...screen.getByTitle('zen').style };
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'zen' });
+    });
+    rerender(<ConfigBar />);
+    const activeChip = screen.getByTitle('zen');
+    expect(activeChip.style.background).not.toBe(inactiveStyle.background);
+    expect(activeChip.style.color).not.toBe(inactiveStyle.color);
+  });
+
   it('a un role toolbar avec aria-label', () => {
     render(<ConfigBar />);
     const toolbar = screen.getByRole('toolbar');

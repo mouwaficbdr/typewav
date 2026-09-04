@@ -85,6 +85,14 @@ export function ConfigBar({ controlsMode }: ConfigBarProps = {}) {
   // Le mode Zen est le mode signature du produit (musicothérapie, sans
   // minuteur ni score) ; il ne doit jamais se fondre dans les 7 autres
   // modes utilitaires, d'où le traitement 'signature' à part.
+  //
+  // Ce traitement doit rester distinguable de l'état réellement actif (audit
+  // configbar, A6) : avant, un Zen inactif partageait déjà le texte
+  // `--color-text-primary` réservé ailleurs à « sélectionné », donc le chip
+  // semblait allumé en permanence. Il porte maintenant sa propre teinte
+  // (accent) au repos, et bascule en remplissage plein uniquement une fois
+  // réellement actif — un état qu'aucun autre chip ne peut prendre, donc sans
+  // ambiguïté possible.
   const chipStyle = (
     active: boolean,
     variant: 'default' | 'signature' = 'default',
@@ -92,14 +100,19 @@ export function ConfigBar({ controlsMode }: ConfigBarProps = {}) {
     const isSignature = variant === 'signature';
     return {
       background: isSignature
-        ? `color-mix(in srgb, var(--color-accent) ${active ? 20 : 5}%, transparent)`
+        ? active
+          ? 'var(--color-accent)'
+          : 'color-mix(in srgb, var(--color-accent) 8%, transparent)'
         : active
           ? 'color-mix(in srgb, var(--color-text-primary) 12%, transparent)'
           : 'transparent',
       border: 'none',
       borderRadius: 'var(--radius-full)',
-      color:
-        isSignature || active
+      color: isSignature
+        ? active
+          ? 'var(--color-bg)'
+          : 'var(--color-accent)'
+        : active
           ? 'var(--color-text-primary)'
           : 'var(--color-text-muted)',
       cursor: 'pointer',
