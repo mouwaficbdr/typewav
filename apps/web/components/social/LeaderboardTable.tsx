@@ -121,11 +121,11 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
             <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 mt-4 sm:mt-0 relative z-10">
               {/* Tier Badge */}
               <div
-                className="px-2.5 py-0.5 border rounded-full font-mono text-[10px] uppercase tracking-widest transition-colors duration-300"
+                className="px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest transition-colors duration-300 border-l-2 bg-gradient-to-r"
                 style={{
                   color: RANKS[tier].accentColor,
                   borderColor: RANKS[tier].accentColor,
-                  backgroundColor: `color-mix(in srgb, ${RANKS[tier].accentColor} 10%, transparent)`,
+                  backgroundImage: `linear-gradient(to right, color-mix(in srgb, ${RANKS[tier].accentColor} 15%, transparent), transparent)`,
                 }}
               >
                 {tRanks(tier)}
