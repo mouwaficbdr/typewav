@@ -75,7 +75,7 @@ export function PracticeRoll({
   formatRulerDate = (ts) => new Date(ts).toLocaleDateString(),
   emptyLabel,
   animate = false,
-  height = 240,
+  height = 340,
 }: PracticeRollProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(FALLBACK_W);
@@ -143,7 +143,9 @@ export function PracticeRoll({
     const x = SIDE_PAD + (n <= 1 ? 0.5 : i / (n - 1)) * innerW;
     const h = MIN_MARK + (s.wpm / maxWpm) * (usableH - MIN_MARK);
     const acc = Math.max(0, Math.min(1, (s.accuracy - 80) / 20));
-    const opacity = 0.3 + 0.6 * acc;
+    // Plancher relevé : sur un fond de thème sombre les marques les moins
+    // précises restaient quasi invisibles.
+    const opacity = 0.5 + 0.45 * acc;
     const record =
       s.id === recordWpmSessionId
         ? ('wpm' as const)
@@ -167,6 +169,13 @@ export function PracticeRoll({
 
   const first = sessions[0];
   const last = sessions[n - 1];
+  const firstLabel = first ? formatRulerDate(first.timestamp) : '';
+  const lastLabel = last ? formatRulerDate(last.timestamp) : '';
+  // Toutes les séances tombent dans la même borne (ex. un seul mois) :
+  // deux libellés identiques aux deux bouts ne disent rien, on n'en garde
+  // qu'un, centré.
+  const singleRulerLabel =
+    firstLabel !== '' && firstLabel === lastLabel ? firstLabel : null;
   const slot = innerW / n;
   const hitW = Math.max(10, slot);
 
@@ -196,7 +205,7 @@ export function PracticeRoll({
           fill="none"
           stroke="var(--color-text-muted)"
           strokeWidth={1}
-          strokeOpacity={0.4}
+          strokeOpacity={0.55}
         />
 
         {marks.map((m) => {
@@ -212,7 +221,7 @@ export function PracticeRoll({
             y1: baseline,
             y2: top,
             stroke,
-            strokeWidth: isRecord ? 2 : isActive ? 2 : 1.5,
+            strokeWidth: isRecord ? 2.25 : isActive ? 2.25 : 1.75,
             strokeOpacity: isActive ? 1 : m.opacity,
             strokeLinecap: 'round' as const,
           };
@@ -253,12 +262,14 @@ export function PracticeRoll({
       </svg>
 
       {/* Règle de dates */}
-      <span style={rulerStyle('left')}>
-        {first ? formatRulerDate(first.timestamp) : ''}
-      </span>
-      <span style={rulerStyle('right')}>
-        {last ? formatRulerDate(last.timestamp) : ''}
-      </span>
+      {singleRulerLabel !== null ? (
+        <span style={rulerStyle('center')}>{singleRulerLabel}</span>
+      ) : (
+        <>
+          <span style={rulerStyle('left')}>{firstLabel}</span>
+          <span style={rulerStyle('right')}>{lastLabel}</span>
+        </>
+      )}
 
       {/* Couche d'interaction : un vrai bouton par séance */}
       <div style={{ position: 'absolute', inset: `0 0 ${RULER_PAD}px 0` }}>
@@ -316,11 +327,15 @@ export function PracticeRoll({
   );
 }
 
-function rulerStyle(side: 'left' | 'right'): React.CSSProperties {
+function rulerStyle(side: 'left' | 'right' | 'center'): React.CSSProperties {
+  const anchor: React.CSSProperties =
+    side === 'center'
+      ? { left: '50%', transform: 'translateX(-50%)' }
+      : { [side]: SIDE_PAD };
   return {
     position: 'absolute',
     bottom: 6,
-    [side]: SIDE_PAD,
+    ...anchor,
     fontFamily: 'var(--font-mono)',
     fontSize: '0.66rem',
     letterSpacing: '0.06em',

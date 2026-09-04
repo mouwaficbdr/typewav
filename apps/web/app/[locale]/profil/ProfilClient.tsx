@@ -172,7 +172,7 @@ export function ProfilClient() {
           <div style={PROFILE_GRID}>
             <div
               className="skeleton"
-              style={{ flex: '1 1 560px', minWidth: 0, height: 240 }}
+              style={{ flex: '1 1 560px', minWidth: 0, height: 340 }}
             />
             <div
               style={{
@@ -377,7 +377,7 @@ export function ProfilClient() {
             style={{ flex: '1 1 560px', minWidth: 0 }}
           >
             <h2 style={{ ...EYEBROW, margin: '0 0 24px' }}>
-              {tProfile('wpmProgress')}
+              {tProfile('rollHeading')}
             </h2>
             <PracticeRoll
               sessions={sessions}

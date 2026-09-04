@@ -22,32 +22,13 @@ export function ProfileSpotlight({ children }: { children: React.ReactNode }) {
       onMouseMove={handleMouseMove}
       style={{ background: 'var(--color-bg)' }}
     >
-      <div
-        className="absolute inset-0 pointer-events-none opacity-60"
-        style={{
-          backgroundImage: `
-            linear-gradient(to right, color-mix(in srgb, var(--color-text-primary) 4%, transparent) 1px, transparent 1px),
-            linear-gradient(to bottom, color-mix(in srgb, var(--color-text-primary) 4%, transparent) 1px, transparent 1px)
-          `,
-          backgroundSize: '40px 40px',
-          maskImage: 'linear-gradient(to bottom, black 20%, transparent 80%)',
-          WebkitMaskImage: 'linear-gradient(to bottom, black 20%, transparent 80%)',
-        }}
-      />
-      
+      {/* Seul reste le halo qui suit le curseur : discret, interactif, jamais
+          une bande fixe. La grille gravée et le halo d'angle statique ont été
+          retirés (ils s'empilaient en haut de page et bavaient sur la nav). */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
         style={{
           background: useMotionTemplate`radial-gradient(800px circle at ${smoothX}px ${smoothY}px, color-mix(in srgb, var(--color-accent) 4%, transparent), transparent 80%)`,
-        }}
-      />
-      
-      <div 
-        className="absolute top-0 right-0 w-[800px] h-[600px] pointer-events-none"
-        style={{
-          background: 'radial-gradient(circle, color-mix(in srgb, var(--color-accent) 5%, transparent) 0%, transparent 70%)',
-          filter: 'blur(80px)',
-          transform: 'translate(20%, -20%)'
         }}
       />
 

@@ -124,6 +124,31 @@ describe('PracticeRoll', () => {
     render(<PracticeRoll {...baseProps} sessions={makeSessions(3)} />);
     expect(screen.getByLabelText('Historique de 3 séances')).toBeInTheDocument();
   });
+
+  it('la règle de dates affiche deux bornes distinctes quand elles diffèrent', () => {
+    render(
+      <PracticeRoll
+        {...baseProps}
+        sessions={makeSessions(6)}
+        formatRulerDate={(ts) =>
+          new Date(ts).getUTCDate() < 15 ? 'début' : 'fin'
+        }
+      />,
+    );
+    expect(screen.getByText('début')).toBeInTheDocument();
+    expect(screen.getByText('fin')).toBeInTheDocument();
+  });
+
+  it('la règle de dates fusionne en une seule borne quand elles sont identiques', () => {
+    render(
+      <PracticeRoll
+        {...baseProps}
+        sessions={makeSessions(6)}
+        formatRulerDate={() => 'août 26'}
+      />,
+    );
+    expect(screen.getAllByText('août 26')).toHaveLength(1);
+  });
 });
 
 // garde-fou : le mock motion/react n'introduit pas de type any non voulu
