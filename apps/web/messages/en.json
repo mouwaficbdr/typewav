@@ -5,7 +5,8 @@
     "profile": "My profile",
     "leaderboard": "Leaderboard",
     "typing": "Typing",
-    "settings": "Settings"
+    "settings": "Settings",
+    "about": "About"
   },
   "typing": {
     "start": "Start typing to begin…",
@@ -417,5 +418,81 @@
     "koFiLabel": "Ko-fi: one-time support",
     "sponsorsLabel": "GitHub Sponsors: monthly support",
     "backToTyping": "Back to typing"
+  },
+  "about": {
+    "metaTitle": "About",
+    "metaDescription": "What TypeWav is: a typing trainer where every correct key plays the next note of a real piano piece, no account, all in the browser.",
+    "kicker": "About",
+    "masthead": "Type it right. The note lands.",
+    "lead": "TypeWav is a musical typing trainer: every correct keystroke plays the next note of a real piano piece. Everything happens in your browser, with no account.",
+    "manifesto": {
+      "heading": "The manifesto",
+      "body": "The score only moves when you type it right. The piece already exists in full; your typing is the baton.",
+      "correctTerm": "Right key",
+      "correctDesc": "the next note of the piece plays.",
+      "wrongTerm": "Mistake",
+      "wrongDesc": "nothing. Never a wrong note, only silence.",
+      "backspaceTerm": "Backspace",
+      "backspaceDesc": "the mistake is cleared and the music resumes under a veil of reverb.",
+      "tempoTerm": "Your tempo",
+      "tempoDesc": "follows your typing rhythm. The octave keeps a fixed pattern per word: only the tempo reacts."
+    },
+    "music": {
+      "heading": "The music",
+      "body": "Pieces are read from real public-domain MIDI files, then rendered by a sequencer that advances one note at a time. No loop, no pasted sample: it is the whole piece, revealed as you type."
+    },
+    "modes": {
+      "heading": "The modes",
+      "classicName": "Time",
+      "classicDesc": "Type as much as you can over a chosen duration: 15, 30, 60 or 120 seconds.",
+      "sprintName": "Words",
+      "sprintDesc": "A word count to reach: 10, 25, 50 or 100.",
+      "quoteName": "Quote",
+      "quoteDesc": "A full quotation, credited to its author and its work.",
+      "zenName": "Zen",
+      "zenDesc": "No timer, no word goal. You move at your own pace.",
+      "codeName": "Code",
+      "codeDesc": "Real code snippets, punctuation and digits included.",
+      "learningName": "Learning",
+      "learningDesc": "Five progressive levels, from the home row to the full keyboard.",
+      "ghostName": "Ghost",
+      "ghostDesc": "A cursor replays your best record while you type.",
+      "customName": "Custom",
+      "customDesc": "Your own texts, pasted once and kept in the browser."
+    },
+    "corpus": {
+      "heading": "The corpus",
+      "body": "Five text collections: literature, poetry, philosophy, gaming, code. Everything is public domain or royalty-free: author dead for more than seventy years, verifiable source (Wikisource, Project Gutenberg), language noted for every entry. The full criteria are in the repository's CONTRIBUTING file.",
+      "collections": "literature · poetry · philosophy · gaming · code"
+    },
+    "local": {
+      "heading": "Local first, no account",
+      "body": "No sign-up, no server, no tracking. Your sessions, your records and your personal texts live in your browser, through IndexedDB. You can export all of it, or import it back, from the <settings>settings</settings>."
+    },
+    "shortcuts": {
+      "heading": "Keyboard shortcuts",
+      "restart": "Restart the current run.",
+      "encore": "From the results screen, start a new test.",
+      "backspace": "Fix the last mistake. The music resumes under a veil of reverb.",
+      "escape": "Close an open panel: piece selector, personal texts.",
+      "escKey": "Esc"
+    },
+    "glossary": {
+      "heading": "Glossary",
+      "wpmTerm": "WPM",
+      "wpmDesc": "Gross words per minute: the number of characters typed divided by five, per minute. Every keystroke counts, right or wrong.",
+      "wpmNetTerm": "Net WPM",
+      "wpmNetDesc": "The same calculation, but only correct characters count. A mistake is never penalised twice.",
+      "accuracyTerm": "Accuracy",
+      "accuracyDesc": "The share of correct keystrokes out of every keystroke in the session.",
+      "consistencyTerm": "Consistency",
+      "consistencyDesc": "How steady your pace is. The session is split into five-second windows; the closer the speeds are from one window to the next, the higher the consistency."
+    },
+    "links": {
+      "heading": "Links",
+      "github": "Source code on GitHub",
+      "terms": "Transparency and terms"
+    },
+    "closing": "Enough reading. Back to the keyboard."
   }
 }

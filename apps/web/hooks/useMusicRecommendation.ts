@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * useMusicRecommendation — recommandation musicale contextuelle.
+ * useMusicRecommendation : recommandation musicale contextuelle.
  *
  * Lit le mode et la collection depuis useSessionStore,
  * calcule le registre recommandé, retourne la pièce courante et les actions.
@@ -12,6 +12,7 @@
  */
 
 import { useAudioStore } from '@/stores/useAudioStore';
+import { useConfigStore } from '@/stores/useConfigStore';
 import { useSessionStore } from '@/stores/useSessionStore';
 import {
   getMidiPieceIdFromLibraryId,
@@ -30,7 +31,10 @@ export function useMusicRecommendation() {
   const mode = useSessionStore((s) => s.mode);
   const collectionId = useSessionStore((s) => s.collectionId);
   const activePieceId = useAudioStore((s) => s.activePieceId);
-  const durationSeconds = 60;
+  // Vraie durée choisie dans la config bar, pas une constante : sans ça les
+  // paliers de durée de getRecommendedRegister (<= 15s energique, >= 120s
+  // contemplatif) ne se déclenchent jamais.
+  const durationSeconds = useConfigStore((s) => s.durationSeconds);
 
   const [currentPiece, setCurrentPiece] = useState<UnifiedMusicPiece | null>(
     null,
@@ -94,7 +98,7 @@ export function useMusicRecommendation() {
     }
   }, [register, recentIds]);
 
-  /** Override manuel — sélection explicite par l'utilisateur */
+  /** Override manuel : sélection explicite par l'utilisateur */
   const selectPiece = useCallback((piece: UnifiedMusicPiece) => {
     setRecentIds((prev) => [...prev.slice(-4), piece.id]);
     setCurrentPiece(piece);

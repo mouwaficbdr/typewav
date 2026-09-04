@@ -10,7 +10,25 @@ function normalizeWhitespace(text: string): string {
 }
 
 export function removePunctuation(text: string): string {
-  return normalizeWhitespace(text.replace(/[\p{P}\p{S}]/gu, ' '));
+  // Retire la ponctuation de phrase (points, virgules, guillemets, tirets
+  // cadratins, parenthèses...) mais garde ce qui vit A L'INTERIEUR d'un mot :
+  // - les apostrophes des contractions ("l'histoire", "n'est", "don't"),
+  // - le trait d'union simple entre deux lettres ("peut-etre", "well-known").
+  // Sans ça, une citation devient "L histoire n est que" : des fragments
+  // abîmés plutôt qu'un texte sans ponctuation.
+  return normalizeWhitespace(
+    text.replace(/[\p{P}\p{S}]/gu, (ch, offset: number, str: string) => {
+      if (ch === "'" || ch === '’') return ch;
+      if (
+        ch === '-' &&
+        /\p{L}/u.test(str[offset - 1] ?? '') &&
+        /\p{L}/u.test(str[offset + 1] ?? '')
+      ) {
+        return ch;
+      }
+      return ' ';
+    }),
+  );
 }
 
 export function removeNumbers(text: string): string {

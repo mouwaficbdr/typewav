@@ -6,7 +6,7 @@
  * v1 sans comptes : pas d'état login, /profil est une entrée permanente.
  */
 
-import { Keyboard, Settings, Trophy, UserCircle } from 'lucide-react';
+import { Info, Keyboard, Settings, Trophy, UserCircle } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -32,6 +32,7 @@ export function GlobalNav() {
       Icon: Settings,
       path: 'parametres',
     },
+    { key: 'about', label: t('about'), Icon: Info, path: 'about' },
   ] as const;
 
   return (
