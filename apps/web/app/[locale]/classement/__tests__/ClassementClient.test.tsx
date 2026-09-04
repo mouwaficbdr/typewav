@@ -18,42 +18,33 @@ vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
 }));
 
-vi.mock('next/link', () => ({
-  default: ({
-    children,
-    href,
-  }: {
-    children: React.ReactNode;
-    href: string;
-  }) => <a href={href}>{children}</a>,
-}));
-
 import { ClassementClient } from '../ClassementClient';
 
-describe('ClassementClient — structure spec-31', () => {
-  it('affiche le banner honnête avec badge BIENTÔT', async () => {
+describe('ClassementClient : séances personnelles, sans promesse cloud', () => {
+  it('titre + sous-titre honnêtes, aucun bandeau « bientôt »', async () => {
     render(<ClassementClient />);
     await waitFor(() => {
-      expect(screen.getByTestId('coming-soon-banner')).toBeInTheDocument();
-      expect(screen.getByTestId('soon-badge')).toBeInTheDocument();
-      // With mock (key) => key, t('soon') = 'soon'
-      expect(screen.getByTestId('soon-badge').textContent).toBe('soon');
+      expect(screen.getByRole('heading', { name: 'myBestSessions' })).toBeInTheDocument();
     });
+    expect(screen.getByText('subtitle')).toBeInTheDocument();
+    // Plus de bandeau « classement mondial disponible dès la sync cloud ».
+    expect(screen.queryByText('comingSoonMessage')).not.toBeInTheDocument();
+    expect(screen.queryByText('soon')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('coming-soon-banner')).not.toBeInTheDocument();
   });
 
-  it('titre section "myBestSessions" visible', async () => {
+  it('les filtres de mode portent aria-pressed et pilotent la sélection', async () => {
     render(<ClassementClient />);
-    await waitFor(() => {
-      // With mock (key) => key, t('myBestSessions') = 'myBestSessions'
-      expect(screen.getByText('myBestSessions')).toBeInTheDocument();
-    });
+    const allBtn = await screen.findByRole('button', { name: 'filters.all' });
+    expect(allBtn).toHaveAttribute('aria-pressed', 'true');
+    const codeBtn = screen.getByRole('button', { name: 'filters.code' });
+    expect(codeBtn).toHaveAttribute('aria-pressed', 'false');
   });
 
-  it('affiche le message de classement mondial à venir', async () => {
+  it('rend le tableau une fois le chargement terminé', async () => {
     render(<ClassementClient />);
-    await waitFor(() => {
-      // With mock (key) => key, t('comingSoonMessage') = 'comingSoonMessage'
-      expect(screen.getByText('comingSoonMessage')).toBeInTheDocument();
-    });
+    await waitFor(() =>
+      expect(screen.getByTestId('leaderboard-table')).toBeInTheDocument(),
+    );
   });
 });

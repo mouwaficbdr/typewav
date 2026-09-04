@@ -1,11 +1,11 @@
 'use client';
 
 /**
- * ProfilClient — dashboard profil principal.
+ * ProfilClient : dashboard profil principal.
  *
  * Client Component justifié : IndexedDB, Recharts interactif, Zustand.
- * Spec : docs/specs/08-10-social-analytics-extensibility.md — Profil & analytics
- * Spec : docs/specs/31-pages-refonte.md — FORGE [3] design direction
+ * Spec : docs/specs/08-10-social-analytics-extensibility.md (Profil & analytics)
+ * Spec : docs/specs/31-pages-refonte.md (FORGE [3] design direction)
  */
 
 import { ContributionHeatmap } from '@/components/charts/ContributionHeatmap';
@@ -19,6 +19,7 @@ import {
 import { generateReplayLink } from '@/lib/replay';
 import { useProgressionStore } from '@/stores/useProgressionStore';
 import type { PersonalRecords, RankTier, SessionResult } from '@typewav/types';
+import { Play } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -151,7 +152,7 @@ export function ProfilClient() {
         margin: '0 auto',
       }}
     >
-      {/* En-tête — rang + WPM médian + pseudo */}
+      {/* En-tête : rang + WPM médian + pseudo */}
       <div style={{ marginBottom: 40 }}>
         <p
           style={{
@@ -190,7 +191,7 @@ export function ProfilClient() {
         </p>
       </div>
 
-      {/* Stats résumé — grille 2×2 flottante, zéro bordure */}
+      {/* Stats résumé : grille 2×2 flottante, zéro bordure */}
       <div
         style={{
           display: 'grid',
@@ -389,16 +390,20 @@ export function ProfilClient() {
               <button
                 onClick={() => void handleOpenReplay(session.id)}
                 aria-label={tProfile('openReplay')}
+                title={tProfile('openReplay')}
                 style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   color: 'var(--color-text-muted)',
-                  fontSize: '0.875rem',
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  padding: 0,
+                  padding: 6,
+                  margin: -6,
                 }}
               >
-                |◄
+                <Play size={14} fill="currentColor" />
               </button>
             </div>
           ))
@@ -407,7 +412,7 @@ export function ProfilClient() {
 
       {/* Lien retour */}
       <Link
-        href="/"
+        href={`/${locale}`}
         className="transition-colors duration-150 hover:text-[var(--color-text-primary)] hover:underline"
         style={{
           display: 'inline-block',

@@ -260,6 +260,18 @@ body {
 .results-inline-action:hover:not(:disabled) {
   color: var(--color-text-primary);
 }
+
+/* ---- Lien partagé illisible : le CTA de repli s'affirme au survol ----
+   Bordure faible qui vire à l'accent plein, aucun fill (sur certains thèmes
+   bg et accent sont trop proches et un fill efface le libellé). */
+.shared-link-fallback-cta:hover {
+  border-color: var(--color-accent);
+}
+.shared-link-fallback-cta:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .results-encore {
     transition: box-shadow 0.18s ease;

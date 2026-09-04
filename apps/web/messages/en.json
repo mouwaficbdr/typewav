@@ -166,6 +166,7 @@
     "noChallengeInUrl": "No challenge found in this URL.",
     "challengeTextAltered": "Challenge text integrity check failed.",
     "invalidOrExpiredLink": "Invalid or expired challenge link.",
+    "linkErrorTitle": "This challenge couldn't load",
     "backHome": "← Back to home",
     "wonWithWpm": "✓ Won: {wpm} WPM!",
     "remainingToBeat": "{wpm} WPM, {remaining} WPM left to beat",
@@ -179,18 +180,19 @@
     "loading": "Loading replay…",
     "missingReplayInUrl": "No replay found in this URL.",
     "invalidOrCorruptedLink": "Invalid or corrupted replay link.",
+    "linkErrorTitle": "This replay couldn't load",
     "banner": "Replay · {wpm} WPM · {accuracy}% · {theme}",
     "preLaunchDescription": "Press the first key to start your session. The ghost cursor replays the shared record in real time.",
     "backHome": "← Back to home"
   },
   "leaderboard": {
-    "title": "Weekly Leaderboard",
+    "title": "Your best sessions",
     "rank": "Rank",
     "pseudo": "Player",
     "wpm": "WPM",
     "accuracy": "Accuracy",
     "mode": "Mode",
-    "noData": "No scores this week. Complete a session to appear here.",
+    "noData": "No sessions yet. Run a test to show up here.",
     "filterAll": "All",
     "you": "you",
     "rankHeader": "#",
@@ -198,17 +200,15 @@
     "wpmHeader": "WPM",
     "accuracyHeader": "Accuracy",
     "modeHeader": "Mode",
-    "comingSoonMessage": "Global leaderboard available when cloud sync launches",
-    "soon": "COMING SOON",
-    "myBestSessions": "My best sessions",
-    "backToProfile": "← Profile",
+    "myBestSessions": "Your best sessions",
     "filters": {
       "all": "All",
       "classic": "Classic",
       "sprint": "Sprint",
       "endurance": "Endurance",
       "code": "Code"
-    }
+    },
+    "subtitle": "Your fastest sessions, on this device."
   },
   "profile": {
     "title": "Profile",
@@ -266,7 +266,8 @@
     "copied": "Copied!",
     "share": "Share",
     "open_source": "Open source",
-    "language": "Language"
+    "language": "Language",
+    "tryTypewav": "Try TypeWav"
   },
   "ghost": {
     "label": "Ghost",

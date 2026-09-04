@@ -1,12 +1,13 @@
 'use client';
 
 /**
- * AudioPreviewButton — bouton de démonstration audio sur la landing.
+ * AudioPreviewButton : bouton de démonstration audio sur la landing.
  * Client Component justifié : Tone.js browser-only, gestion de l'état.
  * Spec : docs/specs/21-audio-value-prop.md
  */
 
 import { useAudioPreview } from '@/hooks/useAudioPreview';
+import { AudioLines, Play } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import { useTranslations } from 'next-intl';
 
@@ -38,7 +39,11 @@ export function AudioPreviewButton() {
       }}
       className="hover:opacity-80"
     >
-      <span aria-hidden="true">{isPlaying ? '♪' : '▶'}</span>
+      {isPlaying ? (
+        <AudioLines size={15} aria-hidden="true" />
+      ) : (
+        <Play size={14} fill="currentColor" aria-hidden="true" />
+      )}
       {hasPlayed ? t('replay') : t('play')}
     </motion.button>
   );
