@@ -302,11 +302,11 @@
     "viewProfile": "Voir mon profil et ma progression"
   },
   "ranks": {
-    "novice": "Novice",
-    "apprentice": "Apprenti",
-    "operator": "Opérateur",
-    "architect": "Architecte",
-    "ghost": "Fantôme"
+    "novice": "Largo",
+    "apprentice": "Andante",
+    "operator": "Moderato",
+    "architect": "Allegro",
+    "ghost": "Prestissimo"
   },
   "config": {
     "label": "Configuration",

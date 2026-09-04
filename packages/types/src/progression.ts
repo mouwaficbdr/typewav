@@ -20,34 +20,38 @@ export interface Rank {
   accentColor: string;
 }
 
+// Les rangs sont nommés d'après les indications de tempo (mêmes termes en
+// fr et en, on ne les traduit pas). La vitesse de frappe = le tempo : plus
+// le WPM monte, plus on joue vite. Les clés (`novice`...`ghost`) restent des
+// identifiants internes stables (stockés dans le profil), seul le label change.
 export const RANKS: Record<RankTier, Rank> = {
   novice: {
     tier: 'novice',
-    label: 'Novice',
+    label: 'Largo',
     minWpm: 0,
     accentColor: '#888888',
   },
   apprentice: {
     tier: 'apprentice',
-    label: 'Apprenti',
+    label: 'Andante',
     minWpm: 31,
     accentColor: '#4A9EFF',
   },
   operator: {
     tier: 'operator',
-    label: 'Opérateur',
+    label: 'Moderato',
     minWpm: 51,
     accentColor: '#00A896',
   },
   architect: {
     tier: 'architect',
-    label: 'Architecte',
+    label: 'Allegro',
     minWpm: 71,
     accentColor: '#00D4AA',
   },
   ghost: {
     tier: 'ghost',
-    label: 'Fantôme',
+    label: 'Prestissimo',
     minWpm: 91,
     accentColor: '#FFD700',
   },
