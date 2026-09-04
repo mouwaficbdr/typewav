@@ -1,5 +1,5 @@
 /**
- * Collection Philosophie — extraits du domaine public (auteurs morts > 70 ans).
+ * Collection Philosophie : extraits du domaine public (auteurs morts > 70 ans).
  * Sources : Wikisource, Project Gutenberg, traductions classiques.
  * Spec : docs/specs/06-content.md
  */
@@ -11,7 +11,7 @@ export const philosophieCollection: CollectionConfig = {
   name: 'Philosophie',
   nameEn: 'Philosophy',
   description:
-    'Fragments de la pensée universelle — Descartes, Pascal, Nietzsche et leurs pairs.',
+    'Fragments de la pensée universelle : Descartes, Pascal, Nietzsche et leurs pairs.',
   language: 'multi',
   recommendedTheme: 'noir',
   isPremium: false,
@@ -19,7 +19,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-01',
       content: `Je pense, donc je suis. Cette vérité est si ferme et si assurée que toutes les plus extravagantes suppositions des sceptiques ne sont pas capables de l'ébranler.`,
-      source: 'René Descartes — Discours de la méthode (1637)',
+      source: 'René Descartes, Discours de la méthode (1637)',
       language: 'fr',
       difficulty: 5,
       wordCount: 27,
@@ -29,7 +29,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-02',
       content: `Le cœur a ses raisons que la raison ne connaît point. On le sait en mille choses.`,
-      source: 'Blaise Pascal — Pensées (1670)',
+      source: 'Blaise Pascal, Pensées (1670)',
       language: 'fr',
       difficulty: 1,
       wordCount: 17,
@@ -39,7 +39,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-03',
       content: `L'homme est né libre, et partout il est dans les fers. Tel se croit le maître des autres qui ne laisse pas d'être plus esclave qu'eux.`,
-      source: 'Jean-Jacques Rousseau — Du Contrat social (1762)',
+      source: 'Jean-Jacques Rousseau, Du Contrat social (1762)',
       language: 'fr',
       difficulty: 3,
       wordCount: 26,
@@ -49,7 +49,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-04',
       content: `Si Dieu n'existait pas, il faudrait l'inventer. Mais toute la nature nous crie qu'il existe.`,
-      source: 'Voltaire — Épître à l\'auteur du livre des Trois Imposteurs (1769)',
+      source: 'Voltaire, Épître à l\'auteur du livre des Trois Imposteurs (1769)',
       language: 'fr',
       difficulty: 3,
       wordCount: 15,
@@ -59,7 +59,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-05',
       content: `Que sais-je ? Cette belle parole est la devise du scepticisme, et c'est aussi la devise de toute philosophie.`,
-      source: 'Michel de Montaigne — Essais (1580)',
+      source: 'Michel de Montaigne, Essais (1580)',
       language: 'fr',
       difficulty: 3,
       wordCount: 19,
@@ -69,7 +69,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-06',
       content: `Ce qui nous trouble, ce ne sont pas les événements, mais les opinions que nous avons des événements.`,
-      source: 'Épictète — Manuel (vers 125 ap. J.-C., trad. classique)',
+      source: 'Épictète, Manuel (vers 125 ap. J.-C., trad. classique)',
       language: 'fr',
       difficulty: 3,
       wordCount: 18,
@@ -89,7 +89,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-08',
       content: `Dieu est mort. Dieu reste mort. Et c'est nous qui l'avons tué. Comment nous consoler, nous les meurtriers des meurtriers ?`,
-      source: 'Friedrich Nietzsche — Le Gai Savoir (1882)',
+      source: 'Friedrich Nietzsche, Le Gai Savoir (1882)',
       language: 'fr',
       difficulty: 5,
       wordCount: 21,
@@ -99,7 +99,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-09',
       content: `La vie doit être comprise à rebours, mais elle doit être vécue en avant. Telle est la condition de ceux qui réfléchissent.`,
-      source: 'Søren Kierkegaard — Journal (vers 1843)',
+      source: 'Søren Kierkegaard, Journal (vers 1843)',
       language: 'fr',
       difficulty: 5,
       wordCount: 22,
@@ -109,7 +109,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-10',
       content: `Agis seulement d'après la maxime grâce à laquelle tu peux vouloir en même temps qu'elle devienne une loi universelle.`,
-      source: 'Emmanuel Kant — Fondation de la métaphysique des mœurs (1785)',
+      source: 'Emmanuel Kant, Fondation de la métaphysique des mœurs (1785)',
       language: 'fr',
       difficulty: 5,
       wordCount: 19,
@@ -119,7 +119,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-11',
       content: `Nous ne cherchons pas seulement à connaître ce que les philosophes ont pensé, mais aussi ce que pensent les choses elles-mêmes.`,
-      source: 'Aristote — Métaphysique (IVe siècle av. J.-C., trad. classique)',
+      source: 'Aristote, Métaphysique (IVe siècle av. J.-C., trad. classique)',
       language: 'fr',
       difficulty: 5,
       wordCount: 21,
@@ -129,7 +129,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-12',
       content: `Une vie sans examen ne vaut pas la peine d'être vécue pour un homme.`,
-      source: 'Socrate — cité par Platon, Apologie (399 av. J.-C., trad. classique)',
+      source: 'Socrate, cité par Platon, Apologie (399 av. J.-C., trad. classique)',
       language: 'fr',
       difficulty: 1,
       wordCount: 14,
@@ -139,7 +139,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-13',
       content: `La vérité est un flambeau, mais un flambeau énorme, et tout le monde a peur de se brûler.`,
-      source: 'Claude Adrien Helvétius — De l\'esprit (1758)',
+      source: 'Claude Adrien Helvétius, De l\'esprit (1758)',
       language: 'fr',
       difficulty: 3,
       wordCount: 18,
@@ -169,7 +169,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-16',
       content: `Chaque homme porte la forme entière de l'humaine condition.`,
-      source: 'Michel de Montaigne — Essais (1580)',
+      source: 'Michel de Montaigne, Essais (1580)',
       language: 'fr',
       difficulty: 3,
       wordCount: 9,
@@ -209,7 +209,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-20',
       content: `Le doute est le commencement de la sagesse.`,
-      source: 'Aristote — Métaphysique (traduction)',
+      source: 'Aristote, Métaphysique (traduction)',
       language: 'fr',
       difficulty: 1,
       wordCount: 8,
@@ -219,7 +219,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-21',
       content: `Penser, c'est dire non.`,
-      source: 'Alain — Propos sur l\'éducation (1932)',
+      source: 'Alain, Propos sur l\'éducation (1932)',
       language: 'fr',
       difficulty: 1,
       wordCount: 4,
@@ -239,7 +239,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-23',
       content: `Nul n'est méchant volontairement.`,
-      source: 'Platon — Ménon (traduction classique)',
+      source: 'Platon, Ménon (traduction classique)',
       language: 'fr',
       difficulty: 1,
       wordCount: 4,
@@ -249,7 +249,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-24',
       content: `Le commencement est la moitié du tout.`,
-      source: 'Pythagore — Maximes (VIe siècle av. J.-C.)',
+      source: 'Pythagore, Maximes (VIe siècle av. J.-C.)',
       language: 'fr',
       difficulty: 1,
       wordCount: 7,
@@ -259,7 +259,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-25',
       content: `Mens sana in corpore sano. Un esprit sain dans un corps sain.`,
-      source: 'Juvénal — Satires (Ier siècle ap. J.-C., trad. classique)',
+      source: 'Juvénal, Satires (Ier siècle ap. J.-C., trad. classique)',
       language: 'fr',
       difficulty: 2,
       wordCount: 12,
@@ -269,7 +269,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-26',
       content: `La nature ne fait rien en vain.`,
-      source: 'Aristote — De caelo (traduction classique)',
+      source: 'Aristote, De caelo (traduction classique)',
       language: 'fr',
       difficulty: 1,
       wordCount: 7,
@@ -279,7 +279,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-27',
       content: `Connais-toi toi-même et tu connaîtras l'univers et les dieux.`,
-      source: 'Socrate — Apophtegme (cité par Platon)',
+      source: 'Socrate, Apophtegme (cité par Platon)',
       language: 'fr',
       difficulty: 2,
       wordCount: 9,
@@ -299,7 +299,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-29',
       content: `La force n'est pas la brutalité et la faiblesse n'est pas la douceur.`,
-      source: 'Khalil Gibran — Le Prophète (1923)',
+      source: 'Khalil Gibran, Le Prophète (1923)',
       language: 'fr',
       difficulty: 3,
       wordCount: 13,
@@ -309,7 +309,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-30',
       content: `Le courage, c'est de chercher la vérité et de la dire.`,
-      source: 'Jean Jaurès — Discours (1903)',
+      source: 'Jean Jaurès, Discours (1903)',
       language: 'fr',
       difficulty: 1,
       wordCount: 11,
@@ -319,7 +319,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-01',
       content: `To be or not to be, that is the question: whether 'tis nobler in the mind to suffer the slings and arrows of outrageous fortune.`,
-      source: 'William Shakespeare — Hamlet (1603)',
+      source: 'William Shakespeare, Hamlet (1603)',
       language: 'en',
       difficulty: 3,
       wordCount: 25,
@@ -329,7 +329,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-02',
       content: `The unexamined life is not worth living. We must care for our soul before we care for our body or our wealth.`,
-      source: 'Plato — Apology (399 BC, classical translation)',
+      source: 'Plato, Apology (399 BC, classical translation)',
       language: 'en',
       difficulty: 3,
       wordCount: 22,
@@ -339,7 +339,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-03',
       content: `Man is by nature a political animal. Outside of society he is either a beast or a god.`,
-      source: 'Aristotle — Politics (350 BC, classical translation)',
+      source: 'Aristotle, Politics (350 BC, classical translation)',
       language: 'en',
       difficulty: 3,
       wordCount: 18,
@@ -349,7 +349,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-04',
       content: `Knowledge is power. Reading maketh a full man, conference a ready man, and writing an exact man.`,
-      source: 'Francis Bacon — Essays (1597)',
+      source: 'Francis Bacon, Essays (1597)',
       language: 'en',
       difficulty: 1,
       wordCount: 17,
@@ -369,7 +369,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-06',
       content: `To do as one would be done by, and to love one's neighbour as oneself, constitute the ideal perfection of utilitarian morality.`,
-      source: 'John Stuart Mill — Utilitarianism (1863)',
+      source: 'John Stuart Mill, Utilitarianism (1863)',
       language: 'en',
       difficulty: 5,
       wordCount: 22,
@@ -379,7 +379,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-07',
       content: `The life of man, solitary, poor, nasty, brutish, and short. In such condition there is no place for industry.`,
-      source: 'Thomas Hobbes — Leviathan (1651)',
+      source: 'Thomas Hobbes, Leviathan (1651)',
       language: 'en',
       difficulty: 5,
       wordCount: 19,
@@ -389,7 +389,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-08',
       content: `God is dead. We have killed him. How shall we comfort ourselves, the murderers of all murderers?`,
-      source: 'Friedrich Nietzsche — The Gay Science (1882)',
+      source: 'Friedrich Nietzsche, The Gay Science (1882)',
       language: 'en',
       difficulty: 3,
       wordCount: 17,
@@ -419,7 +419,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-11',
       content: `The more I know, the more I realize I know nothing.`,
-      source: 'Socrates — attributed (classical)',
+      source: 'Socrates, attributed (classical)',
       language: 'en',
       difficulty: 1,
       wordCount: 11,
@@ -429,7 +429,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-12',
       content: `We are what we repeatedly do. Excellence, then, is not an act, but a habit.`,
-      source: 'Aristotle — Nicomachean Ethics (classical translation)',
+      source: 'Aristotle, Nicomachean Ethics (classical translation)',
       language: 'en',
       difficulty: 2,
       wordCount: 15,
@@ -439,7 +439,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-13',
       content: `Do not go where the path may lead; go instead where there is no path and leave a trail.`,
-      source: 'Ralph Waldo Emerson — Self-Reliance (1841)',
+      source: 'Ralph Waldo Emerson, Self-Reliance (1841)',
       language: 'en',
       difficulty: 3,
       wordCount: 19,
@@ -449,7 +449,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-14',
       content: `Freedom is not worth having if it does not include the freedom to make mistakes.`,
-      source: 'Mahatma Gandhi — attributed',
+      source: 'Mahatma Gandhi, attributed',
       language: 'en',
       difficulty: 2,
       wordCount: 15,
@@ -459,7 +459,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-15',
       content: `In the middle of difficulty lies opportunity.`,
-      source: 'Albert Einstein — attributed',
+      source: 'Albert Einstein, attributed',
       language: 'en',
       difficulty: 1,
       wordCount: 7,
@@ -469,7 +469,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-16',
       content: `It is not the strongest of the species that survive, nor the most intelligent, but the one most responsive to change.`,
-      source: 'Charles Darwin — On the Origin of Species (1859)',
+      source: 'Charles Darwin, On the Origin of Species (1859)',
       language: 'en',
       difficulty: 4,
       wordCount: 21,
@@ -479,7 +479,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-17',
       content: `One cannot step into the same river twice. Everything flows.`,
-      source: 'Heraclitus — Fragments (c.500 BC, classical translation)',
+      source: 'Heraclitus, Fragments (c.500 BC, classical translation)',
       language: 'en',
       difficulty: 2,
       wordCount: 10,
@@ -489,7 +489,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-18',
       content: `The greatest wealth is to live content with little.`,
-      source: 'Plato — Republic (classical translation)',
+      source: 'Plato, Republic (classical translation)',
       language: 'en',
       difficulty: 1,
       wordCount: 9,
@@ -499,7 +499,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-19',
       content: `To live is the rarest thing in the world. Most people exist, that is all.`,
-      source: 'Oscar Wilde — The Soul of Man Under Socialism (1891)',
+      source: 'Oscar Wilde, The Soul of Man Under Socialism (1891)',
       language: 'en',
       difficulty: 3,
       wordCount: 15,
@@ -509,7 +509,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-20',
       content: `Treat others as you wish to be treated. This is the whole of the Law.`,
-      source: 'Hillel the Elder — Talmud (c. 110 BC)',
+      source: 'Hillel the Elder, Talmud (c. 110 BC)',
       language: 'en',
       difficulty: 2,
       wordCount: 15,
@@ -519,7 +519,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-21',
       content: `The truth is rarely pure and never simple.`,
-      source: 'Oscar Wilde — The Importance of Being Earnest (1895)',
+      source: 'Oscar Wilde, The Importance of Being Earnest (1895)',
       language: 'en',
       difficulty: 1,
       wordCount: 8,
@@ -529,7 +529,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-22',
       content: `Power tends to corrupt, and absolute power corrupts absolutely.`,
-      source: 'Lord Acton — Historical Essays (1887)',
+      source: 'Lord Acton, Historical Essays (1887)',
       language: 'en',
       difficulty: 3,
       wordCount: 9,
@@ -539,7 +539,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-23',
       content: `Time is money. Lost time is never found again.`,
-      source: 'Benjamin Franklin — Advice to a Young Tradesman (1748)',
+      source: 'Benjamin Franklin, Advice to a Young Tradesman (1748)',
       language: 'en',
       difficulty: 2,
       wordCount: 9,
@@ -559,7 +559,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-25',
       content: `To be yourself in a world that is constantly trying to make you something else is the greatest accomplishment.`,
-      source: 'Ralph Waldo Emerson — Self-Reliance (1841)',
+      source: 'Ralph Waldo Emerson, Self-Reliance (1841)',
       language: 'en',
       difficulty: 4,
       wordCount: 19,
@@ -569,7 +569,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-26',
       content: `A room without books is like a body without a soul.`,
-      source: 'Marcus Tullius Cicero — attributed (classical)',
+      source: 'Marcus Tullius Cicero, attributed (classical)',
       language: 'en',
       difficulty: 1,
       wordCount: 11,
@@ -579,7 +579,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-27',
       content: `When you reach the end of your rope, tie a knot in it and hang on.`,
-      source: 'Franklin D. Roosevelt — attributed',
+      source: 'Franklin D. Roosevelt, attributed',
       language: 'en',
       difficulty: 2,
       wordCount: 16,
@@ -589,7 +589,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-28',
       content: `No man is an island, entire of itself.`,
-      source: 'John Donne — Devotions upon Emergent Occasions (1624)',
+      source: 'John Donne, Devotions upon Emergent Occasions (1624)',
       language: 'en',
       difficulty: 2,
       wordCount: 8,
@@ -599,7 +599,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-29',
       content: `Whatever you are, be a good one.`,
-      source: 'Abraham Lincoln — attributed',
+      source: 'Abraham Lincoln, attributed',
       language: 'en',
       difficulty: 1,
       wordCount: 7,
@@ -609,7 +609,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-30',
       content: `Do what you can, with what you have, where you are.`,
-      source: 'Theodore Roosevelt — attributed',
+      source: 'Theodore Roosevelt, attributed',
       language: 'en',
       difficulty: 1,
       wordCount: 11,
@@ -619,7 +619,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-31',
       content: `Suivant cette doctrine fondamentale, toutes nos spéculations quelconques sont inévitablement assujetties, soit chez l'individu, soit chez l'espèce, à passer successivement par trois états théoriques différents, que les dénominations habituelles de théologique, métaphysique et positif pourront ici qualifier suffisamment, pour ceux, du moins, qui en auront bien compris le vrai sens général.`,
-      source: 'Auguste Comte — Discours sur l\'esprit positif (1844)',
+      source: 'Auguste Comte, Discours sur l\'esprit positif (1844)',
       language: 'fr',
       difficulty: 4,
       wordCount: 51,
@@ -629,7 +629,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-32',
       content: `Je forme une entreprise qui n'eut jamais d'exemple, et dont l'exécution n'aura point d'imitateur. Je veux montrer à mes semblables un homme dans toute la vérité de la nature, et cet homme, ce sera moi. Moi seul. Je sens mon cœur, et je connais les hommes.`,
-      source: 'Jean-Jacques Rousseau — Les Confessions (1782)',
+      source: 'Jean-Jacques Rousseau, Les Confessions (1782)',
       language: 'fr',
       difficulty: 3,
       wordCount: 46,
@@ -639,7 +639,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-33',
       content: `Que signifie le rire ? Qu'y a-t-il au fond du risible ? Que trouverait-on de commun entre une grimace de pitre, un jeu de mots, un quiproquo de vaudeville, une scène de fine comédie ? Quelle distillation nous donnera l'essence, toujours la même, à laquelle tant de produits divers empruntent ou leur indiscrète odeur ou leur parfum délicat ?`,
-      source: 'Henri Bergson — Le Rire : essai sur la signification du comique (1900)',
+      source: 'Henri Bergson, Le Rire : essai sur la signification du comique (1900)',
       language: 'fr',
       difficulty: 3,
       wordCount: 59,
@@ -649,7 +649,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-34',
       content: `On déclame sans fin contre les passions ; on leur impute toutes les peines de l'homme, et l'on oublie qu'elles sont aussi la source de tous ses plaisirs. C'est dans sa constitution un élément dont on ne peut dire ni trop de bien ni trop de mal. Mais ce qui me donne de l'humeur, c'est qu'on ne les regarde jamais que du mauvais côté. On croirait faire injure à la raison, si l'on disait un mot en faveur de ses rivales ; cependant il n'y a que les passions, et les grandes passions, qui puissent élever l'âme aux grandes choses. Sans elles, plus de sublime, soit dans les mœurs, soit dans les ouvrages ; les beaux-arts retournent en enfance, et la vertu devient minutieuse.`,
-      source: 'Denis Diderot — Pensées philosophiques (1746)',
+      source: 'Denis Diderot, Pensées philosophiques (1746)',
       language: 'fr',
       difficulty: 4,
       wordCount: 124,
@@ -659,7 +659,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-35',
       content: `Il ne faut pas un grand art, une éloquence bien recherchée, pour prouver que des chrétiens doivent se tolérer les uns les autres. Je vais plus loin : je vous dis qu'il faut regarder tous les hommes comme nos frères. Quoi ! mon frère le Turc ? mon frère le Chinois ? le Juif ? le Siamois ? Oui, sans doute ; ne sommes-nous pas tous enfants du même père, et créatures du même Dieu ? Mais ces peuples nous méprisent ; mais ils nous traitent d'idolâtres ! Hé bien ! je leur dirai qu'ils ont grand tort.`,
-      source: 'Voltaire — Traité sur la tolérance (1763)',
+      source: 'Voltaire, Traité sur la tolérance (1763)',
       language: 'fr',
       difficulty: 3,
       wordCount: 98,
@@ -669,7 +669,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-fr-36',
       content: `Meshuy c'est fait. Or les traits de ma peinture ne forvoyent point, quoy qu'ils se changent et diversifient. Le monde n'est qu'une branloire perenne. Toutes choses y branlent sans cesse : la terre, les rochers du Caucase, les pyramides d'Aegypte, et du branle public et du leur. La constance mesme n'est autre chose qu'un branle plus languissant. Je ne puis asseurer mon object. Il va trouble et chancelant, d'une yvresse naturelle. Je le prens en ce point, comme il est, en l'instant que je m'amuse à luy. Je ne peints pas l'estre. Je peints le passage.`,
-      source: 'Michel de Montaigne — Essais, Livre III, chapitre 2, Du repentir (1588)',
+      source: 'Michel de Montaigne, Essais, Livre III, chapitre 2, Du repentir (1588)',
       language: 'fr',
       difficulty: 5,
       wordCount: 96,
@@ -679,7 +679,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-31',
       content: `But it is not only the difficulty and labor, which men take in finding out of truth, nor again, that when it is found, it imposeth upon men's thoughts, that doth bring lies in favor; but a natural, though corrupt love, of the lie itself.`,
-      source: 'Francis Bacon — Essays, "Of Truth" (1625)',
+      source: 'Francis Bacon, Essays, "Of Truth" (1625)',
       language: 'en',
       difficulty: 4,
       wordCount: 45,
@@ -689,7 +689,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-32',
       content: `The less forcible and lively are commonly denominated Thoughts or Ideas. The other species want a name in our language, and in most others; I suppose, because it was not requisite for any, but philosophical purposes, to rank them under a general term or appellation.`,
-      source: 'David Hume — An Enquiry Concerning Human Understanding (1748)',
+      source: 'David Hume, An Enquiry Concerning Human Understanding (1748)',
       language: 'en',
       difficulty: 4,
       wordCount: 45,
@@ -699,7 +699,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-33',
       content: `I went to the woods because I wished to live deliberately, to front only the essential facts of life, and see if I could not learn what it had to teach, and not, when I came to die, discover that I had not lived.`,
-      source: 'Henry David Thoreau — Walden (1854)',
+      source: 'Henry David Thoreau, Walden (1854)',
       language: 'en',
       difficulty: 3,
       wordCount: 44,
@@ -709,7 +709,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-34',
       content: `This Opinion I have at large examined already; and, I suppose, what I have said in the fore-going Book, will be much more easily admitted, when I have shewed, whence the Understanding may get all the Ideas it has, and by what ways and degrees they may come into the Mind; for which I shall appeal to every ones own Observation and Experience. Let us then suppose the Mind to be, as we say, white Paper, void of all Characters, without any Ideas; How comes it to be furnished? To this I answer, in one word, From Experience: In that, all our Knowledge is founded; and from that it ultimately derives it self.`,
-      source: 'John Locke — An Essay Concerning Human Understanding (1690)',
+      source: 'John Locke, An Essay Concerning Human Understanding (1690)',
       language: 'en',
       difficulty: 5,
       wordCount: 113,
@@ -719,7 +719,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-35',
       content: `The object of this Essay is to assert one very simple principle, as entitled to govern absolutely the dealings of society with the individual in the way of compulsion and control, whether the means used be physical force in the form of legal penalties, or the moral coercion of public opinion. That principle is, that the sole end for which mankind are warranted, individually or collectively, in interfering with the liberty of action of any of their number, is self-protection. That the only purpose for which power can be rightfully exercised over any member of a civilised community, against his will, is to prevent harm to others.`,
-      source: 'John Stuart Mill — On Liberty (1859)',
+      source: 'John Stuart Mill, On Liberty (1859)',
       language: 'en',
       difficulty: 4,
       wordCount: 107,
@@ -729,7 +729,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-36',
       content: `Suppose you should contradict yourself; what then? A foolish consistency is the hobgoblin of little minds, adored by little statesmen and philosophers and divines. With consistency a great soul has simply nothing to do. He may as well concern himself with his shadow on the wall. Speak what you think now in hard words and to-morrow speak what to-morrow thinks in hard words again, though it contradict every thing you said to-day.—'Ah, so you shall be sure to be misunderstood.'—Is it so bad then to be misunderstood?`,
-      source: 'Ralph Waldo Emerson — Self-Reliance (1841)',
+      source: 'Ralph Waldo Emerson, Self-Reliance (1841)',
       language: 'en',
       difficulty: 4,
       wordCount: 87,
@@ -739,7 +739,7 @@ export const philosophieCollection: CollectionConfig = {
     {
       id: 'phi-en-37',
       content: `Near the end of March, 1845, I borrowed an axe and went down to the woods by Walden Pond, nearest to where I intended to build my house.`,
-      source: 'Henry David Thoreau — Walden (1854)',
+      source: 'Henry David Thoreau, Walden (1854)',
       language: 'en',
       difficulty: 2,
       wordCount: 28,

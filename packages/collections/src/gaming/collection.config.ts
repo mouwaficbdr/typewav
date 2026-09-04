@@ -1,5 +1,5 @@
 /**
- * Collection Gaming & Pop — textes originaux créés pour TypeWav.
+ * Collection Gaming & Pop : textes originaux créés pour TypeWav.
  * Évoque la culture du jeu vidéo, du retro gaming et de l'informatique
  * avec un vocabulaire propre à cette culture.
  *
@@ -14,7 +14,7 @@ export const gamingCollection: CollectionConfig = {
   name: 'Gaming',
   nameEn: 'Gaming',
   description:
-    'Phrases et paragraphes inspirés de la culture du jeu vidéo — originaux TypeWav.',
+    'Phrases et paragraphes inspirés de la culture du jeu vidéo : originaux TypeWav.',
   language: 'multi',
   recommendedTheme: 'arcade',
   isPremium: false,
@@ -22,7 +22,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-01',
       content: `Le compteur XP grimpe. Chaque frappe juste ajoute un point. Chaque erreur efface une vie. La console ne ment jamais.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 1,
       wordCount: 20,
@@ -32,7 +32,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-02',
       content: `Respawn dans trois secondes. Le boss attend au niveau suivant. Tu as quinze points de vie et un seul sort magique restant.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 3,
       wordCount: 22,
@@ -42,7 +42,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-03',
       content: `Speedrun en cours. Le record mondial est à deux minutes quarante-trois. La hitbox était imprécise mais le saut passait quand même.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 5,
       wordCount: 21,
@@ -52,7 +52,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-04',
       content: `Pixel art, huit couleurs, quatre bits de son. La limitation était une contrainte créative. La contrainte était une invitation.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 3,
       wordCount: 19,
@@ -62,7 +62,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-05',
       content: `Le lag input rend chaque frame incertaine. Un ping élevé est l'ennemi du joueur compétitif. La connexion, c'est le fondement.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 5,
       wordCount: 20,
@@ -72,7 +72,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-06',
       content: `Inventaire plein. Droppez un objet pour en ramasser un autre. Le choix est cruel quand tout est rare.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 1,
       wordCount: 18,
@@ -82,7 +82,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-07',
       content: `Le monde ouvert s'étend à l'infini. Les quêtes secondaires s'accumulent. L'histoire principale attend que tu aies le courage de la finir.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 5,
       wordCount: 21,
@@ -92,7 +92,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-08',
       content: `Roguelike : chaque mort efface la partie. Chaque partie enseigne quelque chose. La progression réelle se fait dans la mémoire du joueur.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 5,
       wordCount: 22,
@@ -102,7 +102,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-09',
       content: `La cartouche souffle. Trois fois. La console redémarre. L'écran s'illumine. Tout recommence, comme si de rien n'était.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 1,
       wordCount: 17,
@@ -112,7 +112,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-10',
       content: `Combo x32. Le multiplicateur explose. La musique s'accélère. Les doigts ne suivent plus. C'est exactement comme ça que ça devrait se terminer.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 5,
       wordCount: 22,
@@ -122,7 +122,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-11',
       content: `La barre de vie descend doucement. Un potion d'urgence reste. Ce n'est pas pour maintenant.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 1,
       wordCount: 15,
@@ -132,7 +132,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-12',
       content: `Easter egg trouvé après dix-sept heures de jeu. Le développeur a laissé son nom gravé dans une salle secrète.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 3,
       wordCount: 19,
@@ -142,7 +142,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-13',
       content: `Le serveur est en maintenance. Retour dans vingt minutes. Les joueurs attendent depuis deux heures.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 2,
       wordCount: 15,
@@ -152,7 +152,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-14',
       content: `Tir précis. Headshot. Le ratio grimpe. La concentration ne faiblit pas. C'est ce qu'on appelle un bon run.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 3,
       wordCount: 18,
@@ -162,7 +162,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-15',
       content: `Mode coopératif. Quatre joueurs. Un seul objectif. La communication fait la différence entre la victoire et l'échec.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 3,
       wordCount: 17,
@@ -172,7 +172,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-16',
       content: `Le crafting est une question de patience. Chaque ressource compte. Chaque décision engage l'ensemble de la partie.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 4,
       wordCount: 17,
@@ -182,7 +182,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-17',
       content: `Level design parfait. Chaque corridor mène quelque part. Aucun espace ne se perd. L'architecture du jeu est une œuvre d'art.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 4,
       wordCount: 20,
@@ -192,7 +192,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-18',
       content: `Trente heures de jeu. Quarante pour cent complétés. L'open world ne se laisse pas apprivoiser facilement.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 3,
       wordCount: 16,
@@ -202,7 +202,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-19',
       content: `La bande sonore s'adapte à chaque action. Les basses montent. Le rythme s'accélère. Le corps suit sans le décider.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 4,
       wordCount: 19,
@@ -212,7 +212,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-20',
       content: `Un seul joueur contre cinq. Les probabilités sont claires. Mais les probabilités ignorent la volonté.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 3,
       wordCount: 15,
@@ -222,7 +222,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-21',
       content: `Nouveau record personnel battu. Pas le record mondial. Mais le sien. C'est déjà quelque chose.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 2,
       wordCount: 15,
@@ -232,7 +232,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-22',
       content: `La carte est vide. La brume de guerre couvre tout. Le premier mouvement définit la stratégie entière.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 3,
       wordCount: 17,
@@ -242,7 +242,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-23',
       content: `Fin du jeu. Générique de fin. Trois ans de développement. Vingt heures de jeu. L'écran noir revient lentement.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 3,
       wordCount: 18,
@@ -252,7 +252,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-24',
       content: `Le mod tourne depuis trois mille heures. La communauté a ajouté plus de contenu que les développeurs d'origine.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 4,
       wordCount: 18,
@@ -262,7 +262,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-25',
       content: `Quicksave. Quickload. La mort n'est plus la fin. Elle devient une erreur parmi d'autres.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 2,
       wordCount: 14,
@@ -272,7 +272,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-26',
       content: `L'IA triche. Tout le monde le sait. Personne ne le dit. C'est le contrat tacite du jeu de stratégie.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 3,
       wordCount: 19,
@@ -282,7 +282,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-27',
       content: `Le mode histoire se termine. Le mode libre commence. Les règles disparaissent. La créativité prend la relève.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 3,
       wordCount: 17,
@@ -292,7 +292,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-28',
       content: `Trois personnages jouables. Trois histoires parallèles. Un seul monde. La narration non linéaire à son meilleur.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 4,
       wordCount: 16,
@@ -302,7 +302,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-29',
       content: `Le bouton A saute. Le bouton B court. La combinaison des deux crée quelque chose d'inattendu.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 2,
       wordCount: 16,
@@ -312,7 +312,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-30',
       content: `Platine obtenue. Cent pour cent. Les trophées brillent dans la bibliothèque numérique. Personne ne s'en souviendra.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 3,
       wordCount: 16,
@@ -322,7 +322,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-01',
       content: `Insert coin to continue. Ten seconds on the clock. High score belongs to a stranger who played here once and never came back.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 23,
@@ -332,7 +332,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-02',
       content: `Save file corrupted. Forty hours of progress gone in a single power outage. The world was already memorized anyway.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 5,
       wordCount: 19,
@@ -342,7 +342,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-03',
       content: `Permadeath means every decision matters. Every corridor, every enemy, every item found on the floor of a dungeon.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 18,
@@ -352,7 +352,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-04',
       content: `The frame rate drops to twenty. The physics engine panics. Three NPCs phase through a wall and disappear into the void.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 5,
       wordCount: 21,
@@ -362,7 +362,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-05',
       content: `Side-scrolling at sixty frames per second. Eight enemies incoming from the right. Jump timing is everything. Always was.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 18,
@@ -372,7 +372,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-06',
       content: `The tutorial ends. The game begins. Nobody told you the real rules. You learn them one respawn at a time.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 1,
       wordCount: 20,
@@ -382,7 +382,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-07',
       content: `Loot drop rate: zero point one percent. Forty-seven hours of grinding. Still no legendary item. This is also a game.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 5,
       wordCount: 20,
@@ -392,7 +392,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-08',
       content: `The final boss has three phases. Each phase harder than the last. You already memorized the pattern. You have done this before.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 22,
@@ -402,7 +402,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-09',
       content: `Modders rebuilt the entire engine in two years. The original developers left. The community stayed. That is how games survive.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 5,
       wordCount: 20,
@@ -412,7 +412,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-10',
       content: `Cheat code entered. Invincibility activated. The game becomes trivial. And somehow less fun. That was always the lesson.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 18,
@@ -422,7 +422,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-11',
       content: `Zero HP. Game over. But the memory of that attempt stays. Next time will be different.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 1,
       wordCount: 16,
@@ -432,7 +432,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-12',
       content: `Respawn timer counting down. Five. Four. Three. The map is still being studied. Every second is information.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 17,
@@ -442,7 +442,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-13',
       content: `Server full. Queue position: two hundred and forty-seven. This game must be worth it.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 2,
       wordCount: 14,
@@ -452,7 +452,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-14',
       content: `The silence after a perfect run is different from any other silence. It belongs to you.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 16,
@@ -462,7 +462,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-15',
       content: `Cooperative play requires trust. You cover left. I cover right. We move forward together or not at all.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 18,
@@ -472,7 +472,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-16',
       content: `The health bar depletes slowly. One more room. One more save point. The distance feels infinite.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 16,
@@ -482,7 +482,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-17',
       content: `The currency of this game is time. Forty grinding sessions. One legendary drop. The math never adds up.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 4,
       wordCount: 18,
@@ -492,7 +492,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-18',
       content: `New patch notes released. The meta has shifted. Everything learned before is now partially wrong.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 15,
@@ -502,7 +502,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-19',
       content: `Cutscene begins. Controller down. Story mode engaged. The line between player and character dissolves.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 14,
@@ -512,7 +512,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-20',
       content: `Achievement unlocked: survived five hundred hours. The game did not thank you. It never does.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 15,
@@ -522,7 +522,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-21',
       content: `The soundtrack shifts to minor key. The safe zone has ended. Everything ahead is unknown territory.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 16,
@@ -532,7 +532,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-22',
       content: `You built a town from nothing. Three virtual years later, ten thousand citizens depend on your decisions.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 4,
       wordCount: 17,
@@ -542,7 +542,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-23',
       content: `Optional boss. Strongest enemy in the game. Nobody told you it existed. You found it anyway.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 16,
@@ -552,7 +552,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-24',
       content: `The story branched here. Both paths lead somewhere. Only one leads where you want to go.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 2,
       wordCount: 16,
@@ -562,7 +562,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-25',
       content: `Graphics on maximum settings. The framerate drops to twelve. It is still worth seeing.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 2,
       wordCount: 14,
@@ -572,7 +572,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-26',
       content: `The secret level exists only in rumor. After weeks of searching, you found the hidden door.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 16,
@@ -582,7 +582,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-27',
       content: `Your ally disconnected mid-mission. The objective remains. You finish it alone. You always could.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 14,
@@ -592,7 +592,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-28',
       content: `Narrative design at its finest: every object in this room tells part of the story.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 15,
@@ -602,7 +602,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-29',
       content: `Input delay at four hundred milliseconds. The character responds but the connection does not.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 14,
@@ -612,7 +612,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-30',
       content: `All difficulty levels beaten. The game is over. But the conversation about it never ends.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 2,
       wordCount: 15,
@@ -622,7 +622,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-31',
       content: `Le multijoueur en ligne a changé la manière de jouer. Fini le canapé partagé à quatre manettes, place au matchmaking mondial. Un lag de cinquante millisecondes suffit à briser un combo parfaitement exécuté. Le classement compétitif ne pardonne rien : chaque saison remet les rangs à zéro, et il faut tout regagner depuis le début.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 3,
       wordCount: 55,
@@ -632,7 +632,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-32',
       content: `La speedrun n'est pas une simple course contre la montre. C'est une science des glitches, des raccourcis cachés et des frames perdues. Chaque route optimale a été découverte après des milliers d'essais silencieux. Le record du monde tombe rarement, mais quand il tombe, c'est toute une communauté qui célèbre ensemble.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 3,
       wordCount: 50,
@@ -642,7 +642,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-33',
       content: `Le rétrogaming n'est pas de la nostalgie paresseuse. C'est une discipline exigeante : seize couleurs à l'écran, quatre canaux sonores, et pourtant des mondes entiers à faire tenir dedans. Les développeurs de l'époque codaient au plus près du métal, sans filet, sans moteur, juste l'assembleur et la patience.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 3,
       wordCount: 48,
@@ -652,7 +652,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-34',
       content: `Dans les salles d'arcade des années quatre-vingt, chaque pièce de monnaie était un pari. Le joueur s'installait devant la borne, la main sur le stick, et savait qu'une seule erreur pouvait tout terminer en quelques secondes. Pas de sauvegarde, pas de checkpoint, pas de seconde chance négociable : seulement le score final gravé dans la mémoire de la machine, visible de tous les joueurs suivants. Cette tension permanente forgeait une discipline particulière, faite de mémorisation des patterns ennemis et de réflexes affûtés séance après séance. Les meilleurs joueurs devenaient des légendes locales, reconnus au bruit de leurs pièces tombant dans la fente.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 3,
       wordCount: 102,
@@ -662,7 +662,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-35',
       content: `Un patch day divise toujours la communauté en deux camps. D'un côté ceux qui saluent l'équilibrage tant réclamé, de l'autre ceux qui pleurent leur build fétiche nerfée sans préavis. Les notes de version s'étalent parfois sur des dizaines de lignes : ajustements de dégâts, corrections de bugs obscurs, nouvelles fonctionnalités glissées discrètement en bas de liste. Les joueurs compétitifs les lisent ligne par ligne, cherchant le moindre changement qui pourrait bouleverser le métagame de la saison à venir. Les développeurs, eux, surveillent les forums avec une inquiétude mêlée d'excitation, sachant que le verdict tombera dès les premières heures.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 4,
       wordCount: 98,
@@ -672,7 +672,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-36',
       content: `La bande originale d'un jeu vidéo façonne un souvenir bien après que la manette soit reposée. Un thème principal bien composé revient des années plus tard, déclenché par trois notes entendues par hasard dans un centre commercial. Les compositeurs de jeux travaillent souvent sous contrainte technique sévère, avec un nombre limité de canaux audio et une mémoire minuscule allouée au son. Pourtant, certaines de ces mélodies contraintes sont devenues des classiques joués par des orchestres symphoniques entiers, preuve que la limitation technique n'a jamais empêché l'émotion de traverser les décennies.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 3,
       wordCount: 90,
@@ -682,7 +682,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-31',
       content: `Online matchmaking changed what competitive gaming even means. Local tournaments in cramped basements gave way to global ranked ladders reachable from any bedroom. A fifty millisecond spike can still ruin a perfectly timed combo. Every new season resets the leaderboard to zero, and climbing back to the top never gets easier the second time.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 54,
@@ -692,7 +692,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-32',
       content: `Speedrunning rewards obsession more than raw skill. Runners memorize every frame of a route, chase glitches that skip entire levels, and shave milliseconds off a personal best that already looked impossible. A world record rarely falls, but when it does, the community watches the run frame by frame for weeks afterward.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 51,
@@ -702,7 +702,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-33',
       content: `Retro game development was a discipline of scarcity. Sixteen colors on screen, four sound channels, and a cartridge too small for a single modern texture. Developers hand-optimized assembly routines just to fit an entire world into a handful of kilobytes, and somehow those tight constraints produced some of gaming's most memorable worlds.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 52,
@@ -712,7 +712,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-34',
       content: `Arcade cabinets in the eighties turned every coin into a small wager. A player stepped up, gripped the stick, and knew a single mistake could end the run within seconds. There was no save file, no checkpoint, no quiet retry — only a final score burned into the machine's memory for every player who came after. That constant pressure shaped a very specific kind of discipline, built from memorizing enemy patterns and sharpening reflexes one credit at a time. The best players became local legends, recognized by the sound of their coins dropping into the slot before anyone even saw their face.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 102,
@@ -722,7 +722,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-35',
       content: `Patch day always splits a community into two camps. Some players celebrate the long-awaited rebalance, while others mourn a favorite build nerfed without warning. Patch notes can stretch across dozens of lines: damage adjustments, obscure bug fixes, new features quietly buried near the bottom of the list. Competitive players read every line, hunting for the one change that might reshape the season's entire metagame. Developers, meanwhile, watch the forums with a mix of dread and excitement, knowing the community's verdict will already be forming within the first few hours after release.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 4,
       wordCount: 91,
@@ -732,7 +732,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-36',
       content: `A video game soundtrack shapes a memory long after the controller gets put down. A well-written main theme can resurface years later, triggered by three notes overheard by accident in a shopping mall. Game composers often work under brutal technical limits, with a handful of sound channels and barely any memory allocated to audio. And yet some of those constrained melodies became genuine classics, later performed by full symphony orchestras — proof that a hard technical ceiling never actually stopped real emotion from surviving the decades.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 86,
@@ -742,7 +742,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-37',
       content: `Le high score affiche 999 999 points. Personne n'a jamais dépassé ce chiffre depuis douze ans.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 2,
       wordCount: 16,
@@ -752,7 +752,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-38',
       content: `Niveau 42 débloqué. Le boss final a soixante-quinze mille points de vie et trois phases distinctes.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 2,
       wordCount: 16,
@@ -762,7 +762,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-fr-39',
       content: `60 FPS constants, zéro frame drop. Le patch 2.3 a corrigé les derniers bugs de collision.`,
-      source: 'TypeWav — Texte original',
+      source: 'TypeWav, Texte original',
       language: 'fr',
       difficulty: 3,
       wordCount: 16,
@@ -772,7 +772,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-37',
       content: `Final boss health: 75000. Three phases, one save point, and exactly 12 minutes on the clock.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 2,
       wordCount: 16,
@@ -782,7 +782,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-38',
       content: `The leaderboard shows a top score of 999999. Nobody has beaten that number in over a decade.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 2,
       wordCount: 17,
@@ -792,7 +792,7 @@ export const gamingCollection: CollectionConfig = {
     {
       id: 'gam-en-39',
       content: `Patch 2.3 dropped today. 60 FPS locked, zero frame drops, and 14 bugs squashed for good.`,
-      source: 'TypeWav — Original text',
+      source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
       wordCount: 16,

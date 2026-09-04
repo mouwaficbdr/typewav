@@ -1,5 +1,5 @@
 /**
- * Collection Code — snippets sous licence MIT / Apache 2.0 / domaine public.
+ * Collection Code : snippets sous licence MIT / Apache 2.0 / domaine public.
  * Langages : TypeScript, Python, Rust, Go, Shell, SQL, CSS, JSON, JavaScript.
  * Spec : docs/specs/06-content.md
  */
@@ -10,7 +10,7 @@ export const codeCollection: CollectionConfig = {
   id: 'code',
   name: 'Code',
   nameEn: 'Code',
-  description: 'Snippets issus de projets open source — MIT, Apache 2.0.',
+  description: 'Snippets issus de projets open source : MIT, Apache 2.0.',
   language: 'en',
   recommendedTheme: 'terminal',
   isPremium: false,
@@ -19,7 +19,7 @@ export const codeCollection: CollectionConfig = {
     {
       id: 'code-ts-01',
       content: `const greet = (name: string): string => \`Hello, \${name}!\`;`,
-      source: 'TypeScript — exemple original',
+      source: 'TypeScript, exemple original',
       language: 'en',
       difficulty: 1,
       wordCount: 9,
@@ -33,7 +33,7 @@ export const codeCollection: CollectionConfig = {
   const response = await fetch(url);
   return response.json() as Promise<T>;
 }`,
-      source: 'TypeScript — exemple original',
+      source: 'TypeScript, exemple original',
       language: 'en',
       difficulty: 3,
       wordCount: 16,
@@ -44,7 +44,7 @@ export const codeCollection: CollectionConfig = {
     {
       id: 'code-ts-03',
       content: `type Result<T, E> = { ok: true; value: T } | { ok: false; error: E };`,
-      source: 'TypeScript — pattern Result type',
+      source: 'TypeScript, pattern Result type',
       language: 'en',
       difficulty: 3,
       wordCount: 17,
@@ -57,7 +57,7 @@ export const codeCollection: CollectionConfig = {
       content: `export function pipe<T>(...fns: Array<(x: T) => T>): (x: T) => T {
   return (x) => fns.reduce((v, f) => f(v), x);
 }`,
-      source: 'TypeScript — functional programming',
+      source: 'TypeScript, functional programming',
       language: 'en',
       difficulty: 5,
       wordCount: 21,
@@ -74,7 +74,7 @@ export const codeCollection: CollectionConfig = {
     timer = setTimeout(() => fn(...args), ms);
   };
 };`,
-      source: 'TypeScript — utilitaire debounce',
+      source: 'TypeScript, utilitaire debounce',
       language: 'en',
       difficulty: 5,
       wordCount: 32,
@@ -86,7 +86,7 @@ export const codeCollection: CollectionConfig = {
       id: 'code-py-01',
       content: `def factorial(n: int) -> int:
     return 1 if n <= 1 else n * factorial(n - 1)`,
-      source: 'Python — exemple original',
+      source: 'Python, exemple original',
       language: 'en',
       difficulty: 1,
       wordCount: 17,
@@ -103,7 +103,7 @@ def fibonacci() -> Generator[int, None, None]:
     while True:
         yield a
         a, b = b, a + b`,
-      source: 'Python — générateur Fibonacci',
+      source: 'Python, générateur Fibonacci',
       language: 'en',
       difficulty: 3,
       wordCount: 26,
@@ -115,7 +115,7 @@ def fibonacci() -> Generator[int, None, None]:
       id: 'code-py-03',
       content: `words = ["hello", "world", "python"]
 result = {word: len(word) for word in words if len(word) > 4}`,
-      source: 'Python — dict comprehension',
+      source: 'Python, dict comprehension',
       language: 'en',
       difficulty: 1,
       wordCount: 17,
@@ -130,7 +130,7 @@ result = {word: len(word) for word in words if len(word) > 4}`,
     let sum: i32 = numbers.iter().sum();
     println!("Sum: {}", sum);
 }`,
-      source: 'Rust — exemple original',
+      source: 'Rust, exemple original',
       language: 'en',
       difficulty: 3,
       wordCount: 20,
@@ -152,7 +152,7 @@ result = {word: len(word) for word in words if len(word) > 4}`,
     }
     None
 }`,
-      source: 'Rust — algorithme recherche binaire',
+      source: 'Rust, algorithme recherche binaire',
       language: 'en',
       difficulty: 5,
       wordCount: 56,
@@ -163,7 +163,7 @@ result = {word: len(word) for word in words if len(word) > 4}`,
     {
       id: 'code-sh-01',
       content: `find . -name "*.ts" -not -path "*/node_modules/*" | xargs wc -l | sort -n`,
-      source: 'Shell — compter les lignes TypeScript',
+      source: 'Shell, compter les lignes TypeScript',
       language: 'en',
       difficulty: 3,
       wordCount: 14,
@@ -173,7 +173,7 @@ result = {word: len(word) for word in words if len(word) > 4}`,
     {
       id: 'code-sh-02',
       content: `git log --oneline --graph --all --decorate | head -20`,
-      source: 'Git — visualiser l\'historique',
+      source: 'Git, visualiser l\'historique',
       language: 'en',
       difficulty: 1,
       wordCount: 9,
@@ -191,7 +191,7 @@ result = {word: len(word) for word in words if len(word) > 4}`,
     "build": "next build"
   }
 }`,
-      source: 'JSON — package.json exemple',
+      source: 'JSON, package.json exemple',
       language: 'en',
       difficulty: 1,
       wordCount: 17,
@@ -205,7 +205,7 @@ result = {word: len(word) for word in words if len(word) > 4}`,
   --color-accent: #00D4AA;
   --font-mono: "JetBrains Mono", monospace;
 }`,
-      source: 'CSS — variables custom properties',
+      source: 'CSS, variables custom properties',
       language: 'en',
       difficulty: 1,
       wordCount: 11,
@@ -220,7 +220,7 @@ LEFT JOIN sessions s ON s.user_id = u.id
 GROUP BY u.id
 HAVING session_count > 10
 ORDER BY session_count DESC;`,
-      source: 'SQL — requête agrégation',
+      source: 'SQL, requête agrégation',
       language: 'en',
       difficulty: 5,
       wordCount: 27,
@@ -235,7 +235,7 @@ ORDER BY session_count DESC;`,
   setState(partial: Partial<T>): void;
   subscribe(listener: () => void): () => void;
 }`,
-      source: 'TypeScript — interface Store minimaliste',
+      source: 'TypeScript, interface Store minimaliste',
       language: 'en',
       difficulty: 3,
       wordCount: 16,
@@ -247,7 +247,7 @@ ORDER BY session_count DESC;`,
       id: 'code-ts-07',
       content: `export const clamp = (value: number, min: number, max: number): number =>
   Math.min(Math.max(value, min), max);`,
-      source: 'TypeScript — utilitaire clamp',
+      source: 'TypeScript, utilitaire clamp',
       language: 'en',
       difficulty: 1,
       wordCount: 15,
@@ -264,7 +264,7 @@ class Point:
 
     def distance_to(self, other: "Point") -> float:
         return ((self.x - other.x) ** 2 + (self.y - other.y) ** 2) ** 0.5`,
-      source: 'Python — dataclass',
+      source: 'Python, dataclass',
       language: 'en',
       difficulty: 3,
       wordCount: 27,
@@ -275,7 +275,7 @@ class Point:
     {
       id: 'code-rs-03',
       content: `let result: Vec<_> = (1..=10).filter(|n| n % 2 == 0).map(|n| n * n).collect();`,
-      source: 'Rust — iterator chaining',
+      source: 'Rust, iterator chaining',
       language: 'en',
       difficulty: 3,
       wordCount: 13,
@@ -294,7 +294,7 @@ class Point:
     return result;
   };
 };`,
-      source: 'TypeScript — memoization',
+      source: 'TypeScript, memoization',
       language: 'en',
       difficulty: 5,
       wordCount: 39,
@@ -307,7 +307,7 @@ class Point:
       content: `function isEmpty<T>(arr: T[]): boolean {
   return arr.length === 0;
 }`,
-      source: 'TypeScript — type guard utility',
+      source: 'TypeScript, type guard utility',
       language: 'en',
       difficulty: 1,
       wordCount: 10,
@@ -320,7 +320,7 @@ class Point:
       content: `type DeepPartial<T> = T extends object ? {
   [P in keyof T]?: DeepPartial<T[P]>;
 } : T;`,
-      source: 'TypeScript — deep partial type',
+      source: 'TypeScript, deep partial type',
       language: 'en',
       difficulty: 5,
       wordCount: 16,
@@ -335,7 +335,7 @@ class Point:
     const group = String(item[key]);
     return { ...groups, [group]: [...(groups[group] ?? []), item] };
   }, {} as Record<string, T[]>);`,
-      source: 'TypeScript — groupBy utility',
+      source: 'TypeScript, groupBy utility',
       language: 'en',
       difficulty: 5,
       wordCount: 33,
@@ -348,7 +348,7 @@ class Point:
       content: `class EventEmitter<T extends Record<string, unknown>> {
   private listeners = new Map<keyof T, Set<(data: T[keyof T]) => void>>();
 }`,
-      source: 'TypeScript — typed EventEmitter',
+      source: 'TypeScript, typed EventEmitter',
       language: 'en',
       difficulty: 5,
       wordCount: 18,
@@ -360,7 +360,7 @@ class Point:
       id: 'code-ts-13',
       content: `const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));`,
-      source: 'TypeScript — async sleep utility',
+      source: 'TypeScript, async sleep utility',
       language: 'en',
       difficulty: 3,
       wordCount: 12,
@@ -371,7 +371,7 @@ class Point:
     {
       id: 'code-ts-14',
       content: `export type Nullable<T> = T | null | undefined;`,
-      source: 'TypeScript — nullable type alias',
+      source: 'TypeScript, nullable type alias',
       language: 'en',
       difficulty: 1,
       wordCount: 9,
@@ -382,7 +382,7 @@ class Point:
     {
       id: 'code-ts-15',
       content: `const unique = <T>(arr: T[]): T[] => [...new Set(arr)];`,
-      source: 'TypeScript — unique array elements',
+      source: 'TypeScript, unique array elements',
       language: 'en',
       difficulty: 1,
       wordCount: 9,
@@ -397,7 +397,7 @@ class Point:
 @functools.lru_cache(maxsize=None)
 def fib(n: int) -> int:
     return n if n < 2 else fib(n - 1) + fib(n - 2)`,
-      source: 'Python — memoized fibonacci',
+      source: 'Python, memoized fibonacci',
       language: 'en',
       difficulty: 3,
       wordCount: 22,
@@ -416,7 +416,7 @@ def timer() -> Generator[None, None, None]:
     start = time.perf_counter()
     yield
     print(f'Elapsed: {time.perf_counter() - start:.3f}s')`,
-      source: 'Python — context manager timer',
+      source: 'Python, context manager timer',
       language: 'en',
       difficulty: 5,
       wordCount: 25,
@@ -427,7 +427,7 @@ def timer() -> Generator[None, None, None]:
     {
       id: 'code-py-07',
       content: `squares = [x ** 2 for x in range(1, 11)]`,
-      source: 'Python — list comprehension squares',
+      source: 'Python, list comprehension squares',
       language: 'en',
       difficulty: 1,
       wordCount: 10,
@@ -439,7 +439,7 @@ def timer() -> Generator[None, None, None]:
       id: 'code-py-08',
       content: `def chunk(lst: list, size: int) -> list:
     return [lst[i:i + size] for i in range(0, len(lst), size)]`,
-      source: 'Python — chunk list into batches',
+      source: 'Python, chunk list into batches',
       language: 'en',
       difficulty: 3,
       wordCount: 17,
@@ -453,7 +453,7 @@ def timer() -> Generator[None, None, None]:
     let chars: Vec<char> = s.chars().collect();
     chars == chars.iter().rev().cloned().collect::<Vec<_>>()
 }`,
-      source: 'Rust — palindrome check',
+      source: 'Rust, palindrome check',
       language: 'en',
       difficulty: 3,
       wordCount: 15,
@@ -467,7 +467,7 @@ def timer() -> Generator[None, None, None]:
 
 let mut scores: HashMap<&str, i32> = HashMap::new();
 scores.entry("player1").and_modify(|s| *s += 10).or_insert(10);`,
-      source: 'Rust — HashMap entry API',
+      source: 'Rust, HashMap entry API',
       language: 'en',
       difficulty: 5,
       wordCount: 13,
@@ -482,7 +482,7 @@ struct Point {
     x: f64,
     y: f64,
 }`,
-      source: 'Rust — derive macro struct',
+      source: 'Rust, derive macro struct',
       language: 'en',
       difficulty: 3,
       wordCount: 11,
@@ -495,7 +495,7 @@ struct Point {
       content: `func main() {
     fmt.Println("Hello, World!")
 }`,
-      source: 'Go — hello world',
+      source: 'Go, hello world',
       language: 'en',
       difficulty: 1,
       wordCount: 6,
@@ -511,7 +511,7 @@ struct Point {
     }
     return fibonacci(n-1) + fibonacci(n-2)
 }`,
-      source: 'Go — recursive fibonacci',
+      source: 'Go, recursive fibonacci',
       language: 'en',
       difficulty: 3,
       wordCount: 18,
@@ -528,7 +528,7 @@ go func() {
     }
     close(ch)
 }()`,
-      source: 'Go — goroutine channel',
+      source: 'Go, goroutine channel',
       language: 'en',
       difficulty: 5,
       wordCount: 23,
@@ -545,7 +545,7 @@ go func() {
 func (s *Stack[T]) Push(item T) {
     s.items = append(s.items, item)
 }`,
-      source: 'Go — generic stack',
+      source: 'Go, generic stack',
       language: 'en',
       difficulty: 5,
       wordCount: 19,
@@ -560,7 +560,7 @@ func (s *Stack[T]) Push(item T) {
         log.Printf("Recovered from panic: %v", r)
     }
 }()`,
-      source: 'Go — recover from panic',
+      source: 'Go, recover from panic',
       language: 'en',
       difficulty: 3,
       wordCount: 18,
@@ -573,7 +573,7 @@ func (s *Stack[T]) Push(item T) {
       content: `#!/bin/bash
 set -euo pipefail
 mkdir -p dist && cp -r src/* dist/`,
-      source: 'Shell — strict mode script',
+      source: 'Shell, strict mode script',
       language: 'en',
       difficulty: 3,
       wordCount: 12,
@@ -583,7 +583,7 @@ mkdir -p dist && cp -r src/* dist/`,
     {
       id: 'code-sh-04',
       content: `for f in *.json; do jq . "$f" > "\${f%.json}.formatted.json"; done`,
-      source: 'Shell — format all JSON files',
+      source: 'Shell, format all JSON files',
       language: 'en',
       difficulty: 3,
       wordCount: 11,
@@ -593,7 +593,7 @@ mkdir -p dist && cp -r src/* dist/`,
     {
       id: 'code-sh-05',
       content: `docker ps --format 'table {{.ID}}	{{.Names}}	{{.Status}}' | grep running`,
-      source: 'Docker — list running containers',
+      source: 'Docker, list running containers',
       language: 'en',
       difficulty: 3,
       wordCount: 10,
@@ -605,7 +605,7 @@ mkdir -p dist && cp -r src/* dist/`,
       content: `CREATE INDEX CONCURRENTLY idx_users_email
 ON users (email)
 WHERE email IS NOT NULL;`,
-      source: 'SQL — concurrent index creation',
+      source: 'SQL, concurrent index creation',
       language: 'en',
       difficulty: 3,
       wordCount: 12,
@@ -620,7 +620,7 @@ WHERE email IS NOT NULL;`,
   FROM sessions
 )
 SELECT * FROM ranked WHERE rn = 1;`,
-      source: 'SQL — latest row per user CTE',
+      source: 'SQL, latest row per user CTE',
       language: 'en',
       difficulty: 5,
       wordCount: 28,
@@ -635,7 +635,7 @@ SELECT * FROM ranked WHERE rn = 1;`,
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1rem;
 }`,
-      source: 'CSS — responsive grid layout',
+      source: 'CSS, responsive grid layout',
       language: 'en',
       difficulty: 3,
       wordCount: 11,
@@ -648,7 +648,7 @@ SELECT * FROM ranked WHERE rn = 1;`,
   from { opacity: 0; transform: translateY(-10px); }
   to   { opacity: 1; transform: translateY(0); }
 }`,
-      source: 'CSS — fade-in animation',
+      source: 'CSS, fade-in animation',
       language: 'en',
       difficulty: 3,
       wordCount: 18,
@@ -664,7 +664,7 @@ SELECT * FROM ranked WHERE rn = 1;`,
     "moduleResolution": "bundler"
   }
 }`,
-      source: 'JSON — tsconfig.json example',
+      source: 'JSON, tsconfig.json example',
       language: 'en',
       difficulty: 1,
       wordCount: 11,
@@ -680,7 +680,7 @@ SELECT * FROM ranked WHERE rn = 1;`,
     "@typescript-eslint/no-explicit-any": "error"
   }
 }`,
-      source: 'JSON — ESLint config',
+      source: 'JSON, ESLint config',
       language: 'en',
       difficulty: 3,
       wordCount: 11,
@@ -699,7 +699,7 @@ SELECT * FROM ranked WHERE rn = 1;`,
     }
   };
 };`,
-      source: 'JavaScript — throttle utility',
+      source: 'JavaScript, throttle utility',
       language: 'en',
       difficulty: 5,
       wordCount: 29,
@@ -715,7 +715,7 @@ SELECT * FROM ranked WHERE rn = 1;`,
     return args.length >= arity ? fn(...args) : curried.bind(null, ...args);
   };
 };`,
-      source: 'JavaScript — curry function',
+      source: 'JavaScript, curry function',
       language: 'en',
       difficulty: 5,
       wordCount: 25,
@@ -728,7 +728,7 @@ SELECT * FROM ranked WHERE rn = 1;`,
       id: 'code-ts-fr-01',
       content: `// Vérifie si un tableau est vide
 const estVide = <T>(tab: T[]): boolean => tab.length === 0;`,
-      source: 'TypeScript — utilitaire tableau vide',
+      source: 'TypeScript, utilitaire tableau vide',
       language: 'fr',
       difficulty: 1,
       wordCount: 17,
@@ -741,7 +741,7 @@ const estVide = <T>(tab: T[]): boolean => tab.length === 0;`,
       content: `// Attend N millisecondes de façon asynchrone
 const attendre = (ms: number): Promise<void> =>
   new Promise((résoudre) => setTimeout(résoudre, ms));`,
-      source: 'TypeScript — utilitaire attente',
+      source: 'TypeScript, utilitaire attente',
       language: 'fr',
       difficulty: 3,
       wordCount: 19,
@@ -753,7 +753,7 @@ const attendre = (ms: number): Promise<void> =>
       id: 'code-ts-fr-03',
       content: `// Retourne les éléments uniques d'un tableau
 const unique = <T>(tab: T[]): T[] => [...new Set(tab)];`,
-      source: 'TypeScript — éléments uniques',
+      source: 'TypeScript, éléments uniques',
       language: 'fr',
       difficulty: 1,
       wordCount: 16,
@@ -766,7 +766,7 @@ const unique = <T>(tab: T[]): T[] => [...new Set(tab)];`,
       content: `// Limite une valeur entre un minimum et un maximum
 export const limiter = (valeur: number, min: number, max: number): number =>
   Math.min(Math.max(valeur, min), max);`,
-      source: 'TypeScript — utilitaire limiter',
+      source: 'TypeScript, utilitaire limiter',
       language: 'fr',
       difficulty: 1,
       wordCount: 25,
@@ -782,7 +782,7 @@ interface Magasin<T> {
   modifierÉtat(partiel: Partial<T>): void;
   abonner(écouteur: () => void): () => void;
 }`,
-      source: 'TypeScript — interface Magasin',
+      source: 'TypeScript, interface Magasin',
       language: 'fr',
       difficulty: 3,
       wordCount: 22,
@@ -796,7 +796,7 @@ interface Magasin<T> {
 export function composer<T>(...fns: Array<(x: T) => T>): (x: T) => T {
   return (x) => fns.reduce((v, f) => f(v), x);
 }`,
-      source: 'TypeScript — programmation fonctionnelle',
+      source: 'TypeScript, programmation fonctionnelle',
       language: 'fr',
       difficulty: 5,
       wordCount: 33,
@@ -809,7 +809,7 @@ export function composer<T>(...fns: Array<(x: T) => T>): (x: T) => T {
       content: `# Calcule le factoriel de façon récursive
 def factorielle(n: int) -> int:
     return 1 if n <= 1 else n * factorielle(n - 1)`,
-      source: 'Python — factorielle récursive',
+      source: 'Python, factorielle récursive',
       language: 'fr',
       difficulty: 1,
       wordCount: 24,
@@ -827,7 +827,7 @@ def fibonacci() -> Generator[int, None, None]:
     while True:
         yield a
         a, b = b, a + b`,
-      source: 'Python — générateur Fibonacci',
+      source: 'Python, générateur Fibonacci',
       language: 'fr',
       difficulty: 3,
       wordCount: 33,
@@ -840,7 +840,7 @@ def fibonacci() -> Generator[int, None, None]:
       content: `# Compter les mots dans chaque chaîne
 mots = ["bonjour", "monde", "python"]
 résultat = {mot: len(mot) for mot in mots if len(mot) > 4}`,
-      source: 'Python — compréhension de dict',
+      source: 'Python, compréhension de dict',
       language: 'fr',
       difficulty: 1,
       wordCount: 24,
@@ -853,7 +853,7 @@ résultat = {mot: len(mot) for mot in mots if len(mot) > 4}`,
       content: `# Découpe une liste en sous-listes de taille fixe
 def découper(liste: list, taille: int) -> list:
     return [liste[i:i + taille] for i in range(0, len(liste), taille)]`,
-      source: 'Python — découpage de liste',
+      source: 'Python, découpage de liste',
       language: 'fr',
       difficulty: 3,
       wordCount: 26,
@@ -865,7 +865,7 @@ def découper(liste: list, taille: int) -> list:
       id: 'code-py-fr-05',
       content: `# Carrés des dix premiers entiers
 carrés = [x ** 2 for x in range(1, 11)]`,
-      source: 'Python — compréhension de liste',
+      source: 'Python, compréhension de liste',
       language: 'fr',
       difficulty: 1,
       wordCount: 16,
@@ -880,7 +880,7 @@ fn est_palindrome(s: &str) -> bool {
     let chars: Vec<char> = s.chars().collect();
     chars == chars.iter().rev().cloned().collect::<Vec<_>>()
 }`,
-      source: 'Rust — palindrome',
+      source: 'Rust, palindrome',
       language: 'fr',
       difficulty: 3,
       wordCount: 23,
@@ -896,7 +896,7 @@ struct Point {
     x: f64,
     y: f64,
 }`,
-      source: 'Rust — struct dérivée',
+      source: 'Rust, struct dérivée',
       language: 'fr',
       difficulty: 3,
       wordCount: 19,
@@ -908,7 +908,7 @@ struct Point {
       id: 'code-rs-fr-03',
       content: `// Résultat de chaîne d'itérateurs
 let résultat: Vec<_> = (1..=10).filter(|n| n % 2 == 0).map(|n| n * n).collect();`,
-      source: 'Rust — chaîne d\'itérateurs',
+      source: 'Rust, chaîne d\'itérateurs',
       language: 'fr',
       difficulty: 3,
       wordCount: 18,
@@ -922,7 +922,7 @@ let résultat: Vec<_> = (1..=10).filter(|n| n % 2 == 0).map(|n| n * n).collect()
 func main() {
     fmt.Println("Bonjour, monde !")
 }`,
-      source: 'Go — bonjour monde',
+      source: 'Go, bonjour monde',
       language: 'fr',
       difficulty: 1,
       wordCount: 13,
@@ -939,7 +939,7 @@ func fibonacci(n int) int {
     }
     return fibonacci(n-1) + fibonacci(n-2)
 }`,
-      source: 'Go — fibonacci récursif',
+      source: 'Go, fibonacci récursif',
       language: 'fr',
       difficulty: 3,
       wordCount: 21,
@@ -957,7 +957,7 @@ go func() {
     }
     close(ch)
 }()`,
-      source: 'Go — goroutine et canal',
+      source: 'Go, goroutine et canal',
       language: 'fr',
       difficulty: 5,
       wordCount: 31,
@@ -971,7 +971,7 @@ go func() {
 # Mode strict : sortir en cas d'erreur
 set -euo pipefail
 mkdir -p dist && cp -r src/* dist/`,
-      source: 'Shell — script mode strict',
+      source: 'Shell, script mode strict',
       language: 'fr',
       difficulty: 3,
       wordCount: 20,
@@ -982,7 +982,7 @@ mkdir -p dist && cp -r src/* dist/`,
       id: 'code-sh-fr-02',
       content: `# Compter les lignes TypeScript en excluant node_modules
 find . -name '*.ts' -not -path '*/node_modules/*' | xargs wc -l | sort -n`,
-      source: 'Shell — compter les lignes TypeScript',
+      source: 'Shell, compter les lignes TypeScript',
       language: 'fr',
       difficulty: 3,
       wordCount: 22,
@@ -993,7 +993,7 @@ find . -name '*.ts' -not -path '*/node_modules/*' | xargs wc -l | sort -n`,
       id: 'code-sh-fr-03',
       content: `# Visualiser l'historique git en ligne
 git log --oneline --graph --all --decorate | head -20`,
-      source: 'Git — visualiser l\'historique',
+      source: 'Git, visualiser l\'historique',
       language: 'fr',
       difficulty: 1,
       wordCount: 15,
@@ -1022,7 +1022,7 @@ class FileDeTaches<T> {
     }
   }
 }`,
-      source: 'TypeScript — file de tâches concurrente',
+      source: 'TypeScript, file de tâches concurrente',
       language: 'fr',
       difficulty: 4,
       wordCount: 59,
@@ -1046,7 +1046,7 @@ def regrouper_par_lots(elements, taille_lot):
     if lot_courant:
         lots.append(lot_courant)
     return lots`,
-      source: 'Python — regroupement par lots',
+      source: 'Python, regroupement par lots',
       language: 'fr',
       difficulty: 2,
       wordCount: 50,
@@ -1067,7 +1067,7 @@ func mediane(nombres []float64) float64 {
 	}
 	return copie[milieu]
 }`,
-      source: 'Go — calcul de médiane',
+      source: 'Go, calcul de médiane',
       language: 'fr',
       difficulty: 3,
       wordCount: 41,
@@ -1109,7 +1109,7 @@ class CacheAvecExpiration<K, V> {
     return supprimees;
   }
 }`,
-      source: 'TypeScript — cache avec expiration',
+      source: 'TypeScript, cache avec expiration',
       language: 'fr',
       difficulty: 4,
       wordCount: 99,
@@ -1159,7 +1159,7 @@ class PileAvecMinimum:
 
     def est_vide(self):
         return len(self.pile) == 0`,
-      source: 'Python — pile avec minimum',
+      source: 'Python, pile avec minimum',
       language: 'fr',
       difficulty: 3,
       wordCount: 89,
@@ -1203,7 +1203,7 @@ impl<T: Ord> FilePriorite<T> {
         FilePriorite { tas }
     }
 }`,
-      source: 'Rust — file de priorité minimale',
+      source: 'Rust, file de priorité minimale',
       language: 'fr',
       difficulty: 5,
       wordCount: 85,
@@ -1224,7 +1224,7 @@ function debounce<T extends (...args: never[]) => void>(
     timer = setTimeout(() => fn(...args), delayMs);
   };
 }`,
-      source: 'TypeScript — debounce utility',
+      source: 'TypeScript, debounce utility',
       language: 'en',
       difficulty: 3,
       wordCount: 48,
@@ -1251,7 +1251,7 @@ def flatten_unique(nested):
         if item not in seen:
             seen.append(item)
     return seen`,
-      source: 'Python — recursive flatten',
+      source: 'Python, recursive flatten',
       language: 'en',
       difficulty: 2,
       wordCount: 46,
@@ -1272,7 +1272,7 @@ func retryWithBackoff(fn func() error, maxAttempts int) error {
 	}
 	return err
 }`,
-      source: 'Go — exponential backoff retry',
+      source: 'Go, exponential backoff retry',
       language: 'en',
       difficulty: 3,
       wordCount: 48,
@@ -1305,7 +1305,7 @@ class EventEmitter<Events extends Record<string, unknown[]>> {
     delete this.listeners[event];
   }
 }`,
-      source: 'TypeScript — typed event emitter',
+      source: 'TypeScript, typed event emitter',
       language: 'en',
       difficulty: 5,
       wordCount: 96,
@@ -1349,7 +1349,7 @@ class LRUCache:
 
     def clear(self):
         self.store.clear()`,
-      source: 'Python — LRU cache implementation',
+      source: 'Python, LRU cache implementation',
       language: 'en',
       difficulty: 4,
       wordCount: 82,
@@ -1386,7 +1386,7 @@ fn run_parallel_counter(worker_count: usize, increments_per_worker: usize) -> us
     assert_eq!(final_value, expected, "lost updates detected under contention");
     final_value
 }`,
-      source: 'Rust — thread-safe shared counter',
+      source: 'Rust, thread-safe shared counter',
       language: 'en',
       difficulty: 5,
       wordCount: 85,
@@ -1434,7 +1434,7 @@ class FileDePrioriteAvecMiseAJour<T> {
     this.tas = [];
   }
 }`,
-      source: 'TypeScript — file de priorité avec réévaluation',
+      source: 'TypeScript, file de priorité avec réévaluation',
       language: 'fr',
       difficulty: 4,
       wordCount: 117,
@@ -1476,7 +1476,7 @@ class SlidingWindowRateLimiter {
     this.timestamps = [];
   }
 }`,
-      source: 'TypeScript — sliding window rate limiter',
+      source: 'TypeScript, sliding window rate limiter',
       language: 'en',
       difficulty: 4,
       wordCount: 108,
