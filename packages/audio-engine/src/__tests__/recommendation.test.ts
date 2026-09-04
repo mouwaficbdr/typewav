@@ -11,10 +11,14 @@ describe('getRecommendedRegister', () => {
     expect(getRecommendedRegister('sprint', undefined, 60)).toBe('energique');
   });
 
-  it('mode endurance → contemplatif', () => {
-    expect(getRecommendedRegister('endurance', undefined, 60)).toBe(
+  it('mode learning → contemplatif', () => {
+    expect(getRecommendedRegister('learning', undefined, 60)).toBe(
       'contemplatif',
     );
+  });
+
+  it('mode ghost → energique', () => {
+    expect(getRecommendedRegister('ghost', undefined, 60)).toBe('energique');
   });
 
   it('mode code → dramatique', () => {

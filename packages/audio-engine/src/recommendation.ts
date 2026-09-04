@@ -1,5 +1,5 @@
 /**
- * recommendation.ts — sélection musicale contextuelle.
+ * recommendation.ts : sélection musicale contextuelle.
  *
  * Fonction pure, zéro état, zéro side-effect.
  * Testable unitairement sans mock.
@@ -32,15 +32,15 @@ export function getRecommendedRegister(
   collection: CollectionId | undefined,
   durationSeconds: number,
 ): EmotionalRegister {
-  // Règles sur le mode (priorité maximale)
+  // Règles sur le mode (priorité maximale). Seuls les modes réellement
+  // exposés par la config bar sont listés ; 'classic', 'quote', 'zen' et
+  // 'custom' n'ont pas de règle mode et passent à la collection.
   const modeRules: Partial<Record<TypingMode, EmotionalRegister>> = {
     sprint: 'energique',
-    endurance: 'contemplatif',
     ghost: 'energique',
     challenge: 'energique',
     learning: 'contemplatif',
     code: 'dramatique',
-    // 'classic' et 'bigrams' → pas de règle mode → passe à collection
   };
 
   const byMode = mode in modeRules ? modeRules[mode] : undefined;

@@ -1484,5 +1484,818 @@ class SlidingWindowRateLimiter {
       tags: ["typescript", "rate-limiter", "sliding-window"],
       codeLanguage: 'typescript',
     },
+    {
+      id: 'code-ts-19',
+      content: `function debounce<A extends unknown[]>(fn: (...args: A) => void, ms: number) {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const wrapped = (...args: A): void => {
+    if (timer !== null) clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), ms);
+  };
+  wrapped.cancel = (): void => {
+    if (timer !== null) clearTimeout(timer);
+    timer = null;
+  };
+  return wrapped;
+}`,
+      source: 'TypeScript, debounce with cancel',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 57,
+      charCount: 396,
+      tags: ["typescript","debounce","timers"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-ts-20',
+      content: `type Action =
+  | { type: 'increment'; by: number }
+  | { type: 'reset' }
+  | { type: 'set'; value: number };
+
+function counterReducer(state: number, action: Action): number {
+  switch (action.type) {
+    case 'increment':
+      return state + action.by;
+    case 'reset':
+      return 0;
+    case 'set':
+      return action.value;
+    default: {
+      const _exhaustive: never = action;
+      return _exhaustive;
+    }
+  }
+}`,
+      source: 'TypeScript, discriminated union reducer',
+      language: 'en',
+      difficulty: 4,
+      wordCount: 58,
+      charCount: 425,
+      tags: ["typescript","reducer","union"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-ts-21',
+      content: `function groupBy<T, K extends string | number>(
+  items: readonly T[],
+  key: (item: T) => K,
+): Record<K, T[]> {
+  const out = {} as Record<K, T[]>;
+  for (const item of items) {
+    const k = key(item);
+    (out[k] ??= []).push(item);
+  }
+  return out;
+}`,
+      source: 'TypeScript, groupBy helper',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 43,
+      charCount: 256,
+      tags: ["typescript","groupby","generics"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-ts-22',
+      content: `type Handler<T> = (payload: T) => void;
+
+class Emitter<Events extends Record<string, unknown>> {
+  private handlers: { [K in keyof Events]?: Set<Handler<Events[K]>> } = {};
+
+  on<K extends keyof Events>(event: K, handler: Handler<Events[K]>): () => void {
+    (this.handlers[event] ??= new Set()).add(handler);
+    return () => this.handlers[event]?.delete(handler);
+  }
+
+  emit<K extends keyof Events>(event: K, payload: Events[K]): void {
+    this.handlers[event]?.forEach((handler) => handler(payload));
+  }
+}`,
+      source: 'TypeScript, tiny event emitter',
+      language: 'en',
+      difficulty: 5,
+      wordCount: 58,
+      charCount: 512,
+      tags: ["typescript","events","generics"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-ts-23',
+      content: `const clamp = (value: number, min: number, max: number): number =>
+  Math.min(max, Math.max(min, value));
+
+const lerp = (from: number, to: number, t: number): number =>
+  from + (to - from) * clamp(t, 0, 1);`,
+      source: 'TypeScript, clamp and lerp',
+      language: 'en',
+      difficulty: 2,
+      wordCount: 34,
+      charCount: 207,
+      tags: ["typescript","math","clamp"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-ts-24',
+      content: `async function retry<T>(
+  task: () => Promise<T>,
+  attempts = 3,
+  baseMs = 200,
+): Promise<T> {
+  let lastError: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await task();
+    } catch (error) {
+      lastError = error;
+      await new Promise((resolve) => setTimeout(resolve, baseMs * 2 ** i));
+    }
+  }
+  throw lastError;
+}`,
+      source: 'TypeScript, retry with backoff',
+      language: 'en',
+      difficulty: 4,
+      wordCount: 56,
+      charCount: 354,
+      tags: ["typescript","retry","async"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-py-11',
+      content: `from collections import deque
+
+
+def sliding_max(nums: list[int], k: int) -> list[int]:
+    q: deque[int] = deque()
+    out: list[int] = []
+    for i, n in enumerate(nums):
+        while q and nums[q[-1]] <= n:
+            q.pop()
+        q.append(i)
+        if q[0] == i - k:
+            q.popleft()
+        if i >= k - 1:
+            out.append(nums[q[0]])
+    return out`,
+      source: 'Python, sliding window maximum',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 48,
+      charCount: 372,
+      tags: ["python","sliding-window","deque"],
+      codeLanguage: 'python',
+    },
+    {
+      id: 'code-py-12',
+      content: `def memoize(fn):
+    cache = {}
+
+    def wrapper(*args):
+        if args not in cache:
+            cache[args] = fn(*args)
+        return cache[args]
+
+    return wrapper
+
+
+@memoize
+def fib(n: int) -> int:
+    return n if n < 2 else fib(n - 1) + fib(n - 2)`,
+      source: 'Python, simple memoize decorator',
+      language: 'en',
+      difficulty: 2,
+      wordCount: 39,
+      charCount: 255,
+      tags: ["python","decorator","memoize"],
+      codeLanguage: 'python',
+    },
+    {
+      id: 'code-py-13',
+      content: `import time
+from contextlib import contextmanager
+
+
+@contextmanager
+def timed(label: str):
+    start = time.perf_counter()
+    try:
+        yield
+    finally:
+        elapsed = (time.perf_counter() - start) * 1000
+        print(f"{label}: {elapsed:.1f} ms")
+
+
+with timed("load"):
+    total = sum(i * i for i in range(1_000_000))`,
+      source: 'Python, context manager for timing',
+      language: 'en',
+      difficulty: 4,
+      wordCount: 37,
+      charCount: 328,
+      tags: ["python","context-manager","timing"],
+      codeLanguage: 'python',
+    },
+    {
+      id: 'code-py-14',
+      content: `from typing import Any, Iterable, Iterator
+
+
+def flatten(items: Iterable[Any]) -> Iterator[Any]:
+    for item in items:
+        if isinstance(item, (list, tuple, set)):
+            yield from flatten(item)
+        else:
+            yield item
+
+
+result = list(flatten([1, [2, 3, [4, [5]]], (6, 7)]))`,
+      source: 'Python, flatten nested iterables',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 35,
+      charCount: 298,
+      tags: ["python","recursion","generators"],
+      codeLanguage: 'python',
+    },
+    {
+      id: 'code-py-15',
+      content: `from collections import OrderedDict
+
+
+class LRUCache:
+    def __init__(self, capacity: int) -> None:
+        self.capacity = capacity
+        self.store: OrderedDict[int, int] = OrderedDict()
+
+    def get(self, key: int) -> int:
+        if key not in self.store:
+            return -1
+        self.store.move_to_end(key)
+        return self.store[key]
+
+    def put(self, key: int, value: int) -> None:
+        if key in self.store:
+            self.store.move_to_end(key)
+        self.store[key] = value
+        if len(self.store) > self.capacity:
+            self.store.popitem(last=False)`,
+      source: 'Python, LRU cache from scratch',
+      language: 'en',
+      difficulty: 5,
+      wordCount: 57,
+      charCount: 590,
+      tags: ["python","lru-cache","ordereddict"],
+      codeLanguage: 'python',
+    },
+    {
+      id: 'code-rs-08',
+      content: `fn running_sum(values: &[i64]) -> Vec<i64> {
+    values
+        .iter()
+        .scan(0i64, |acc, &value| {
+            *acc += value;
+            Some(*acc)
+        })
+        .collect()
+}
+
+fn main() {
+    let totals = running_sum(&[1, 2, 3, 4, 5]);
+    assert_eq!(totals, vec![1, 3, 6, 10, 15]);
+}`,
+      source: 'Rust, iterator adaptor for running sum',
+      language: 'en',
+      difficulty: 4,
+      wordCount: 37,
+      charCount: 299,
+      tags: ["rust","iterator","scan"],
+      codeLanguage: 'rust',
+    },
+    {
+      id: 'code-rs-09',
+      content: `use std::ops::Deref;
+
+struct NonEmpty<T>(Vec<T>);
+
+impl<T> NonEmpty<T> {
+    fn new(first: T) -> Self {
+        NonEmpty(vec![first])
+    }
+
+    fn push(&mut self, value: T) {
+        self.0.push(value);
+    }
+
+    fn first(&self) -> &T {
+        &self.0[0]
+    }
+}
+
+impl<T> Deref for NonEmpty<T> {
+    type Target = [T];
+    fn deref(&self) -> &[T] {
+        &self.0
+    }
+}`,
+      source: 'Rust, generic newtype with Deref',
+      language: 'en',
+      difficulty: 5,
+      wordCount: 48,
+      charCount: 375,
+      tags: ["rust","newtype","deref"],
+      codeLanguage: 'rust',
+    },
+    {
+      id: 'code-rs-10',
+      content: `use std::collections::HashMap;
+
+fn word_count(text: &str) -> HashMap<String, usize> {
+    let mut counts = HashMap::new();
+    for word in text.split_whitespace() {
+        let key = word.to_lowercase();
+        *counts.entry(key).or_insert(0) += 1;
+    }
+    counts
+}`,
+      source: 'Rust, word frequency count',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 29,
+      charCount: 268,
+      tags: ["rust","hashmap","entry"],
+      codeLanguage: 'rust',
+    },
+    {
+      id: 'code-go-07',
+      content: `func process(jobs <-chan int, results chan<- int, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for job := range jobs {
+		results <- job * job
+	}
+}
+
+func run(nums []int) []int {
+	jobs := make(chan int, len(nums))
+	results := make(chan int, len(nums))
+	var wg sync.WaitGroup
+	for w := 0; w < 4; w++ {
+		wg.Add(1)
+		go process(jobs, results, &wg)
+	}
+	for _, n := range nums {
+		jobs <- n
+	}
+	close(jobs)
+	wg.Wait()
+	close(results)
+	out := make([]int, 0, len(nums))
+	for r := range results {
+		out = append(out, r)
+	}
+	return out
+}`,
+      source: 'Go, worker pool with channels',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 91,
+      charCount: 522,
+      tags: ["go","goroutines","channels"],
+      codeLanguage: 'go',
+    },
+    {
+      id: 'code-go-08',
+      content: `func reverse[T any](s []T) {
+	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
+		s[i], s[j] = s[j], s[i]
+	}
+}`,
+      source: 'Go, reverse a slice in place',
+      language: 'en',
+      difficulty: 2,
+      wordCount: 27,
+      charCount: 110,
+      tags: ["go","generics","slice"],
+      codeLanguage: 'go',
+    },
+    {
+      id: 'code-go-09',
+      content: `func fetchWithTimeout(url string, d time.Duration) (*http.Response, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), d)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	return http.DefaultClient.Do(req)
+}`,
+      source: 'Go, context with timeout',
+      language: 'en',
+      difficulty: 4,
+      wordCount: 34,
+      charCount: 299,
+      tags: ["go","context","http"],
+      codeLanguage: 'go',
+    },
+    {
+      id: 'code-sql-04',
+      content: `SELECT
+  order_date,
+  amount,
+  SUM(amount) OVER (
+    ORDER BY order_date
+    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+  ) AS running_total
+FROM orders
+WHERE customer_id = 42
+ORDER BY order_date;`,
+      source: 'SQL, running total with window function',
+      language: 'en',
+      difficulty: 4,
+      wordCount: 28,
+      charCount: 205,
+      tags: ["sql","window-function","running-total"],
+      codeLanguage: 'sql',
+    },
+    {
+      id: 'code-sql-05',
+      content: `SELECT category, name, price
+FROM (
+  SELECT
+    category,
+    name,
+    price,
+    ROW_NUMBER() OVER (PARTITION BY category ORDER BY price DESC) AS rn
+  FROM products
+) ranked
+WHERE rn <= 3
+ORDER BY category, price DESC;`,
+      source: 'SQL, top N per group',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 34,
+      charCount: 221,
+      tags: ["sql","row-number","partition"],
+      codeLanguage: 'sql',
+    },
+    {
+      id: 'code-js-03',
+      content: `function deepFreeze(obj) {
+  for (const key of Object.getOwnPropertyNames(obj)) {
+    const value = obj[key];
+    if (value && typeof value === 'object' && !Object.isFrozen(value)) {
+      deepFreeze(value);
+    }
+  }
+  return Object.freeze(obj);
+}`,
+      source: 'JavaScript, deep-freeze an object',
+      language: 'en',
+      difficulty: 3,
+      wordCount: 29,
+      charCount: 248,
+      tags: ["javascript","immutability","recursion"],
+      codeLanguage: 'javascript',
+    },
+    {
+      id: 'code-js-04',
+      content: `const chunk = (array, size) =>
+  Array.from({ length: Math.ceil(array.length / size) }, (_, i) =>
+    array.slice(i * size, i * size + size),
+  );
+
+const pages = chunk([1, 2, 3, 4, 5, 6, 7], 3);`,
+      source: 'JavaScript, chunk an array',
+      language: 'en',
+      difficulty: 2,
+      wordCount: 35,
+      charCount: 194,
+      tags: ["javascript","array","chunk"],
+      codeLanguage: 'javascript',
+    },
+    {
+      id: 'code-ts-fr-10',
+      content: `// Regroupe des résultats par clé calculée, sans perdre l'ordre d'insertion.
+function indexer<T>(elements: readonly T[], cle: (e: T) => string): Map<string, T[]> {
+  const index = new Map<string, T[]>();
+  for (const element of elements) {
+    const k = cle(element);
+    const seau = index.get(k);
+    if (seau) {
+      seau.push(element);
+    } else {
+      index.set(k, [element]);
+    }
+  }
+  return index;
+}`,
+      source: 'TypeScript, exemple original',
+      language: 'fr',
+      difficulty: 3,
+      wordCount: 57,
+      charCount: 412,
+      tags: ["typescript","map","index"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-py-fr-08',
+      content: `def moyenne_glissante(valeurs: list[float], fenetre: int) -> list[float]:
+    """Retourne la moyenne mobile sur une fenetre donnee."""
+    if fenetre <= 0:
+        raise ValueError("la fenetre doit etre positive")
+    sortie: list[float] = []
+    cumul = 0.0
+    for i, valeur in enumerate(valeurs):
+        cumul += valeur
+        if i >= fenetre:
+            cumul -= valeurs[i - fenetre]
+        if i >= fenetre - 1:
+            sortie.append(cumul / fenetre)
+    return sortie`,
+      source: 'Python, exemple original',
+      language: 'fr',
+      difficulty: 3,
+      wordCount: 60,
+      charCount: 480,
+      tags: ["python","moyenne-mobile","fenetre"],
+      codeLanguage: 'python',
+    },
+    {
+      id: 'code-rs-fr-05',
+      content: `/// Decoupe une tranche en morceaux de taille fixe, le dernier pouvant etre plus court.
+fn morceaux<T>(donnees: &[T], taille: usize) -> impl Iterator<Item = &[T]> {
+    assert!(taille > 0, "la taille doit etre non nulle");
+    donnees.chunks(taille)
+}
+
+fn main() {
+    let valeurs = [1, 2, 3, 4, 5, 6, 7];
+    for bloc in morceaux(&valeurs, 3) {
+        println!("{:?}", bloc);
+    }
+}`,
+      source: 'Rust, exemple original',
+      language: 'fr',
+      difficulty: 4,
+      wordCount: 60,
+      charCount: 385,
+      tags: ["rust","chunks","iterator"],
+      codeLanguage: 'rust',
+    },
+    {
+      id: 'code-go-fr-05',
+      content: `// filtrer garde les elements pour lesquels garder renvoie vrai.
+func filtrer[T any](valeurs []T, garder func(T) bool) []T {
+	sortie := make([]T, 0, len(valeurs))
+	for _, v := range valeurs {
+		if garder(v) {
+			sortie = append(sortie, v)
+		}
+	}
+	return sortie
+}`,
+      source: 'Go, exemple original',
+      language: 'fr',
+      difficulty: 3,
+      wordCount: 43,
+      charCount: 262,
+      tags: ["go","generics","filtre"],
+      codeLanguage: 'go',
+    },
+    {
+      id: 'code-ts-25',
+      content: `class MinHeap<T> {
+  private data: T[] = [];
+
+  constructor(private readonly less: (a: T, b: T) => boolean) {}
+
+  get size(): number {
+    return this.data.length;
+  }
+
+  push(value: T): void {
+    this.data.push(value);
+    let i = this.data.length - 1;
+    while (i > 0) {
+      const parent = (i - 1) >> 1;
+      if (!this.less(this.data[i]!, this.data[parent]!)) break;
+      [this.data[i], this.data[parent]] = [this.data[parent]!, this.data[i]!];
+      i = parent;
+    }
+  }
+
+  pop(): T | undefined {
+    const top = this.data[0];
+    const last = this.data.pop();
+    if (this.data.length > 0 && last !== undefined) {
+      this.data[0] = last;
+      let i = 0;
+      const n = this.data.length;
+      while (true) {
+        const left = 2 * i + 1;
+        const right = left + 1;
+        let smallest = i;
+        if (left < n && this.less(this.data[left]!, this.data[smallest]!)) smallest = left;
+        if (right < n && this.less(this.data[right]!, this.data[smallest]!)) smallest = right;
+        if (smallest === i) break;
+        [this.data[i], this.data[smallest]] = [this.data[smallest]!, this.data[i]!];
+        i = smallest;
+      }
+    }
+    return top;
+  }
+}`,
+      source: 'TypeScript, binary min-heap',
+      language: 'en',
+      difficulty: 5,
+      wordCount: 156,
+      charCount: 1178,
+      tags: ["typescript","heap","priority-queue"],
+      codeLanguage: 'typescript',
+    },
+    {
+      id: 'code-py-16',
+      content: `class Node:
+    def __init__(self, key: int) -> None:
+        self.key = key
+        self.left: "Node | None" = None
+        self.right: "Node | None" = None
+
+
+class BST:
+    def __init__(self) -> None:
+        self.root: Node | None = None
+
+    def insert(self, key: int) -> None:
+        if self.root is None:
+            self.root = Node(key)
+            return
+        node = self.root
+        while True:
+            if key < node.key:
+                if node.left is None:
+                    node.left = Node(key)
+                    return
+                node = node.left
+            else:
+                if node.right is None:
+                    node.right = Node(key)
+                    return
+                node = node.right
+
+    def in_order(self) -> list[int]:
+        out: list[int] = []
+        stack: list[Node] = []
+        node = self.root
+        while stack or node:
+            while node:
+                stack.append(node)
+                node = node.left
+            node = stack.pop()
+            out.append(node.key)
+            node = node.right
+        return out`,
+      source: 'Python, binary search tree with in-order walk',
+      language: 'en',
+      difficulty: 5,
+      wordCount: 115,
+      charCount: 1097,
+      tags: ["python","bst","traversal"],
+      codeLanguage: 'python',
+    },
+    {
+      id: 'code-rs-11',
+      content: `fn evaluate(expression: &str) -> Result<f64, String> {
+    let mut stack: Vec<f64> = Vec::new();
+    for token in expression.split_whitespace() {
+        match token {
+            "+" | "-" | "*" | "/" => {
+                let b = stack.pop().ok_or("stack underflow")?;
+                let a = stack.pop().ok_or("stack underflow")?;
+                let result = match token {
+                    "+" => a + b,
+                    "-" => a - b,
+                    "*" => a * b,
+                    _ => {
+                        if b == 0.0 {
+                            return Err("division by zero".to_string());
+                        }
+                        a / b
+                    }
+                };
+                stack.push(result);
+            }
+            number => {
+                let value = number.parse::<f64>().map_err(|_| "invalid token")?;
+                stack.push(value);
+            }
+        }
+    }
+    stack.pop().ok_or_else(|| "empty expression".to_string())
+}`,
+      source: 'Rust, generic stack-based calculator',
+      language: 'en',
+      difficulty: 5,
+      wordCount: 98,
+      charCount: 995,
+      tags: ["rust","rpn","calculator"],
+      codeLanguage: 'rust',
+    },
+    {
+      id: 'code-go-10',
+      content: `type entry struct {
+	value   string
+	expires time.Time
+}
+
+type Store struct {
+	mu    sync.RWMutex
+	items map[string]entry
+}
+
+func NewStore() *Store {
+	return &Store{items: make(map[string]entry)}
+}
+
+func (s *Store) Set(key, value string, ttl time.Duration) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.items[key] = entry{value: value, expires: time.Now().Add(ttl)}
+}
+
+func (s *Store) Get(key string) (string, bool) {
+	s.mu.RLock()
+	e, ok := s.items[key]
+	s.mu.RUnlock()
+	if !ok || time.Now().After(e.expires) {
+		return "", false
+	}
+	return e.value, true
+}`,
+      source: 'Go, in-memory key-value store with TTL',
+      language: 'en',
+      difficulty: 5,
+      wordCount: 72,
+      charCount: 550,
+      tags: ["go","key-value","ttl"],
+      codeLanguage: 'go',
+    },
+    {
+      id: 'code-sql-06',
+      content: `SELECT date_trunc('month', event_at) AS month, COUNT(DISTINCT user_id) AS active_users FROM events GROUP BY 1 ORDER BY 1;`,
+      source: 'SQL, monthly active users',
+      language: 'en',
+      difficulty: 2,
+      wordCount: 17,
+      charCount: 121,
+      tags: ["sql","aggregate","metrics"],
+      codeLanguage: 'sql',
+    },
+    {
+      id: 'code-js-05',
+      content: `const uniqueBy = (items, key) => [...new Map(items.map((item) => [key(item), item])).values()];`,
+      source: 'JavaScript, unique by key',
+      language: 'en',
+      difficulty: 2,
+      wordCount: 11,
+      charCount: 95,
+      tags: ["javascript","array","dedupe"],
+      codeLanguage: 'javascript',
+    },
+    {
+      id: 'code-py-fr-09',
+      content: `def est_palindrome(texte: str) -> bool:
+    filtre = [c.lower() for c in texte if c.isalnum()]
+    return filtre == filtre[::-1]`,
+      source: 'Python, exemple original',
+      language: 'fr',
+      difficulty: 2,
+      wordCount: 18,
+      charCount: 128,
+      tags: ["python","palindrome","chaine"],
+      codeLanguage: 'python',
+    },
+    {
+      id: 'code-ts-fr-11',
+      content: `// Renvoie une nouvelle fonction qui ne s'execute qu'une seule fois.
+function une_fois<A extends unknown[], R>(fn: (...args: A) => R): (...args: A) => R | undefined {
+  let appele = false;
+  let resultat: R | undefined;
+  return (...args: A) => {
+    if (!appele) {
+      appele = true;
+      resultat = fn(...args);
+    }
+    return resultat;
+  };
+}`,
+      source: 'TypeScript, exemple original',
+      language: 'fr',
+      difficulty: 3,
+      wordCount: 55,
+      charCount: 350,
+      tags: ["typescript","once","closure"],
+      codeLanguage: 'typescript',
+    },
   ],
 };
