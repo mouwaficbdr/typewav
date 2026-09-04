@@ -168,7 +168,7 @@ export function WaveformBars({
                 boxShadow: isLit
                   ? `0 0 ${isActive && isPeak ? 16 : 10}px ${isActive && isPeak ? 3 : 2}px color-mix(in srgb, var(--color-accent) ${glowStrength}%, transparent)`
                   : 'none',
-                borderRadius: 'var(--radius-sm)',
+                borderRadius: 'var(--radius-full)',
                 transformOrigin: '50% 50%',
                 animation: isIdle
                   ? 'typewav-idle-pulse 2s ease-in-out ' + delay + 's infinite'

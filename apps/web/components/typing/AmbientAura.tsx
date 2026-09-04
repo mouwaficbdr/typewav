@@ -186,7 +186,8 @@ export function AmbientAura({
           maxWidth: 700,
           maxHeight: 700,
           borderRadius: '50%',
-          background: `radial-gradient(circle, color-mix(in srgb, ${accentColor} ${topOpacityPct}%, transparent) 0%, transparent 65%)`,
+          background: `radial-gradient(circle, color-mix(in srgb, ${accentColor} ${topOpacityPct}%, transparent) 0%, transparent 70%)`,
+          filter: 'blur(40px)', // Added massive blur for a true "aura" feel rather than a flat gradient
           animation: shouldReduceMotion
             ? 'none'
             : `ambient-breathe var(--beat-ms, ${IDLE_BEAT_MS}ms) ease-in-out infinite`,
@@ -203,7 +204,8 @@ export function AmbientAura({
           maxWidth: 640,
           maxHeight: 640,
           borderRadius: '50%',
-          background: `radial-gradient(circle, color-mix(in srgb, ${accentColor} ${bottomOpacityPct}%, transparent) 0%, transparent 65%)`,
+          background: `radial-gradient(circle, color-mix(in srgb, ${accentColor} ${bottomOpacityPct}%, transparent) 0%, transparent 70%)`,
+          filter: 'blur(40px)',
           animation: shouldReduceMotion
             ? 'none'
             : `ambient-breathe var(--beat-ms, ${IDLE_BEAT_MS}ms) ease-in-out infinite 0.4s`,

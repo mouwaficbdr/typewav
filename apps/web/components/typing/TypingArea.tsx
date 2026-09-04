@@ -440,9 +440,10 @@ export function TypingArea({
           height: `${LINE_HEIGHT_PX * 3}px`,
           overflow: 'hidden',
           fontFamily: 'var(--font-mono)',
-          fontSize: '2.1rem' /* Increased for premium feel */,
+          fontSize: '2.25rem' /* Bumped up for ultimate focus */,
+          fontWeight: 500, /* Slightly bolder */
           lineHeight: `${LINE_HEIGHT_PX}px`,
-          letterSpacing: '0.01em',
+          letterSpacing: '-0.02em', /* Tighter letter spacing for modern dev aesthetic */
         }}
       >
         {ghostTimings && ghostTimings.length > 0 && (

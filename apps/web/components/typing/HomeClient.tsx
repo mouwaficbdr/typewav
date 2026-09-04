@@ -94,6 +94,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     Partial<Record<CollectionId, CollectionConfig>>
   >({ litterature: initialCollection });
   const [loadingCollection, setLoadingCollection] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
   const [lastNote, setLastNote] = useState<{
     pitch: number | null;
     isError: boolean;
@@ -382,14 +383,17 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
   const handleShuffle = useCallback(() => {
     setShuffleOffset((prev) => prev + 1);
+    setHasStarted(false);
   }, []);
 
   const handleRestart = useCallback(() => {
     setRestartKey((k) => k + 1);
+    setHasStarted(false);
   }, []);
 
   const handleNoteChange = useCallback(
     (note: string | null, isError: boolean, isPhraseBoundary: boolean) => {
+      setHasStarted(true);
       const pitch = note ? noteNameToMidi(note) : null;
       setLastNote({ pitch, isError, isPhraseBoundary });
     },
@@ -479,11 +483,15 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 16, // Much tighter gap for luxury feel
+            gap: 16,
             minHeight: '130px', 
             width: '100%',
             position: 'relative',
             zIndex: 10,
+            opacity: hasStarted ? 0 : 1,
+            pointerEvents: hasStarted ? 'none' : 'auto',
+            transform: hasStarted ? 'translateY(-10px)' : 'translateY(0)',
+            transition: 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
           {/* Zone 2 — ConfigBar */}
@@ -725,18 +733,32 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         )}
       </div>
 
-      {/* Zone 5 — Controls & Hints (Centered under TypingArea) - Masqué en mode apprentissage */}
+      {/* Zone 5 — Controls, Hints & Visualizer (Centered under TypingArea) - Masqué en mode apprentissage */}
       {!isLearningMode && (
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 16,
+            gap: 24,
             width: '100%',
-            marginTop: '16px',
+            marginTop: '24px',
           }}
         >
+          {/* WaveformBars : Reste toujours visible, agit comme le feedback musical central */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <WaveformBars
+              pitch={lastNote.pitch}
+              isError={lastNote.isError}
+              isPhraseBoundary={lastNote.isPhraseBoundary}
+              numBars={24} /* Doubled for a wider, more premium look */
+              maxHeightPx={32}
+              idlePulse
+              style={{ width: 180 }}
+            />
+          </div>
+
+          {/* Contrôles et indices de redémarrage : Disparaissent pendant la frappe */}
           <div
             style={{
               display: 'flex',
@@ -744,6 +766,10 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               alignItems: 'center',
               gap: 12,
               color: 'var(--color-text-muted)',
+              opacity: hasStarted ? 0 : 1,
+              pointerEvents: hasStarted ? 'none' : 'auto',
+              transform: hasStarted ? 'translateY(10px)' : 'translateY(0)',
+              transition: 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           >
             {/* Shuffle / Next Test (MonkeyType style, centered below text) */}
@@ -802,6 +828,10 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           fontSize: '0.75rem',
           color: 'var(--color-text-muted)',
           paddingTop: '32px',
+          opacity: hasStarted ? 0 : 1,
+          pointerEvents: hasStarted ? 'none' : 'auto',
+          transform: hasStarted ? 'translateY(10px)' : 'translateY(0)',
+          transition: 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
         {/* === GAUCHE: Liens externes === */}
@@ -838,20 +868,6 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
         {/* === DROITE: Musique, Outils contextuels et versioning === */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          {!isLearningMode && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <WaveformBars
-                pitch={lastNote.pitch}
-                isError={lastNote.isError}
-                isPhraseBoundary={lastNote.isPhraseBoundary}
-                numBars={12}
-                maxHeightPx={20}
-                idlePulse
-                style={{ width: 80 }}
-              />
-            </div>
-          )}
-
           <span
             className="hover:text-text-primary cursor-pointer transition-colors"
             style={{ display: 'flex', alignItems: 'center', gap: 6 }}

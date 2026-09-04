@@ -108,28 +108,33 @@ body {
 
 .char-error {
   color: var(--color-error);
-  text-shadow: 0 0 8px color-mix(in srgb, var(--color-error) 40%, transparent);
-  text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--color-error) 40%, transparent);
-  text-underline-offset: 4px;
+  text-shadow: 0 0 12px color-mix(in srgb, var(--color-error) 60%, transparent);
+  border-bottom: 2px solid color-mix(in srgb, var(--color-error) 80%, transparent);
+  padding-bottom: 2px;
 }
 
 .char-current {
   position: relative;
   color: var(--color-text-primary);
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.4);
 }
 
 .char-current::after {
   content: '';
   position: absolute;
-  left: -0.1em;
-  bottom: 0.15em;
-  width: 0.15em;
-  height: 1.1em;
+  left: -0.05em;
+  bottom: 0.1em;
+  width: 0.12em;
+  height: 1.2em;
   background-color: var(--color-accent);
-  animation: blink 1.1s cubic-bezier(0.8, 0, 0.2, 1) infinite;
-  border-radius: 4px;
-  box-shadow: 0 0 10px var(--color-accent);
+  animation: smooth-blink 1.2s cubic-bezier(0.8, 0, 0.2, 1) infinite;
+  border-radius: 8px;
+  box-shadow: 0 0 16px 2px color-mix(in srgb, var(--color-accent) 80%, transparent);
+}
+
+@keyframes smooth-blink {
+  0%, 100% { opacity: 1; transform: scaleY(1); }
+  50% { opacity: 0.3; transform: scaleY(0.95); }
 }
 
 @keyframes shimmer {
