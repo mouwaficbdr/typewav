@@ -41,8 +41,15 @@ export function calculateRank(sessions: SessionResult[]): RankTier {
   const last10 = competitive.slice(0, 10);
   if (last10.length === 0) return 'novice';
 
-  const medianWpm = calculateMedianWpm(last10);
+  return rankTierForWpm(calculateMedianWpm(last10));
+}
 
+/**
+ * Palier de tempo correspondant à un WPM donné, une seule performance plutôt
+ * qu'une médiane glissante. Sert à étiqueter une session individuelle (par
+ * ex. dans le classement local, où chaque ligne est sa propre performance).
+ */
+export function rankTierForWpm(wpm: number): RankTier {
   const tiers: RankTier[] = [
     'ghost',
     'architect',
@@ -51,7 +58,7 @@ export function calculateRank(sessions: SessionResult[]): RankTier {
     'novice',
   ];
   for (const tier of tiers) {
-    if (medianWpm >= RANKS[tier].minWpm) return tier;
+    if (wpm >= RANKS[tier].minWpm) return tier;
   }
 
   return 'novice';

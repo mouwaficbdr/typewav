@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   calculateRank,
   checkMilestones,
+  rankTierForWpm,
   updatePersonalRecords,
 } from '../progression';
 
@@ -90,6 +91,40 @@ describe('calculateRank', () => {
       makeSession({ wpm: 100, mode: 'learning' }),
     );
     expect(calculateRank(learning)).toBe('novice');
+  });
+});
+
+// ─── rankTierForWpm ────────────────────────────────────────────────────────────
+
+describe('rankTierForWpm', () => {
+  it('retourne novice sous 31 WPM', () => {
+    expect(rankTierForWpm(0)).toBe('novice');
+    expect(rankTierForWpm(30)).toBe('novice');
+  });
+
+  it('retourne apprentice entre 31 et 50 WPM', () => {
+    expect(rankTierForWpm(31)).toBe('apprentice');
+    expect(rankTierForWpm(50)).toBe('apprentice');
+  });
+
+  it('retourne operator entre 51 et 70 WPM', () => {
+    expect(rankTierForWpm(51)).toBe('operator');
+    expect(rankTierForWpm(70)).toBe('operator');
+  });
+
+  it('retourne architect entre 71 et 90 WPM', () => {
+    expect(rankTierForWpm(71)).toBe('architect');
+    expect(rankTierForWpm(90)).toBe('architect');
+  });
+
+  it('retourne ghost à 91 WPM et plus', () => {
+    expect(rankTierForWpm(91)).toBe('ghost');
+    expect(rankTierForWpm(200)).toBe('ghost');
+  });
+
+  it('reste cohérent avec calculateRank pour une seule performance', () => {
+    const single = [makeSession({ wpm: 85 })];
+    expect(calculateRank(single)).toBe(rankTierForWpm(85));
   });
 });
 

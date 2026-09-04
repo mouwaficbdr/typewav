@@ -154,7 +154,7 @@ export function ClassementClient() {
             {tCommon('loading')}
           </p>
         ) : (
-          <LeaderboardTable entries={entries} currentUserPseudo={pseudo} />
+          <LeaderboardTable entries={entries} />
         )}
       </div>
     </main>
