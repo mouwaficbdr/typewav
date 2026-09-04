@@ -66,6 +66,9 @@ interface HomeClientProps {
  * Calcule un index de texte déterministe basé sur le jour de l'année.
  * Garantit l'absence de hydration mismatch (même valeur serveur/client).
  */
+/** Fenêtre d'historique anti-répétition (voir recentEntryIdsRef). */
+const RECENT_ENTRIES_WINDOW = 5;
+
 function getDailyIndex(length: number, offset = 0): number {
   const now = new Date();
   const start = new Date(now.getFullYear(), 0, 0);
@@ -104,10 +107,15 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const [isPersonalTextsPanelOpen, setIsPersonalTextsPanelOpen] =
     useState(false);
 
-  // Dernier texte sélectionné — passé comme excludeIds à selectFromTexts
-  // pour éviter une répétition immédiate au shuffle ou à un changement de
-  // réglage.
-  const lastEntryIdRef = useRef<string | undefined>(undefined);
+  // Historique des derniers textes sélectionnés — passé comme excludeIds à
+  // selectFromTexts pour éviter une répétition au shuffle ou à un changement
+  // de réglage. Une fenêtre de plusieurs entrées (pas juste la dernière,
+  // audit configbar C3) : sur un pool réduit, exclure un seul id produit une
+  // alternance figée A→B→A→B dès qu'il ne reste que deux textes ciblés.
+  // selectFromTexts retombe déjà sur le pool complet si l'exclusion le
+  // viderait (voir _applyFilters), donc élargir cette fenêtre ne risque
+  // aucun blocage, même sur les pools les plus étroits.
+  const recentEntryIdsRef = useRef<string[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<{
     content: string;
     source: string;
@@ -277,13 +285,16 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         ...(effectiveMode === 'sprint' ? { wordCount } : {}),
         ...(effectiveMode === 'classic' ? { durationSeconds } : {}),
         ...(numbersEnabled ? { numbersEnabled: true } : {}),
-        ...(lastEntryIdRef.current
-          ? { excludeIds: [lastEntryIdRef.current] }
+        ...(recentEntryIdsRef.current.length > 0
+          ? { excludeIds: recentEntryIdsRef.current }
           : {}),
       });
       if (!entry) return;
 
-      lastEntryIdRef.current = entry.id;
+      recentEntryIdsRef.current = [
+        entry.id,
+        ...recentEntryIdsRef.current,
+      ].slice(0, RECENT_ENTRIES_WINDOW);
       setSelectedEntry({ content: entry.content, source: entry.source ?? '' });
     });
   }, [

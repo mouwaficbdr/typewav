@@ -561,6 +561,47 @@ describe('HomeClient — application des filtres config', () => {
   });
 });
 
+describe('HomeClient — anti-répétition sur plusieurs essais (audit C3)', () => {
+  const manyTextsCollection = {
+    id: 'litterature',
+    name: 'Littérature',
+    texts: Array.from({ length: 8 }, (_, i) => ({
+      id: `lit-${i}`,
+      content: `Texte numero ${i} pour le test anti repetition, assez long pour cibler la meme fenetre de duree a chaque fois.`,
+      source: 'Auteur Test',
+      language: 'fr',
+      difficulty: 2,
+      wordCount: 18,
+      charCount: 108,
+    })),
+  };
+
+  it('exclut plusieurs textes récents, pas seulement le dernier, après plusieurs essais consécutifs', async () => {
+    mockFetchCollection.mockResolvedValueOnce(manyTextsCollection);
+    const collectionsModule = await import('@typewav/collections');
+    const selectSpy = vi.spyOn(collectionsModule, 'selectFromTexts');
+
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={manyTextsCollection as never} />);
+
+    await waitFor(() => expect(selectSpy).toHaveBeenCalled());
+
+    const shuffleButton = screen.getByTitle('nextTest');
+    for (let i = 0; i < 4; i++) {
+      const callsBefore = selectSpy.mock.calls.length;
+      fireEvent.click(shuffleButton);
+      await waitFor(() =>
+        expect(selectSpy.mock.calls.length).toBeGreaterThan(callsBefore),
+      );
+    }
+
+    // Avant ce correctif : excludeIds ne portait jamais qu'un seul id, quel
+    // que soit le nombre d'essais déjà faits.
+    const lastCallOptions = selectSpy.mock.calls.at(-1)?.[1];
+    expect(lastCallOptions?.excludeIds?.length ?? 0).toBeGreaterThan(1);
+  });
+});
+
 describe('HomeClient — attribution mode citation', () => {
   it('affiche la source du texte en mode citation', async () => {
     const { useConfigStore } = await import('@/stores/useConfigStore');
