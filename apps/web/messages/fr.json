@@ -5,7 +5,8 @@
     "profile": "Mon profil",
     "leaderboard": "Classement",
     "typing": "Clavier",
-    "settings": "Paramètres"
+    "settings": "Paramètres",
+    "about": "À propos"
   },
   "typing": {
     "start": "Commencez à taper pour démarrer…",
@@ -401,5 +402,81 @@
     "koFiLabel": "Ko-fi : soutien ponctuel",
     "sponsorsLabel": "GitHub Sponsors : soutien mensuel",
     "backToTyping": "Retour au typing"
+  },
+  "about": {
+    "metaTitle": "À propos",
+    "metaDescription": "Ce qu'est TypeWav : un entraîneur de frappe où chaque touche juste joue la note suivante d'un vrai morceau de piano, sans compte, dans le navigateur.",
+    "kicker": "À propos",
+    "masthead": "Tape juste. La note tombe.",
+    "lead": "TypeWav est un entraîneur de frappe musical : chaque frappe correcte joue la note suivante d'un vrai morceau de piano. Tout se passe dans ton navigateur, sans compte.",
+    "manifesto": {
+      "heading": "Le manifeste",
+      "body": "La partition n'avance que si tu tapes juste. Le morceau existe déjà en entier ; ta frappe en est la baguette.",
+      "correctTerm": "Bonne touche",
+      "correctDesc": "la note suivante du morceau se joue.",
+      "wrongTerm": "Faute",
+      "wrongDesc": "rien. Jamais de fausse note, seulement du silence.",
+      "backspaceTerm": "Retour arrière",
+      "backspaceDesc": "la faute s'efface et la musique repart sous un voile de réverbe.",
+      "tempoTerm": "Ton tempo",
+      "tempoDesc": "suit ton rythme de frappe. L'octave, elle, garde un motif fixe par mot : seul le tempo réagit."
+    },
+    "music": {
+      "heading": "La musique",
+      "body": "Les morceaux sont lus depuis de vrais fichiers MIDI du domaine public, puis rendus par un séquenceur qui avance note par note. Aucune boucle, aucun sample plaqué : c'est la pièce entière, dévoilée au fil de ta frappe."
+    },
+    "modes": {
+      "heading": "Les modes",
+      "classicName": "Temps",
+      "classicDesc": "Taper le plus possible sur une durée choisie : 15, 30, 60 ou 120 secondes.",
+      "sprintName": "Mots",
+      "sprintDesc": "Un objectif de mots à atteindre : 10, 25, 50 ou 100.",
+      "quoteName": "Citation",
+      "quoteDesc": "Une citation entière, attribuée à son auteur et à son œuvre.",
+      "zenName": "Zen",
+      "zenDesc": "Sans minuteur ni objectif de mots. On avance à son rythme.",
+      "codeName": "Code",
+      "codeDesc": "Des extraits de code réels, ponctuation et chiffres compris.",
+      "learningName": "Apprentissage",
+      "learningDesc": "Cinq niveaux progressifs, de la rangée de repos au clavier complet.",
+      "ghostName": "Fantôme",
+      "ghostDesc": "Un curseur rejoue ton meilleur record pendant que tu tapes.",
+      "customName": "Libre",
+      "customDesc": "Tes propres textes, collés une fois et gardés dans le navigateur."
+    },
+    "corpus": {
+      "heading": "Le corpus",
+      "body": "Cinq collections de textes : littérature, poésie, philosophie, gaming, code. Tout est du domaine public ou libre de droits : auteur mort depuis plus de soixante-dix ans, source vérifiable (Wikisource, Project Gutenberg), langue indiquée pour chaque entrée. Les critères complets sont dans le fichier CONTRIBUTING du dépôt.",
+      "collections": "littérature · poésie · philosophie · gaming · code"
+    },
+    "local": {
+      "heading": "Local d'abord, sans compte",
+      "body": "Pas d'inscription, pas de serveur, pas de pistage. Tes séances, tes records et tes textes personnels vivent dans ton navigateur, via IndexedDB. Tu peux tout exporter, ou tout réimporter, depuis les <settings>paramètres</settings>."
+    },
+    "shortcuts": {
+      "heading": "Raccourcis clavier",
+      "restart": "Recommence la séance en cours.",
+      "encore": "Depuis l'écran de résultats, relance un test.",
+      "backspace": "Corrige la dernière faute. La musique reprend sous un voile de réverbe.",
+      "escape": "Ferme un panneau ouvert : sélecteur de morceau, textes personnels.",
+      "escKey": "Échap"
+    },
+    "glossary": {
+      "heading": "Glossaire",
+      "wpmTerm": "WPM",
+      "wpmDesc": "Mots par minute bruts : le nombre de caractères tapés divisé par cinq, ramené à la minute. Toutes les frappes comptent, justes ou non.",
+      "wpmNetTerm": "WPM net",
+      "wpmNetDesc": "Le même calcul, mais seuls les caractères corrects comptent. Une erreur n'est jamais pénalisée deux fois.",
+      "accuracyTerm": "Précision",
+      "accuracyDesc": "La part de frappes correctes sur l'ensemble des frappes de la séance.",
+      "consistencyTerm": "Régularité",
+      "consistencyDesc": "La stabilité de ton débit. La séance est découpée en fenêtres de cinq secondes ; plus les vitesses se ressemblent d'une fenêtre à l'autre, plus la régularité est haute."
+    },
+    "links": {
+      "heading": "Liens",
+      "github": "Code source sur GitHub",
+      "terms": "Transparence et conditions"
+    },
+    "closing": "Assez lu. Retour au clavier."
   }
 }
