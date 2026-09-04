@@ -62,6 +62,16 @@ export function GhostCursor({
   const anchorRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
   const positionRef = useRef(0);
+  // Vrai dès le premier positionnement réussi, pour toujours. Découplé de
+  // cursorStyle.width : un espace entre deux mots a une largeur de 0px tant
+  // que le VRAI curseur (indépendant du fantôme) n'est pas dessus (voir le
+  // rendu des mots dans TypingArea). Si on cache le fantôme sur
+  // cursorStyle.width === 0, chaque espace démonte le <motion.div> ; au
+  // prochain caractère, Framer Motion le remonte et l'anime depuis le style
+  // statique top:0/left:0 (le coin du conteneur, à peu près la première
+  // lettre du tout premier mot) avant d'appliquer la transform animate : un
+  // flash bref mais visible « retour au début » à chaque changement de mot.
+  const hasPositionedRef = useRef(false);
 
   // Moteur d'avancement du fantôme
   useEffect(() => {
@@ -113,7 +123,8 @@ export function GhostCursor({
       // Coordonnées relatives au conteneur 'wordsRef'
       const x = targetRect.left - parentRect.left;
       const y = targetRect.top - parentRect.top;
-      
+
+      hasPositionedRef.current = true;
       setCursorStyle({
         x,
         y,
@@ -125,8 +136,12 @@ export function GhostCursor({
   }, [ghostPosition, textLength, wordsRef]);
 
   // Rien avant le vrai départ de la session (voir isSessionActive plus
-  // haut), et rien tant qu'on n'a pas encore de dimensions (évite un flash).
-  if (!isSessionActive || cursorStyle.width === 0) return null;
+  // haut), et rien tant qu'aucun positionnement n'a encore réussi (évite un
+  // flash au tout premier rendu). Une fois positionné, le composant reste
+  // monté en continu : voir hasPositionedRef plus haut, sur un espace de
+  // largeur 0 c'est Math.max(width, 12) juste en dessous qui prend le relais,
+  // pas un démontage.
+  if (!isSessionActive || !hasPositionedRef.current) return null;
 
   return (
     <motion.div
