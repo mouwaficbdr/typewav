@@ -1,15 +1,24 @@
 'use client';
 
 /**
- * ProfilClient : dashboard profil principal.
+ * ProfilClient : le dashboard profil, rendu comme un artefact gravé.
  *
- * Client Component justifié : IndexedDB, Recharts interactif, Zustand.
+ * Le centre de la page est « Le Rouleau » (PracticeRoll) : toute la pratique
+ * de l'utilisateur en un seul objet, façon rouleau de piano mécanique, qui
+ * absorbe la progression, l'activité et l'accès aux replays. Le masthead porte
+ * l'identité (rang narratif), l'échelle de rang (RankLadder) porte le retour.
+ * Prolonge le langage « la séance gravée » de l'écran de résultats.
+ *
+ * Client Component justifié : IndexedDB, Zustand, motion.
  * Spec : docs/specs/08-10-social-analytics-extensibility.md (Profil & analytics)
- * Spec : docs/specs/31-pages-refonte.md (FORGE [3] design direction)
  */
 
-import { ContributionHeatmap } from '@/components/charts/ContributionHeatmap';
-import { WpmProgressChart } from '@/components/charts/WpmProgressChart';
+import { PracticeRoll } from '@/components/profile/PracticeRoll';
+import { ProfileSpotlight } from '@/components/profile/ProfileSpotlight';
+import { RankLadder } from '@/components/profile/RankLadder';
+import { NumberTicker } from '@/components/ui/NumberTicker';
+import { ScrambleText } from '@/components/ui/ScrambleText';
+import { useEntranceAnimated } from '@/hooks/useEntranceAnimated';
 import {
   getPersonalRecords,
   getSessionById,
@@ -19,17 +28,62 @@ import {
 import { generateReplayLink } from '@/lib/replay';
 import { useProgressionStore } from '@/stores/useProgressionStore';
 import type { PersonalRecords, RankTier, SessionResult } from '@typewav/types';
-import { Play } from 'lucide-react';
+import { motion } from 'motion/react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { motion } from 'motion/react';
-import { ProfileSpotlight } from '@/components/profile/ProfileSpotlight';
-import { NumberTicker } from '@/components/ui/NumberTicker';
-import { ScrambleText } from '@/components/ui/ScrambleText';
 import { useEffect, useState } from 'react';
 
-type ChartDays = 7 | 30 | 90;
+const RANK_TIERS: RankTier[] = [
+  'novice',
+  'apprentice',
+  'operator',
+  'architect',
+  'ghost',
+];
+
+function median(values: number[]): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = sorted.length >> 1;
+  return sorted.length % 2 === 0
+    ? Math.round(((sorted[mid - 1] ?? 0) + (sorted[mid] ?? 0)) / 2)
+    : Math.round(sorted[mid] ?? 0);
+}
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.05 },
+  },
+};
+const itemVariants = {
+  hidden: { opacity: 0, y: 24 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { type: 'spring' as const, stiffness: 80, damping: 20 },
+  },
+};
+
+const EYEBROW: React.CSSProperties = {
+  fontFamily: 'var(--font-mono)',
+  fontSize: '0.72rem',
+  letterSpacing: '0.2em',
+  textTransform: 'uppercase',
+  color: 'var(--color-text-muted)',
+};
+
+// Grille asymétrique en flex : le rouleau (base 560) et la colonne
+// records/rang (base 320, plafonnée) passent en une seule colonne sous
+// ~940px sans média-query.
+const PROFILE_GRID: React.CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: 64,
+  alignItems: 'flex-start',
+};
 
 export function ProfilClient() {
   const { setProfile, setPersonalRecords, setRank } = useProgressionStore();
@@ -38,12 +92,12 @@ export function ProfilClient() {
   const tRanks = useTranslations('ranks');
   const locale = useLocale();
   const router = useRouter();
+  const animating = useEntranceAnimated();
 
   const [sessions, setSessions] = useState<SessionResult[]>([]);
   const [records, setRecords] = useState<PersonalRecords | null>(null);
   const [rank, setLocalRank] = useState<RankTier>('novice');
   const [pseudo, setPseudo] = useState('');
-  const [chartDays, setChartDays] = useState<ChartDays>(30);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -53,104 +107,69 @@ export function ProfilClient() {
         getUserProfile(),
         getPersonalRecords(),
       ]);
-
       setSessions(allSessions);
       setRecords(personalRecords);
       setLocalRank(profile.currentRank);
       setPseudo(profile.pseudo);
-
-      // Synchroniser le store global
       setProfile(profile);
       setRank(profile.currentRank);
       if (personalRecords) setPersonalRecords(personalRecords);
-
       setLoading(false);
     }
     void load();
   }, [setProfile, setPersonalRecords, setRank]);
 
+  const shellStyle = {
+    minHeight: 'calc(100dvh - var(--nav-height))',
+    padding: 'clamp(40px, 6vh, 72px) clamp(20px, 4vw, 40px)',
+    maxWidth: 1200,
+    margin: '0 auto',
+  } satisfies React.CSSProperties;
+
   if (loading) {
     return (
-      <main
-        style={{
-          minHeight: 'calc(100dvh - var(--nav-height))',
-          padding: '64px 32px',
-          maxWidth: 1200,
-          margin: '0 auto',
-        }}
-      >
-        <header
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            borderBottom: '1px solid rgba(255,255,255,0.05)',
-            paddingBottom: '48px',
-            marginBottom: '64px',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '32px' }}>
-            <div style={{ width: '60%' }}>
-              <div className="skeleton" style={{ width: '120px', height: '14px', marginBottom: '24px' }} />
-              <div className="skeleton" style={{ width: '80%', height: '80px', marginBottom: '24px' }} />
-              <div style={{ display: 'flex', gap: '24px' }}>
-                <div className="skeleton" style={{ width: '100px', height: '32px' }} />
-                <div className="skeleton" style={{ width: '100px', height: '32px' }} />
-              </div>
-            </div>
-            <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', width: '20%' }}>
-              <div className="skeleton" style={{ width: '80px', height: '14px', marginBottom: '16px' }} />
-              <div className="skeleton" style={{ width: '120px', height: '64px' }} />
+      <ProfileSpotlight>
+        <main style={shellStyle}>
+          <div
+            className="skeleton"
+            style={{ width: '55%', height: 90, marginBottom: 40 }}
+          />
+          <div
+            className="skeleton"
+            style={{ width: '100%', height: 1, marginBottom: 56, opacity: 0.4 }}
+          />
+          <div style={PROFILE_GRID}>
+            <div
+              className="skeleton"
+              style={{ flex: '1 1 560px', minWidth: 0, height: 240 }}
+            />
+            <div
+              style={{
+                flex: '1 1 320px',
+                minWidth: 0,
+                maxWidth: 440,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 40,
+              }}
+            >
+              <div className="skeleton" style={{ width: '70%', height: 120 }} />
+              <div className="skeleton" style={{ width: '100%', height: 260 }} />
             </div>
           </div>
-        </header>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '80px' }}>
-          {/* Left Column */}
-          <div style={{ flex: '2 1 600px', display: 'flex', flexDirection: 'column', gap: '80px' }}>
-            <section>
-              <div className="skeleton" style={{ width: '200px', height: '32px', marginBottom: '32px' }} />
-              <div className="skeleton" style={{ width: '100%', height: '300px' }} />
-            </section>
-            <section>
-              <div className="skeleton" style={{ width: '250px', height: '32px', marginBottom: '32px' }} />
-              <div className="skeleton" style={{ width: '100%', height: '160px' }} />
-            </section>
-          </div>
-
-          {/* Right Column */}
-          <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '80px' }}>
-            <section>
-              <div className="skeleton" style={{ width: '150px', height: '16px', marginBottom: '32px' }} />
-              <div className="skeleton" style={{ width: '120px', height: '64px', marginBottom: '24px' }} />
-              <div className="skeleton" style={{ width: '100px', height: '48px' }} />
-            </section>
-            <section>
-              <div className="skeleton" style={{ width: '150px', height: '16px', marginBottom: '32px' }} />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div className="skeleton" style={{ width: '100%', height: '72px' }} />
-                <div className="skeleton" style={{ width: '100%', height: '72px' }} />
-                <div className="skeleton" style={{ width: '100%', height: '72px' }} />
-              </div>
-            </section>
-          </div>
-        </div>
-      </main>
+        </main>
+      </ProfileSpotlight>
     );
   }
 
   const totalSessions = sessions.length;
-  const avgWpm =
-    totalSessions > 0
-      ? Math.round(sessions.reduce((acc, s) => acc + s.wpm, 0) / totalSessions)
-      : 0;
-  const avgAccuracy =
-    totalSessions > 0
-      ? Math.round(
-          sessions.reduce((acc, s) => acc + s.accuracy, 0) / totalSessions,
-        )
-      : 0;
+  const hasHistory = totalSessions > 0;
+  const medianWpm = median(sessions.map((s) => s.wpm));
+  const medianAccuracy = median(sessions.map((s) => s.accuracy));
 
-  const recentReplays = sessions.slice(0, 5);
+  const rankLabels = Object.fromEntries(
+    RANK_TIERS.map((tier) => [tier, tRanks(tier)]),
+  ) as Record<RankTier, string>;
 
   const handleOpenReplay = async (sessionId: string) => {
     const session = await getSessionById(sessionId);
@@ -165,326 +184,336 @@ export function ProfilClient() {
       soundPack: session.soundPackId,
       achievedAt: session.timestamp,
     };
-    const relativePath = generateReplayLink(replayData);
-    router.push(`/${locale}${relativePath}`);
+    router.push(`/${locale}${generateReplayLink(replayData)}`);
   };
 
+  const markLabel = (s: SessionResult) =>
+    tProfile('rollMark', {
+      date: new Date(s.timestamp).toLocaleDateString(locale, {
+        day: '2-digit',
+        month: 'short',
+      }),
+      wpm: s.wpm,
+      accuracy: Math.round(s.accuracy),
+    });
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1, delayChildren: 0.1 }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    show: { 
-      opacity: 1, 
-      y: 0,
-      transition: { type: 'spring', stiffness: 70, damping: 20 }
-    }
-  };
+  const orchestrated = animating
+    ? {
+        variants: containerVariants,
+        initial: 'hidden' as const,
+        animate: 'show' as const,
+      }
+    : {};
 
   return (
     <ProfileSpotlight>
-      <motion.main
-        variants={containerVariants}
-        initial="hidden"
-        animate="show"
-        style={{
-          minHeight: 'calc(100dvh - var(--nav-height))',
-          padding: '64px 32px',
-          maxWidth: 1200,
-          margin: '0 auto',
-        }}
-      >
-        {/* Editorial Header */}
+      <motion.main {...orchestrated} style={shellStyle}>
+        {/* Masthead : l'identité */}
         <motion.header
           variants={itemVariants}
           style={{
+            borderBottom:
+              '1px solid color-mix(in srgb, var(--color-border) 60%, transparent)',
+            paddingBottom: 40,
+            marginBottom: 56,
             display: 'flex',
-            flexDirection: 'column',
-            borderBottom: '1px solid rgba(255,255,255,0.05)',
-            paddingBottom: '48px',
-            marginBottom: '64px',
+            justifyContent: 'space-between',
+            alignItems: 'flex-end',
+            flexWrap: 'wrap',
+            gap: 32,
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '32px' }}>
-            <div>
+          <div>
+            <span style={{ ...EYEBROW, display: 'block', marginBottom: 14 }}>
+              {tProfile('currentStatus')}
+            </span>
+            <h1
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontWeight: 300,
+                fontSize: 'clamp(2.75rem, 8vw, 5.5rem)',
+                lineHeight: 1,
+                letterSpacing: '-0.02em',
+                textTransform: 'uppercase',
+                color: 'var(--color-text-primary)',
+                margin: 0,
+              }}
+            >
+              <ScrambleText
+                text={tRanks(rank)}
+                enabled={animating}
+                delay={0.15}
+              />
+            </h1>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: 24,
+                marginTop: 22,
+                flexWrap: 'wrap',
+                fontFamily: 'var(--font-mono)',
+              }}
+            >
               <span
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '0.75rem',
-                  color: 'var(--color-text-muted)',
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                  display: 'block',
-                  marginBottom: '16px',
-                }}
+                style={{ fontSize: '1.35rem', color: 'var(--color-text-primary)' }}
               >
-                {tProfile('currentStatus')}
-              </span>
-              <h1
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontWeight: 300,
-                  fontSize: 'clamp(3rem, 8vw, 6rem)',
-                  lineHeight: 1,
-                  color: 'var(--color-text-primary)',
-                  letterSpacing: '-0.02em',
-                  textTransform: 'uppercase',
-                  margin: 0,
-                }}
-              >
-                <ScrambleText text={tRanks(rank)} delay={0.2} duration={1200} />
-              </h1>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginTop: '24px' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '1.5rem', color: 'var(--color-text-primary)' }}>
-                  <NumberTicker value={avgWpm} delay={0.4} /> <span style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>WPM</span>
+                <NumberTicker
+                  value={medianWpm}
+                  animate={animating}
+                  delay={0.2}
+                />{' '}
+                <span
+                  style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}
+                >
+                  {tProfile('medianWpm')}
                 </span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '1.5rem', color: 'var(--color-text-primary)' }}>
-                  <NumberTicker value={avgAccuracy} delay={0.5} />% <span style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>ACC</span>
+              </span>
+              <span
+                style={{ fontSize: '1.35rem', color: 'var(--color-text-primary)' }}
+              >
+                <NumberTicker
+                  value={medianAccuracy}
+                  animate={animating}
+                  delay={0.28}
+                />
+                %{' '}
+                <span
+                  style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}
+                >
+                  {tProfile('medianAccuracy')}
                 </span>
-                {pseudo && (
-                  <motion.span
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.8 }}
-                    style={{
-                      fontFamily: 'var(--font-ui)',
-                      fontSize: '0.875rem',
-                      color: 'var(--color-text-muted)',
-                      marginLeft: '8px',
-                      paddingLeft: '32px',
-                      borderLeft: '1px solid rgba(255,255,255,0.1)',
-                    }}
-                  >
-                    @{pseudo}
-                  </motion.span>
-                )}
-              </div>
-            </div>
-            
-            <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-              <span
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '0.75rem',
-                  color: 'var(--color-text-muted)',
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                  marginBottom: '12px',
-                  display: 'block'
-                }}
-              >
-                {tProfile('sessionCount', { count: totalSessions })}
               </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '3rem',
-                  lineHeight: 1,
-                  color: 'var(--color-text-primary)',
-                }}
-              >
-                <NumberTicker value={totalSessions} delay={0.6} />
-              </span>
+              {pseudo && (
+                <span
+                  style={{
+                    fontSize: '0.85rem',
+                    color: 'var(--color-text-muted)',
+                    paddingLeft: 24,
+                    borderLeft:
+                      '1px solid color-mix(in srgb, var(--color-border) 60%, transparent)',
+                  }}
+                >
+                  @{pseudo}
+                </span>
+              )}
             </div>
+          </div>
+
+          <div style={{ textAlign: 'right' }}>
+            <span style={{ ...EYEBROW, display: 'block', marginBottom: 10 }}>
+              {tProfile('sessionCount', { count: totalSessions })}
+            </span>
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '2.75rem',
+                lineHeight: 1,
+                color: 'var(--color-text-primary)',
+              }}
+            >
+              <NumberTicker
+                value={totalSessions}
+                animate={animating}
+                delay={0.34}
+              />
+            </span>
           </div>
         </motion.header>
 
-        {/* Asymmetric Grid Layout */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '80px',
-          }}
-        >
-          {/* Left Column: Data Visualization */}
-          <div style={{ flex: '2 1 600px', display: 'flex', flexDirection: 'column', gap: '80px' }}>
-            
-            {/* Progression Chart */}
-            <motion.section variants={itemVariants}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '32px' }}>
+        <div style={PROFILE_GRID}>
+          {/* Colonne large : Le Rouleau */}
+          <motion.section
+            variants={itemVariants}
+            style={{ flex: '1 1 560px', minWidth: 0 }}
+          >
+            <h2 style={{ ...EYEBROW, margin: '0 0 24px' }}>
+              {tProfile('wpmProgress')}
+            </h2>
+            <PracticeRoll
+              sessions={sessions}
+              {...(records?.maxWpm.sessionId
+                ? { recordWpmSessionId: records.maxWpm.sessionId }
+                : {})}
+              {...(records?.maxAccuracy.sessionId
+                ? { recordAccSessionId: records.maxAccuracy.sessionId }
+                : {})}
+              onReplaySession={(id) => void handleOpenReplay(id)}
+              markLabel={markLabel}
+              rollLabel={(count) => tProfile('rollAria', { count })}
+              formatRulerDate={(ts) =>
+                new Date(ts).toLocaleDateString(locale, {
+                  month: 'short',
+                  year: '2-digit',
+                })
+              }
+              emptyLabel={tProfile('rollEmpty')}
+              animate={animating}
+            />
+            {!hasHistory && (
+              <p
+                style={{
+                  fontFamily: 'var(--font-ui)',
+                  fontSize: '0.9rem',
+                  color: 'var(--color-text-muted)',
+                  marginTop: 20,
+                }}
+              >
+                {tProfile('emptyLead')}
+              </p>
+            )}
+          </motion.section>
+
+          {/* Colonne étroite : Records + Rang */}
+          <div
+            style={{
+              flex: '1 1 320px',
+              minWidth: 0,
+              maxWidth: 440,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 48,
+            }}
+          >
+            {hasHistory && (
+              <motion.section variants={itemVariants}>
                 <h2
                   style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: '2rem',
-                    color: 'var(--color-text-primary)',
-                    margin: 0,
-                    letterSpacing: '-0.01em',
+                    ...EYEBROW,
+                    borderBottom:
+                      '1px solid color-mix(in srgb, var(--color-border) 60%, transparent)',
+                    paddingBottom: 14,
+                    margin: '0 0 28px',
                   }}
                 >
-                  {tProfile('wpmProgress')}
+                  {tProfile('personalRecords')}
                 </h2>
-                <div style={{ display: 'flex', gap: '4px' }}>
-                  {([7, 30, 90] as ChartDays[]).map((d) => (
-                    <button
-                      key={d}
-                      onClick={() => setChartDays(d)}
+                <div
+                  style={{ display: 'flex', flexDirection: 'column', gap: 28 }}
+                >
+                  <div>
+                    <span
                       style={{
-                        background: 'none',
-                        border: 'none',
-                        color: chartDays === d ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
+                        display: 'block',
                         fontFamily: 'var(--font-ui)',
-                        fontSize: '0.875rem',
-                        fontWeight: chartDays === d ? 500 : 400,
-                        cursor: 'pointer',
-                        padding: '4px 8px',
-                        transition: 'color 0.2s ease',
-                        borderBottom: chartDays === d ? '1px solid var(--color-text-primary)' : '1px solid transparent',
+                        fontSize: '0.85rem',
+                        color: 'var(--color-text-muted)',
+                        marginBottom: 6,
                       }}
                     >
-                      {tProfile('daysFilter', { count: d })}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div style={{ height: '300px', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                <WpmProgressChart sessions={sessions} days={chartDays} />
-              </div>
-            </motion.section>
-
-            {/* Heatmap */}
-            <motion.section variants={itemVariants}>
-              <h2
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '2rem',
-                  color: 'var(--color-text-primary)',
-                  margin: '0 0 32px 0',
-                  letterSpacing: '-0.01em',
-                }}
-              >
-                {tProfile('activity90Days')}
-              </h2>
-              <ContributionHeatmap sessions={sessions} />
-            </motion.section>
-          </div>
-
-          {/* Right Column: Personal Records & Recent Sessions */}
-          <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '80px' }}>
-            
-            {/* Personal Records */}
-            <motion.section variants={itemVariants}>
-              <h2
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '0.75rem',
-                  color: 'var(--color-text-muted)',
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                  borderBottom: '1px solid rgba(255,255,255,0.05)',
-                  paddingBottom: '16px',
-                  margin: '0 0 32px 0',
-                }}
-              >
-                {tProfile('personalRecords')}
-              </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-                <div>
-                  <span style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '8px' }}>
-                    {tProfile('recordWpm')}
-                  </span>
-                  <span style={{ fontFamily: 'var(--font-display)', fontSize: '4rem', lineHeight: 1, color: 'var(--color-accent)' }}>
-                    <NumberTicker value={records?.maxWpm.value ?? 0} delay={0.7} />
-                  </span>
-                </div>
-                <div>
-                  <span style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '8px' }}>
-                    {tProfile('recordAccuracy')}
-                  </span>
-                  <span style={{ fontFamily: 'var(--font-display)', fontSize: '3rem', lineHeight: 1, color: 'var(--color-text-primary)' }}>
-                    <NumberTicker value={Math.round(records?.maxAccuracy.value ?? 0)} delay={0.8} />%
-                  </span>
-                </div>
-              </div>
-            </motion.section>
-
-            {/* Recent Sessions */}
-            <motion.section variants={itemVariants}>
-              <h2
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '0.75rem',
-                  color: 'var(--color-text-muted)',
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                  borderBottom: '1px solid rgba(255,255,255,0.05)',
-                  paddingBottom: '16px',
-                  margin: '0 0 32px 0',
-                }}
-              >
-                {tProfile('recentReplays')}
-              </h2>
-              
-              {recentReplays.length === 0 ? (
-                <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', fontFamily: 'var(--font-ui)' }}>
-                  {tProfile('noReplays')}
-                </p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  {recentReplays.map((session, i) => (
-                    <motion.div
-                      key={session.id}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 0.8, x: 0 }}
-                      transition={{ delay: 1 + i * 0.1 }}
-                      whileHover={{ opacity: 1, x: 4 }}
-                      onClick={() => void handleOpenReplay(session.id)}
+                      {tProfile('recordWpm')}
+                    </span>
+                    <span
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '16px 0',
-                        borderBottom: '1px solid rgba(255,255,255,0.03)',
-                        cursor: 'pointer',
+                        fontFamily: 'var(--font-display)',
+                        fontSize: '3.5rem',
+                        lineHeight: 1,
+                        color: 'var(--color-accent)',
                       }}
                     >
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '1.25rem', color: 'var(--color-text-primary)' }}>
-                          {session.wpm} <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>WPM</span>
-                        </span>
-                        <span style={{ fontFamily: 'var(--font-ui)', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                          {session.accuracy.toFixed(0)}% · {session.mode}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                          {new Date(session.timestamp).toLocaleDateString(locale, { day: '2-digit', month: '2-digit' })}
-                        </span>
-                        <Play size={14} style={{ color: 'var(--color-text-muted)' }} />
-                      </div>
-                    </motion.div>
-                  ))}
+                      <NumberTicker
+                        value={records?.maxWpm.value ?? 0}
+                        animate={animating}
+                        delay={0.42}
+                      />
+                    </span>
+                  </div>
+                  <div>
+                    <span
+                      style={{
+                        display: 'block',
+                        fontFamily: 'var(--font-ui)',
+                        fontSize: '0.85rem',
+                        color: 'var(--color-text-muted)',
+                        marginBottom: 6,
+                      }}
+                    >
+                      {tProfile('recordAccuracy')}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-display)',
+                        fontSize: '2.5rem',
+                        lineHeight: 1,
+                        color: 'var(--color-text-primary)',
+                      }}
+                    >
+                      <NumberTicker
+                        value={Math.round(records?.maxAccuracy.value ?? 0)}
+                        animate={animating}
+                        delay={0.48}
+                      />
+                      %
+                    </span>
+                  </div>
                 </div>
-              )}
+              </motion.section>
+            )}
+
+            <motion.section variants={itemVariants}>
+              <h2
+                style={{
+                  ...EYEBROW,
+                  borderBottom:
+                    '1px solid color-mix(in srgb, var(--color-border) 60%, transparent)',
+                  paddingBottom: 14,
+                  margin: '0 0 24px',
+                }}
+              >
+                {tProfile('rank')}
+              </h2>
+              <RankLadder
+                currentRank={rank}
+                currentWpm={medianWpm}
+                labels={rankLabels}
+                nextRankText={(nextLabel, wpm, gap) =>
+                  tProfile('nextRank', { rank: nextLabel, wpm, gap })
+                }
+                maxedText={tProfile('rankMaxed')}
+              />
             </motion.section>
           </div>
         </div>
-        
-        {/* Return Link */}
-        <motion.div variants={itemVariants} style={{ marginTop: '100px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '40px' }}>
+
+        <motion.footer
+          variants={itemVariants}
+          style={{
+            marginTop: 88,
+            paddingTop: 32,
+            borderTop:
+              '1px solid color-mix(in srgb, var(--color-border) 60%, transparent)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 16,
+            fontFamily: 'var(--font-ui)',
+            fontSize: '0.8rem',
+            color: 'var(--color-text-muted)',
+          }}
+        >
           <Link
             href={`/${locale}`}
-            style={{
-              fontFamily: 'var(--font-ui)',
-              fontSize: '0.875rem',
-              color: 'var(--color-text-muted)',
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'color 0.2s ease',
-            }}
-            className="hover:text-text-primary"
+            className="transition-colors duration-150 hover:text-[var(--color-text-primary)]"
+            style={{ color: 'var(--color-text-muted)', textDecoration: 'none' }}
           >
             {tCommon('backToTyping')}
           </Link>
-        </motion.div>
+          <span>
+            {tProfile('dataLocal')}{' '}
+            <Link
+              href={`/${locale}/parametres`}
+              className="transition-colors duration-150 hover:text-[var(--color-text-primary)]"
+              style={{
+                color: 'var(--color-text-muted)',
+                textDecoration: 'underline',
+                textUnderlineOffset: 3,
+              }}
+            >
+              {tProfile('manageData')}
+            </Link>
+          </span>
+        </motion.footer>
       </motion.main>
     </ProfileSpotlight>
   );

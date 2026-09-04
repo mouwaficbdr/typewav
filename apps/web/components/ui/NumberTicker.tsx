@@ -1,30 +1,48 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { animate } from 'motion';
+/**
+ * NumberTicker : compte de 0 vers `value` à l'arrivée.
+ *
+ * `animate={false}` (onglet en arrière-plan au montage, prefers-reduced-motion,
+ * ou simplement pas voulu) : rend `value` directement, sans compte-up. Sur un
+ * dashboard qu'on ouvre pour lire ses chiffres, un « 0 » qui traîne est pire
+ * qu'inutile.
+ */
 
-export function NumberTicker({
-  value,
-  duration = 1.5,
-  delay = 0,
-  formatter = (v: number) => Math.round(v).toString()
-}: {
+import { animate } from 'motion/react';
+import { useEffect, useState } from 'react';
+
+interface NumberTickerProps {
   value: number;
+  animate?: boolean;
   duration?: number;
   delay?: number;
   formatter?: (v: number) => string;
-}) {
-  const [displayValue, setDisplayValue] = useState(0);
+}
+
+export function NumberTicker({
+  value,
+  animate: shouldAnimate = false,
+  duration = 0.6,
+  delay = 0,
+  formatter = (v: number) => Math.round(v).toString(),
+}: NumberTickerProps) {
+  const [displayValue, setDisplayValue] = useState(value);
 
   useEffect(() => {
+    if (!shouldAnimate) {
+      setDisplayValue(value);
+      return;
+    }
+    setDisplayValue(0);
     const controls = animate(0, value, {
       duration,
       delay,
-      ease: [0.16, 1, 0.3, 1], // Custom cubic-bezier for a luxury snap
-      onUpdate: (latest) => setDisplayValue(latest)
+      ease: [0.16, 1, 0.3, 1],
+      onUpdate: (latest) => setDisplayValue(latest),
     });
     return () => controls.stop();
-  }, [value, duration, delay]);
+  }, [value, shouldAnimate, duration, delay]);
 
   return <>{formatter(displayValue)}</>;
 }

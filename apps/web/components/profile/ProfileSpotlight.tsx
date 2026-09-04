@@ -18,16 +18,16 @@ export function ProfileSpotlight({ children }: { children: React.ReactNode }) {
 
   return (
     <div
-      className="relative min-h-screen w-full overflow-hidden"
+      className="relative min-h-screen w-full overflow-x-hidden"
       onMouseMove={handleMouseMove}
       style={{ background: 'var(--color-bg)' }}
     >
-      <div 
-        className="absolute inset-0 pointer-events-none opacity-20"
+      <div
+        className="absolute inset-0 pointer-events-none opacity-60"
         style={{
           backgroundImage: `
-            linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)
+            linear-gradient(to right, color-mix(in srgb, var(--color-text-primary) 4%, transparent) 1px, transparent 1px),
+            linear-gradient(to bottom, color-mix(in srgb, var(--color-text-primary) 4%, transparent) 1px, transparent 1px)
           `,
           backgroundSize: '40px 40px',
           maskImage: 'linear-gradient(to bottom, black 20%, transparent 80%)',

@@ -44,10 +44,12 @@ export function buildHeatmapData(
 }
 
 function getColor(count: number): string {
-  if (count === 0) return 'rgba(255,255,255,0.03)';
-  if (count === 1) return 'color-mix(in srgb, var(--color-text-primary) 30%, transparent)';
-  if (count <= 3) return 'color-mix(in srgb, var(--color-text-primary) 60%, transparent)';
-  return 'var(--color-text-primary)';
+  if (count === 0) return 'var(--color-surface)';
+  if (count === 1)
+    return 'color-mix(in srgb, var(--color-accent) 35%, var(--color-surface))';
+  if (count <= 3)
+    return 'color-mix(in srgb, var(--color-accent) 65%, var(--color-surface))';
+  return 'var(--color-accent)';
 }
 
 export function ContributionHeatmap({ sessions }: ContributionHeatmapProps) {
@@ -89,8 +91,9 @@ export function ContributionHeatmap({ sessions }: ContributionHeatmapProps) {
               y={y}
               width={CELL_SIZE}
               height={CELL_SIZE}
-              rx={0}
+              rx={2}
               fill={getColor(cell.count)}
+              style={{ transition: 'fill 0.2s' }}
             >
               <title>
                 {cell.date} · {t('heatmapSessions', { count: cell.count })}
@@ -119,7 +122,7 @@ export function ContributionHeatmap({ sessions }: ContributionHeatmapProps) {
             style={{
               width: 12,
               height: 12,
-              borderRadius: 0,
+              borderRadius: 2,
               background: getColor(count),
             }}
           />
