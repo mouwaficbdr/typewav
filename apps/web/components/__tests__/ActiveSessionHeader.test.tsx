@@ -93,3 +93,49 @@ describe('ActiveSessionHeader : accessibilité clavier', () => {
     expect(trigger).toHaveFocus();
   });
 });
+
+describe('ActiveSessionHeader : chip "Recommandation" (audit configbar, décision 5 / B4)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('change réellement la musique jouée avec la pièce retournée par refresh(), pas une valeur figée', async () => {
+    // Avant ce correctif : le clic lisait recommendedPlayablePieceId, qui ne
+    // reflète le nouveau tirage qu'au rendu suivant (setCurrentPiece est
+    // async côté hook) — donc onPieceChange recevait encore l'ancienne
+    // pièce, ou aucune.
+    mockRecommendation.refresh.mockReturnValue(piece('b', 'midi-b'));
+    const onPieceChange = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <ActiveSessionHeader
+        selectedPieceId={'midi-a' as never}
+        onPieceChange={onPieceChange}
+      />,
+    );
+
+    await user.click(screen.getByTitle('recommendationCta'));
+
+    expect(mockRecommendation.refresh).toHaveBeenCalledOnce();
+    expect(onPieceChange).toHaveBeenCalledWith('midi-b');
+  });
+
+  it("retombe sur une pièce jouable du même registre si refresh() ne trouve rien (pool épuisé)", async () => {
+    mockRecommendation.refresh.mockReturnValue(null);
+    const onPieceChange = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <ActiveSessionHeader
+        selectedPieceId={'midi-a' as never}
+        onPieceChange={onPieceChange}
+      />,
+    );
+
+    await user.click(screen.getByTitle('recommendationCta'));
+
+    // playablePieces du mock : la première pièce jouable du registre 'a'.
+    expect(onPieceChange).toHaveBeenCalledWith('midi-a');
+  });
+});
