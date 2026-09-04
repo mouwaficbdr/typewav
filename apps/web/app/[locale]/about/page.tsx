@@ -7,7 +7,7 @@ import { ShortcutRow } from '@/components/about/ShortcutRow';
 import { Keycap } from '@/components/ui/Keycap';
 import { routing } from '@/i18n/routing';
 import { buildMetadata } from '@/lib/seo';
-import { BookText, CircleUserRound, Github, Scale } from 'lucide-react';
+import { BookText, CircleUserRound, Github } from 'lucide-react';
 import type { Metadata } from 'next';
 import { hasLocale } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
@@ -287,14 +287,6 @@ export default async function AboutPage({ params }: Props) {
             <CircleUserRound size={16} aria-hidden="true" />
             {t('links.profile')}
           </a>
-          <Link
-            href={`/${locale}/transparence`}
-            style={LINK_STYLE}
-            className="hover:text-[var(--color-text-primary)] transition-colors"
-          >
-            <Scale size={16} aria-hidden="true" />
-            {t('links.terms')}
-          </Link>
         </div>
       </AboutSection>
 

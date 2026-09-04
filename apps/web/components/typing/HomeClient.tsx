@@ -54,7 +54,7 @@ import { type MidiPieceId } from '@typewav/audio-engine';
 import { selectFromTexts } from '@typewav/collections';
 import type { CollectionConfig, TypingMode } from '@typewav/types';
 import { useReducedMotion } from 'motion/react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import webPackage from '../../package.json';
 
@@ -79,7 +79,6 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const tHint = useTranslations('typing');
   const tAudio = useTranslations('audio');
   const tGhost = useTranslations('ghost');
-  const locale = useLocale();
   const shouldReduceMotion = useReducedMotion();
 
   const [shuffleOffset, setShuffleOffset] = useState(0);
@@ -863,19 +862,6 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             className="hover:text-text-primary transition-colors"
           >
             &lt;/&gt; github
-          </a>
-          <a
-            href={`/${locale}/transparence`}
-            style={{
-              color: 'inherit',
-              textDecoration: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-            className="hover:text-text-primary transition-colors"
-          >
-            {tHint('terms')}
           </a>
         </div>
 
