@@ -19,12 +19,14 @@ const SIZE_MAP = {
   lg: { padding: '8px 20px', fontSize: 16, iconSize: 28 },
 };
 
+// Glyphes musicaux : plus le rang (le tempo) monte, plus la note est
+// « rapide » (croches, doubles croches), le sommet est marqué d'un dièse.
 const RANK_ICONS: Record<RankTier, string> = {
-  novice: '◦',
-  apprentice: '◈',
-  operator: '◉',
-  architect: '⬡',
-  ghost: '◈',
+  novice: '♩',
+  apprentice: '♪',
+  operator: '♫',
+  architect: '♬',
+  ghost: '♯',
 };
 
 export function RankBadge({

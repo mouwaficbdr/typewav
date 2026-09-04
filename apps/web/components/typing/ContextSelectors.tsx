@@ -39,8 +39,6 @@ export function ContextSelectors({ controlsMode }: ContextSelectorsProps = {}) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 'auto',
-        marginBottom: '1rem',
         color: 'var(--color-text-muted)',
         fontFamily: 'var(--font-ui)',
         fontSize: '0.85rem',

@@ -47,14 +47,15 @@ vi.mock('lucide-react', () => ({
 
 import { ParametresClient } from '../ParametresClient';
 
-// Noms visibles (h3) : base vs derrière un jalon.
+// Libellés visibles des boutons de thème : la refonte les rend en minuscules
+// (choix produit). base vs derrière un jalon.
 const BASE_NAMES = [
-  'Dark Terminal',
-  'Deep Burgundy',
-  'Cyprus Sand',
-  'Night Imperial',
+  'dark terminal',
+  'deep burgundy',
+  'cyprus sand',
+  'night imperial',
 ];
-const GATED_NAMES = ['Noir', 'Arcade', 'Soleil de minuit'];
+const GATED_NAMES = ['noir', 'arcade', 'soleil de minuit'];
 
 beforeEach(() => {
   mockGetUserProfile.mockReset();
@@ -96,8 +97,8 @@ describe('ParametresClient : sélecteur de thème', () => {
 
     render(<ParametresClient />);
 
-    expect(await screen.findByText('Noir')).toBeTruthy();
-    expect(screen.queryByText('Arcade')).toBeNull();
+    expect(await screen.findByText('noir')).toBeTruthy();
+    expect(screen.queryByText('arcade')).toBeNull();
   });
 
   it('un profil ancien (unlockedThemes = ["terminal"]) garde les 4 thèmes de base', async () => {
@@ -126,6 +127,51 @@ describe('ParametresClient : sélecteur de thème', () => {
     for (const name of GATED_NAMES) {
       expect(screen.queryByText(name)).toBeNull();
     }
+  });
+
+  it('expose le thème actif à l’AT via aria-pressed (pas seulement la couleur)', () => {
+    // Le store mocké renvoie themeId 'terminal' = « Dark Terminal ».
+    mockGetUserProfile.mockReturnValue(new Promise(() => {}));
+
+    render(<ParametresClient />);
+
+    const active = screen.getByText('dark terminal').closest('button')!;
+    expect(active).toHaveAttribute('aria-pressed', 'true');
+
+    const inactive = screen.getByText('deep burgundy').closest('button')!;
+    expect(inactive).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('chaque bouton de thème porte un nom accessible explicite', () => {
+    mockGetUserProfile.mockReturnValue(new Promise(() => {}));
+
+    render(<ParametresClient />);
+
+    // aria-label = t('selectTheme', { name }) ; le mock i18n renvoie la clé.
+    const buttons = screen.getAllByRole('button', { name: 'selectTheme' });
+    expect(buttons.length).toBe(BASE_NAMES.length);
+  });
+});
+
+describe('ParametresClient : structure', () => {
+  it('a un titre de page de niveau 1', () => {
+    mockGetUserProfile.mockReturnValue(new Promise(() => {}));
+
+    render(<ParametresClient />);
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'title' }),
+    ).toBeInTheDocument();
+  });
+
+  it('n’ajoute pas de landmark de navigation en double', () => {
+    mockGetUserProfile.mockReturnValue(new Promise(() => {}));
+
+    render(<ParametresClient />);
+
+    // Le fil d'ariane est décoratif, pas un <nav> : ParametresClient ne doit
+    // pas monter de landmark navigation (GlobalNav est rendu par le layout).
+    expect(screen.queryByRole('navigation')).toBeNull();
   });
 });
 

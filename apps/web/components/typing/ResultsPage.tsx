@@ -17,6 +17,7 @@
  */
 
 import { AmbientAura } from '@/components/typing/AmbientAura';
+import { useEntranceAnimated } from '@/hooks/useEntranceAnimated';
 import { SessionWaveform } from '@/components/typing/SessionWaveform';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { getSessionById } from '@/lib/db';
@@ -33,7 +34,7 @@ import {
   Square,
   Swords,
 } from 'lucide-react';
-import { motion, useReducedMotion } from 'motion/react';
+import { motion } from 'motion/react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -66,21 +67,6 @@ function formatDuration(ms: number): string {
   const m = Math.floor(s / 60);
   const rem = s % 60;
   return `${m}:${String(rem).padStart(2, '0')}`;
-}
-
-/**
- * Décide, une fois, si l'écran joue son entrée chorégraphiée. `true` seulement
- * pour un vrai utilisateur devant l'onglet : sous prefers-reduced-motion, ou si
- * l'onglet est en arrière-plan (rAF gelé, personne ne regarde), on rend
- * directement l'état final : jamais de contenu bloqué à `opacity: 0`. Décidé
- * au 1er rendu client ; le SSR rend l'état final (aucun flash à l'hydratation).
- */
-function useEntranceAnimated(): boolean {
-  const reduceMotion = useReducedMotion();
-  const [visibleAtMount] = useState(
-    () => typeof document !== 'undefined' && !document.hidden,
-  );
-  return visibleAtMount && !reduceMotion;
 }
 
 /** Compteur 0 → cible, ease-out. Désactivé = renvoie la cible tout de suite. */

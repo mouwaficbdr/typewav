@@ -30,8 +30,15 @@ import {
   useState,
 } from 'react';
 
-/** Hauteur de ligne fixe = 3rem à 16px base = 48px */
-const LINE_HEIGHT_PX = 48;
+/** Hauteur de ligne fixe = 3.5rem à 16px base = 56px */
+const LINE_HEIGHT_PX = 56;
+
+/**
+ * Débord du calque de flou d'attente au-delà de la fenêtre visible, sur chaque
+ * bord (marge négative + padding compensatoire) : le bord adouci du filtre
+ * blur tombe dans cette zone, hors du cadre `overflow: hidden` du parent.
+ */
+const BLUR_BLEED_PX = 48;
 
 interface TypingAreaProps {
   text: string;
@@ -440,9 +447,12 @@ export function TypingArea({
           height: `${LINE_HEIGHT_PX * 3}px`,
           overflow: 'hidden',
           fontFamily: 'var(--font-mono)',
-          fontSize: '1.75rem' /* MonkeyType scale */,
+          fontSize: '2.25rem',
+          fontWeight: 500,
           lineHeight: `${LINE_HEIGHT_PX}px`,
-          letterSpacing: '0.02em',
+          // JetBrains Mono a déjà ses métriques : pas de tracking négatif (il
+          // resserre les glyphes et décale le caret positionné en em).
+          letterSpacing: '0',
         }}
       >
         {ghostTimings && ghostTimings.length > 0 && (
@@ -453,23 +463,22 @@ export function TypingArea({
           />
         )}
 
-        {/* Focus Overlay — Seamless glass effect */}
+        {/* Invitation au focus. Pas de panneau : c'est le texte lui-même qui
+            est flouté (voir le conteneur des mots ci-dessous), l'invite se
+            pose dessus sans cadre visible. */}
         <div
           aria-hidden="true"
           data-testid="typing-activation-overlay"
           style={{
             position: 'absolute',
-            inset: -20, // stretch over edges for cleaner blur
+            inset: 0,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'color-mix(in srgb, var(--color-bg) 75%, transparent)',
             zIndex: 1,
             pointerEvents: 'none',
-            backdropFilter: 'blur(8px)',
             opacity: !isFocused && !isComplete ? 1 : 0,
             transition: 'opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-            borderRadius: 'var(--radius-lg)',
           }}
         >
           <span
@@ -485,21 +494,39 @@ export function TypingArea({
           </span>
         </div>
 
-        {/* Conteneur des mots — scroll par translateY, transition ultra douce */}
+        {/* À l'attente (pas encore focus), le texte est flouté et estompé sur
+            place, sans rectangle par-dessus. Le flou est porté par un calque
+            débordant la fenêtre de 48px sur chaque bord (marge négative +
+            padding compensatoire) : le bord adouci du filtre tombe hors cadre,
+            l'overflow:hidden du parent n'en laisse voir qu'un flou plein, sans
+            liseré net révélé sur les côtés. blur(0px) plutôt que none pour que
+            la transition de flou s'interpole. */}
         <div
-          ref={wordsRef}
-          aria-hidden="true"
-          className="m-0 flex flex-wrap"
-          data-testid="typing-area"
+          className={!isFocused && !isComplete ? 'typing-await' : undefined}
           style={{
-            transform: `translateY(${translateY}px)`,
-            transition: 'transform 0.25s cubic-bezier(0.2, 0, 0, 1)',
-            userSelect: 'none',
-            columnGap: '0.6em',
-            justifyContent: mode === 'learning' ? 'center' : 'flex-start',
-            rowGap: '0',
+            margin: -BLUR_BLEED_PX,
+            padding: BLUR_BLEED_PX,
+            filter: !isFocused && !isComplete ? 'blur(5px)' : 'blur(0px)',
+            opacity: !isFocused && !isComplete ? 0.5 : 1,
+            transition:
+              'filter 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
+          {/* Conteneur des mots — scroll par translateY, transition ultra douce. */}
+          <div
+            ref={wordsRef}
+            aria-hidden="true"
+            className="m-0 flex flex-wrap"
+            data-testid="typing-area"
+            style={{
+              transform: `translateY(${translateY}px)`,
+              transition: 'transform 0.25s cubic-bezier(0.2, 0, 0, 1)',
+              userSelect: 'none',
+              columnGap: '0.6em',
+              justifyContent: mode === 'learning' ? 'center' : 'flex-start',
+              rowGap: '0',
+            }}
+          >
           {(() => {
             let globalIndex = 0;
             return text.split(' ').map((wordStr, wIndex, arr) => {
@@ -557,6 +584,7 @@ export function TypingArea({
               return wordNode;
             });
           })()}
+          </div>
         </div>
       </div>
     </div>
