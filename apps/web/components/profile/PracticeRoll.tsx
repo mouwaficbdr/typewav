@@ -25,6 +25,8 @@ interface PracticeRollProps {
   sessions: readonly SessionResult[];
   recordWpmSessionId?: string;
   recordAccSessionId?: string;
+  /** Séances qui ont fait franchir un palier de rang : marquées d'un point. */
+  rankUpSessionIds?: readonly string[];
   onReplaySession: (sessionId: string) => void;
   /** aria-label + infobulle d'une marque. */
   markLabel: (session: SessionResult) => string;
@@ -66,6 +68,7 @@ export function PracticeRoll({
   sessions,
   recordWpmSessionId,
   recordAccSessionId,
+  rankUpSessionIds,
   onReplaySession,
   markLabel,
   rollLabel,
@@ -147,7 +150,8 @@ export function PracticeRoll({
         : s.id === recordAccSessionId
           ? ('accuracy' as const)
           : undefined;
-    return { s, i, x, h, opacity, record };
+    const rankUp = rankUpSessionIds?.includes(s.id) ?? false;
+    return { s, i, x, h, opacity, record, rankUp };
   });
 
   const envelope = movingAverage(
@@ -235,6 +239,14 @@ export function PracticeRoll({
                   fill="var(--color-accent)"
                 />
               )}
+              {m.rankUp && (
+                <circle
+                  cx={m.x}
+                  cy={top - (isRecord ? 15 : 8)}
+                  r={2.5}
+                  fill="var(--color-text-primary)"
+                />
+              )}
             </g>
           );
         })}
@@ -257,6 +269,7 @@ export function PracticeRoll({
             aria-label={markLabel(m.s)}
             title={markLabel(m.s)}
             {...(m.record ? { 'data-record': m.record } : {})}
+            {...(m.rankUp ? { 'data-rankup': '' } : {})}
             onClick={() => onReplaySession(m.s.id)}
             onMouseEnter={() => setActiveIdx(m.i)}
             onMouseLeave={() => setActiveIdx(null)}

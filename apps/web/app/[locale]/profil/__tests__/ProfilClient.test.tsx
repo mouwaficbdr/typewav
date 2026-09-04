@@ -23,6 +23,8 @@ const dbMocks = vi.hoisted(() => ({
   getUserProfile: vi.fn(),
   getPersonalRecords: vi.fn(),
   getSessionById: vi.fn(),
+  getPreference: vi.fn().mockResolvedValue(undefined),
+  setPreference: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('@/lib/db', () => dbMocks);
@@ -154,6 +156,30 @@ describe('ProfilClient — Le Rouleau', () => {
     expect(screen.queryByText('personalRecords')).not.toBeInTheDocument();
     // l'échelle de rang reste présente
     expect(screen.getByText('rank')).toBeInTheDocument();
+  });
+
+  it('affiche le delta depuis la dernière visite quand il y a de nouvelles séances', async () => {
+    dbMocks.getSessions.mockResolvedValue(mockSessions); // 8 séances
+    dbMocks.getPreference.mockResolvedValue({ count: 5, wpm: 40 });
+    await renderProfil();
+    await waitFor(() => {
+      expect(screen.getByText('sinceLastVisit')).toBeInTheDocument();
+    });
+    // snapshot réécrit
+    expect(dbMocks.setPreference).toHaveBeenCalledWith(
+      'typewav-profile-last-seen',
+      expect.objectContaining({ count: 8 }),
+    );
+  });
+
+  it('pas de delta si aucune nouvelle séance depuis la dernière visite', async () => {
+    dbMocks.getSessions.mockResolvedValue(mockSessions); // 8
+    dbMocks.getPreference.mockResolvedValue({ count: 8, wpm: 60 });
+    await renderProfil();
+    await waitFor(() =>
+      expect(screen.getByText('personalRecords')).toBeInTheDocument(),
+    );
+    expect(screen.queryByText('sinceLastVisit')).not.toBeInTheDocument();
   });
 
   it('le footer pointe vers la gestion des données', async () => {

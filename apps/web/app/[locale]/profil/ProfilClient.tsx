@@ -21,10 +21,13 @@ import { ScrambleText } from '@/components/ui/ScrambleText';
 import { useEntranceAnimated } from '@/hooks/useEntranceAnimated';
 import {
   getPersonalRecords,
+  getPreference,
   getSessionById,
   getSessions,
   getUserProfile,
+  setPreference,
 } from '@/lib/db';
+import { rankUpSessionIds } from '@/lib/rank-milestones';
 import { generateReplayLink } from '@/lib/replay';
 import { useProgressionStore } from '@/stores/useProgressionStore';
 import type { PersonalRecords, RankTier, SessionResult } from '@typewav/types';
@@ -41,6 +44,8 @@ const RANK_TIERS: RankTier[] = [
   'architect',
   'ghost',
 ];
+
+const PROFILE_LAST_SEEN_KEY = 'typewav-profile-last-seen';
 
 function median(values: number[]): number {
   if (values.length === 0) return 0;
@@ -99,6 +104,10 @@ export function ProfilClient() {
   const [rank, setLocalRank] = useState<RankTier>('novice');
   const [pseudo, setPseudo] = useState('');
   const [loading, setLoading] = useState(true);
+  const [visitDelta, setVisitDelta] = useState<{
+    sessions: number;
+    wpm: number;
+  } | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -114,6 +123,28 @@ export function ProfilClient() {
       setProfile(profile);
       setRank(profile.currentRank);
       if (personalRecords) setPersonalRecords(personalRecords);
+
+      // Delta « depuis la dernière visite » : le trigger de retour le plus
+      // honnête. Persisté en IndexedDB (règle projet : jamais localStorage).
+      const snapshot = {
+        count: allSessions.length,
+        wpm: median(allSessions.map((s) => s.wpm)),
+      };
+      try {
+        const prev = await getPreference<{ count: number; wpm: number }>(
+          PROFILE_LAST_SEEN_KEY,
+        );
+        if (prev && snapshot.count > prev.count) {
+          setVisitDelta({
+            sessions: snapshot.count - prev.count,
+            wpm: snapshot.wpm - prev.wpm,
+          });
+        }
+        await setPreference(PROFILE_LAST_SEEN_KEY, snapshot);
+      } catch {
+        // best-effort : le delta est un bonus, pas un bloquant
+      }
+
       setLoading(false);
     }
     void load();
@@ -166,6 +197,7 @@ export function ProfilClient() {
   const hasHistory = totalSessions > 0;
   const medianWpm = median(sessions.map((s) => s.wpm));
   const medianAccuracy = median(sessions.map((s) => s.accuracy));
+  const rankUps = rankUpSessionIds(sessions);
 
   const rankLabels = Object.fromEntries(
     RANK_TIERS.map((tier) => [tier, tRanks(tier)]),
@@ -298,6 +330,23 @@ export function ProfilClient() {
                 </span>
               )}
             </div>
+            {visitDelta && (
+              <p
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.74rem',
+                  color: 'var(--color-accent)',
+                  letterSpacing: '0.04em',
+                  margin: '14px 0 0',
+                }}
+              >
+                {tProfile('sinceLastVisit', {
+                  sessions: visitDelta.sessions,
+                  hasWpm: visitDelta.wpm > 0 ? 'yes' : 'no',
+                  wpm: visitDelta.wpm,
+                })}
+              </p>
+            )}
           </div>
 
           <div style={{ textAlign: 'right' }}>
@@ -338,6 +387,7 @@ export function ProfilClient() {
               {...(records?.maxAccuracy.sessionId
                 ? { recordAccSessionId: records.maxAccuracy.sessionId }
                 : {})}
+              rankUpSessionIds={rankUps}
               onReplaySession={(id) => void handleOpenReplay(id)}
               markLabel={markLabel}
               rollLabel={(count) => tProfile('rollAria', { count })}
@@ -470,6 +520,7 @@ export function ProfilClient() {
                   tProfile('nextRank', { rank: nextLabel, wpm, gap })
                 }
                 maxedText={tProfile('rankMaxed')}
+                animate={animating}
               />
             </motion.section>
           </div>

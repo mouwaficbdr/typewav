@@ -101,6 +101,25 @@ describe('PracticeRoll', () => {
     ).not.toHaveAttribute('data-record');
   });
 
+  it('marque les séances qui ont fait franchir un palier', () => {
+    render(
+      <PracticeRoll
+        {...baseProps}
+        sessions={makeSessions(5)}
+        rankUpSessionIds={['s-1', 's-4']}
+      />,
+    );
+    expect(
+      screen.getByRole('button', { name: 'Rejouer s-1 · 41 WPM' }),
+    ).toHaveAttribute('data-rankup');
+    expect(
+      screen.getByRole('button', { name: 'Rejouer s-4 · 44 WPM' }),
+    ).toHaveAttribute('data-rankup');
+    expect(
+      screen.getByRole('button', { name: 'Rejouer s-2 · 42 WPM' }),
+    ).not.toHaveAttribute('data-rankup');
+  });
+
   it('le visuel porte un aria-label décrivant le nombre de séances', () => {
     render(<PracticeRoll {...baseProps} sessions={makeSessions(3)} />);
     expect(screen.getByLabelText('Historique de 3 séances')).toBeInTheDocument();

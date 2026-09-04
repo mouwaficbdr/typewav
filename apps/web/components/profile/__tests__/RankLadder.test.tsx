@@ -74,6 +74,38 @@ describe('RankLadder', () => {
     expect(nextRankText).not.toHaveBeenCalled();
   });
 
+  it('la jauge de proximité reflète l’avancée vers le palier suivant', () => {
+    render(
+      <RankLadder
+        currentRank="operator"
+        currentWpm={60}
+        labels={labels}
+        nextRankText={(l, w, g) => `${l} ${w} ${g}`}
+        maxedText="max"
+      />,
+    );
+    // operator 51 -> architect 71, wpm 60 -> (60-51)/(71-51) = 45%
+    expect(screen.getByTestId('rank-gauge-fill')).toHaveStyle({ width: '45%' });
+    expect(screen.getByRole('progressbar')).toHaveAttribute(
+      'aria-valuenow',
+      '60',
+    );
+  });
+
+  it('au palier maximum : pas de jauge, texte "maximum" mis en avant', () => {
+    render(
+      <RankLadder
+        currentRank="ghost"
+        currentWpm={120}
+        labels={labels}
+        nextRankText={(l, w, g) => `${l} ${w} ${g}`}
+        maxedText="Palier maximum"
+      />,
+    );
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    expect(screen.getByText('Palier maximum')).toBeInTheDocument();
+  });
+
   it('borne l’écart à zéro si le WPM courant dépasse déjà le seuil suivant', () => {
     const nextRankText = vi.fn(
       (l: string, w: number, g: number) => `${l} ${w} ${g}`,

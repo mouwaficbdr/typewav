@@ -240,6 +240,7 @@
     "dataLocal": "Vos données vivent sur cet appareil.",
     "manageData": "Gérer mes données",
     "emptyLead": "Faites votre première séance pour commencer votre rouleau.",
+    "sinceLastVisit": "Depuis votre dernière visite : {sessions, plural, one {# séance} other {# séances}}{hasWpm, select, yes { · +{wpm} WPM médian} other {}}",
     "chartMedian": "Médiane",
     "chartTrend": "Tendance",
     "chartEmpty": "Pas encore de sessions sur cette période.",

@@ -240,6 +240,7 @@
     "dataLocal": "Your data lives on this device.",
     "manageData": "Manage my data",
     "emptyLead": "Run your first session to start your roll.",
+    "sinceLastVisit": "Since your last visit: {sessions, plural, one {# session} other {# sessions}}{hasWpm, select, yes { · +{wpm} median WPM} other {}}",
     "chartMedian": "Median",
     "chartTrend": "Trend",
     "chartEmpty": "No sessions in this period yet.",
