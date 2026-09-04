@@ -7,6 +7,11 @@
  * - Tient sur une seule ligne.
  * - Supprime les modes non essentiels de l'affichage (classiques, libre, challenge).
  * - Modificateurs (ponctuation, chiffres) | Modes | Options contextuelles | Chip
+ * - Trois groupes visuels distincts (fond plat, coin modérément arrondi,
+ *   aucun flou), séparés par un vrai espace plutôt qu'un simple séparateur.
+ *   Sélection = couleur seule (accent vs muted), jamais de fond ni de
+ *   bordure sur l'option active : c'est le modèle MonkeyType, appliqué
+ *   uniformément à tous les chips (modificateurs, modes, options).
  *
  * Spec : docs/specs/29-home-layout.md
  */
@@ -82,76 +87,42 @@ export function ConfigBar({ controlsMode }: ConfigBarProps = {}) {
     setDuration,
   } = useConfigStore();
 
-  // Le mode Zen est le mode signature du produit (musicothérapie, sans
-  // minuteur ni score) ; il ne doit jamais se fondre dans les 7 autres
-  // modes utilitaires, d'où le traitement 'signature' à part.
-  //
-  // Ce traitement doit rester distinguable de l'état réellement actif (audit
-  // configbar, A6) : avant, un Zen inactif partageait déjà le texte
-  // `--color-text-primary` réservé ailleurs à « sélectionné », donc le chip
-  // semblait allumé en permanence. Il porte maintenant sa propre teinte
-  // (accent) au repos, et bascule en remplissage plein uniquement une fois
-  // réellement actif — un état qu'aucun autre chip ne peut prendre, donc sans
-  // ambiguïté possible.
-  const chipStyle = (
-    active: boolean,
-    variant: 'default' | 'signature' = 'default',
-  ): React.CSSProperties => {
-    const isSignature = variant === 'signature';
-    return {
-      background: isSignature
-        ? active
-          ? 'var(--color-accent)'
-          : 'color-mix(in srgb, var(--color-accent) 8%, transparent)'
-        : active
-          ? 'color-mix(in srgb, var(--color-text-primary) 12%, transparent)'
-          : 'transparent',
-      border: 'none',
-      borderRadius: 'var(--radius-full)',
-      color: isSignature
-        ? active
-          ? 'var(--color-bg)'
-          : 'var(--color-accent)'
-        : active
-          ? 'var(--color-text-primary)'
-          : 'var(--color-text-muted)',
-      cursor: 'pointer',
-      fontFamily: 'var(--font-ui)',
-      fontSize: '0.8rem',
-      fontWeight: active || isSignature ? 500 : 400,
-      padding: '0 12px',
-      height: '32px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-      boxShadow:
-        active && isSignature
-          ? '0 0 12px color-mix(in srgb, var(--color-accent) 40%, transparent)'
-          : 'none',
-      // Respire doucement pour attirer l'œil vers le mode signature, mais
-      // s'arrête net une fois sélectionné : Zen promet le calme, un glow
-      // qui continue de pulser pendant la frappe serait le contredire.
-      animation:
-        isSignature && !active
-          ? 'zen-breathe 3.6s ease-in-out infinite'
-          : undefined,
-    };
-  };
+  // Modèle MonkeyType : aucun chip, actif ou non, ne porte de fond ni de
+  // bordure. La seule chose qui change est la couleur du texte/icône
+  // (accent une fois sélectionné, muted sinon). Zen n'a plus de traitement
+  // à part (ancien A6) : un chip qui ne bouge jamais en fond serait devenu
+  // le seul repère visuel permanent de la barre, donc encore plus visible
+  // que l'ancien souci qu'il corrigeait.
+  const chipStyle = (active: boolean): React.CSSProperties => ({
+    background: 'transparent',
+    border: 'none',
+    borderRadius: 'var(--radius-sm)',
+    color: active ? 'var(--color-accent)' : 'var(--color-text-muted)',
+    cursor: 'pointer',
+    fontFamily: 'var(--font-ui)',
+    fontSize: '0.8rem',
+    fontWeight: 400,
+    padding: '0 12px',
+    height: '32px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'color 0.2s ease',
+  });
 
-  const separator = (
-    <div
-      aria-hidden="true"
-      style={{
-        width: '2px',
-        height: '14px',
-        backgroundColor: 'var(--color-border)',
-        margin: '0 6px',
-        borderRadius: '2px',
-        opacity: 0.5,
-      }}
-    />
-  );
+  // Fond plat opaque, coin modérément arrondi, aucun flou : chaque groupe
+  // (modificateurs / modes / options) est son propre panneau MonkeyType,
+  // pas une seule pilule glassmorphique commune.
+  const groupStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
+    flexShrink: 0,
+    height: '40px',
+    padding: '0 8px',
+    background: 'var(--color-surface)',
+    borderRadius: 'var(--radius-md)',
+  };
 
   // Modes qui supportent les modificateurs ponctuation/chiffres/langue.
   // Apprentissage volontairement absent : generateLearningText (words.ts)
@@ -165,164 +136,114 @@ export function ConfigBar({ controlsMode }: ConfigBarProps = {}) {
     activeCollection !== 'code';
 
   return (
-    <>
-      <style>{`
-        @keyframes zen-breathe {
-          0%, 100% {
-            box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 0%, transparent);
-          }
-          50% {
-            box-shadow: 0 0 8px 1px color-mix(in srgb, var(--color-accent) 40%, transparent);
-          }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .configbar-zen-chip {
-            animation: none !important;
-          }
-        }
-      `}</style>
-      <div
-        role="toolbar"
-        aria-label={t('label')}
-        style={{
-          display: 'flex',
-          flexWrap: 'nowrap' /* Force la ligne unique */,
-          overflowX:
-            'auto' /* Permet le scroll horizontal si l'écran est trop petit */,
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 'fit-content',
-          maxWidth: '1200px',
-          // Élément de chrome permanent : hauteur stricte + flexShrink: 0 pour
-          // qu'il ne soit jamais écrasé par du contenu voisin trop haut (ex.
-          // mode Apprentissage). Sans ça, le parent flex-column à hauteur fixe
-          // (overflow: hidden) le réduit à 0px : la barre reste dans le DOM
-          // mais devient invisible, donc impossible de changer de mode.
-          height: '46px',
-          flexShrink: 0,
-          margin: '0 auto',
-          padding: '0 12px',
-          gap: '6px',
-          borderRadius: 'var(--radius-full)',
-        }}
-        className="hide-scrollbar glass-panel"
-      >
-        {/* ── Modificateurs ─────────────────────────────── */}
-        {supportsModifiers && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              flexShrink: 0,
-            }}
+    <div
+      role="toolbar"
+      aria-label={t('label')}
+      style={{
+        display: 'flex',
+        flexWrap: 'nowrap' /* Force la ligne unique */,
+        overflowX:
+          'auto' /* Permet le scroll horizontal si l'écran est trop petit */,
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 'fit-content',
+        maxWidth: '1200px',
+        // Élément de chrome permanent : hauteur stricte + flexShrink: 0 pour
+        // qu'il ne soit jamais écrasé par du contenu voisin trop haut (ex.
+        // mode Apprentissage). Sans ça, le parent flex-column à hauteur fixe
+        // (overflow: hidden) le réduit à 0px : la barre reste dans le DOM
+        // mais devient invisible, donc impossible de changer de mode.
+        height: '46px',
+        flexShrink: 0,
+        margin: '0 auto',
+        padding: '0 4px',
+        gap: '14px',
+      }}
+      className="hide-scrollbar"
+    >
+      {/* ── Modificateurs ─────────────────────────────── */}
+      {supportsModifiers && (
+        <div role="group" aria-label={t('modifiersGroup')} style={groupStyle}>
+          <button
+            style={chipStyle(punctuationEnabled)}
+            onClick={togglePunctuation}
+            aria-pressed={punctuationEnabled}
+            title={t('punctuation')}
+            className="hover:text-text-primary transition-colors duration-200"
           >
-            <button
-              style={chipStyle(punctuationEnabled)}
-              onClick={togglePunctuation}
-              aria-pressed={punctuationEnabled}
-              title={t('punctuation')}
-              className="hover:text-text-primary hover:scale-[1.05] transition-transform duration-200"
-            >
-              <AtIcon size={14} /> {t('punctuationShort')}
-            </button>
-            <button
-              style={chipStyle(numbersEnabled)}
-              onClick={toggleNumbers}
-              aria-pressed={numbersEnabled}
-              title={t('numbers')}
-              className="hover:text-text-primary hover:scale-[1.05] transition-transform duration-200"
-            >
-              <HashIcon size={14} /> {t('numbersShort')}
-            </button>
-
-            {separator}
-          </div>
-        )}
-
-        {/* ── Modes ─────────────────────────────── */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-            flexShrink: 0,
-          }}
-        >
-          {MODES.map((id) => {
-            const Icon = MODE_ICONS[id as keyof typeof MODE_ICONS];
-            const label = tModes(id);
-            const isSignature = id === 'zen';
-            return (
-              <button
-                key={id}
-                style={{
-                  ...chipStyle(
-                    activeMode === id,
-                    isSignature ? 'signature' : 'default',
-                  ),
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                }}
-                onClick={() => setMode(id as never)}
-                aria-pressed={activeMode === id}
-                title={label}
-                className={
-                  isSignature
-                    ? 'configbar-zen-chip hover:text-text-primary hover:scale-[1.05] transition-transform duration-200'
-                    : 'hover:text-text-primary hover:scale-[1.05] transition-transform duration-200'
-                }
-              >
-                <Icon size={14} />
-                {label}
-              </button>
-            );
-          })}
+            <AtIcon size={14} /> {t('punctuationShort')}
+          </button>
+          <button
+            style={chipStyle(numbersEnabled)}
+            onClick={toggleNumbers}
+            aria-pressed={numbersEnabled}
+            title={t('numbers')}
+            className="hover:text-text-primary transition-colors duration-200"
+          >
+            <HashIcon size={14} /> {t('numbersShort')}
+          </button>
         </div>
+      )}
 
-        {/* ── Options Contextuelles ─────────────────── */}
-        {/* effectiveMode, pas activeMode : Fantôme sans donnée personnelle
-            tourne réellement en session chronométrée façon Classic (voir
-            HomeClient), le réglage de durée doit rester visible/ajustable
-            dans ce cas plutôt que masqué derrière le mode brut 'ghost'. */}
-        {(effectiveMode === 'classic' || effectiveMode === 'sprint') && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              flexShrink: 0,
-            }}
-          >
-            {separator}
-            {effectiveMode === 'classic' &&
-              DURATIONS.map((d) => (
-                <button
-                  key={d}
-                  style={chipStyle(durationSeconds === d)}
-                  onClick={() => setDuration(d)}
-                  aria-pressed={durationSeconds === d}
-                  className="hover:text-text-primary hover:scale-[1.05] transition-transform duration-200"
-                >
-                  {d}
-                </button>
-              ))}
-            {effectiveMode === 'sprint' &&
-              WORD_COUNTS.map((wc) => (
-                <button
-                  key={wc}
-                  style={chipStyle(wordCount === wc)}
-                  onClick={() => setWordCount(wc)}
-                  aria-pressed={wordCount === wc}
-                  className="hover:text-text-primary hover:scale-[1.05] transition-transform duration-200"
-                >
-                  {wc}
-                </button>
-              ))}
-          </div>
-        )}
+      {/* ── Modes ─────────────────────────────── */}
+      <div role="group" aria-label={t('modesGroup')} style={groupStyle}>
+        {MODES.map((id) => {
+          const Icon = MODE_ICONS[id as keyof typeof MODE_ICONS];
+          const label = tModes(id);
+          return (
+            <button
+              key={id}
+              style={{
+                ...chipStyle(activeMode === id),
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+              onClick={() => setMode(id as never)}
+              aria-pressed={activeMode === id}
+              title={label}
+              className="hover:text-text-primary transition-colors duration-200"
+            >
+              <Icon size={14} />
+              {label}
+            </button>
+          );
+        })}
       </div>
-    </>
+
+      {/* ── Options Contextuelles ─────────────────── */}
+      {/* effectiveMode, pas activeMode : Fantôme sans donnée personnelle
+          tourne réellement en session chronométrée façon Classic (voir
+          HomeClient), le réglage de durée doit rester visible/ajustable
+          dans ce cas plutôt que masqué derrière le mode brut 'ghost'. */}
+      {(effectiveMode === 'classic' || effectiveMode === 'sprint') && (
+        <div role="group" aria-label={t('optionsGroup')} style={groupStyle}>
+          {effectiveMode === 'classic' &&
+            DURATIONS.map((d) => (
+              <button
+                key={d}
+                style={chipStyle(durationSeconds === d)}
+                onClick={() => setDuration(d)}
+                aria-pressed={durationSeconds === d}
+                className="hover:text-text-primary transition-colors duration-200"
+              >
+                {d}
+              </button>
+            ))}
+          {effectiveMode === 'sprint' &&
+            WORD_COUNTS.map((wc) => (
+              <button
+                key={wc}
+                style={chipStyle(wordCount === wc)}
+                onClick={() => setWordCount(wc)}
+                aria-pressed={wordCount === wc}
+                className="hover:text-text-primary transition-colors duration-200"
+              >
+                {wc}
+              </button>
+            ))}
+        </div>
+      )}
+    </div>
   );
 }

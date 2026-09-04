@@ -308,6 +308,9 @@
   },
   "config": {
     "label": "Configuration",
+    "modifiersGroup": "Modifiers",
+    "modesGroup": "Modes",
+    "optionsGroup": "Options",
     "punctuation": "Enable punctuation",
     "punctuationShort": "punctuation",
     "numbers": "Enable numbers",

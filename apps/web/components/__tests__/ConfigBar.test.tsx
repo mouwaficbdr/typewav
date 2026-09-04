@@ -101,30 +101,44 @@ describe('ConfigBar', () => {
     expect(screen.getByRole('button', { name: '50' })).toBeInTheDocument();
   });
 
-  it('le chip Zen inactif ne se confond plus avec un mode sélectionné (audit A6)', () => {
-    // Avant : un Zen inactif portait déjà `--color-text-primary`, la même
-    // couleur que n'importe quel autre chip une fois sélectionné, donc il
-    // semblait allumé en permanence.
+  it('le chip Zen inactif ne porte plus de traitement à part (retrait du signature/A6)', () => {
+    // Nouveau modèle MonkeyType : plus aucun chip n'a de fond au repos, Zen
+    // y compris. S'il portait encore un fond ou une teinte permanente, ce
+    // serait justement le souci que A6 avait corrigé, sous une autre forme.
     render(<ConfigBar />); // activeMode = 'classic' par défaut, Zen inactif
     const zenChip = screen.getByTitle('zen');
-    expect(zenChip.style.color).not.toBe('var(--color-text-primary)');
-    expect(zenChip.style.background).not.toBe(
-      'color-mix(in srgb, var(--color-text-primary) 12%, transparent)',
-    );
+    const otherInactiveChip = screen.getByTitle('sprint');
+    expect(zenChip.style.background).toBe('transparent');
+    expect(zenChip.style.color).toBe(otherInactiveChip.style.color);
   });
 
-  it('le chip Zen actif est visuellement distinct du chip Zen inactif', () => {
+  it('la sélection ne change que la couleur : jamais de fond sur le chip actif', () => {
     useConfigStore.setState({ activeMode: 'classic' });
     const { rerender } = render(<ConfigBar />);
-    const inactiveStyle = { ...screen.getByTitle('zen').style };
+    const inactiveBackground = screen.getByTitle('zen').style.background;
+    const inactiveColor = screen.getByTitle('zen').style.color;
 
     act(() => {
       useConfigStore.setState({ activeMode: 'zen' });
     });
     rerender(<ConfigBar />);
     const activeChip = screen.getByTitle('zen');
-    expect(activeChip.style.background).not.toBe(inactiveStyle.background);
-    expect(activeChip.style.color).not.toBe(inactiveStyle.color);
+    // Le fond reste transparent, actif ou non : seule la couleur bouge.
+    expect(activeChip.style.background).toBe('transparent');
+    expect(activeChip.style.background).toBe(inactiveBackground);
+    expect(activeChip.style.color).not.toBe(inactiveColor);
+    expect(activeChip.style.color).toBe('var(--color-accent)');
+  });
+
+  it('même modèle de sélection sur les options contextuelles (durées) : couleur seule', () => {
+    useConfigStore.setState({ activeMode: 'classic', durationSeconds: 30 });
+    render(<ConfigBar />);
+    const active = screen.getByRole('button', { name: '30' });
+    const inactive = screen.getByRole('button', { name: '60' });
+    expect(active.style.background).toBe('transparent');
+    expect(inactive.style.background).toBe('transparent');
+    expect(active.style.color).toBe('var(--color-accent)');
+    expect(inactive.style.color).toBe('var(--color-text-muted)');
   });
 
   it('a un role toolbar avec aria-label', () => {
@@ -133,5 +147,25 @@ describe('ConfigBar', () => {
     expect(toolbar).toBeInTheDocument();
     // t('label') → 'label' via mock
     expect(toolbar).toHaveAttribute('aria-label', 'label');
+  });
+
+  it('regroupe les chips en trois groupes ARIA distincts', () => {
+    render(<ConfigBar />); // classic : modificateurs + modes + options, les 3 groupes
+    const groups = screen.getAllByRole('group');
+    expect(groups.map((g) => g.getAttribute('aria-label'))).toEqual([
+      'modifiersGroup',
+      'modesGroup',
+      'optionsGroup',
+    ]);
+  });
+
+  it('un groupe sans contenu (options hors classic/sprint) est entièrement omis', () => {
+    useConfigStore.setState({ activeMode: 'quote' });
+    render(<ConfigBar />);
+    const groups = screen.getAllByRole('group');
+    expect(groups.map((g) => g.getAttribute('aria-label'))).toEqual([
+      'modifiersGroup',
+      'modesGroup',
+    ]);
   });
 });
