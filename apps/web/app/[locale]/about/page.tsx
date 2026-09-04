@@ -7,10 +7,21 @@ import { ShortcutRow } from '@/components/about/ShortcutRow';
 import { Keycap } from '@/components/ui/Keycap';
 import { routing } from '@/i18n/routing';
 import { buildMetadata } from '@/lib/seo';
+import { BookText, CircleUserRound, Github, Scale } from 'lucide-react';
 import type { Metadata } from 'next';
 import { hasLocale } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
+
+const LINK_STYLE = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '8px',
+  fontFamily: 'var(--font-mono)',
+  fontSize: '0.85rem',
+  color: 'var(--color-text-muted)',
+  textDecoration: 'none',
+} as const;
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -77,9 +88,9 @@ export default async function AboutPage({ params }: Props) {
   return (
     <main
       style={{
-        maxWidth: '900px',
+        maxWidth: '1200px',
         margin: '0 auto',
-        padding: 'clamp(24px, 5vw, 48px) clamp(20px, 6vw, 48px) 96px',
+        padding: 'clamp(24px, 5vw, 48px) clamp(20px, 6vw, 56px) 96px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-start',
@@ -117,7 +128,7 @@ export default async function AboutPage({ params }: Props) {
         <p
           style={{
             margin: '20px 0 0',
-            maxWidth: '58ch',
+            maxWidth: '72ch',
             fontFamily: 'var(--font-ui)',
             fontSize: '1.02rem',
             lineHeight: 1.7,
@@ -245,31 +256,43 @@ export default async function AboutPage({ params }: Props) {
       </AboutSection>
 
       <AboutSection index="08" label={t('links.heading')}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '18px 34px' }}>
           <a
             href="https://github.com/mouwaficbdr/typewav"
             target="_blank"
             rel="noopener noreferrer"
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.85rem',
-              color: 'var(--color-text-muted)',
-              textDecoration: 'none',
-            }}
+            style={LINK_STYLE}
             className="hover:text-[var(--color-text-primary)] transition-colors"
           >
-            {t('links.github')} <span aria-hidden="true">&#8599;</span>
+            <Github size={16} aria-hidden="true" />
+            {t('links.github')}
+          </a>
+          <a
+            href="https://github.com/mouwaficbdr/typewav#readme"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={LINK_STYLE}
+            className="hover:text-[var(--color-text-primary)] transition-colors"
+          >
+            <BookText size={16} aria-hidden="true" />
+            {t('links.readme')}
+          </a>
+          <a
+            href="https://github.com/mouwaficbdr"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={LINK_STYLE}
+            className="hover:text-[var(--color-text-primary)] transition-colors"
+          >
+            <CircleUserRound size={16} aria-hidden="true" />
+            {t('links.profile')}
           </a>
           <Link
             href={`/${locale}/transparence`}
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.85rem',
-              color: 'var(--color-text-muted)',
-              textDecoration: 'none',
-            }}
+            style={LINK_STYLE}
             className="hover:text-[var(--color-text-primary)] transition-colors"
           >
+            <Scale size={16} aria-hidden="true" />
             {t('links.terms')}
           </Link>
         </div>

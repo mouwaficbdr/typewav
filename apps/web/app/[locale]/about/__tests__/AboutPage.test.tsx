@@ -127,13 +127,21 @@ describe('AboutPage', () => {
     expect(settingsLink).toHaveAttribute('href', '/en/parametres');
   });
 
-  it('renvoie vers le code source GitHub et la page transparence', async () => {
+  it('rend la rangée de liens : dépôt, README, auteur, transparence', async () => {
     await renderPage();
     expect(
-      screen.getByRole('link', { name: /Code source sur GitHub/i }),
+      screen.getByRole('link', { name: 'Code source' }),
     ).toHaveAttribute('href', 'https://github.com/mouwaficbdr/typewav');
+    expect(screen.getByRole('link', { name: 'README' })).toHaveAttribute(
+      'href',
+      'https://github.com/mouwaficbdr/typewav#readme',
+    );
+    expect(screen.getByRole('link', { name: "L'auteur" })).toHaveAttribute(
+      'href',
+      'https://github.com/mouwaficbdr',
+    );
     expect(
-      screen.getByRole('link', { name: /Transparence et conditions/i }),
+      screen.getByRole('link', { name: 'Transparence' }),
     ).toHaveAttribute('href', '/fr/transparence');
   });
 

@@ -421,10 +421,10 @@
   },
   "about": {
     "metaTitle": "About",
-    "metaDescription": "What TypeWav is: a typing trainer where every correct key plays the next note of a real piano piece, no account, all in the browser.",
+    "metaDescription": "A typing test built around music: every correct key plays the next note of a real piano piece, a mistake plays nothing. No account, all in the browser.",
     "kicker": "About",
     "masthead": "Type it right. The note lands.",
-    "lead": "TypeWav is a musical typing trainer: every correct keystroke plays the next note of a real piano piece. Everything happens in your browser, with no account.",
+    "lead": "A full typing test (many modes, progress tracked session after session, themes, sounds, instant feedback on every typo), built around one idea: music. Every correct keystroke fires the next note of a real piano piece; a mistake plays nothing, never a wrong note. Your ear catches the slip before your eyes do, and the piece only sounds right when you type right. You practise longer, without watching a clock, because the reward is not a number: it is a melody taking shape under your fingers.",
     "manifesto": {
       "heading": "The manifesto",
       "body": "The score only moves when you type it right. The piece already exists in full; your typing is the baton.",
@@ -490,8 +490,10 @@
     },
     "links": {
       "heading": "Links",
-      "github": "Source code on GitHub",
-      "terms": "Transparency and terms"
+      "github": "Source code",
+      "readme": "README",
+      "profile": "The author",
+      "terms": "Transparency"
     },
     "closing": "Enough reading. Back to the keyboard."
   }
