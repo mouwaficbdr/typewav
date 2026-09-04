@@ -440,10 +440,12 @@ export function TypingArea({
           height: `${LINE_HEIGHT_PX * 3}px`,
           overflow: 'hidden',
           fontFamily: 'var(--font-mono)',
-          fontSize: '2.25rem' /* Bumped up for ultimate focus */,
-          fontWeight: 500, /* Slightly bolder */
+          fontSize: '2.25rem',
+          fontWeight: 500,
           lineHeight: `${LINE_HEIGHT_PX}px`,
-          letterSpacing: '-0.02em', /* Tighter letter spacing for modern dev aesthetic */
+          // JetBrains Mono a déjà ses métriques : pas de tracking négatif (il
+          // resserre les glyphes et décale le caret positionné en em).
+          letterSpacing: '0',
         }}
       >
         {ghostTimings && ghostTimings.length > 0 && (

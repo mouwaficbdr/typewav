@@ -7,7 +7,7 @@
   --color-border: #1f2937; /* Gray 800 */
   --color-accent: #14b8a6; /* Teal 500 */
   --color-text-primary: #f9fafb; /* Gray 50 */
-  --color-text-muted: #6b7280; /* Gray 500 */
+  --color-text-muted: #8b93a1; /* Gray 400/500, remonté pour tenir WCAG AA sur bg et surface (garde theme-contrast.test.ts) */
   --color-error: #f43f5e; /* Rose 500 */
 
   /* Typographie */
@@ -47,9 +47,20 @@ body {
   margin: 0;
   min-height: 100dvh;
   background-color: var(--color-bg);
-  background-image: 
-    radial-gradient(ellipse at top, rgba(20, 184, 166, 0.05) 0%, transparent 60%),
-    radial-gradient(ellipse at bottom, rgba(17, 24, 39, 1) 0%, var(--color-bg) 100%);
+  /* Halo d'accent en haut + vignette en bas, exprimés en tokens de thème
+     (endpoints transparents) : l'effet se pose sur background-color sans bande
+     opaque et ne casse pas les thèmes clairs / colorés. */
+  background-image:
+    radial-gradient(
+      ellipse at top,
+      color-mix(in srgb, var(--color-accent) 6%, transparent) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse at bottom,
+      color-mix(in srgb, var(--color-surface) 55%, transparent) 0%,
+      transparent 100%
+    );
 }
 
 @media (max-width: 640px) {
@@ -64,6 +75,11 @@ body {
   border-radius: var(--radius-sm);
 }
 
+/* Zone de frappe : aucun anneau de focus (voir PR #49). Le caret clignotant
+   (.char-current::after) porte à lui seul la position ET le focus de cette
+   surface ; dans une appli de frappe le dernier geste est toujours une touche,
+   donc :focus-visible matcherait en continu et l'anneau resterait allumé en
+   permanence. La zone reste focusable clavier (tabindex=0). */
 .typing-focus-ring:focus,
 .typing-focus-ring:focus-visible {
   outline: none;
@@ -109,8 +125,13 @@ body {
 .char-error {
   color: var(--color-error);
   text-shadow: 0 0 12px color-mix(in srgb, var(--color-error) 60%, transparent);
-  border-bottom: 2px solid color-mix(in srgb, var(--color-error) 80%, transparent);
-  padding-bottom: 2px;
+  /* Signal non porté par la seule couleur, mais via text-decoration : ça ne
+     modifie pas la boîte du caractère (un border/padding par span ferait
+     tressauter la ligne au fil de la frappe). */
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--color-error) 80%, transparent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }
 
 .char-current {
@@ -181,6 +202,11 @@ body {
   animation-delay: 200ms;
 }
 
+/* prefers-reduced-motion : neutraliser les animations CSS en boucle de cette
+   feuille. Les animations pilotées par les composants passent déjà par
+   useReducedMotion (motion/react). Le caret reste VISIBLE (on retire juste le
+   clignotement), le skeleton garde un fond figé, les barres du logo
+   apparaissent directement à leur état final. */
 @media (prefers-reduced-motion: reduce) {
   .cursor-blink,
   .char-current::after {
@@ -235,6 +261,9 @@ body {
   color: var(--color-text-primary);
 }
 
+/* CTA de repli d'un lien partagé illisible : bordure faible qui vire à l'accent
+   plein, jamais un fill (sur certains thèmes bg et accent sont trop proches et
+   un fill effacerait le libellé). Voir PR #45. */
 .shared-link-fallback-cta:hover {
   border-color: var(--color-accent);
 }
@@ -252,10 +281,11 @@ body {
   }
 }
 
-/* Utils for glassmorphism */
+/* Panneau verre : couleurs en tokens de thème (pas de rgba figé, sinon gris
+   sale sur les thèmes colorés / clairs). */
 .glass-panel {
-  background: rgba(17, 24, 39, 0.45);
+  background: color-mix(in srgb, var(--color-surface) 55%, transparent);
   backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid color-mix(in srgb, var(--color-text-primary) 8%, transparent);
+  box-shadow: 0 4px 30px color-mix(in srgb, var(--color-bg) 40%, transparent);
 }

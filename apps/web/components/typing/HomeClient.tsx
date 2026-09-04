@@ -400,6 +400,19 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     [],
   );
 
+  // Chrome périphérique qui s'efface pendant la frappe (« focus mode »). Le
+  // fondu est visuel ; `inert` retire vraiment le sous-arbre de l'ordre de
+  // tabulation et de l'arbre d'accessibilité (opacity:0 + pointer-events:none
+  // ne suffit pas, un utilisateur clavier tomberait dans des contrôles
+  // invisibles). Sous prefers-reduced-motion, bascule instantanée.
+  const fadeOnStart = (translateYpx: number) => ({
+    opacity: hasStarted ? 0 : 1,
+    transform: hasStarted ? `translateY(${translateYpx}px)` : 'translateY(0)',
+    transition: shouldReduceMotion
+      ? 'none'
+      : 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+  });
+
   const { text, source, collectionId } = useMemo(() => {
     // Mode Libre : texte personnel affiché tel quel, jamais filtré (A3) —
     // l'utilisateur a écrit ce texte lui-même, le dénaturer n'a pas de sens.
@@ -479,19 +492,17 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
       {/* En-tête de Configuration */}
       {!isLearningMode ? (
         <div
+          inert={hasStarted}
           style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             gap: 16,
-            minHeight: '130px', 
+            minHeight: '130px',
             width: '100%',
             position: 'relative',
             zIndex: 10,
-            opacity: hasStarted ? 0 : 1,
-            pointerEvents: hasStarted ? 'none' : 'auto',
-            transform: hasStarted ? 'translateY(-10px)' : 'translateY(0)',
-            transition: 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+            ...fadeOnStart(-10),
           }}
         >
           {/* Zone 2 — ConfigBar */}
@@ -509,7 +520,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               borderRadius: '9999px',
             }}
           >
-            {/* Zone 3 — Active Session Header */}
+            {/* Zone 3 : Active Session Header */}
             <ActiveSessionHeader
               selectedPieceId={selectedPieceId}
               onPieceChange={handlePieceChange}
@@ -517,7 +528,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
             <div style={{ width: '1px', height: '16px', background: 'var(--color-border)' }} />
 
-            {/* Zone 3.5 — Context Selectors (Language + Collection) */}
+            {/* Zone 3.5 : Context Selectors (Language + Collection) */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <ContextSelectors controlsMode={effectiveMode} />
               <CollectionSelector controlsMode={effectiveMode} />
@@ -733,7 +744,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         )}
       </div>
 
-      {/* Zone 5 — Controls, Hints & Visualizer (Centered under TypingArea) - Masqué en mode apprentissage */}
+      {/* Zone 5 : Controls, Hints & Visualizer (centrés sous TypingArea), masqués en mode apprentissage */}
       {!isLearningMode && (
         <div
           style={{
@@ -760,16 +771,14 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
           {/* Contrôles et indices de redémarrage : Disparaissent pendant la frappe */}
           <div
+            inert={hasStarted}
             style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               gap: 12,
               color: 'var(--color-text-muted)',
-              opacity: hasStarted ? 0 : 1,
-              pointerEvents: hasStarted ? 'none' : 'auto',
-              transform: hasStarted ? 'translateY(10px)' : 'translateY(0)',
-              transition: 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+              ...fadeOnStart(10),
             }}
           >
             {/* Shuffle / Next Test (MonkeyType style, centered below text) */}
@@ -817,6 +826,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
       {/* Zone 6 — Footer minimal avec les contrôles secondaires éparpillés */}
       <footer
+        inert={hasStarted}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -828,10 +838,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           fontSize: '0.75rem',
           color: 'var(--color-text-muted)',
           paddingTop: '32px',
-          opacity: hasStarted ? 0 : 1,
-          pointerEvents: hasStarted ? 'none' : 'auto',
-          transform: hasStarted ? 'translateY(10px)' : 'translateY(0)',
-          transition: 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+          ...fadeOnStart(10),
         }}
       >
         {/* === GAUCHE: Liens externes === */}

@@ -97,11 +97,11 @@ export function ConfigBar({ controlsMode }: ConfigBarProps = {}) {
           ? 'color-mix(in srgb, var(--color-text-primary) 12%, transparent)'
           : 'transparent',
       border: 'none',
-      borderRadius: '9999px',
+      borderRadius: 'var(--radius-full)',
       color:
         isSignature || active
           ? 'var(--color-text-primary)'
-          : 'color-mix(in srgb, var(--color-text-muted) 90%, transparent)',
+          : 'var(--color-text-muted)',
       cursor: 'pointer',
       fontFamily: 'var(--font-ui)',
       fontSize: '0.8rem',
@@ -112,8 +112,10 @@ export function ConfigBar({ controlsMode }: ConfigBarProps = {}) {
       alignItems: 'center',
       justifyContent: 'center',
       transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-      transform: active ? 'scale(1)' : 'scale(1)',
-      boxShadow: active && isSignature ? '0 0 12px color-mix(in srgb, var(--color-accent) 40%, transparent)' : 'none',
+      boxShadow:
+        active && isSignature
+          ? '0 0 12px color-mix(in srgb, var(--color-accent) 40%, transparent)'
+          : 'none',
       // Respire doucement pour attirer l'œil vers le mode signature, mais
       // s'arrête net une fois sélectionné : Zen promet le calme, un glow
       // qui continue de pulser pendant la frappe serait le contredire.
@@ -178,12 +180,17 @@ export function ConfigBar({ controlsMode }: ConfigBarProps = {}) {
           justifyContent: 'center',
           width: 'fit-content',
           maxWidth: '1200px',
-          height: '46px' /* Strict height, slightly taller for touch targets */,
+          // Élément de chrome permanent : hauteur stricte + flexShrink: 0 pour
+          // qu'il ne soit jamais écrasé par du contenu voisin trop haut (ex.
+          // mode Apprentissage). Sans ça, le parent flex-column à hauteur fixe
+          // (overflow: hidden) le réduit à 0px : la barre reste dans le DOM
+          // mais devient invisible, donc impossible de changer de mode.
+          height: '46px',
           flexShrink: 0,
           margin: '0 auto',
           padding: '0 12px',
           gap: '6px',
-          borderRadius: '9999px', // Fully rounded pill shape
+          borderRadius: 'var(--radius-full)',
         }}
         className="hide-scrollbar glass-panel"
       >
