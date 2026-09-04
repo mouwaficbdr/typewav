@@ -29,7 +29,12 @@ import { PersonalTextsPanel } from '@/components/typing/PersonalTextsPanel';
 import { TypingArea } from '@/components/typing/TypingArea';
 import { WaveformBars } from '@/components/typing/WaveformBars';
 import { Keycap } from '@/components/ui/Keycap';
-import { MusicNoteIcon, PenIcon, RepeatIcon } from '@/components/ui/icons';
+import {
+  GhostIcon,
+  MusicNoteIcon,
+  PenIcon,
+  RepeatIcon,
+} from '@/components/ui/icons';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { NON_CITABLE_COLLECTIONS } from '@/lib/collection-support';
 import {
@@ -689,24 +694,30 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
           {/* Repère sur ce qui est rejoué (audit configbar, B8) : avant,
               rien ne distinguait "je tape mon record" de "je tape un texte
-              quelconque" une fois le fantôme actif. */}
+              quelconque" une fois le fantôme actif. Chip à largeur de
+              contenu (même langage visuel que le chip Recommandation
+              d'ActiveSessionHeader), pas une bannière pleine largeur : elle
+              se fondait dans le reste de l'écran comme un cadre d'erreur
+              générique plutôt qu'un repère ponctuel. */}
           {ghostEnabled && ghostData && (
             <div
               role="status"
               style={{
-                width: '100%',
-                maxWidth: '980px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                fontFamily: 'var(--font-ui)',
                 fontSize: '0.78rem',
-                color: 'var(--color-text-muted)',
+                color: 'var(--color-text-primary)',
                 border:
                   '1px solid color-mix(in srgb, var(--color-accent) 35%, transparent)',
                 background:
-                  'color-mix(in srgb, var(--color-accent) 8%, transparent)',
+                  'color-mix(in srgb, var(--color-accent) 10%, transparent)',
                 borderRadius: 'var(--radius-sm)',
-                padding: '8px 10px',
-                textAlign: 'left',
+                padding: '6px 14px',
               }}
             >
+              <GhostIcon size={14} className="opacity-80" />
               {tGhost('replayingRecord', { wpm: Math.round(ghostData.wpm) })}
             </div>
           )}
@@ -902,9 +913,11 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               <RepeatIcon size={20} />
             </button>
 
-            {/* Restart Hint : touches en Keycap façon MonkeyType (rectangle
-                à jupe), plus le libellé en texte plat, pas une seule chaîne
-                "Tab + Entrée pour recommencer". */}
+            {/* Restart Hint : une seule touche façon MonkeyType (rectangle
+                à jupe), portant "Tab + Entrée" en toutes lettres. La touche
+                elle-même reste à pleine opacité (comme sur monkeytype.com,
+                où la touche ne s'efface jamais) : seul le libellé de fin
+                s'atténue au repos et remonte au survol. */}
             <button
               onClick={handleRestart}
               aria-label={tHint('restart')}
@@ -919,16 +932,14 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
                 fontSize: '0.85rem',
                 fontFamily: 'var(--font-ui)',
                 padding: '4px 16px',
-                opacity: 0.6,
               }}
-              className="hover:text-text-primary hover:opacity-100 transition-colors"
+              className="group hover:text-text-primary transition-colors"
               title={tHint('restartTestTooltip')}
             >
-              <span style={{ display: 'inline-flex', gap: '4px' }}>
-                <Keycap size="sm">Tab</Keycap>
-                <Keycap size="sm">↵</Keycap>
+              <Keycap size="sm">{tHint('restartKeys')}</Keycap>
+              <span className="opacity-60 group-hover:opacity-100 transition-opacity">
+                {tHint('restartHintSuffix')}
               </span>
-              {tHint('restartHintSuffix')}
             </button>
           </div>
         </div>
