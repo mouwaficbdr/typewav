@@ -1,15 +1,16 @@
 'use client';
 
 /**
- * ChallengeClient — page de challenge partagé.
+ * ChallengeClient : page de challenge partagé.
  *
  * Décode les params depuis l'URL (?c=...) et lance un test
  * avec le texte du créateur. Affiche le WPM cible si fourni.
  *
- * Spec : docs/specs/08 — Challenge direct
+ * Spec : docs/specs/08 (Challenge direct)
  * 'use client' justifié : useSearchParams (hook React), TypingArea (interactif)
  */
 
+import { SharedLinkFallback } from '@/components/social/SharedLinkFallback';
 import { TypingArea } from '@/components/typing/TypingArea';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import {
@@ -37,6 +38,7 @@ const SUPPORTED_CHALLENGE_MODES: readonly TypingMode[] = [
 
 export function ChallengeClient() {
   const t = useTranslations('challenge');
+  const tCommon = useTranslations('common');
   const locale = useLocale();
   const searchParams = useSearchParams();
   const encoded = searchParams.get('c');
@@ -73,27 +75,12 @@ export function ChallengeClient() {
 
   if (!result.ok) {
     return (
-      <main className="flex min-h-dvh flex-col items-center justify-center gap-6 p-8">
-        <p
-          style={{
-            color: 'var(--color-error)',
-            fontFamily: 'var(--font-ui)',
-            fontSize: '0.9rem',
-          }}
-        >
-          {result.error}
-        </p>
-        <Link
-          href={`/${locale}`}
-          style={{
-            color: 'var(--color-accent)',
-            fontFamily: 'var(--font-ui)',
-            fontSize: '0.85rem',
-          }}
-        >
-          {t('backHome')}
-        </Link>
-      </main>
+      <SharedLinkFallback
+        title={t('linkErrorTitle')}
+        detail={result.error}
+        ctaHref={`/${locale}`}
+        ctaLabel={tCommon('tryTypewav')}
+      />
     );
   }
 

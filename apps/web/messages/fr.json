@@ -166,6 +166,7 @@
     "noChallengeInUrl": "Aucun challenge trouvé dans cette URL.",
     "challengeTextAltered": "Le texte du challenge a été altéré.",
     "invalidOrExpiredLink": "Lien de challenge invalide ou expiré.",
+    "linkErrorTitle": "Ce défi n'a pas pu se charger",
     "backHome": "← Retour à l'accueil",
     "wonWithWpm": "✓ Gagné : {wpm} WPM !",
     "remainingToBeat": "{wpm} WPM, encore {remaining} WPM à gagner",
@@ -179,18 +180,19 @@
     "loading": "Chargement du replay…",
     "missingReplayInUrl": "Aucun replay dans cette URL.",
     "invalidOrCorruptedLink": "Lien de replay invalide ou corrompu.",
+    "linkErrorTitle": "Ce replay n'a pas pu se charger",
     "banner": "Replay · {wpm} WPM · {accuracy}% · {theme}",
     "preLaunchDescription": "Appuyez sur la première touche pour démarrer votre session. Le curseur fantôme rejoue le record partagé en temps réel.",
     "backHome": "← Retour à l'accueil"
   },
   "leaderboard": {
-    "title": "Classement de la semaine",
+    "title": "Vos meilleures séances",
     "rank": "Rang",
     "pseudo": "Joueur",
     "wpm": "MPM",
     "accuracy": "Précision",
     "mode": "Mode",
-    "noData": "Aucun score cette semaine. Complétez un test pour apparaître ici.",
+    "noData": "Aucune séance pour l'instant. Faites un test pour apparaître ici.",
     "filterAll": "Tous",
     "you": "vous",
     "rankHeader": "#",
@@ -198,17 +200,15 @@
     "wpmHeader": "WPM",
     "accuracyHeader": "Précision",
     "modeHeader": "Mode",
-    "comingSoonMessage": "Classement mondial disponible dès la synchronisation cloud",
-    "soon": "BIENTÔT",
-    "myBestSessions": "Mes meilleures sessions",
-    "backToProfile": "← Profil",
+    "myBestSessions": "Vos meilleures séances",
     "filters": {
       "all": "Tous",
       "classic": "Classique",
       "sprint": "Sprint",
       "endurance": "Endurance",
       "code": "Code"
-    }
+    },
+    "subtitle": "Vos sessions les plus rapides, sur cet appareil."
   },
   "profile": {
     "title": "Profil",
@@ -266,7 +266,8 @@
     "copied": "Copié !",
     "share": "Partager",
     "open_source": "Open source",
-    "language": "Langue"
+    "language": "Langue",
+    "tryTypewav": "Essayer TypeWav"
   },
   "ghost": {
     "label": "Fantôme",

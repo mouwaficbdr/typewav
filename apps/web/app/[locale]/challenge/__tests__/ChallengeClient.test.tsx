@@ -57,12 +57,32 @@ vi.mock('next-intl', () => ({
   },
 }));
 
+import { decodeChallenge } from '@/lib/challenge';
 import { ChallengeClient } from '../ChallengeClient';
+
+const decodeChallengeMock = vi.mocked(decodeChallenge);
 
 describe('ChallengeClient', () => {
   it('passe autoNavigate={false} à TypingArea', () => {
     render(<ChallengeClient />);
     expect(capturedAutoNavigate).toBe(false);
+  });
+
+  it('lien illisible : atterrissage calme (titre + CTA produit), jamais une ligne rouge', () => {
+    decodeChallengeMock.mockImplementationOnce(() => {
+      throw new Error('bad payload');
+    });
+
+    render(<ChallengeClient />);
+
+    expect(
+      screen.getByRole('heading', { name: 'linkErrorTitle' }),
+    ).toBeInTheDocument();
+    const cta = screen.getByRole('link', { name: 'tryTypewav' });
+    expect(cta).toHaveAttribute('href', '/fr');
+    // La cause reste affichée, mais plus de bouton "retour" en pied de page.
+    expect(screen.getByText('invalidOrExpiredLink')).toBeInTheDocument();
+    expect(screen.queryByText('backHome')).not.toBeInTheDocument();
   });
 
   it('affiche le résultat post-complétion après onComplete sans redirection', async () => {

@@ -1,15 +1,16 @@
 'use client';
 
 /**
- * ReplayClient — lecture d'un replay partageable.
+ * ReplayClient : lecture d'un replay partageable.
  *
  * Décode les données depuis l'URL (?d=...) et affiche TypingArea
  * avec le ghost cursor rejouant le record partagé.
  *
- * Spec : docs/specs/08 — Replay partageable
+ * Spec : docs/specs/08 (Replay partageable)
  * 'use client' justifié : useSearchParams, état interactif, TypingArea
  */
 
+import { SharedLinkFallback } from '@/components/social/SharedLinkFallback';
 import { TypingArea } from '@/components/typing/TypingArea';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { decodeReplay } from '@/lib/replay';
@@ -21,6 +22,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 export function ReplayClient() {
   const t = useTranslations('replay');
+  const tCommon = useTranslations('common');
   const locale = useLocale();
   const searchParams = useSearchParams();
   const encoded = searchParams.get('d');
@@ -47,27 +49,12 @@ export function ReplayClient() {
 
   if (!result.ok) {
     return (
-      <main className="flex min-h-dvh flex-col items-center justify-center gap-6 p-8">
-        <p
-          style={{
-            color: 'var(--color-error)',
-            fontFamily: 'var(--font-ui)',
-            fontSize: '0.9rem',
-          }}
-        >
-          {result.error}
-        </p>
-        <Link
-          href={`/${locale}`}
-          style={{
-            color: 'var(--color-accent)',
-            fontFamily: 'var(--font-ui)',
-            fontSize: '0.85rem',
-          }}
-        >
-          {t('backHome')}
-        </Link>
-      </main>
+      <SharedLinkFallback
+        title={t('linkErrorTitle')}
+        detail={result.error}
+        ctaHref={`/${locale}`}
+        ctaLabel={tCommon('tryTypewav')}
+      />
     );
   }
 

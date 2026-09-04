@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * LeaderboardTable — classement hebdomadaire local.
+ * LeaderboardTable : classement local, rendu en tableau.
  *
- * Phase 3 : classement basé sur les sessions IndexedDB de l'utilisateur
- * et les pseudos saisis lors des challenges. Pas de serveur requis.
- * Phase 4 ajoutera la sync Supabase pour le classement global.
+ * Les entrées viennent des sessions IndexedDB de l'appareil et des pseudos
+ * saisis lors des challenges. Aucun serveur, aucune sync : la v1 n'a ni
+ * comptes ni classement mondial (comptes retirés en PR #32).
  *
- * Spec : docs/specs/08 — Leaderboards contextuels
+ * Spec : docs/specs/08 (Leaderboards contextuels)
  * 'use client' justifié : state, filtres interactifs
  */
 
@@ -102,7 +102,7 @@ export function LeaderboardTable({
                   {i + 1}
                 </td>
                 <td style={{ padding: '0.75rem 1rem' }}>
-                  {entry.pseudo || '—'}
+                  {entry.pseudo || '·'}
                   {isCurrentUser && (
                     <span
                       style={{

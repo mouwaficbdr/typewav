@@ -1,22 +1,21 @@
 'use client';
 
 /**
- * ClassementClient — page de classement / meilleures sessions.
+ * ClassementClient : vos meilleures séances (local, IndexedDB).
  *
- * Phase 3 : classement local basé sur IndexedDB.
- * Affiche les meilleures sessions personnelles (all-time), triées par WPM.
- * Phase 4 ajoutera Supabase pour un classement global (BIENTÔT).
+ * v1 : pas de comptes ni de sync cloud (retirés en PR #32). Cette page liste
+ * vos sessions les plus rapides sur cet appareil, triées par WPM, filtrables
+ * par mode. Rien de « mondial » ni de « bientôt » : ce qui est là est ce qu'il
+ * y aura.
  *
- * Spec : docs/specs/08 — Leaderboards contextuels
- * Spec : docs/specs/31-pages-refonte.md — FORGE [3] design direction
+ * Spec : docs/specs/08 (Leaderboards contextuels), docs/specs/31-pages-refonte.md
  * 'use client' justifié : IndexedDB, state React, filtres
  */
 
 import { LeaderboardTable } from '@/components/social/LeaderboardTable';
 import { getSessions, getUserProfile } from '@/lib/db';
 import type { LeaderboardEntry, SessionResult } from '@typewav/types';
-import { useLocale, useTranslations } from 'next-intl';
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 
 type FilterMode = 'all' | 'classic' | 'sprint' | 'endurance' | 'code';
@@ -39,7 +38,6 @@ function sessionToEntry(
 export function ClassementClient() {
   const t = useTranslations('leaderboard');
   const tCommon = useTranslations('common');
-  const locale = useLocale();
 
   const [sessions, setSessions] = useState<SessionResult[]>([]);
   const [pseudo, setPseudo] = useState('');
@@ -61,10 +59,7 @@ export function ClassementClient() {
 
   const entries = useMemo<LeaderboardEntry[]>(() => {
     return sessions
-      .filter((s) => {
-        if (modeFilter !== 'all' && s.mode !== modeFilter) return false;
-        return true;
-      })
+      .filter((s) => modeFilter === 'all' || s.mode === modeFilter)
       .map((s) => sessionToEntry(s, pseudo))
       .sort((a, b) => b.wpm - a.wpm);
   }, [sessions, pseudo, modeFilter]);
@@ -79,125 +74,89 @@ export function ClassementClient() {
 
   return (
     <main
-      className="flex flex-col items-center gap-8 p-8 max-w-3xl mx-auto w-full"
-      style={{ minHeight: 'calc(100dvh - var(--nav-height))' }}
+      className="flex flex-col items-start gap-7 max-w-3xl mx-auto w-full"
+      style={{
+        minHeight: 'calc(100dvh - var(--nav-height))',
+        padding: 'clamp(28px, 6vh, 64px) 24px',
+      }}
     >
-      {/* Banner honnête — classement mondial bientôt */}
-      <div
-        data-testid="coming-soon-banner"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-          width: '100%',
-        }}
-      >
+      <div>
+        <h1
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(2rem, 4vw, 2.6rem)',
+            fontWeight: 600,
+            lineHeight: 1.1,
+            margin: 0,
+            color: 'var(--color-text-primary)',
+          }}
+        >
+          {t('myBestSessions')}
+        </h1>
         <p
           style={{
             color: 'var(--color-text-muted)',
             fontFamily: 'var(--font-ui)',
-            fontSize: '0.875rem',
-            margin: 0,
+            fontSize: '0.95rem',
+            margin: '10px 0 0',
           }}
         >
-          {t('comingSoonMessage')}
+          {t('subtitle')}
         </p>
-        <span
-          data-testid="soon-badge"
-          style={{
-            color: 'var(--color-accent)',
-            fontFamily: 'var(--font-ui)',
-            fontSize: '0.75rem',
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            border: '1px solid var(--color-accent)',
-            borderRadius: 'var(--radius-sm)',
-            padding: '2px 8px',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {t('soon')}
-        </span>
       </div>
 
-      <header className="w-full">
-        <Link
-          href={`/${locale}/profil`}
-          className="transition-colors duration-150 hover:text-[var(--color-text-primary)] hover:underline"
-          style={{
-            color: 'var(--color-text-muted)',
-            fontFamily: 'var(--font-ui)',
-            fontSize: '0.75rem',
-            marginBottom: '1rem',
-            display: 'inline-block',
-            textDecoration: 'none',
-          }}
-        >
-          {t('backToProfile')}
-        </Link>
-      </header>
-
-      {/* Titre section */}
-      <h2
-        style={{
-          color: 'var(--color-text-muted)',
-          fontFamily: 'var(--font-ui)',
-          fontSize: '0.75rem',
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-          marginBottom: 0,
-          marginTop: 0,
-          width: '100%',
-        }}
+      <div
+        role="group"
+        aria-label={t('filterAll')}
+        className="flex gap-2 flex-wrap w-full"
       >
-        {t('myBestSessions')}
-      </h2>
-
-      {/* Filtres par mode */}
-      <div className="flex gap-2 flex-wrap w-full">
-        {filterButtons.map(({ label, value }) => (
-          <button
-            key={value}
-            onClick={() => setModeFilter(value)}
-            style={{
-              padding: '0.35rem 0.85rem',
-              fontFamily: 'var(--font-ui)',
-              fontSize: '0.75rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.07em',
-              cursor: 'pointer',
-              background:
-                modeFilter === value ? 'var(--color-accent)' : 'transparent',
-              color: modeFilter === value ? '#000' : 'var(--color-text-muted)',
-              border: '1px solid',
-              borderColor:
-                modeFilter === value
+        {filterButtons.map(({ label, value }) => {
+          const active = modeFilter === value;
+          return (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setModeFilter(value)}
+              aria-pressed={active}
+              style={{
+                padding: '0.4rem 0.9rem',
+                fontFamily: 'var(--font-ui)',
+                fontSize: '0.75rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.07em',
+                cursor: 'pointer',
+                background: active ? 'var(--color-accent)' : 'transparent',
+                color: active ? 'var(--color-bg)' : 'var(--color-text-muted)',
+                border: '1px solid',
+                borderColor: active
                   ? 'var(--color-accent)'
                   : 'var(--color-border)',
-              borderRadius: 'var(--radius-sm)',
-              transition: 'all 0.15s',
-            }}
-          >
-            {label}
-          </button>
-        ))}
+                borderRadius: 'var(--radius-sm)',
+                transition: 'all 0.15s',
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
-      {loading ? (
-        <p
-          style={{
-            color: 'var(--color-text-muted)',
-            fontFamily: 'var(--font-ui)',
-            fontSize: '0.85rem',
-          }}
-        >
-          {tCommon('loading')}
-        </p>
-      ) : (
-        <div className="w-full">
+      <div className="w-full">
+        {loading ? (
+          <p
+            style={{
+              color: 'var(--color-text-muted)',
+              fontFamily: 'var(--font-ui)',
+              fontSize: '0.85rem',
+              padding: '2rem 0',
+            }}
+          >
+            {tCommon('loading')}
+          </p>
+        ) : (
           <LeaderboardTable entries={entries} currentUserPseudo={pseudo} />
-        </div>
-      )}
+        )}
+      </div>
     </main>
   );
 }
