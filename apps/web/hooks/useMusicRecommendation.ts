@@ -12,6 +12,7 @@
  */
 
 import { useAudioStore } from '@/stores/useAudioStore';
+import { useConfigStore } from '@/stores/useConfigStore';
 import { useSessionStore } from '@/stores/useSessionStore';
 import {
   getMidiPieceIdFromLibraryId,
@@ -30,7 +31,10 @@ export function useMusicRecommendation() {
   const mode = useSessionStore((s) => s.mode);
   const collectionId = useSessionStore((s) => s.collectionId);
   const activePieceId = useAudioStore((s) => s.activePieceId);
-  const durationSeconds = 60;
+  // Vraie durée choisie dans la config bar, pas une constante : sans ça les
+  // paliers de durée de getRecommendedRegister (<= 15s energique, >= 120s
+  // contemplatif) ne se déclenchent jamais.
+  const durationSeconds = useConfigStore((s) => s.durationSeconds);
 
   const [currentPiece, setCurrentPiece] = useState<UnifiedMusicPiece | null>(
     null,
