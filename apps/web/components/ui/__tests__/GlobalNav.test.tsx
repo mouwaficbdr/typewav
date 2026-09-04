@@ -40,9 +40,15 @@ describe('GlobalNav', () => {
     expect(screen.getByRole('link', { name: /TypeWav/i })).toBeInTheDocument();
   });
 
-  it('affiche les quatre entrées de navigation', () => {
+  it('affiche les cinq entrées de navigation', () => {
     render(<GlobalNav />);
-    for (const name of ['typing', 'leaderboard', 'profile', 'settings']) {
+    for (const name of [
+      'typing',
+      'leaderboard',
+      'profile',
+      'settings',
+      'about',
+    ]) {
       expect(screen.getByRole('link', { name })).toBeInTheDocument();
     }
   });
