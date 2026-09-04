@@ -423,6 +423,29 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     setHasStarted(false);
   }, []);
 
+  // Zen ne navigue jamais vers /results (voir autoNavigate plus bas) : sans
+  // suite, l'extrait terminé resterait figé à l'écran sans action évidente.
+  // Un court silence puis un nouvel extrait enchaîne le flux (audit
+  // configbar, décision 3 / B1 : « un vrai Zen, sans verdict »).
+  const zenContinueTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const handleZenComplete = useCallback(() => {
+    if (zenContinueTimeoutRef.current) {
+      clearTimeout(zenContinueTimeoutRef.current);
+    }
+    zenContinueTimeoutRef.current = setTimeout(() => {
+      handleShuffle();
+    }, 1200);
+  }, [handleShuffle]);
+  useEffect(() => {
+    return () => {
+      if (zenContinueTimeoutRef.current) {
+        clearTimeout(zenContinueTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleRestart = useCallback(() => {
     setRestartKey((k) => k + 1);
     setHasStarted(false);
@@ -762,6 +785,13 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               mode={effectiveMode}
               durationSeconds={durationSeconds}
               onNoteChange={handleNoteChange}
+              // Zen ne juge jamais : pas de redirection vers /results, pas
+              // de WPM/précision/verdict affichés (décision 3 / B1). Le flux
+              // enchaîne plutôt un nouvel extrait, voir handleZenComplete.
+              autoNavigate={effectiveMode !== 'zen'}
+              {...(effectiveMode === 'zen'
+                ? { onComplete: handleZenComplete }
+                : {})}
               {...(ghostEnabled && ghostData
                 ? { ghostTimings: ghostData.timings }
                 : {})}

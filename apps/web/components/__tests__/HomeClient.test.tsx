@@ -53,6 +53,8 @@ const typingAreaPropsRef: {
       isError: boolean,
       isPhraseBoundary: boolean,
     ) => void;
+    autoNavigate?: boolean;
+    onComplete?: (wpm: number) => void;
   };
 } = { current: null };
 
@@ -64,6 +66,8 @@ vi.mock('@/components/typing/TypingArea', () => ({
       isError: boolean,
       isPhraseBoundary: boolean,
     ) => void;
+    autoNavigate?: boolean;
+    onComplete?: (wpm: number) => void;
   }) => {
     typingAreaPropsRef.current = props;
     return <div data-testid="typing-area">{props.text}</div>;
@@ -599,6 +603,66 @@ describe('HomeClient — anti-répétition sur plusieurs essais (audit C3)', () 
     // que soit le nombre d'essais déjà faits.
     const lastCallOptions = selectSpy.mock.calls.at(-1)?.[1];
     expect(lastCallOptions?.excludeIds?.length ?? 0).toBeGreaterThan(1);
+  });
+});
+
+describe('HomeClient — mode Zen sans notation (audit configbar, décision 3 / B1)', () => {
+  it("ne navigue jamais vers /results (autoNavigate=false transmis à TypingArea)", async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'zen' });
+    });
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(typingAreaPropsRef.current?.autoNavigate).toBe(false);
+    });
+  });
+
+  it('un autre mode chronométré (classic) navigue normalement', async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(typingAreaPropsRef.current?.autoNavigate).toBe(true);
+    });
+  });
+
+  it('enchaîne un nouvel extrait après un court délai, sans action de l’utilisateur', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const collectionsModule = await import('@typewav/collections');
+    const selectSpy = vi.spyOn(collectionsModule, 'selectFromTexts');
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'zen' });
+    });
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => expect(typingAreaPropsRef.current).not.toBeNull());
+    const callsBeforeCompletion = selectSpy.mock.calls.length;
+
+    act(() => {
+      typingAreaPropsRef.current?.onComplete?.(60);
+    });
+    // Rien ne se passe tant que le court délai n'est pas écoulé (pas de
+    // rebond instantané, le temps de "voir" que l'extrait est terminé).
+    expect(selectSpy.mock.calls.length).toBe(callsBeforeCompletion);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1300);
+    });
+
+    expect(selectSpy.mock.calls.length).toBeGreaterThan(callsBeforeCompletion);
+
+    vi.useRealTimers();
   });
 });
 
