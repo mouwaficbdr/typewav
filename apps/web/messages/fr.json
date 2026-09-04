@@ -194,12 +194,11 @@
     "mode": "Mode",
     "noData": "Aucune séance pour l'instant. Faites un test pour apparaître ici.",
     "filterAll": "Tous",
-    "you": "vous",
     "rankHeader": "#",
-    "pseudoHeader": "Pseudo",
     "wpmHeader": "WPM",
     "accuracyHeader": "Précision",
     "modeHeader": "Mode",
+    "levelHeader": "Niveau",
     "myBestSessions": "Vos meilleures séances",
     "filters": {
       "all": "Tous",

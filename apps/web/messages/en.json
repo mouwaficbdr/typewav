@@ -194,12 +194,11 @@
     "mode": "Mode",
     "noData": "No sessions yet. Run a test to show up here.",
     "filterAll": "All",
-    "you": "you",
     "rankHeader": "#",
-    "pseudoHeader": "Pseudo",
     "wpmHeader": "WPM",
     "accuracyHeader": "Accuracy",
     "modeHeader": "Mode",
+    "levelHeader": "Level",
     "myBestSessions": "Your best sessions",
     "filters": {
       "all": "All",
