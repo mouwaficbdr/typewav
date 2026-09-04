@@ -3,9 +3,11 @@
  * sélection de texte de la config bar (audit QA 2026-09-04,
  * docs/qa/configbar-audit.md volet C).
  *
- * Ces tests documentent le comportement ACTUEL, pas un comportement souhaité :
- * ils échoueront si la diversité s'améliore (pools élargis, historique
- * d'exclusion plus long) : ce qui sera le signal de mettre l'audit à jour.
+ * Mise à jour après l'extension des collections (feat/configbar-rework-p1,
+ * décision 6 de l'audit) : les corpus sont passés de 427 à ~590 entrées, avec
+ * priorité aux textes longs. Les seuils ci-dessous suivent cet état amélioré ;
+ * la logique testée (relâchement, anti-répétition à un seul id exclu) est,
+ * elle, inchangée et reste le vrai objet de ces tests.
  */
 
 import { describe, expect, it } from 'vitest';
@@ -16,19 +18,32 @@ import { litteratureCollection } from '../litterature/collection.config';
 import { gamingCollection } from '../gaming/collection.config';
 
 describe('volet C : pools "Mots" par palier', () => {
-  it('aucune collection n\'a plus de 5 textes de 100 mots ou plus', () => {
-    // Conséquence directe : en mode Mots 100, le pool est minuscule et
-    // l\'anti-répétition (un seul id exclu) ne peut pas empêcher les redites.
+  it('chaque collection a au moins 15 textes de 50 mots ou plus', () => {
+    // Avant l'extension : 8 à 25 selon la collection, et souvent moins de 6
+    // par langue une fois le filtre appliqué. Le mode Mots 50 avait alors un
+    // pool trop petit pour que l'anti-répétition (un seul id exclu) évite les
+    // redites. Seuil rehaussé après décision 6.
     for (const id of ALL_COLLECTIONS) {
-      const pool = fetchPool(id, { wordCount: 100 });
-      expect(pool.length).toBeLessThanOrEqual(5);
+      const pool = fetchPool(id, { wordCount: 50 });
+      expect(pool.length).toBeGreaterThanOrEqual(15);
     }
   });
 
-  it('filtrer par langue réduit encore le pool "Mots 50"', () => {
+  it('le pool "Mots 100" reste étroit : peu de textes dépassent 100 mots', () => {
+    // Toujours un point faible : les extraits du domaine public de bonne
+    // qualité dépassent rarement 100 mots. Le mode Mots 100 reste donc le
+    // palier le plus exposé aux répétitions.
+    for (const id of ALL_COLLECTIONS) {
+      const pool = fetchPool(id, { wordCount: 100 });
+      expect(pool.length).toBeLessThanOrEqual(12);
+    }
+  });
+
+  it('filtrer par langue réduit le pool "Mots 50"', () => {
     const both = fetchPool('litterature', { wordCount: 50 }).length;
     const fr = fetchPool('litterature', { wordCount: 50, language: 'fr' }).length;
     expect(fr).toBeLessThan(both);
+    expect(fr).toBeGreaterThanOrEqual(8);
   });
 });
 
