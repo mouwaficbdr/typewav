@@ -125,6 +125,81 @@ describe('GhostCursor : ne demarre pas avant la vraie session (audit ticket #63)
     el.remove();
   });
 
+  it("reste monte en continu au passage d'un espace de largeur 0 (frontiere de mot)", () => {
+    // Reproduit exactement la structure reelle : un espace entre deux mots a
+    // une largeur de 0px tant que le VRAI curseur (independant du fantome)
+    // n'est pas dessus (voir TypingArea, char-space). "Nous avons" : indices
+    // 0-3 = "Nous", 4 = espace (largeur 0), 5-9 = "avons".
+    const widths = [10, 10, 10, 10, 0, 10, 10, 10, 10, 10];
+    const container = document.createElement('div');
+    widths.forEach((w, i) => {
+      const span = document.createElement('span');
+      span.dataset.testid = `char-${i}`;
+      Object.defineProperty(span, 'getBoundingClientRect', {
+        value: () => ({
+          left: i * 12,
+          top: 0,
+          width: w,
+          height: 20,
+          right: i * 12 + w,
+          bottom: 20,
+          x: i * 12,
+          y: 0,
+          toJSON: () => ({}),
+        }),
+      });
+      container.appendChild(span);
+    });
+    Object.defineProperty(container, 'getBoundingClientRect', {
+      value: () => ({
+        left: 0,
+        top: 0,
+        width: 120,
+        height: 20,
+        right: 120,
+        bottom: 20,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      }),
+    });
+    document.body.appendChild(container);
+    const ref = { current: container } as React.RefObject<HTMLDivElement | null>;
+
+    const timings = widths.map(() => 100); // 100ms par caractere, y compris l'espace
+    const { rerender } = render(
+      <GhostCursor
+        ghostTimings={timings}
+        textLength={widths.length}
+        wordsRef={ref}
+        isSessionActive={true}
+      />,
+    );
+
+    // Position 0 : premiere lettre de "Nous", largeur normale -> deja monte.
+    expect(document.querySelector('[aria-hidden="true"]')).not.toBeNull();
+
+    // Avance manuellement jusqu'a l'espace (position 4, largeur 0) puis au
+    // premier caractere du mot suivant (position 5) : a chaque etape, le
+    // composant ne doit jamais redevenir absent du DOM.
+    for (const pos of [1, 2, 3, 4, 5, 6]) {
+      act(() => {
+        vi.advanceTimersByTime(100);
+      });
+      rerender(
+        <GhostCursor
+          ghostTimings={timings}
+          textLength={widths.length}
+          wordsRef={ref}
+          isSessionActive={true}
+        />,
+      );
+      const cursor = document.querySelector('[aria-hidden="true"]');
+      expect(cursor, `absent a la position ${pos}`).not.toBeNull();
+    }
+    container.remove();
+  });
+
   it('avance de facon monotone une fois isSessionActive vrai, sans jamais reculer', () => {
     const el = makeWordsContainer(5);
     const ref = { current: el } as React.RefObject<HTMLDivElement | null>;
