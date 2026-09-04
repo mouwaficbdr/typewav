@@ -73,89 +73,62 @@ export function ClassementClient() {
   ];
 
   return (
-    <main
-      className="flex flex-col items-start gap-7 max-w-3xl mx-auto w-full"
-      style={{
-        minHeight: 'calc(100dvh - var(--nav-height))',
-        padding: 'clamp(28px, 6vh, 64px) 24px',
-      }}
-    >
-      <div>
-        <h1
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(2rem, 4vw, 2.6rem)',
-            fontWeight: 600,
-            lineHeight: 1.1,
-            margin: 0,
-            color: 'var(--color-text-primary)',
-          }}
-        >
-          {t('myBestSessions')}
-        </h1>
-        <p
-          style={{
-            color: 'var(--color-text-muted)',
-            fontFamily: 'var(--font-ui)',
-            fontSize: '0.95rem',
-            margin: '10px 0 0',
-          }}
-        >
-          {t('subtitle')}
-        </p>
-      </div>
-
-      <div
-        role="group"
-        aria-label={t('filterAll')}
-        className="flex gap-2 flex-wrap w-full"
-      >
-        {filterButtons.map(({ label, value }) => {
-          const active = modeFilter === value;
-          return (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setModeFilter(value)}
-              aria-pressed={active}
-              style={{
-                padding: '0.4rem 0.9rem',
-                fontFamily: 'var(--font-ui)',
-                fontSize: '0.75rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.07em',
-                cursor: 'pointer',
-                background: active ? 'var(--color-accent)' : 'transparent',
-                color: active ? 'var(--color-bg)' : 'var(--color-text-muted)',
-                border: '1px solid',
-                borderColor: active
-                  ? 'var(--color-accent)'
-                  : 'var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                transition: 'all 0.15s',
-              }}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="w-full">
-        {loading ? (
-          <p
-            style={{
-              color: 'var(--color-text-muted)',
-              fontFamily: 'var(--font-ui)',
-              fontSize: '0.85rem',
-              padding: '2rem 0',
-            }}
-          >
-            {tCommon('loading')}
+    <main className="min-h-screen text-[var(--color-text-primary)] pb-32">
+      <div className="max-w-5xl mx-auto px-6 pt-16 md:pt-32 flex flex-col gap-16">
+        
+        {/* Header Section */}
+        <div className="flex flex-col gap-4 border-b border-[var(--color-border)] pb-8">
+          <p className="font-mono text-sm md:text-base text-[var(--color-accent)] uppercase tracking-[0.5em]">
+            {t('title')}
           </p>
-        ) : (
-          <LeaderboardTable entries={entries} />
-        )}
+          <h1 className="font-display text-5xl md:text-[8vw] leading-[0.85] tracking-tighter uppercase text-[var(--color-text-primary)]">
+            ARCHIVE
+          </h1>
+          <p className="font-ui text-sm md:text-base text-[var(--color-text-muted)] max-w-xl mt-4">
+            {t('subtitle')}
+          </p>
+        </div>
+
+        {/* Filters */}
+        <div 
+          role="group" 
+          aria-label={t('filterAll')} 
+          className="flex flex-wrap gap-2 w-full"
+        >
+          {filterButtons.map(({ label, value }) => {
+            const active = modeFilter === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setModeFilter(value)}
+                aria-pressed={active}
+                className={`
+                  px-4 py-2 font-mono text-xs uppercase tracking-widest border transition-all duration-200
+                  ${active 
+                    ? 'bg-[var(--color-text-primary)] text-[var(--color-bg)] border-[var(--color-text-primary)]' 
+                    : 'bg-transparent text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[var(--color-text-primary)] hover:text-[var(--color-text-primary)]'
+                  }
+                `}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* List Section */}
+        <div className="w-full">
+          {loading ? (
+            <div className="flex items-center justify-center py-32 border-t border-[var(--color-border)]">
+              <p className="font-mono text-sm uppercase tracking-widest text-[var(--color-text-muted)] animate-pulse">
+                {tCommon('loading')}
+              </p>
+            </div>
+          ) : (
+            <LeaderboardTable entries={entries} />
+          )}
+        </div>
       </div>
     </main>
   );
