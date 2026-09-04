@@ -33,10 +33,14 @@ vi.mock('@/lib/db', () => ({
   saveSession: vi.fn().mockResolvedValue('test-session-id'),
 }));
 
-// Mock progression check
+// Mock progression check : fonction hissée pour pouvoir l'importer et
+// asserter sur ses appels (trackProgress: false doit la laisser intacte).
+const mockRunAfterSession = vi.hoisted(() =>
+  vi.fn().mockResolvedValue(undefined),
+);
 vi.mock('@/hooks/useProgressionCheck', () => ({
   useProgressionCheck: () => ({
-    runAfterSession: vi.fn().mockResolvedValue(undefined),
+    runAfterSession: mockRunAfterSession,
   }),
 }));
 
@@ -66,6 +70,7 @@ vi.mock('@/stores/useAudioStore', () => ({
   useAudioStore: () => mockAudioStore,
 }));
 
+import { saveSession } from '@/lib/db';
 import { useSession } from '../useSession';
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -159,6 +164,67 @@ describe('useSession — navigation vers /results', () => {
     });
 
     expect(mockPush).not.toHaveBeenCalled();
+  });
+});
+
+describe('useSession : trackProgress false (Zen)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSessionStore.position = 0;
+    mockSessionStore.keystrokes = [];
+    mockSessionStore.startedAt = null;
+    mockSessionStore.endedAt = null;
+  });
+
+  it("ne sauvegarde ni ne compte la session pour la progression malgré une fin de session normale", async () => {
+    const start = Date.now() - 30_000;
+    mockSessionStore.startedAt = start;
+    mockSessionStore.keystrokes = Array.from({ length: 40 }, (_, i) => ({
+      char: 'a',
+      timestamp: start + i * 500,
+      correct: true,
+      deltaMs: 500,
+    }));
+
+    renderHook(() =>
+      useSession({
+        text: 'hello world',
+        autoNavigate: false,
+        trackProgress: false,
+      }),
+    );
+    act(() => {
+      mockSessionStore.endedAt = (mockSessionStore.startedAt ?? 0) + 30_000;
+    });
+
+    // Laisser tous les effets + microtâches se dérouler : rien à attendre
+    // (ni push ni saveSession), donc un délai fixe plutôt qu'un waitFor.
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 50));
+    });
+
+    expect(saveSession).not.toHaveBeenCalled();
+    expect(mockRunAfterSession).not.toHaveBeenCalled();
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it('sauvegarde et compte bien la session quand trackProgress est omis (comportement par défaut inchangé)', async () => {
+    const start = Date.now() - 30_000;
+    mockSessionStore.startedAt = start;
+    mockSessionStore.keystrokes = Array.from({ length: 40 }, (_, i) => ({
+      char: 'a',
+      timestamp: start + i * 500,
+      correct: true,
+      deltaMs: 500,
+    }));
+
+    renderHook(() => useSession({ text: 'hello world', autoNavigate: false }));
+    act(() => {
+      mockSessionStore.endedAt = (mockSessionStore.startedAt ?? 0) + 30_000;
+    });
+
+    await vi.waitFor(() => expect(saveSession).toHaveBeenCalled());
+    await vi.waitFor(() => expect(mockRunAfterSession).toHaveBeenCalled());
   });
 });
 

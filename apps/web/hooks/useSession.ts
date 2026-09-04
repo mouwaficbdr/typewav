@@ -46,6 +46,13 @@ interface UseSessionOptions {
   durationSeconds?: number | undefined;
   /** Si true, navigue automatiquement vers /results en fin de session */
   autoNavigate?: boolean | undefined;
+  /**
+   * Si false, la session n'est ni sauvegardée (IndexedDB) ni comptée pour la
+   * progression (rang, jalons, records) : la séance ne laisse aucune trace.
+   * Utilisé pour Zen, où la promesse produit est justement l'absence de
+   * notation.
+   */
+  trackProgress?: boolean | undefined;
 }
 
 export function useSession({
@@ -54,6 +61,7 @@ export function useSession({
   collectionId,
   durationSeconds = 60,
   autoNavigate = true,
+  trackProgress = true,
 }: UseSessionOptions) {
   const router = useRouter();
   const {
@@ -229,6 +237,7 @@ export function useSession({
   useEffect(() => {
     if (endedAt === null || startedAt === null || !finalStats) return;
     if (skipEndNavRef.current) return; // séance périmée au montage, pas de rebond
+    if (!trackProgress) return; // Zen : ni sauvegarde ni progression
 
     const duration = endedAt - startedAt;
     const { wpm, wpmNet, accuracy, consistency } = finalStats;

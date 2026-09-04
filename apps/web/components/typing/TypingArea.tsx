@@ -47,6 +47,8 @@ interface TypingAreaProps {
   durationSeconds?: number;
   /** Si false, ne navigue pas vers /results automatiquement (ex: LearningMode) */
   autoNavigate?: boolean;
+  /** Si false, la session n'est ni sauvegardée ni comptée pour la progression (ex: Zen) */
+  trackProgress?: boolean;
   /** Callback : touche attendue actuellement (pour KeyboardDiagram) */
   onActiveKeyChange?: (key: string | undefined) => void;
   /** Timings inter-frappe du record personnel (ms) — active le ghost mode */
@@ -82,6 +84,7 @@ export function TypingArea({
   collectionId,
   durationSeconds,
   autoNavigate = true,
+  trackProgress = true,
   onActiveKeyChange,
   ghostTimings,
   onComplete,
@@ -103,6 +106,7 @@ export function TypingArea({
     ...(collectionId !== undefined ? { collectionId } : {}),
     ...(durationSeconds !== undefined ? { durationSeconds } : {}),
     autoNavigate,
+    trackProgress,
   });
   const { initialize, playNote, triggerSilence, triggerResume } =
     useAudioEngine();

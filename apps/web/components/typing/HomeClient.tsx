@@ -816,6 +816,10 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               // de WPM/précision/verdict affichés (décision 3 / B1). Le flux
               // enchaîne plutôt un nouvel extrait, voir handleZenComplete.
               autoNavigate={effectiveMode !== 'zen'}
+              // Ni sauvegarde ni progression pour Zen : une séance sans
+              // notation ne doit laisser aucune trace (rang, records,
+              // classement) une fois terminée.
+              trackProgress={effectiveMode !== 'zen'}
               {...(effectiveMode === 'zen'
                 ? { onComplete: handleZenComplete }
                 : {})}

@@ -54,6 +54,7 @@ const typingAreaPropsRef: {
       isPhraseBoundary: boolean,
     ) => void;
     autoNavigate?: boolean;
+    trackProgress?: boolean;
     onComplete?: (wpm: number) => void;
   };
 } = { current: null };
@@ -67,6 +68,7 @@ vi.mock('@/components/typing/TypingArea', () => ({
       isPhraseBoundary: boolean,
     ) => void;
     autoNavigate?: boolean;
+    trackProgress?: boolean;
     onComplete?: (wpm: number) => void;
   }) => {
     typingAreaPropsRef.current = props;
@@ -630,6 +632,32 @@ describe('HomeClient — mode Zen sans notation (audit configbar, décision 3 / 
 
     await waitFor(() => {
       expect(typingAreaPropsRef.current?.autoNavigate).toBe(true);
+    });
+  });
+
+  it("n'est ni sauvegardée ni comptée pour la progression (trackProgress=false transmis à TypingArea)", async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'zen' });
+    });
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(typingAreaPropsRef.current?.trackProgress).toBe(false);
+    });
+  });
+
+  it('un autre mode chronométré (classic) reste compté pour la progression', async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => {
+      expect(typingAreaPropsRef.current?.trackProgress).toBe(true);
     });
   });
 
