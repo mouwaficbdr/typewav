@@ -376,7 +376,13 @@ export function LearningMode({
 
   return (
     <div
-      className="flex flex-col items-center gap-4 w-full max-w-3xl"
+      // gap-11 (44px) uniforme entre toutes les sections majeures (en-tête,
+      // zone de frappe, dernière session, clavier) plutôt qu'un cas
+      // particulier ponctuel : le compteur wpm/précision de TypingArea
+      // flotte en `position: absolute; top: -1.75rem` (-28px) au-dessus de
+      // sa propre boîte, donc n'importe quel écart en dessous de ~44px le
+      // fait sembler collé à ce qu'il y a juste au-dessus.
+      className="flex flex-col items-center gap-11 w-full max-w-3xl"
       style={{ height: '100%', minHeight: 0 }}
     >
       {/* Annonce lecteur d'écran du déblocage : le glow et la salve de notes
@@ -654,14 +660,12 @@ export function LearningMode({
         </div>
       </div>
 
-      {/* Zone de frappe.
-          marginTop supplémentaire : le compteur wpm/précision de TypingArea
-          se positionne en absolute à top: -1.75rem (-28px) au-dessus de sa
-          propre boîte (voir apps/web/components/typing/TypingArea.tsx). Le
-          gap-4 du conteneur (16px) ne suffit plus à lui seul depuis le
-          resserrement de l'espacement du mode Apprentissage : sans cette
-          marge, le compteur chevauche le sélecteur de niveaux au-dessus. */}
-      <div style={{ marginTop: '1rem', flexShrink: 0 }}>
+      {/* Zone de frappe. Le compteur wpm/précision de TypingArea se
+          positionne en absolute à top: -1.75rem (-28px) au-dessus de sa
+          propre boîte (voir apps/web/components/typing/TypingArea.tsx) :
+          le gap-11 du conteneur lui laisse déjà une marge confortable,
+          plus besoin d'un marginTop dédié ici. */}
+      <div style={{ flexShrink: 0 }}>
         <TypingArea
           key={`learning-${currentLevelId}-${runIndex}`}
           text={text}
@@ -672,57 +676,67 @@ export function LearningMode({
         />
       </div>
 
-      <div
-        style={{
-          fontFamily: 'var(--font-ui)',
-          fontSize: 13,
-          color: 'var(--color-text-muted)',
-          textAlign: 'center',
-          lineHeight: 1.4,
-          flexShrink: 0,
-        }}
-      >
-        {lastSessionStats && (
-          <div>
-            {t('lastSession', {
-              wpm: Math.round(lastSessionStats.wpm),
-              accuracy: Math.round(lastSessionStats.accuracy),
-              correct: lastSessionStats.correct,
-              total: lastSessionStats.total,
-            })}
-          </div>
-        )}
-        {/* Le message "objectif atteint" vit désormais uniquement dans la
-            barre de progression ci-dessus (le CTA "level-cta-ready") :
-            plus besoin de le répéter ici une fois l'objectif rempli. Ne
-            reste que le cas où il manque encore quelque chose, avec le
-            détail de ce qui bloque (frappes ou précision), et le rappel
-            qu'une série interrompue ne compte pas. */}
-        {!canUnlockNext && (
-          <div>
-            {remainingSamples > 0
-              ? t('needMoreReps', {
-                  samples: remainingSamples,
-                  accuracy: currentLevel.minAccuracy,
-                })
-              : t('needMoreAccuracy', {
-                  accuracy: currentLevel.minAccuracy,
-                })}
-          </div>
-        )}
-      </div>
+      {/* N'occupe une place (et le gap-11 avant/après) que s'il y a
+          vraiment quelque chose à montrer : sinon un div vide laissait un
+          double espace fantôme entre la zone de frappe et le clavier,
+          brisant le rythme uniforme des sections. */}
+      {(lastSessionStats || !canUnlockNext) && (
+        <div
+          style={{
+            fontFamily: 'var(--font-ui)',
+            fontSize: 13,
+            color: 'var(--color-text-muted)',
+            textAlign: 'center',
+            lineHeight: 1.4,
+            flexShrink: 0,
+          }}
+        >
+          {lastSessionStats && (
+            <div>
+              {t('lastSession', {
+                wpm: Math.round(lastSessionStats.wpm),
+                accuracy: Math.round(lastSessionStats.accuracy),
+                correct: lastSessionStats.correct,
+                total: lastSessionStats.total,
+              })}
+            </div>
+          )}
+          {/* Le message "objectif atteint" vit désormais uniquement dans
+              la barre de progression ci-dessus (le CTA "level-cta-ready") :
+              plus besoin de le répéter ici une fois l'objectif rempli. Ne
+              reste que le cas où il manque encore quelque chose, avec le
+              détail de ce qui bloque (frappes ou précision), et le rappel
+              qu'une série interrompue ne compte pas. */}
+          {!canUnlockNext && (
+            <div>
+              {remainingSamples > 0
+                ? t('needMoreReps', {
+                    samples: remainingSamples,
+                    accuracy: currentLevel.minAccuracy,
+                  })
+                : t('needMoreAccuracy', {
+                    accuracy: currentLevel.minAccuracy,
+                  })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Schéma clavier : remplit l'espace vertical qui reste (flex:1)
           plutôt que de deviner une taille en vh (voir KeyboardDiagram) —
           c'est ce qui garantit que le pied de page (HomeClient) ne se fait
-          plus jamais pousser hors de l'écran, quel que soit l'écran. */}
+          plus jamais pousser hors de l'écran, quel que soit l'écran.
+          alignItems:'flex-start' plutôt que 'center' : sur un écran haut,
+          l'espace en trop (le clavier a son propre plafond de taille) doit
+          s'accumuler vers le bas (rien d'important après lui), pas le
+          faire flotter loin du contenu au-dessus. */}
       <div
         style={{
           width: '100%',
           flex: '1 1 0%',
           minHeight: 0,
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'flex-start',
           justifyContent: 'center',
         }}
       >
