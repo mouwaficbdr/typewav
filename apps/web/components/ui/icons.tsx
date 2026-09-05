@@ -37,6 +37,9 @@ import {
   Trash2,
   X,
   Plus,
+  Palette,
+  Search,
+  Check,
 } from 'lucide-react';
 
 type IconProps = { size?: number; className?: string };
@@ -82,3 +85,6 @@ export const BookIcon = withProps(BookOpen);
 export const TrashIcon = withProps(Trash2);
 export const CloseIcon = withProps(X);
 export const PlusIcon = withProps(Plus);
+export const PaletteIcon = withProps(Palette);
+export const SearchIcon = withProps(Search);
+export const CheckIcon = withProps(Check);
