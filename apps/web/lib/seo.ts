@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 import { routing } from '@/i18n/routing';
 
-const BRAND = 'TypeWav';
+const BRAND = 'typewav';
 
 /** Titre de marque complet : repli du layout racine et titre des cartes de partage. */
 export const DEFAULT_TITLE = `${BRAND} | Musical Typing Trainer`;
@@ -24,7 +24,7 @@ type BuildMetadataOptions = {
 
 /**
  * Titres de page courts, sans la marque, par locale. Le gabarit `title.template`
- * ajoute « TypeWav | » ; le mettre ici aussi donnerait « TypeWav | TypeWav | ... ».
+ * ajoute « typewav | » ; le mettre ici aussi donnerait « typewav | typewav | ... ».
  */
 const DEFAULT_PAGE_TITLE: Record<Locale, string> = {
   fr: 'Musicothérapie du clavier',

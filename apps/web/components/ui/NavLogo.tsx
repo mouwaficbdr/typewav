@@ -21,7 +21,7 @@ interface NavLogoProps {
   locale: string;
 }
 
-const CAP_HEIGHT = 14;
+const CAP_HEIGHT = 19;
 
 export function NavLogo({ locale }: NavLogoProps) {
   return (
@@ -42,7 +42,7 @@ export function NavLogo({ locale }: NavLogoProps) {
         style={{
           display: 'inline-flex',
           alignItems: 'baseline',
-          gap: 5,
+          gap: 7,
           textDecoration: 'none',
           userSelect: 'none',
         }}
@@ -79,7 +79,7 @@ export function NavLogo({ locale }: NavLogoProps) {
               fontFamily: 'var(--font-logo-mono)',
               color: 'var(--color-text-primary)',
               fontWeight: 700,
-              fontSize: '1.4rem',
+              fontSize: '1.9rem',
               letterSpacing: '-0.01em',
               lineHeight: 1,
             }}
@@ -92,7 +92,7 @@ export function NavLogo({ locale }: NavLogoProps) {
               color: 'var(--color-text-primary)',
               fontWeight: 500,
               fontStyle: 'italic',
-              fontSize: '1.42rem',
+              fontSize: '1.93rem',
               letterSpacing: '0',
               lineHeight: 1,
               marginLeft: '1px',
