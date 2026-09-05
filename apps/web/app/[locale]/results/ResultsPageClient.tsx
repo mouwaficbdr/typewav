@@ -40,7 +40,10 @@ export function ResultsPageClient() {
       .catch(() => null);
   }, []);
 
-  const isNewWpmRecord = records !== null && wpm > records.maxWpm.value;
+  // wpmNet (pas le wpm brut) : c'est le chiffre réellement affiché à l'écran
+  // de résultats, et celui que suivent les records personnels
+  // (voir apps/web/lib/progression.ts).
+  const isNewWpmRecord = records !== null && wpmNet > records.maxWpm.value;
   const isNewAccuracyRecord =
     records !== null && accuracy > records.maxAccuracy.value;
 

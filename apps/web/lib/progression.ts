@@ -31,7 +31,7 @@ const NON_COMPETITIVE_MODES: ReadonlySet<TypingMode> = new Set([
 // ─── Rang ──────────────────────────────────────────────────────────────────────
 
 /**
- * Calcule le rang d'un utilisateur à partir de la médiane WPM
+ * Calcule le rang d'un utilisateur à partir de la médiane WPM net
  * des 10 dernières sessions compétitives.
  */
 export function calculateRank(sessions: SessionResult[]): RankTier {
@@ -66,11 +66,11 @@ export function rankTierForWpm(wpm: number): RankTier {
 
 function calculateMedianWpm(sessions: SessionResult[]): number {
   if (sessions.length === 0) return 0;
-  const sorted = [...sessions].sort((a, b) => a.wpm - b.wpm);
+  const sorted = [...sessions].sort((a, b) => a.wpmNet - b.wpmNet);
   const mid = Math.floor(sorted.length / 2);
   return sorted.length % 2 === 0
-    ? (sorted[mid - 1]!.wpm + sorted[mid]!.wpm) / 2
-    : sorted[mid]!.wpm;
+    ? (sorted[mid - 1]!.wpmNet + sorted[mid]!.wpmNet) / 2
+    : sorted[mid]!.wpmNet;
 }
 
 // ─── Jalons ────────────────────────────────────────────────────────────────────
@@ -100,7 +100,7 @@ export function checkMilestones(
         conditionMet = sessions.length >= condition.value;
         break;
       case 'wpm':
-        conditionMet = latestSession.wpm >= condition.value;
+        conditionMet = latestSession.wpmNet >= condition.value;
         break;
       case 'accuracy':
         conditionMet = latestSession.accuracy >= condition.value;
@@ -181,9 +181,9 @@ export function updatePersonalRecords(
 
   if (NON_COMPETITIVE_MODES.has(session.mode)) return records;
 
-  if (session.wpm > records.maxWpm.value) {
+  if (session.wpmNet > records.maxWpm.value) {
     records.maxWpm = {
-      value: session.wpm,
+      value: session.wpmNet,
       sessionId: session.id,
       achievedAt: session.timestamp,
     };
@@ -215,9 +215,9 @@ export function updatePersonalRecords(
 
   if (session.collectionId) {
     const existing = records.byCollection[session.collectionId];
-    if (!existing || session.wpm > existing.wpm) {
+    if (!existing || session.wpmNet > existing.wpm) {
       records.byCollection[session.collectionId] = {
-        wpm: session.wpm,
+        wpm: session.wpmNet,
         achievedAt: session.timestamp,
       };
     }
