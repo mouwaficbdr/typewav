@@ -55,19 +55,19 @@ describe('buildMetadata', () => {
     expect(buildMetadata().alternates?.canonical).toBe(`${APP_URL}/fr`);
   });
 
-  it('le titre par défaut par locale est court et sans marque : le gabarit ajoute « TypeWav | »', () => {
+  it('le titre par défaut par locale est court et sans marque : le gabarit ajoute « typewav | »', () => {
     // Sinon le gabarit du layout racine double la marque :
-    // « TypeWav | TypeWav | Musical Typing Trainer ».
+    // « typewav | typewav | Musical Typing Trainer ».
     const en = buildMetadata({ locale: 'en' }).title;
     const fr = buildMetadata({ locale: 'fr' }).title;
     expect(en).toMatchObject({ default: 'Musical Typing Trainer' });
     expect(fr).toMatchObject({ default: 'Musicothérapie du clavier' });
-    expect(JSON.stringify(en)).not.toContain('TypeWav | TypeWav');
+    expect(JSON.stringify(en)).not.toContain('typewav | typewav');
   });
 
   it('sans locale ni titre, garde le titre de marque complet comme repli racine', () => {
     expect(buildMetadata().title).toMatchObject({
-      default: 'TypeWav | Musical Typing Trainer',
+      default: 'typewav | Musical Typing Trainer',
     });
   });
 });
