@@ -269,8 +269,7 @@
   "themeSwitcher": {
     "title": "Change theme",
     "searchPlaceholder": "Search a theme…",
-    "noResults": "No theme matches “{query}”.",
-    "close": "Close"
+    "noResults": "No theme matches “{query}”."
   },
   "common": {
     "loading": "Loading…",

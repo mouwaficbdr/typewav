@@ -51,6 +51,15 @@ body {
   margin: 0;
   min-height: 100dvh;
   background-color: var(--color-bg);
+  /* Fondu plutôt qu'un changement de couleur instantané (façon MonkeyType,
+     `body { transition: background 0.25s }`) : sensible surtout pendant
+     l'aperçu live du sélecteur de thème, qui bascule ces variables en
+     continu. `color` transitionne aussi bien qu'hérité de `html` : une
+     transition déclarée sur cet élément s'applique à tout changement de sa
+     valeur calculée, héritage compris. */
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
   /* Seule une vignette basse, en tokens de thème (endpoints transparents).
      Le halo d'accent en haut a été retiré : sous une nav sticky opaque il
      créait une bande claire nette au ras du header (thème-dépendante), en
