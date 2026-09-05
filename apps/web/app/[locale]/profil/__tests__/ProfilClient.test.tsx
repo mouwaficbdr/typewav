@@ -122,7 +122,7 @@ async function renderProfil() {
   return render(<ProfilClient />);
 }
 
-describe('ProfilClient — Le Rouleau', () => {
+describe('ProfilClient : Le Rouleau', () => {
   it('affiche le rang, le WPM médian et le nombre de séances', async () => {
     dbMocks.getSessions.mockResolvedValue(mockSessions);
     await renderProfil();

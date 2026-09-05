@@ -76,11 +76,11 @@ beforeEach(() => {
   Object.assign(mockSessionState, defaultMockSessionState);
 });
 
-describe('TypingArea — i18n hint text', () => {
+describe('TypingArea : i18n hint text', () => {
   it('affiche le hint text depuis les traductions (non hardcodé)', () => {
     render(<TypingArea text="hello world" />);
     // Le hint 'hint' doit apparaître dans l'overlay (aria-hidden) ou le composant
-    // après le focus ou dans l'overlay — on vérifie qu'aucun texte hardcodé FR n'est présent
+    // après le focus ou dans l'overlay : on vérifie qu'aucun texte hardcodé FR n'est présent
     expect(
       screen.queryByText(
         'cliquer pour activer · chaque frappe produit une note',
@@ -89,7 +89,7 @@ describe('TypingArea — i18n hint text', () => {
   });
 });
 
-describe('TypingArea — accessibilité focus ring', () => {
+describe('TypingArea : accessibilité focus ring', () => {
   it("n'a pas de focus:outline-none sans remplacement accessible", () => {
     render(<TypingArea text="hello world" />);
     const container = screen.getByRole('application');
@@ -100,7 +100,7 @@ describe('TypingArea — accessibilité focus ring', () => {
   });
 });
 
-describe('TypingArea — indicateur mode/collection', () => {
+describe('TypingArea : indicateur mode/collection', () => {
   it("n'affiche pas l'indicateur mode en mode classic sans collectionId", () => {
     render(<TypingArea text="hello world" mode="classic" />);
     expect(
@@ -109,11 +109,11 @@ describe('TypingArea — indicateur mode/collection', () => {
   });
 });
 
-describe('TypingArea — affordance activation (Fix D)', () => {
+describe('TypingArea : affordance activation (Fix D)', () => {
   it('affiche un overlay hint après blur sur la zone de frappe', () => {
     render(<TypingArea text="hello world" />);
     const area = screen.getByRole('application');
-    // useEffect met le focus auto — simuler un blur pour afficher l'overlay
+    // useEffect met le focus auto : simuler un blur pour afficher l'overlay
     fireEvent.blur(area);
     expect(screen.getByTestId('typing-activation-overlay')).toBeInTheDocument();
   });
@@ -140,7 +140,7 @@ describe('TypingArea — affordance activation (Fix D)', () => {
   });
 });
 
-describe('TypingArea — Backspace', () => {
+describe('TypingArea : Backspace', () => {
   it('appelle handleBackspace quand la touche Backspace est pressée', async () => {
     const user = userEvent.setup();
     render(<TypingArea text="hello world" />);
@@ -165,7 +165,7 @@ describe('TypingArea — Backspace', () => {
   });
 });
 
-describe('TypingArea — nouvelle tentative', () => {
+describe('TypingArea : nouvelle tentative', () => {
   it('remet le séquenceur MIDI à zéro au montage (nouveau test/restart)', () => {
     mockResetSequence.mockClear();
     render(<TypingArea text="hello world" />);
@@ -173,7 +173,7 @@ describe('TypingArea — nouvelle tentative', () => {
   });
 });
 
-describe('TypingArea — waveform note source', () => {
+describe('TypingArea : waveform note source', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -207,7 +207,7 @@ describe('TypingArea — waveform note source', () => {
   });
 });
 
-describe('TypingArea — mode zen', () => {
+describe('TypingArea : mode zen', () => {
   it('masque le bandeau de stats live en mode zen ("sans pression")', () => {
     render(<TypingArea text="hello world" mode="zen" />);
     expect(screen.queryByTestId('live-stats-overlay')).not.toBeInTheDocument();
@@ -219,7 +219,7 @@ describe('TypingArea — mode zen', () => {
   });
 });
 
-describe('TypingArea — compte à rebours (audit configbar, décision 1)', () => {
+describe('TypingArea : compte à rebours (audit configbar, décision 1)', () => {
   it('affiche le temps restant en mode classic', () => {
     Object.assign(mockSessionState, { secondsRemaining: 12 });
     render(<TypingArea text="hello world" mode="classic" />);
@@ -239,7 +239,7 @@ describe('TypingArea — compte à rebours (audit configbar, décision 1)', () =
   });
 });
 
-describe('TypingArea — redémarrer à tout moment (Tab + Entrée, ticket #61)', () => {
+describe('TypingArea : redémarrer à tout moment (Tab + Entrée, ticket #61)', () => {
   // mockHandleKeystroke n'est pas remis à zéro entre tests par défaut
   // (pas de clearMocks global dans vitest.config.ts) : sans ce nettoyage
   // local, une assertion .not.toHaveBeenCalled() ici pourrait accuser un
@@ -297,7 +297,7 @@ describe('TypingArea — redémarrer à tout moment (Tab + Entrée, ticket #61)'
   });
 });
 
-describe('TypingArea — fin de session', () => {
+describe('TypingArea : fin de session', () => {
   it('reporte finalStats.wpm, pas liveStats.wpm (qui peut être resté à 0)', () => {
     mockSessionState.isComplete = true;
     mockSessionState.liveStats = { wpm: 0, accuracy: 100, consistency: 100 };
@@ -345,7 +345,7 @@ describe('TypingArea — fin de session', () => {
   });
 });
 
-describe("TypingArea — accessibilité lecteur d'écran (WS-1)", () => {
+describe("TypingArea : accessibilité lecteur d'écran (WS-1)", () => {
   beforeEach(() => {
     Object.assign(mockSessionState, defaultMockSessionState, {
       liveStats: { wpm: 0, accuracy: 100, consistency: 100 },

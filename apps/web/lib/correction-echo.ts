@@ -5,7 +5,7 @@
  * un Backspace qui retire une frappe fausse, immédiatement suivi d'une
  * frappe correcte. Comparer seulement "la dernière frappe de l'historique
  * était fausse" (sans passer par Backspace) déclenche l'écho sur le
- * mauvais chemin — voir TypeWav-Etat-des-lieux.docx §1.
+ * mauvais chemin : voir TypeWav-Etat-des-lieux.docx §1.
  */
 export class CorrectionEchoTracker {
   private armed = false;

@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * ContributionHeatmap — heatmap 90 jours inspirée de GitHub.
- * Spec : docs/specs/08-10-social-analytics-extensibility.md — Dashboard profil
+ * ContributionHeatmap : heatmap 90 jours inspirée de GitHub.
+ * Spec : docs/specs/08-10-social-analytics-extensibility.md (Dashboard profil)
  * Client Component justifié : data transformations côté client.
  */
 

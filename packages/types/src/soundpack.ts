@@ -10,7 +10,7 @@ export type InstrumentType = 'piano'; // oscillateur triangle, son arrondi
  * Configuration d'un sound pack.
  * Contient uniquement les paramètres consommés par useAudioEngine.
  * Les propriétés baseUrl/fileExtension/notes (futures samples .mp3) ont
- * été retirées — jamais branchées dans le moteur actuel (Tone.js synthèse pure).
+ * été retirées, jamais branchées dans le moteur actuel (Tone.js synthèse pure).
  */
 export interface SoundPackConfig {
   id: string;
@@ -20,7 +20,7 @@ export interface SoundPackConfig {
   description: string;
   isPremium: boolean;
   instrument: InstrumentType;
-  /** Niveau de reverb dry/wet (0–1) */
+  /** Niveau de reverb dry/wet (0-1) */
   reverbWet: number;
   /** Temps d'attaque en secondes */
   attackTime: number;

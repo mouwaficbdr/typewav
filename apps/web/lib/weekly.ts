@@ -1,7 +1,7 @@
 /**
- * lib/weekly.ts — Stats hebdomadaires + détection de plateau.
+ * lib/weekly.ts : Stats hebdomadaires + détection de plateau.
  *
- * Spec : docs/specs/08-10-social-analytics-extensibility.md — Profil & analytics
+ * Spec : docs/specs/08-10-social-analytics-extensibility.md (Profil & analytics)
  */
 
 import type {

@@ -281,7 +281,7 @@ describe('LearningMode progression wiring', () => {
   });
 });
 
-describe('LearningMode — persistance de la progression', () => {
+describe('LearningMode : persistance de la progression', () => {
   beforeEach(() => {
     typingAreaPropsRef.current = null;
     mockLoadLearningProgress.mockClear().mockResolvedValue(undefined);
@@ -328,7 +328,7 @@ describe('LearningMode — persistance de la progression', () => {
     });
 
     // Un appel de sauvegarde initial (état encore à zéro) peut survenir juste
-    // après le chargement — on vérifie qu'un appel reflète bien la mise à
+    // après le chargement : on vérifie qu'un appel reflète bien la mise à
     // jour, sans dépendre de sa position exacte dans l'historique des appels.
     await waitFor(() => {
       const calls = mockSaveLearningProgress.mock.calls as Array<
@@ -342,7 +342,7 @@ describe('LearningMode — persistance de la progression', () => {
   });
 });
 
-describe('LearningMode — sélection manuelle (pas d’onboarding)', () => {
+describe('LearningMode : sélection manuelle (pas d’onboarding)', () => {
   beforeEach(() => {
     typingAreaPropsRef.current = null;
     mockLoadLearningProgress.mockClear().mockResolvedValue(undefined);

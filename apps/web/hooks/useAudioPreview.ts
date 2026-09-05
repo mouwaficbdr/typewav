@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * useAudioPreview — joue une séquence de démonstration audio.
+ * useAudioPreview : joue une séquence de démonstration audio.
  * Client Component justifié : Tone.js browser-only, state de lecture.
  * Spec : docs/specs/21-audio-value-prop.md
  */

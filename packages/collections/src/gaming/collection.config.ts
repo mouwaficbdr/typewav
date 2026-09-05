@@ -711,12 +711,12 @@ export const gamingCollection: CollectionConfig = {
     },
     {
       id: 'gam-en-34',
-      content: `Arcade cabinets in the eighties turned every coin into a small wager. A player stepped up, gripped the stick, and knew a single mistake could end the run within seconds. There was no save file, no checkpoint, no quiet retry — only a final score burned into the machine's memory for every player who came after. That constant pressure shaped a very specific kind of discipline, built from memorizing enemy patterns and sharpening reflexes one credit at a time. The best players became local legends, recognized by the sound of their coins dropping into the slot before anyone even saw their face.`,
+      content: `Arcade cabinets in the eighties turned every coin into a small wager. A player stepped up, gripped the stick, and knew a single mistake could end the run within seconds. There was no save file, no checkpoint, no quiet retry: only a final score burned into the machine's memory for every player who came after. That constant pressure shaped a very specific kind of discipline, built from memorizing enemy patterns and sharpening reflexes one credit at a time. The best players became local legends, recognized by the sound of their coins dropping into the slot before anyone even saw their face.`,
       source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
-      wordCount: 102,
-      charCount: 595,
+      wordCount: 101,
+      charCount: 594,
       tags: ["arcade", "cabinet", "history"],
     },
     {
@@ -731,12 +731,12 @@ export const gamingCollection: CollectionConfig = {
     },
     {
       id: 'gam-en-36',
-      content: `A video game soundtrack shapes a memory long after the controller gets put down. A well-written main theme can resurface years later, triggered by three notes overheard by accident in a shopping mall. Game composers often work under brutal technical limits, with a handful of sound channels and barely any memory allocated to audio. And yet some of those constrained melodies became genuine classics, later performed by full symphony orchestras — proof that a hard technical ceiling never actually stopped real emotion from surviving the decades.`,
+      content: `A video game soundtrack shapes a memory long after the controller gets put down. A well-written main theme can resurface years later, triggered by three notes overheard by accident in a shopping mall. Game composers often work under brutal technical limits, with a handful of sound channels and barely any memory allocated to audio. And yet some of those constrained melodies became genuine classics, later performed by full symphony orchestras: proof that a hard technical ceiling never actually stopped real emotion from surviving the decades.`,
       source: 'TypeWav, Original text',
       language: 'en',
       difficulty: 3,
-      wordCount: 86,
-      charCount: 546,
+      wordCount: 85,
+      charCount: 545,
       tags: ["music", "soundtrack", "composer"],
     },
     {

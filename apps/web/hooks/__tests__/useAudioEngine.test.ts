@@ -165,7 +165,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe('useAudioEngine — triggerResume', () => {
+describe('useAudioEngine : triggerResume', () => {
   it('ramène le reverb au wet de base du rang, jamais à zéro, avec un pic au-dessus', async () => {
     const { result, unmount } = renderHook(() => useAudioEngine());
 
@@ -198,7 +198,7 @@ describe('useAudioEngine — triggerResume', () => {
   });
 });
 
-describe('useAudioEngine — triggerSilence', () => {
+describe('useAudioEngine : triggerSilence', () => {
   it('rejoue en écho doux la dernière note déjà jouée, jamais une nouvelle', async () => {
     loadPieceFromData(TEST_PIECE);
     const { result, unmount } = renderHook(() => useAudioEngine());
@@ -261,7 +261,7 @@ describe('useAudioEngine — triggerSilence', () => {
   });
 });
 
-describe('useAudioEngine — playNote', () => {
+describe('useAudioEngine : playNote', () => {
   it('pousse le BPM live de warpEngine dans useAudioStore à chaque note', async () => {
     loadPieceFromData(TEST_PIECE);
     const { result, unmount } = renderHook(() => useAudioEngine());
@@ -303,7 +303,7 @@ describe('useAudioEngine — playNote', () => {
   });
 });
 
-describe('useAudioEngine — pas de double initialisation', () => {
+describe('useAudioEngine : pas de double initialisation', () => {
   it('deux appels concurrents à initialize() ne construisent le graphe audio qu’une fois', async () => {
     const { result, unmount } = renderHook(() => useAudioEngine());
 
@@ -333,7 +333,7 @@ describe('useAudioEngine — pas de double initialisation', () => {
     expect(samplerConstructor).toHaveBeenCalledTimes(1);
 
     // La deuxième instance peut jouer une note bien qu'elle n'ait jamais
-    // construit son propre sampler — la preuve que l'état est partagé.
+    // construit son propre sampler : la preuve que l'état est partagé.
     await act(async () => {
       await instanceB.result.current.playNote('a', 0);
     });
@@ -344,7 +344,7 @@ describe('useAudioEngine — pas de double initialisation', () => {
   });
 });
 
-describe('useAudioEngine — cycle de vie partagé', () => {
+describe('useAudioEngine : cycle de vie partagé', () => {
   it("ne dispose le graphe audio que lorsque la dernière instance montée se démonte", async () => {
     const instanceA = renderHook(() => useAudioEngine());
     const instanceB = renderHook(() => useAudioEngine());

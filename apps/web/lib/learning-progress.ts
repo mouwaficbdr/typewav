@@ -1,5 +1,5 @@
 /**
- * Logique pure de progression du mode Apprentissage — niveaux, déblocage,
+ * Logique pure de progression du mode Apprentissage : niveaux, déblocage,
  * pondération de précision. Pas d'accès IndexedDB ici (voir
  * loadLearningProgress/saveLearningProgress plus bas pour la persistance).
  */
@@ -83,7 +83,7 @@ export function unlockLevel(
 }
 
 /**
- * Charge la progression sauvegardée — undefined si jamais sauvegardée
+ * Charge la progression sauvegardée : undefined si jamais sauvegardée
  * (première visite). Sans ça, un simple rechargement de page remet tous
  * les niveaux à zéro (seul le niveau 1 déverrouillé), perdant tout
  * l'entraînement déjà accompli.

@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * useSessionStore — état du test de typing en cours.
+ * useSessionStore : état du test de typing en cours.
  * 'use client' : Zustand ne s'exécute que côté client.
- * Spec : docs/ARCHITECTURE.md — Zustand stores (responsabilités séparées)
+ * Spec : docs/ARCHITECTURE.md (Zustand stores : responsabilités séparées)
  */
 
 import type { KeystrokeEntry, NoteEvent, TypingMode } from '@typewav/types';

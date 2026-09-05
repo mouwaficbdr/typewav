@@ -1,5 +1,5 @@
 /**
- * Calculs statistiques TypeWav — logique pure, sans état.
+ * Calculs statistiques TypeWav : logique pure, sans état.
  * Spec : docs/specs/02-diagnostic.md
  */
 
@@ -25,7 +25,7 @@ export function calculateWPM(
 
 /**
  * Calcule les WPM nets (seuls les caractères corrects comptent).
- * Même unité que calculateWPM — aucune pénalité supplémentaire n'est
+ * Même unité que calculateWPM : aucune pénalité supplémentaire n'est
  * appliquée en plus de l'exclusion des caractères incorrects, pour éviter
  * de pénaliser deux fois la même erreur.
  * Formule : (nombre de caractères corrects / 5) / minutes écoulées
@@ -63,7 +63,7 @@ export function calculateConsistency(
   const end = keystrokes[keystrokes.length - 1]!.timestamp;
   const totalDuration = end - start;
   if (totalDuration < windowSizeMs) {
-    // Session trop courte — un seul window
+    // Session trop courte : un seul window
     return 100;
   }
 
@@ -194,7 +194,7 @@ export function generateRecommendation(session: SessionResult): string {
     return `Ta consistance est de ${session.consistency} %. Essaie de maintenir un rythme régulier plutôt que de sprinter.`;
   }
 
-  return `Bon test — ${session.wpm} WPM à ${session.accuracy} %. Continue à cette cadence sur des textes variés.`;
+  return `Bon test : ${session.wpm} WPM à ${session.accuracy} %. Continue à cette cadence sur des textes variés.`;
 }
 
 /** Données d'un point WPM pour le graphe de progression. Compatibles avec WpmChart. */

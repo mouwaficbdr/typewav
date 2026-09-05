@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * AmbientAura — langage lumineux ambiant de la zone de frappe.
+ * AmbientAura : langage lumineux ambiant de la zone de frappe.
  *
  * Fusionne deux canaux jusqu'ici invisibles pendant la frappe elle-même :
  * - la couleur reflète le rang atteint (RANKS, @typewav/types), aujourd'hui
@@ -51,7 +51,7 @@ interface AmbientAuraProps {
 // (trop lente), plutôt qu'un souffle qui suit vraiment la frappe.
 const MIN_BEAT_MS = 250;
 const MAX_BEAT_MS = 1500;
-const IDLE_BEAT_MS = 750; // 80 BPM — même défaut que warpEngine au repos.
+const IDLE_BEAT_MS = 750; // 80 BPM : même défaut que warpEngine au repos.
 
 type PulseKind = 'none' | 'note' | 'peak' | 'error' | 'celebrate';
 
@@ -132,7 +132,7 @@ export function AmbientAura({
 
   // Une erreur adoucit l'aura au lieu de l'alarmer en rouge : cohérent avec
   // la Phase 1 (l'erreur baisse la musique en fondu, ne la coupe jamais net
-  // ni ne la sanctionne) — la pièce respire un peu moins fort, elle ne
+  // ni ne la sanctionne) : la pièce respire un peu moins fort, elle ne
   // clignote pas de rouge.
   //
   // Les pics de pulsation (note / peak / celebrate) restent francs : c'est la

@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * GhostCursor — curseur fantôme qui rejoue le record personnel.
+ * GhostCursor : curseur fantôme qui rejoue le record personnel.
  *
  * S'affiche en overlay direct dans la zone de texte (TypingArea).
  * Avance au rythme des keystrokeTimings du record personnel passé.
@@ -22,7 +22,7 @@
  * composant, donc avant même que l'utilisateur ait cliqué dans la zone de
  * frappe.
  *
- * Spec : docs/specs/08-10-social-analytics-extensibility.md — Ghost mode
+ * Spec : docs/specs/08-10-social-analytics-extensibility.md (Ghost mode)
  */
 
 import { motion, useReducedMotion } from 'motion/react';

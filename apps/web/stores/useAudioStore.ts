@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * useAudioStore — état du moteur audio Tone.js.
+ * useAudioStore : état du moteur audio Tone.js.
  * 'use client' : Zustand ne s'exécute que côté client.
- * Spec : docs/ARCHITECTURE.md — Zustand stores (responsabilités séparées)
+ * Spec : docs/ARCHITECTURE.md (Zustand stores : responsabilités séparées)
  */
 
 import type { ChordProgressionTheme, MidiPieceId } from '@typewav/audio-engine';
@@ -14,7 +14,7 @@ interface AudioState {
   initialized: boolean;
   /** Pack sonore actif */
   soundPackId: string;
-  /** Volume global (0–1) */
+  /** Volume global (0-1) */
   volume: number;
   /** Thème musical actif (détermine la progression d'accords) */
   themeId: ChordProgressionTheme;

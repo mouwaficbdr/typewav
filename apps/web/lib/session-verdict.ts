@@ -1,5 +1,5 @@
 /**
- * session-verdict — une phrase honnête sur la séance qu'on vient de jouer.
+ * session-verdict : une phrase honnête sur la séance qu'on vient de jouer.
  *
  * Fonction pure : on lit la suite de frappes et deux métriques déjà calculées,
  * on renvoie LE fait le plus saillant de la session (un seul). C'est ce qui

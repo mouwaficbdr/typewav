@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * MusicChip — chip ♪ affiché en fin de ligne 2 de la config bar.
+ * MusicChip : chip ♪ affiché en fin de ligne 2 de la config bar.
  *
  * Affiche la pièce musicale active (recommandée ou sélectionnée manuellement).
  * Bouton ↺ pour une nouvelle suggestion dans le même registre.
@@ -49,7 +49,7 @@ export function MusicChip() {
         position: 'relative',
       }}
     >
-      {/* Nom de la pièce — cliquable pour ouvrir le panel */}
+      {/* Nom de la pièce : cliquable pour ouvrir le panel */}
       <button
         onClick={() => setPanelOpen((v) => !v)}
         style={{
@@ -75,7 +75,7 @@ export function MusicChip() {
         </span>
       </button>
 
-      {/* Bouton refresh — nouvelle suggestion, même registre */}
+      {/* Bouton refresh : nouvelle suggestion, même registre */}
       <button
         onClick={(e) => {
           e.stopPropagation();

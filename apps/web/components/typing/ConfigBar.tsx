@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * ConfigBar — barre de configuration 1 ligne, stricte et adaptative.
+ * ConfigBar : barre de configuration 1 ligne, stricte et adaptative.
  *
  * Refonte MonkeyType :
  * - Tient sur une seule ligne.

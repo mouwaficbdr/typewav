@@ -1,5 +1,5 @@
 /**
- * library.ts — Bibliotheque musicale unifiee (24 pieces importees).
+ * library.ts : Bibliotheque musicale unifiee (24 pieces importees).
  *
  * Ce sous-ensemble correspond strictement aux assets MIDI embarques
  * dans apps/web/public/midi.
@@ -367,5 +367,5 @@ export const MUSIC_LIBRARY: MusicPiece[] = [
   },
 ];
 
-/** Acces par ID — O(1) */
+/** Acces par ID : O(1) */
 export const MUSIC_LIBRARY_MAP = new Map(MUSIC_LIBRARY.map((p) => [p.id, p]));

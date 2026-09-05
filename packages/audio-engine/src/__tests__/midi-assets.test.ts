@@ -31,7 +31,7 @@ describe('midi-assets integration', () => {
     );
   });
 
-  it('inclut la version du pipeline de parsing dans la clé de cache — sans ça, un cache corrompu par un bug de parsing passé ne serait jamais invalidé tant que le nom de fichier ne change pas', () => {
+  it('inclut la version du pipeline de parsing dans la clé de cache : sans ça, un cache corrompu par un bug de parsing passé ne serait jamais invalidé tant que le nom de fichier ne change pas', () => {
     expect(getMidiAssetCacheVersion('fur-elise')).not.toBe(
       'fur_Elise_WoO59.mid',
     );

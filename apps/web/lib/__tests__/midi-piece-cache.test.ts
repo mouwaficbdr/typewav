@@ -50,7 +50,7 @@ describe('midi-piece-cache', () => {
     expect(stale).toBeNull();
   });
 
-  it('invalidateCachedMidiPiece supprime une entrée corrompue du cache mémoire — le prochain appel ne doit plus jamais la revoir', async () => {
+  it('invalidateCachedMidiPiece supprime une entrée corrompue du cache mémoire : le prochain appel ne doit plus jamais la revoir', async () => {
     await setCachedMidiPiece('fur-elise', 'asset-v1', BASE_PIECE);
 
     await invalidateCachedMidiPiece('fur-elise');

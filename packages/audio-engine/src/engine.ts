@@ -1,6 +1,6 @@
 /**
  * Interface publique du moteur audio TypeWav.
- * Spec : docs/specs/01-audio-engine.md — Interface publique engine.ts
+ * Spec : docs/specs/01-audio-engine.md (Interface publique engine.ts)
  *
  * L'implémentation concrète (utilisant Tone.js) est dans apps/web/hooks/useAudioEngine.ts
  * pour rester côté Client Component uniquement.
@@ -27,7 +27,7 @@ export interface AudioEngine {
 
   /**
    * Silence total pour une frappe incorrecte.
-   * Ne joue jamais une fausse note — spec stricte.
+   * Ne joue jamais une fausse note : spec stricte.
    */
   triggerSilence(): void;
 
@@ -38,7 +38,7 @@ export interface AudioEngine {
   triggerResume(): void;
 
   /**
-   * Charge un pack sonore (lazy loading — uniquement le pack actif en mémoire).
+   * Charge un pack sonore (lazy loading : uniquement le pack actif en mémoire).
    */
   loadSoundPack(packId: string): Promise<void>;
 
@@ -53,7 +53,7 @@ export interface AudioEngine {
   advanceMidiSequence(): void;
 
   /**
-   * Charge un fichier MIDI (mode Classiques — domaine public uniquement).
+   * Charge un fichier MIDI (mode Classiques : domaine public uniquement).
    */
   loadMidiPiece(pieceId: string): Promise<void>;
 }

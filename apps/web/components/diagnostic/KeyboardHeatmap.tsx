@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * KeyboardHeatmap — représentation SVG des touches avec gradient de performance.
+ * KeyboardHeatmap : représentation SVG des touches avec gradient de performance.
  * Couleur : vert (rapide) → orange → rouge (lent).
  *
  * Client Component justifié : données dynamiques depuis IndexedDB.
@@ -15,7 +15,7 @@ interface KeyboardHeatmapProps {
   bigramStats: BigramStats[];
 }
 
-// Disposition QWERTY standard — 3 rangées
+// Disposition QWERTY standard : 3 rangées
 const KEYBOARD_ROWS: string[][] = [
   ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
   ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
@@ -72,7 +72,7 @@ export function KeyboardHeatmap({ bigramStats }: KeyboardHeatmapProps) {
   const totalHeight = 3 * KEY_SIZE + 2 * KEY_GAP + 16;
 
   return (
-    <div aria-label="Heatmap du clavier — performance par touche">
+    <div aria-label="Heatmap du clavier : performance par touche">
       <svg
         viewBox={`0 0 ${totalWidth} ${totalHeight}`}
         style={{ width: '100%', maxWidth: `${totalWidth}px`, height: 'auto' }}
