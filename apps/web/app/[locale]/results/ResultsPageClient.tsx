@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * ResultsPageClient — lit les params URL et affiche les résultats.
+ * ResultsPageClient : lit les params URL et affiche les résultats.
  * Client Component justifié : useSearchParams + IndexedDB (records).
  * Spec : docs/specs/30-results-refonte.md
  */

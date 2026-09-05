@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * useCustomTextStore — texte personnel actif pour le mode Libre.
+ * useCustomTextStore : texte personnel actif pour le mode Libre.
  *
  * Volontairement non persisté : le texte actif est propre à la session de
  * frappe en cours, pas une préférence durable. Les textes eux-mêmes vivent

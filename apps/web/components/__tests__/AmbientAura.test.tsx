@@ -41,7 +41,7 @@ describe('AmbientAura', () => {
     const glow = container.querySelector(
       'div[aria-hidden="true"] > div',
     ) as HTMLElement;
-    // Couleur du rang 'ghost' (#FFD700, RANKS dans progression.ts) — jsdom
+    // Couleur du rang 'ghost' (#FFD700, RANKS dans progression.ts) : jsdom
     // normalise le hex en rgb() dans le CSSOM sérialisé.
     expect(glow.style.background).toContain('rgb(255, 215, 0)');
   });

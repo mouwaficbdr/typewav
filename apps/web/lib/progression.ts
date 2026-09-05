@@ -1,8 +1,8 @@
 /**
- * Logique de progression narrative — rangs, jalons, records.
+ * Logique de progression narrative : rangs, jalons, records.
  * Spec : docs/specs/05-progression.md
  *
- * Logique pure — pas d'imports React, pas de hooks.
+ * Logique pure : pas d'imports React, pas de hooks.
  * Testable indépendamment.
  */
 
@@ -18,7 +18,7 @@ import {
 } from '@typewav/types';
 
 /**
- * Modes détente/apprentissage — jamais pris en compte pour le rang ou les
+ * Modes détente/apprentissage : jamais pris en compte pour le rang ou les
  * records personnels, sans quoi un score obtenu sans pression fausserait un
  * classement de performance.
  */
@@ -145,7 +145,7 @@ function calculateStreak(sessions: SessionResult[]): number {
       streak++;
       lastDay = sessionDay;
     } else if (lastDay - sessionDay === 0) {
-      // Même jour — skip
+      // Même jour : skip
       continue;
     } else {
       break;
@@ -167,7 +167,7 @@ const DEFAULT_RECORDS: PersonalRecords = {
 
 /**
  * Met à jour les records personnels avec une nouvelle session.
- * Retourne les records mis à jour (immuable — ne modifie pas l'original).
+ * Retourne les records mis à jour (immuable, ne modifie pas l'original).
  * Les sessions en mode non compétitif (zen, learning, endurance) ne
  * modifient jamais les records.
  */

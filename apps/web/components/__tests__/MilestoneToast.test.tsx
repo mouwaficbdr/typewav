@@ -55,7 +55,7 @@ function renderWithMilestone(locale: string) {
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('MilestoneToast — i18n', () => {
+describe('MilestoneToast : i18n', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

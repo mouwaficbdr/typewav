@@ -21,7 +21,7 @@ describe('useCustomTextStore', () => {
     expect(useCustomTextStore.getState().activePersonalTextId).toBeNull();
   });
 
-  it("n'est pas persisté — pas de clé dans localStorage ou IndexedDB", () => {
+  it("n'est pas persisté : pas de clé dans localStorage ou IndexedDB", () => {
     useCustomTextStore.getState().setActivePersonalTextId('text-1');
     expect(Object.keys(window.localStorage)).toHaveLength(0);
   });

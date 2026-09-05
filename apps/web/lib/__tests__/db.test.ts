@@ -1,6 +1,6 @@
 /**
- * Tests IndexedDB — utilisent fake-indexeddb pour simuler le browser store.
- * Spec : docs/specs/02-diagnostic.md — Tests requis (saveSession / getSessions)
+ * Tests IndexedDB : utilisent fake-indexeddb pour simuler le browser store.
+ * Spec : docs/specs/02-diagnostic.md (Tests requis : saveSession / getSessions)
  */
 import type { SessionResult } from '@typewav/types';
 import 'fake-indexeddb/auto';
@@ -83,7 +83,7 @@ describe('getSessions', () => {
 });
 
 describe('deleteSession', () => {
-  it("supprime la session — elle n'est plus récupérable", async () => {
+  it("supprime la session : elle n'est plus récupérable", async () => {
     const session = makeSession({ id: 'test-delete' });
     await saveSession(session);
     await deleteSession('test-delete');
@@ -119,7 +119,7 @@ describe('updateKeystrokeStats', () => {
 });
 
 describe('getUserProfile', () => {
-  it('retourne un profil par défaut indépendant à chaque appel — muter l’un ne corrompt pas les autres', async () => {
+  it('retourne un profil par défaut indépendant à chaque appel : muter l’un ne corrompt pas les autres', async () => {
     const profile1 = await getUserProfile();
     const profile2 = await getUserProfile();
 

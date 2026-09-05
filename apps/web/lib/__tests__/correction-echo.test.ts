@@ -19,7 +19,7 @@ describe('CorrectionEchoTracker', () => {
     expect(tracker.onKeystroke(true)).toBe(false);
   });
 
-  it("ne se déclenche pas quand on tape une touche fausse après une frappe fausse — sans backspace (chemin invalide)", () => {
+  it("ne se déclenche pas quand on tape une touche fausse après une frappe fausse : sans backspace (chemin invalide)", () => {
     const tracker = new CorrectionEchoTracker();
     // Aucun backspace n'a eu lieu : la frappe précédente était fausse dans
     // l'historique, mais ce n'est pas une correction.

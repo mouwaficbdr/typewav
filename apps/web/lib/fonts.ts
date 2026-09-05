@@ -8,8 +8,8 @@ import {
 
 /**
  * Polices Google chargées via next/font.
- * display: 'optional' — zéro layout shift (FOIT/FOUT évités).
- * Spec : docs/ARCHITECTURE.md — Tailwind CSS 4.0
+ * display: 'optional' : zéro layout shift (FOIT/FOUT évités).
+ * Spec : docs/ARCHITECTURE.md (Tailwind CSS 4.0)
  */
 export const fontDisplay = Cormorant_Garamond({
   subsets: ['latin'],

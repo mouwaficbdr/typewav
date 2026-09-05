@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * ConsistencyChart — graphe WPM au fil du temps via Recharts.
+ * ConsistencyChart : graphe WPM au fil du temps via Recharts.
  * Affiche la régularité de frappe : zones de chute en rouge.
  *
  * Client Component justifié : Recharts est une lib client-only.

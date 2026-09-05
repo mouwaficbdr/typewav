@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * WaveformBars — visualiseur de barres réactif aux notes jouées.
+ * WaveformBars : visualiseur de barres réactif aux notes jouées.
  *
  * Une note est pilotée par son pitch MIDI réel (0-127).
  */

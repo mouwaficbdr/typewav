@@ -96,7 +96,7 @@ export function clearInMemoryMidiPieceCache(): void {
 }
 
 /**
- * Supprime une entrée précise (mémoire + IndexedDB) — utilisé quand une
+ * Supprime une entrée précise (mémoire + IndexedDB) : utilisé quand une
  * entrée en cache s'avère corrompue (ex. séquence sans note exploitable) et
  * qu'il faut forcer un rechargement propre depuis le réseau.
  */
@@ -111,6 +111,6 @@ export async function invalidateCachedMidiPiece(
   try {
     await db.delete(STORE_NAME, pieceId);
   } catch {
-    // Best-effort — le cache mémoire est déjà invalidé, c'est le principal.
+    // Best-effort : le cache mémoire est déjà invalidé, c'est le principal.
   }
 }

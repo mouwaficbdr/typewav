@@ -1,5 +1,5 @@
 /**
- * Détection "première visite" — un seul flag persisté (IndexedDB, via le
+ * Détection "première visite" : un seul flag persisté (IndexedDB, via le
  * store générique user_preferences), posé quand l'utilisateur quitte le
  * tutoriel de démarrage (skip ou réussite réelle).
  */

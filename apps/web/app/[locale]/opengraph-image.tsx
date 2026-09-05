@@ -12,12 +12,12 @@ type Locale = (typeof routing.locales)[number];
 
 const COPY: Record<Locale, { alt: string; tagline: string; footer: string }> = {
   fr: {
-    alt: 'TypeWav — la musicothérapie du clavier',
+    alt: 'TypeWav : la musicothérapie du clavier',
     tagline: 'Chaque frappe juste joue une note.',
     footer: 'Gratuit • Open source • Entraînement au clavier en musique',
   },
   en: {
-    alt: 'TypeWav — Musical Typing Trainer',
+    alt: 'TypeWav : Musical Typing Trainer',
     tagline: 'Every keystroke plays a note.',
     footer: 'Free • Open Source • Musical Typing Trainer',
   },

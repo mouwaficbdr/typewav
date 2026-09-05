@@ -1,18 +1,18 @@
 /**
- * Couche d'accès IndexedDB — lib `idb`.
- * Spec : docs/ARCHITECTURE.md — IndexedDB via lib `idb`
- * Spec : docs/specs/02-diagnostic.md — Stockage IndexedDB
+ * Couche d'accès IndexedDB : lib `idb`.
+ * Spec : docs/ARCHITECTURE.md (IndexedDB via lib `idb`)
+ * Spec : docs/specs/02-diagnostic.md (Stockage IndexedDB)
  *
- * 'use client' implicite — ce module ne doit être importé que depuis
+ * 'use client' implicite : ce module ne doit être importé que depuis
  * des Client Components ou des hooks côté client.
  *
  * Stores :
- *   sessions          — SessionResult complet
- *   keystroke_stats   — agrégats par touche/bigram
- *   user_preferences  — préférences diverses
- *   user_profile      — profil et unlocks
- *   personal_records  — records personnels
- *   personal_texts    — textes personnalisés
+ *   sessions          : SessionResult complet
+ *   keystroke_stats   : agrégats par touche/bigram
+ *   user_preferences  : préférences diverses
+ *   user_profile      : profil et unlocks
+ *   personal_records  : records personnels
+ *   personal_texts    : textes personnalisés
  */
 
 import type {
@@ -424,7 +424,7 @@ export async function getUserProfile(): Promise<UserProfile> {
   const db = await getDB();
   const stored = await db.get('user_profile', 'profile');
   // Cloner : les appelants mutent le profil retourné avant de le
-  // sauvegarder (voir useProgressionCheck) — sans clone, le premier
+  // sauvegarder (voir useProgressionCheck) : sans clone, le premier
   // utilisateur sans profil enregistré corromprait DEFAULT_PROFILE pour
   // tous les appels suivants.
   return stored ?? (JSON.parse(JSON.stringify(DEFAULT_PROFILE)) as UserProfile);

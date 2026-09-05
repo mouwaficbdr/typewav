@@ -245,7 +245,7 @@ describe('updatePersonalRecords', () => {
     expect(records.byCollection['litterature']?.wpm).toBe(75);
   });
 
-  it("est immutable — ne modifie pas l'original", () => {
+  it("est immutable, ne modifie pas l'original", () => {
     const session1 = makeSession({ wpmNet: 70 });
     const records = updatePersonalRecords(null, session1);
     const original = { ...records };

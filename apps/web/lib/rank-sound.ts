@@ -1,5 +1,5 @@
 /**
- * rank-sound.ts — comment le rang de progression enrichit le SON, piano seul.
+ * rank-sound.ts : comment le rang de progression enrichit le SON, piano seul.
  *
  * Le rang (RANKS, @typewav/types) pilote déjà la couleur de l'aura ambiante.
  * Ici il façonne l'instrument lui-même : plus on grimpe, plus le piano gagne
@@ -17,12 +17,12 @@
 import type { RankTier } from '@typewav/types';
 
 export interface RankSoundProfile {
-  /** Mix wet de la réverbe (0–1). Croît avec le rang. */
+  /** Mix wet de la réverbe (0-1). Croît avec le rang. */
   reverbWet: number;
   /** Décroissance de la réverbe, en secondes. Croît avec le rang. */
   reverbDecaySec: number;
   /**
-   * Plancher de vélocité (0–1) appliqué à chaque note. Décroît avec le rang :
+   * Plancher de vélocité (0-1) appliqué à chaque note. Décroît avec le rang :
    * au sommet, les notes douces du morceau redeviennent réellement douces et
    * l'écart entre piano et forte se rouvre.
    */
@@ -78,7 +78,7 @@ export function getRankSoundProfile(rank: RankTier): RankSoundProfile {
 }
 
 /**
- * Vélocité MIDI brute (0–127) vers gain de déclenchement (0–1), bornée en bas
+ * Vélocité MIDI brute (0-127) vers gain de déclenchement (0-1), bornée en bas
  * par `floor` (voir RankSoundProfile.velocityFloor) et en haut par 1. Une
  * entrée non finie retombe sur une vélocité médiane, elle aussi bornée par le
  * plancher. Remplace l'ancien normalizeVelocity : résultat identique à

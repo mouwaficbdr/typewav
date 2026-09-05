@@ -1,11 +1,11 @@
 /**
- * fetch.ts — sélection contextuelle de textes depuis une collection.
+ * fetch.ts : sélection contextuelle de textes depuis une collection.
  *
  * API haut niveau : filtre par langue, longueur, durée et difficulté.
  * Anti-deadlock : si le pool filtré est vide après exclusions, élargit
  * progressivement jusqu'à retourner un texte (jamais null sur collection non vide).
  *
- * Spec : docs/specs/34-collections-refonte.md — Phase 2
+ * Spec : docs/specs/34-collections-refonte.md (Phase 2)
  */
 
 import type { TextEntry, TypingMode } from '@typewav/types';
@@ -21,29 +21,29 @@ import {
 export interface FetchOptions {
   /** Filtre sur la langue. undefined = pas de filtre (FR+EN) */
   language?: 'fr' | 'en';
-  /** Mode typing — informatif, non utilisé directement dans le filtrage */
+  /** Mode typing : informatif, non utilisé directement dans le filtrage */
   mode?: TypingMode;
   /**
-   * Pour mode Mots — nombre de mots demandés. Filtre sur un MINIMUM (le
+   * Pour mode Mots : nombre de mots demandés. Filtre sur un MINIMUM (le
    * texte choisi aura toujours au moins ce nombre de mots), pour que la
    * troncature en aval (truncateToWords) puisse toujours couper exactement
-   * ce nombre — jamais moins que ce que le chip promet.
+   * ce nombre, jamais moins que ce que le chip promet.
    */
   wordCount?: 10 | 25 | 50 | 100;
-  /** Pour mode Temps — durée en secondes */
+  /** Pour mode Temps : durée en secondes */
   durationSeconds?: 15 | 30 | 60 | 120;
   /** Filtre de difficulté exacte */
   difficulty?: 1 | 2 | 3 | 4 | 5;
   /** Difficulté min (inclusive) */
   difficultyMin?: 1 | 2 | 3 | 4 | 5;
   /**
-   * Quand vrai, privilégie un texte contenant au moins un chiffre — jamais
+   * Quand vrai, privilégie un texte contenant au moins un chiffre, jamais
    * injecté, seulement préféré parmi ceux qui en ont déjà un naturellement.
    * Filtre souple : relâché comme wordCount/durationSeconds si le pool
    * devient vide (voir le relâchement progressif de selectFromTexts).
    */
   numbersEnabled?: boolean;
-  /** IDs à exclure — éviter les doublons récents */
+  /** IDs à exclure : éviter les doublons récents */
   excludeIds?: string[];
 }
 
@@ -65,7 +65,7 @@ const COLLECTION_MAP: Record<CollectionId, { texts: TextEntry[] }> = {
  * Ne retourne jamais null si le tableau n'est pas vide. Si les filtres
  * réduisent le pool à zéro, ils sont relâchés progressivement.
  *
- * Pure et sans dépendance aux collections statiques du package — c'est ce
+ * Pure et sans dépendance aux collections statiques du package : c'est ce
  * qui permet à un client (déjà en possession d'un tableau de textes, par ex.
  * chargé via Server Action) de réutiliser exactement cette logique de
  * ciblage sans jamais importer les données des 5 collections.
@@ -79,7 +79,7 @@ export function selectFromTexts(
   let pool = _applyFilters(texts, options);
 
   // Relâchement 1 : sans filtre de longueur (wordCount/durationSeconds),
-  // mais en gardant numbersEnabled — un chiffre est un choix explicite de
+  // mais en gardant numbersEnabled : un chiffre est un choix explicite de
   // l'utilisateur (le bouton "chiffres"), la cible de longueur n'est qu'une
   // préférence de confort. Les relâcher ensemble ferait perdre le chiffre
   // dès que le pool est trop court pour la durée/le nombre de mots demandé.
@@ -152,7 +152,7 @@ function _applyFilters(texts: TextEntry[], options: FetchOptions): TextEntry[] {
     pool = pool.filter((t) => t.language === lang);
   }
 
-  // Filtre wordCount — minimum seulement (pas de plage symétrique) : le mode
+  // Filtre wordCount, minimum seulement (pas de plage symétrique) : le mode
   // Sprint tronque ensuite exactement à ce nombre de mots
   // (text-filters.ts::truncateToWords), qui ne fait que couper, jamais
   // compléter. Un texte plus court que la cible produirait donc moins de
@@ -170,7 +170,7 @@ function _applyFilters(texts: TextEntry[], options: FetchOptions): TextEntry[] {
     pool = pool.filter((t) => t.charCount >= min && t.charCount <= max);
   }
 
-  // Préférence chiffres — jamais bloquant seul (relâché en amont si besoin)
+  // Préférence chiffres, jamais bloquant seul (relâché en amont si besoin)
   if (options.numbersEnabled) {
     pool = pool.filter((t) => /[0-9]/.test(t.content));
   }

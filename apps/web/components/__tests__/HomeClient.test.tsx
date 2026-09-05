@@ -101,7 +101,7 @@ vi.mock('@/lib/onboarding', () => ({
   markOnboardingComplete: () => mockMarkOnboardingComplete(),
 }));
 
-// ConfigBar stub — rend les boutons de collection pour les tests d'intégration
+// ConfigBar stub : rend les boutons de collection pour les tests d'intégration
 vi.mock('@/components/typing/ConfigBar', () => ({
   ConfigBar: () => <div data-testid="config-bar" />,
 }));
@@ -338,7 +338,7 @@ beforeEach(async () => {
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('HomeClient — lazy loading collections', () => {
+describe('HomeClient : lazy loading collections', () => {
   it('charge seulement litterature au premier rendu', async () => {
     const { HomeClient } = await import('../typing/HomeClient');
     render(<HomeClient initialCollection={mockLitterature as never} />);
@@ -386,7 +386,7 @@ describe('HomeClient — lazy loading collections', () => {
   });
 });
 
-describe('HomeClient — structure Zone 5', () => {
+describe('HomeClient : structure Zone 5', () => {
   it('n’affiche plus de bouton ghost dédié', async () => {
     const { HomeClient } = await import('../typing/HomeClient');
     render(<HomeClient initialCollection={mockLitterature as never} />);
@@ -398,7 +398,7 @@ describe('HomeClient — structure Zone 5', () => {
   });
 });
 
-describe('HomeClient — application des filtres config', () => {
+describe('HomeClient : application des filtres config', () => {
   it('applique les filtres ponctuation/chiffres en mode classic', async () => {
     const { HomeClient } = await import('../typing/HomeClient');
     const { useConfigStore } = await import('@/stores/useConfigStore');
@@ -422,7 +422,7 @@ describe('HomeClient — application des filtres config', () => {
 
   it('force ponctuation/chiffres en mode code, même si désactivés dans la config', async () => {
     // Le mode Code bascule automatiquement la collection sur 'code' (voir
-    // B2) — le cache initial ne la connaît que sous la clé 'litterature',
+    // B2) : le cache initial ne la connaît que sous la clé 'litterature',
     // donc un fetch est déclenché ; on le mocke pour qu'il retourne ce même
     // fixture sous l'id 'code'.
     mockFetchCollection.mockResolvedValueOnce(mockConfigFiltersCollection);
@@ -492,7 +492,7 @@ describe('HomeClient — application des filtres config', () => {
     render(<HomeClient initialCollection={mockTargetCollection as never} />);
 
     // Sur 2 entrées (5 mots / 106 mots), seule celle à 106 mots a assez de
-    // mots réels pour que la troncature en aval produise exactement 100 —
+    // mots réels pour que la troncature en aval produise exactement 100 :
     // la sélection doit donc toujours retourner ce texte-là, jamais le
     // texte court (qui donnerait seulement 5 mots au lieu des 100 promis).
     await waitFor(() => {
@@ -567,7 +567,7 @@ describe('HomeClient — application des filtres config', () => {
   });
 });
 
-describe('HomeClient — anti-répétition sur plusieurs essais (audit C3)', () => {
+describe('HomeClient : anti-répétition sur plusieurs essais (audit C3)', () => {
   const manyTextsCollection = {
     id: 'litterature',
     name: 'Littérature',
@@ -608,7 +608,7 @@ describe('HomeClient — anti-répétition sur plusieurs essais (audit C3)', () 
   });
 });
 
-describe('HomeClient — mode Zen sans notation (audit configbar, décision 3 / B1)', () => {
+describe('HomeClient : mode Zen sans notation (audit configbar, décision 3 / B1)', () => {
   it("ne navigue jamais vers /results (autoNavigate=false transmis à TypingArea)", async () => {
     mockFetchCollection.mockResolvedValueOnce(mockLitterature);
     const { HomeClient } = await import('../typing/HomeClient');
@@ -694,7 +694,7 @@ describe('HomeClient — mode Zen sans notation (audit configbar, décision 3 / 
   });
 });
 
-describe('HomeClient — attribution mode citation', () => {
+describe('HomeClient : attribution mode citation', () => {
   it('affiche la source du texte en mode citation', async () => {
     const { useConfigStore } = await import('@/stores/useConfigStore');
     act(() => {
@@ -717,7 +717,7 @@ describe('HomeClient — attribution mode citation', () => {
   });
 });
 
-describe('HomeClient — la config bar se verrouille dès la première frappe (audit A7)', () => {
+describe('HomeClient : la config bar se verrouille dès la première frappe (audit A7)', () => {
   it("passe en inert au premier événement de frappe, correcte ou en erreur, empêchant toute bascule silencieuse en cours de session", async () => {
     mockFetchCollection.mockResolvedValueOnce(mockLitterature);
     const { HomeClient } = await import('../typing/HomeClient');
@@ -737,7 +737,7 @@ describe('HomeClient — la config bar se verrouille dès la première frappe (a
   });
 });
 
-describe('HomeClient — réouverture de la config bar au survol pendant la frappe (ticket #61)', () => {
+describe('HomeClient : réouverture de la config bar au survol pendant la frappe (ticket #61)', () => {
   // Les minuteurs falsifiés cassent findBy*/waitFor de testing-library (leur
   // polling interne dépend de vrais setTimeout) : on n'active
   // vi.useFakeTimers() qu'une fois le rendu déjà stabilisé, jamais avant un
@@ -808,7 +808,7 @@ describe('HomeClient — réouverture de la config bar au survol pendant la frap
   });
 });
 
-describe('HomeClient — bascule automatique de collection', () => {
+describe('HomeClient : bascule automatique de collection', () => {
   it("bascule la collection sur 'code' en passant en mode Code", async () => {
     mockFetchCollection.mockResolvedValueOnce(mockLitterature);
     const { HomeClient } = await import('../typing/HomeClient');
@@ -848,7 +848,7 @@ describe('HomeClient — bascule automatique de collection', () => {
     });
   });
 
-  it("ne force pas la collection à chaque rendu — l'utilisateur peut la changer ensuite", async () => {
+  it("ne force pas la collection à chaque rendu : l'utilisateur peut la changer ensuite", async () => {
     mockFetchCollection.mockResolvedValueOnce(mockLitterature);
     const { HomeClient } = await import('../typing/HomeClient');
     const { useConfigStore } = await import('@/stores/useConfigStore');
@@ -918,7 +918,7 @@ describe('HomeClient — bascule automatique de collection', () => {
   });
 });
 
-describe('HomeClient — mode Fantôme', () => {
+describe('HomeClient : mode Fantôme', () => {
   it("n'affiche pas la notice \"aucun record\" tant que le chargement IndexedDB n'est pas resolu (evite le flash au rechargement)", async () => {
     let resolveRecords!: (value: unknown) => void;
     mockGetPersonalRecords.mockImplementation(
@@ -986,7 +986,7 @@ describe('HomeClient — mode Fantôme', () => {
         { char: 'x', timestamp: 1000, correct: true, deltaMs: 0 },
         { char: 'y', timestamp: 1100, correct: true, deltaMs: 100 },
       ],
-      text: 'Texte original du record — distinct du texte du jour.',
+      text: 'Texte original du record : distinct du texte du jour.',
     });
 
     const { HomeClient } = await import('../typing/HomeClient');
@@ -1000,7 +1000,7 @@ describe('HomeClient — mode Fantôme', () => {
 
     expect(
       await screen.findByText(
-        'Texte original du record — distinct du texte du jour.',
+        'Texte original du record : distinct du texte du jour.',
       ),
     ).toBeInTheDocument();
     expect(
@@ -1077,7 +1077,7 @@ describe('HomeClient — mode Fantôme', () => {
   });
 });
 
-describe('HomeClient — mode Libre (textes personnels)', () => {
+describe('HomeClient : mode Libre (textes personnels)', () => {
   it("affiche un message explicite quand aucun texte personnel n'est actif", async () => {
     mockGetPersonalTexts.mockResolvedValue([]);
     const { HomeClient } = await import('../typing/HomeClient');
@@ -1165,8 +1165,8 @@ describe('HomeClient — mode Libre (textes personnels)', () => {
   });
 });
 
-describe('HomeClient — onboarding première visite', () => {
-  it("force le mode apprentissage mais garde la ConfigBar visible — la navigation doit toujours rester possible", async () => {
+describe('HomeClient : onboarding première visite', () => {
+  it("force le mode apprentissage mais garde la ConfigBar visible : la navigation doit toujours rester possible", async () => {
     mockHasCompletedOnboarding.mockResolvedValue(false);
     const { HomeClient } = await import('../typing/HomeClient');
     render(<HomeClient initialCollection={mockLitterature as never} />);
@@ -1231,7 +1231,7 @@ describe('HomeClient — onboarding première visite', () => {
   });
 });
 
-describe('HomeClient — hydratation du rang (AmbientAura)', () => {
+describe('HomeClient : hydratation du rang (AmbientAura)', () => {
   it("hydrate useProgressionStore depuis le profil persisté au montage, plutôt que de laisser 'novice' par défaut jusqu'à la fin d'une session", async () => {
     const { HomeClient } = await import('../typing/HomeClient');
     render(<HomeClient initialCollection={mockLitterature as never} />);

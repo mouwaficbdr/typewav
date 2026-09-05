@@ -102,7 +102,7 @@ describe('ActiveSessionHeader : chip "Recommandation" (audit configbar, décisio
   it('change réellement la musique jouée avec la pièce retournée par refresh(), pas une valeur figée', async () => {
     // Avant ce correctif : le clic lisait recommendedPlayablePieceId, qui ne
     // reflète le nouveau tirage qu'au rendu suivant (setCurrentPiece est
-    // async côté hook) — donc onPieceChange recevait encore l'ancienne
+    // async côté hook), donc onPieceChange recevait encore l'ancienne
     // pièce, ou aucune.
     mockRecommendation.refresh.mockReturnValue(piece('b', 'midi-b'));
     const onPieceChange = vi.fn();

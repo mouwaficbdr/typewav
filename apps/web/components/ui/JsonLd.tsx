@@ -1,6 +1,6 @@
 /**
- * JsonLd — injecte un bloc JSON-LD structuré dans le <head>.
- * Server Component — pas de JavaScript côté client.
+ * JsonLd : injecte un bloc JSON-LD structuré dans le <head>.
+ * Server Component : pas de JavaScript côté client.
  */
 export function JsonLd({ data }: { data: Record<string, unknown> }) {
   return (

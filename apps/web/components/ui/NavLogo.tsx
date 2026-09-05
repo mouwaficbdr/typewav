@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * NavLogo — wordmark "typewav" : machine à écrire (Courier Prime) pour "type",
+ * NavLogo : wordmark "typewav" : machine à écrire (Courier Prime) pour "type",
  * élégance musicale (Fraunces italic) pour "wav".
  *
  * `alignItems: 'baseline'` sur le conteneur externe cale le bas de la marque

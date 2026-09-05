@@ -15,7 +15,7 @@ describe('getPentatonicNote', () => {
     }
   });
 
-  it('est insensible à la casse — majuscule = minuscule', () => {
+  it('est insensible à la casse : majuscule = minuscule', () => {
     expect(getPentatonicNote('A')).toBe(getPentatonicNote('a'));
     expect(getPentatonicNote('Z')).toBe(getPentatonicNote('z'));
   });
@@ -58,7 +58,7 @@ describe('isPentatonicNote', () => {
 
 describe('getChordPentatonicNotes', () => {
   it("filtre les notes non pentatoniques d'un accord", () => {
-    // G major : G B D — B et D ne sont pas dans la gamme pentatonique... attends,
+    // G major : G B D, B et D ne sont pas dans la gamme pentatonique... attends,
     // D est dans la gamme pentatonique : C D E G A
     // B n'y est pas
     const chordNotes = ['G4', 'B4', 'D5'];

@@ -1,14 +1,14 @@
 'use client';
 
 /**
- * useSession — orchestration complète d'un test de typing.
+ * useSession : orchestration complète d'un test de typing.
  *
  * Responsabilités :
  * - Calcule WPM / accuracy / consistency en temps réel (toutes les secondes)
  * - Gère la fin de session (sauvegarde IndexedDB + navigation résultats)
  * - Expose les stats live aux composants consommateurs
  *
- * Spec : docs/WORKFLOW.md — Custom hooks (orchestrent logique pure + état React/Zustand)
+ * Spec : docs/WORKFLOW.md (Custom hooks : orchestrent logique pure + état React/Zustand)
  */
 
 import { useProgressionCheck } from '@/hooks/useProgressionCheck';
@@ -81,7 +81,7 @@ export function useSession({
   const { runAfterSession } = useProgressionCheck();
   // Lu via ref (pas comme dépendance de l'effet ci-dessous) : changer le
   // thème audio en cours de frappe est un réglage à chaud, pas le signal
-  // d'un nouveau test — il ne doit jamais réinitialiser la séance en cours.
+  // d'un nouveau test : il ne doit jamais réinitialiser la séance en cours.
   const audioThemeIdRef = useRef(audioThemeId);
   useEffect(() => {
     audioThemeIdRef.current = audioThemeId;
@@ -94,7 +94,7 @@ export function useSession({
   });
   // Distinct de liveStats (mis à jour au mieux toutes les 1s pendant la
   // frappe) : dérivé directement de keystrokes/startedAt/endedAt, donc
-  // disponible dès le rendu où la séance se termine — un exercice qui finit
+  // disponible dès le rendu où la séance se termine : un exercice qui finit
   // avant le premier tick périodique (fréquent sur un texte court)
   // laisserait sinon liveStats.wpm à sa valeur initiale de 0 au moment où
   // les composants consommateurs lisent le WPM final.

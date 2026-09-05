@@ -43,7 +43,7 @@ describe('calculateProgressPercent', () => {
       { levelId: 1, samples: 5, accuracy: 100, unlocked: true },
       LEVEL,
     );
-    // 5/50 = 10% de frappes vs 100/90 = 111% d'accuracy — le facteur limitant est 10%.
+    // 5/50 = 10% de frappes vs 100/90 = 111% d'accuracy : le facteur limitant est 10%.
     expect(percent).toBe(10);
   });
 
@@ -52,7 +52,7 @@ describe('calculateProgressPercent', () => {
       { levelId: 1, samples: 50, accuracy: 45, unlocked: true },
       LEVEL,
     );
-    // 50/50 = 100% de frappes vs 45/90 = 50% d'accuracy — le facteur limitant est 50%.
+    // 50/50 = 100% de frappes vs 45/90 = 50% d'accuracy : le facteur limitant est 50%.
     expect(percent).toBe(50);
   });
 

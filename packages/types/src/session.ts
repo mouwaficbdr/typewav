@@ -1,13 +1,13 @@
 export type TypingMode =
   | 'classic' // Mots aléatoires
-  | 'learning' // Apprentissage Home Row — débutants
+  | 'learning' // Apprentissage Home Row : débutants
   | 'bigrams' // Bigrams ciblés depuis diagnostic
   | 'code' // Snippets de code réel
   | 'numbers' // Chiffres et ponctuation
   | 'sprint' // 10 mots, le plus vite possible
-  | 'endurance' // Session longue — analyse dégradation
+  | 'endurance' // Session longue : analyse dégradation
   | 'custom' // Texte personnel
-  | 'classics' // Mode MIDI — pièces classiques
+  | 'classics' // Mode MIDI : pièces classiques
   | 'ghost' // Avec curseur fantôme (record personnel)
   | 'challenge' // Challenge partagé via URL
   | 'quote' // Citation unique
@@ -32,7 +32,7 @@ export interface BigramStats {
 export type FatiguePattern =
   | 'none'
   | 'mild' // Chute < 15 % de WPM entre 1ère et 2ème moitié
-  | 'moderate' // Chute 15–30 %
+  | 'moderate' // Chute 15-30 %
   | 'severe'; // Chute > 30 %
 
 export interface SessionResult {
@@ -40,11 +40,11 @@ export interface SessionResult {
   timestamp: number;
   /** WPM brut (total caractères / 5 / minutes) */
   wpm: number;
-  /** WPM net — pénalité erreurs (non corrigées) */
+  /** WPM net : pénalité erreurs (non corrigées) */
   wpmNet: number;
   /** Pourcentage de frappes correctes sur le total */
   accuracy: number;
-  /** Stabilité de la vitesse — 100 - (σWPM / μWPM × 100) */
+  /** Stabilité de la vitesse : 100 - (σWPM / μWPM × 100) */
   consistency: number;
   /** Durée totale du test en ms */
   duration: number;
@@ -53,9 +53,9 @@ export interface SessionResult {
   collectionId?: string;
   soundPackId: string;
   keystrokeData: KeystrokeEntry[];
-  /** Texte original de la session — utilisé pour la génération de replays partageables */
+  /** Texte original de la session : utilisé pour la génération de replays partageables */
   text?: string;
-  /** Événements note enregistrés pendant la session — optional pour backward compat */
+  /** Événements note enregistrés pendant la session : optional pour backward compat */
   noteEvents?: NoteEvent[];
 }
 

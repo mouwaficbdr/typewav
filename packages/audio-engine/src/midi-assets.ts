@@ -176,7 +176,7 @@ export function getMidiAssetPath(pieceId: MidiPieceId): string | null {
 
 /**
  * Version du pipeline de parsing MIDI (buildPieceFromMidi/normalizePiece).
- * À incrémenter à chaque changement de cette logique — sinon un cache
+ * À incrémenter à chaque changement de cette logique, sinon un cache
  * IndexedDB existant, potentiellement corrompu par un bug de parsing déjà
  * corrigé, n'est jamais invalidé tant que le nom de fichier source ne change
  * pas lui-même. Voir apps/web/lib/midi-piece-cache.ts.

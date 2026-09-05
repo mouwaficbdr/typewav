@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * useAudioEngine — moteur audio Tone.js complet (Phase 1).
+ * useAudioEngine : moteur audio Tone.js complet (Phase 1).
  *
  * Règles absolues (non négociables) :
  * - Tone.start() UNIQUEMENT après un événement keydown utilisateur
@@ -43,7 +43,7 @@ import {
   type ParsedNote,
 } from '@typewav/audio-engine';
 import { useCallback, useEffect, useRef } from 'react';
-// Import de type uniquement — pas d'impact runtime (Tone.js reste lazy)
+// Import de type uniquement : pas d'impact runtime (Tone.js reste lazy)
 import type {
   Reverb as ToneReverb,
   Sampler as ToneSampler,
@@ -60,7 +60,7 @@ interface PackSynthConfig {
   decay: number;
   sustain: number;
   // `release` et `reverbWet` : profil de base 'novice'. Ces deux paramètres
-  // sont désormais fonction du rang (voir lib/rank-sound.ts) — les valeurs
+  // sont désormais fonction du rang (voir lib/rank-sound.ts) : les valeurs
   // ci-dessous restent la référence « aucune régression » d'un nouvel
   // utilisateur et le repli d'un chemin pré-init.
   release: number;
@@ -137,7 +137,7 @@ function getErrorMessage(error: unknown, fallback: string): string {
 // initialize/build/play/resume depuis 4 endroits distincts ; avec un
 // `await import('tone')` séparé à chacun, le bundler dev (Turbopack) peut
 // résoudre certains sites d'appel vers un chunk physiquement distinct du
-// module — chacun avec sa propre instance de Tone.js et donc son propre
+// module : chacun avec sa propre instance de Tone.js et donc son propre
 // AudioContext interne. Tone.start() appelé sur l'instance A ne réveille
 // jamais le contexte de l'instance B : le graphe audio construit ensuite sur
 // B reste indéfiniment suspendu, et toute promesse Tone.js interne qui
@@ -148,7 +148,7 @@ function loadTone(): Promise<typeof import('tone')> {
   if (!tonePromise) {
     tonePromise = import('tone').then((Tone) => {
       // Tone.js programme par défaut chaque évènement 100ms dans le futur
-      // (context.lookAhead) — pensé pour la lecture fluide de longues
+      // (context.lookAhead) : pensé pour la lecture fluide de longues
       // séquences, pas pour un instrument qui doit répondre à la frappe. Une
       // seule voix joue à la fois ici, donc pas de risque de glitch à
       // réduire cette marge : on gagne un délai perceptible entre la touche
@@ -167,7 +167,7 @@ function loadTone(): Promise<typeof import('tone')> {
  * régler (mesuré sur machine réelle) : au premier usage, le navigateur monte
  * le périphérique de sortie audio, une latence pilote/OS qu'aucune relance
  * ne raccourcit. L'ancienne rafale de timeouts courts ([100,250,250,250])
- * abandonnait donc vers 850ms — avant que le périphérique ne soit prêt —
+ * abandonnait donc vers 850ms (avant que le périphérique ne soit prêt)
  * puis jetait, laissait `initialized` à false, et la frappe suivante
  * relançait toute l'init (mesuré : double-init, 1669ms de latence). On
  * attend désormais chaque tentative sous un timeout large, avec UNE seule
@@ -287,7 +287,7 @@ class VoiceEngine {
       this.reverbBaselineWet = getRankSoundProfile('novice').reverbWet;
       // Sans ce reset, une instance qui remonte ensuite verrait
       // `initialized` toujours vrai côté Zustand et ne reconstruirait
-      // jamais un graphe pourtant disposé — silence total.
+      // jamais un graphe pourtant disposé : silence total.
       useAudioStore.getState().setInitialized(false);
     }
   }
@@ -330,7 +330,7 @@ class VoiceEngine {
     if (this.buildingPromise) {
       await this.buildingPromise.catch(() => {
         // L'échec de la construction en cours ne doit pas faire échouer
-        // celle-ci — on retente juste normalement ci-dessous.
+        // celle-ci : on retente juste normalement ci-dessous.
       });
       if (this.loadedPack === packId) return;
     }
@@ -347,7 +347,7 @@ class VoiceEngine {
   private async buildVoicesInner(packId: string): Promise<void> {
     const Tone = await loadTone();
     const config = PACK_CONFIGS[packId] ?? DEFAULT_PACK_CONFIG;
-    // Le rang façonne l'instrument (réverbe, nuance, liant) — voir
+    // Le rang façonne l'instrument (réverbe, nuance, liant) : voir
     // lib/rank-sound.ts. Lu ici une fois : stable pour toute la session.
     const rankSound = getRankSoundProfile(useProgressionStore.getState().rank);
     const audioStore = useAudioStore.getState();
@@ -388,7 +388,7 @@ class VoiceEngine {
     // secondes) en tâche de fond, sans bloquer buildVoices()/initialize() :
     // le fallbackSynth ci-dessus est déjà prêt à jouer immédiatement.
     // playParsedNote() bascule sur le sampler dès qu'il s'installe sur
-    // this.sampler — sinon chaque première frappe d'une session attend le
+    // this.sampler, sinon chaque première frappe d'une session attend le
     // décodage complet avant de jouer le moindre son.
     void createPianoSampler(Tone, reverb, rankSound.releaseSec)
       .then((sampler) => {
@@ -417,7 +417,7 @@ class VoiceEngine {
    * rang persisté n'est pas toujours encore hydraté dans le store, le graphe
    * a donc pu être bâti sur le profil 'novice' par défaut. Seul `wet` est
    * ramené à chaud (paramètre continu) ; `decay` et `release` d'un rang à
-   * l'autre attendent la reconstruction de la session suivante — le wet porte
+   * l'autre attendent la reconstruction de la session suivante : le wet porte
    * l'essentiel de la sensation d'espace.
    */
   applyRankProfile(): void {
@@ -442,14 +442,14 @@ class VoiceEngine {
     // .catch() attaché ICI, avant d'assigner à this.initializingPromise :
     // ce champ est lu par DEUX chemins distincts (le try/finally juste en
     // dessous, et le "if (this.initializingPromise)" ci-dessus pour un
-    // appelant concurrent arrivé pendant que celui-ci tourne — TypingArea
+    // appelant concurrent arrivé pendant que celui-ci tourne : TypingArea
     // ET playNote() appellent tous deux initialize()/engine.initialize()).
     // Un rejet (ex. timeout Tone.start()) rejette la même promesse pour
     // TOUS ses awaiters ; ne l'attraper que dans le try/catch local
     // laissait le second chemin planter en rejection non gérée.
     const promise = this.initializeInner(soundPackId).catch(() => {
       // Échec : `initialized` reste false, ce qui reflète l'état réel. Ne
-      // jamais propager — les appelants (playNote, le hook) dégradent déjà
+      // jamais propager : les appelants (playNote, le hook) dégradent déjà
       // proprement vers le silence quand l'audio n'est pas prêt.
     });
     this.initializingPromise = promise;
@@ -498,7 +498,7 @@ export function useAudioEngine() {
   // abonnement à `initialized` / `position`) : toute lecture réactive plus
   // large re-rendrait CHAQUE composant qui monte ce hook (TypingArea,
   // HomeClient, ReplayClient, ChallengeClient, useAudioPreview) au moment
-  // précis de la première frappe — `setLiveBpm` et l'avancée du curseur
+  // précis de la première frappe : `setLiveBpm` et l'avancée du curseur
   // arrivent à chaque frappe, juste avant que la note ne joue. `initialized`
   // et `position` sont lus via getState() là où on en a besoin (lectures
   // tout aussi fraîches, sans re-render).
@@ -512,7 +512,7 @@ export function useAudioEngine() {
     // nécessite pas un AudioContext démarré, seule la lecture en a besoin
     // (Tone.start(), gesture-gated dans initialize() ci-dessous). Le temps
     // que l'utilisateur tape sa première touche, le vrai piano est déjà prêt
-    // dans l'immense majorité des cas — plus besoin d'un synth de repli
+    // dans l'immense majorité des cas : plus besoin d'un synth de repli
     // audible en attendant.
     engine.buildVoices(useAudioStore.getState().soundPackId).catch(() => {
       // Échec silencieux : initialize() (gesture-gated) retentera au besoin
@@ -562,7 +562,7 @@ export function useAudioEngine() {
   }, [soundPackId]);
 
   /**
-   * Charge un pack sonore (lazy loading — recrée le synth si changement de pack).
+   * Charge un pack sonore (lazy loading : recrée le synth si changement de pack).
    */
   const loadSoundPack = useCallback(async (packId: string) => {
     if (!useAudioStore.getState().initialized) return;
@@ -630,11 +630,11 @@ export function useAudioEngine() {
       // Pas de ré-initialisation ici : les deux seuls appelants (TypingArea,
       // useAudioPreview) appellent déjà initialize() avant playNote(). La
       // retenter ici en double était le vrai bug derrière la latence sur les
-      // premières frappes d'une session — observé en session live : quand
+      // premières frappes d'une session, observé en session live : quand
       // Tone.start() est lent (ou expire, cf. le timeout ci-dessus),
       // handleKeyDown() attend déjà jusqu'à 3s pour rien, puis CE bloc
       // relançait un second essai identique (donc un second échec probable)
-      // avant que playParsedNote() ne dégrade proprement vers le silence —
+      // avant que playParsedNote() ne dégrade proprement vers le silence :
       // jusqu'à 6-8s d'attente pour une seule touche. Si `initialized` est
       // encore faux ici, playParsedNote() gère déjà le cas gracieusement
       // (silence, jamais un synth de repli à la place du piano réel).
@@ -701,7 +701,7 @@ export function useAudioEngine() {
 
   /**
    * Reprend après correction avec micro-reverb.
-   * Le wet revient au niveau de base du rang courant, jamais à 0 — sinon la
+   * Le wet revient au niveau de base du rang courant, jamais à 0, sinon la
    * réverbération reste coupée pour le reste de la séance.
    */
   const triggerResume = useCallback(async () => {

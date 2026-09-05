@@ -1,5 +1,5 @@
 /**
- * Icons — système d'icônes TypeWav redigirées vers lucide-react.
+ * Icons : système d'icônes TypeWav redigirées vers lucide-react.
  */
 
 import {

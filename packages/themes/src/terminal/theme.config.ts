@@ -3,7 +3,7 @@ import type { ThemeConfig } from '@typewav/types';
 export const terminalTheme: ThemeConfig = {
   id: 'terminal',
   name: 'Terminal',
-  description: 'Dark terminal luxury — le thème par défaut.',
+  description: 'Dark terminal luxury, le thème par défaut.',
   isPremium: false,
   colors: {
     bg: '#000000',

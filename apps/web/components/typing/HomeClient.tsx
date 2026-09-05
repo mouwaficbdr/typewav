@@ -1,15 +1,15 @@
 'use client';
 
 /**
- * HomeClient — page d'accueil interactive.
+ * HomeClient : page d'accueil interactive.
  *
  * 6 zones spec-29 :
- *   Zone 1 — GlobalNav (layout.tsx)
- *   Zone 2 — ConfigBar
- *   Zone 3 — Source attribution
- *   Zone 4 — TypingArea
- *   Zone 5 — WaveformBars + restart + hint
- *   Zone 6 — Footer minimal
+ *   Zone 1 : GlobalNav (layout.tsx)
+ *   Zone 2 : ConfigBar
+ *   Zone 3 : Source attribution
+ *   Zone 4 : TypingArea
+ *   Zone 5 : WaveformBars + restart + hint
+ *   Zone 6 : Footer minimal
  *
  * Client Component justifié : état interactif, TypingArea, audio.
  * Spec : docs/specs/29-home-layout.md
@@ -98,7 +98,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const [ghostData, setGhostData] = useState<{
     timings: number[];
     text: string;
-    /** WPM du record rejoué — affiché comme repère (audit configbar, B8). */
+    /** WPM du record rejoué : affiché comme repère (audit configbar, B8). */
     wpm: number;
   } | null>(null);
   // `ghostData === null` est ambigu à lui seul : "pas encore lu depuis
@@ -153,7 +153,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const [isPersonalTextsPanelOpen, setIsPersonalTextsPanelOpen] =
     useState(false);
 
-  // Historique des derniers textes sélectionnés — passé comme excludeIds à
+  // Historique des derniers textes sélectionnés : passé comme excludeIds à
   // selectFromTexts pour éviter une répétition au shuffle ou à un changement
   // de réglage. Une fenêtre de plusieurs entrées (pas juste la dernière,
   // audit configbar C3) : sur un pool réduit, exclure un seul id produit une
@@ -219,7 +219,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   // `initialized` volontairement absent de cet abonnement : le sampler est
   // préchargé au montage (indépendant du geste utilisateur), et s'abonner
   // ici forcerait un re-render de tout HomeClient au moment précis où
-  // l'utilisateur tape sa première touche — juste avant que la première
+  // l'utilisateur tape sa première touche, juste avant que la première
   // note ne joue.
   const { soundPackId, midiLoadError, samplerLoadError } = useAudioStore();
   const { loadMidiPiece } = useAudioEngine();
@@ -256,7 +256,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   }, []);
 
   // Charger le record personnel : timings ET texte original de cette
-  // session — le curseur fantôme positionne ses timings par index de
+  // session : le curseur fantôme positionne ses timings par index de
   // caractère, donc rejouer un texte différent le désynchroniserait
   // entièrement.
   useEffect(() => {
@@ -320,11 +320,11 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     queueMicrotask(() => {
       // Cet effet peut se redéclencher plusieurs fois dans les premières
       // centaines de ms après le montage (réhydratation asynchrone de
-      // useConfigStore depuis IndexedDB, fetch de collection, etc.) — sans
+      // useConfigStore depuis IndexedDB, fetch de collection, etc.), sans
       // jamais remonter TypingArea puisque `text` ne fait pas partie de sa
       // key. Si l'utilisateur a déjà tapé au moins une frappe sur le texte
       // affiché, changer `text` sous ses pieds réinitialiserait la session
-      // (position, keystrokes) sans réinitialiser le séquenceur MIDI — un
+      // (position, keystrokes) sans réinitialiser le séquenceur MIDI : un
       // curseur et une musique qui se désynchronisent, jusqu'à une frappe
       // pourtant correcte affichée en erreur. Une fois la frappe commencée,
       // le texte reste figé jusqu'au prochain essai (restart/shuffle).
@@ -368,14 +368,14 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   // de collection isolé.
   const prevModeRef = useRef<TypingMode>(activeMode);
 
-  // Défaut sensé à l'entrée en mode Code — pas un verrou : l'utilisateur
+  // Défaut sensé à l'entrée en mode Code, pas un verrou : l'utilisateur
   // reste libre de changer la collection ensuite via CollectionSelector.
   // Ne se déclenche qu'à la transition vers 'code' (dépendance activeMode),
   // jamais à chaque rendu.
   //
   // Symétrique en sortie (audit configbar, B7) : quitter Code sans changer
   // de collection laissait 'code' actif sous un mode qui parle de temps ou
-  // de mots — ConfigBar masque alors ses bascules ponctuation/chiffres
+  // de mots : ConfigBar masque alors ses bascules ponctuation/chiffres
   // (verrouillées par la collection Code, voir ConfigBar) sous un libellé de
   // mode qui n'a plus rien à voir. Ne se déclenche que sur la transition
   // Code → autre mode ; une sélection manuelle de la collection Code depuis
@@ -394,7 +394,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     }
     // activeCollection volontairement absent des dépendances (lu via
     // getState() ci-dessus) : cet effet ne doit réagir qu'à une vraie
-    // TRANSITION de mode, jamais à un changement de collection isolé — sinon
+    // TRANSITION de mode, jamais à un changement de collection isolé, sinon
     // il re-forcerait 'code' à chaque re-rendu tant que le mode Code reste
     // actif, écrasant un choix manuel de collection (voir le test « ne force
     // pas la collection à chaque rendu »).
@@ -547,7 +547,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   });
 
   const { text, source, collectionId } = useMemo(() => {
-    // Mode Libre : texte personnel affiché tel quel, jamais filtré (A3) —
+    // Mode Libre : texte personnel affiché tel quel, jamais filtré (A3) :
     // l'utilisateur a écrit ce texte lui-même, le dénaturer n'a pas de sens.
     if (activeMode === 'custom') {
       return {
@@ -613,7 +613,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         backgroundColor: 'transparent',
       }}
     >
-      {/* Aura ambiante — couleur = rang, respiration = tempo réel de la
+      {/* Aura ambiante : couleur = rang, respiration = tempo réel de la
           frappe (voir AmbientAura). Purement décorative, en z-index négatif,
           doit rester le tout premier enfant pour peindre derrière le reste. */}
       <AmbientAura
@@ -653,7 +653,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               ...fadeOnStart(-10, configBarInert),
             }}
           >
-            {/* Zone 2 — ConfigBar */}
+            {/* Zone 2 : ConfigBar */}
             <ConfigBar controlsMode={effectiveMode} />
 
             <div
@@ -686,7 +686,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
           {/* Boutons/bannières secondaires (mode Libre, erreurs, Fantôme) :
               gardent le comportement d'origine, s'effacent avec hasStarted
-              sans réagir au survol — seule la config bar proprement dite se
+              sans réagir au survol : seule la config bar proprement dite se
               rouvre au survol ci-dessus. */}
           <div
             inert={hasStarted}
@@ -1051,7 +1051,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         </div>
       )}
 
-      {/* Zone 6 — Footer minimal avec les contrôles secondaires éparpillés */}
+      {/* Zone 6 : Footer minimal avec les contrôles secondaires éparpillés */}
       <footer
         inert={hasStarted}
         style={{

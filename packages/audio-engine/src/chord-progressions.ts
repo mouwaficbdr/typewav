@@ -1,6 +1,6 @@
 /**
  * Progressions d'accords par thème.
- * Spec : docs/specs/01-audio-engine.md — progressions d'accords
+ * Spec : docs/specs/01-audio-engine.md (progressions d'accords)
  *
  * À chaque nouveau mot, on avance d'un accord dans la progression.
  * Les notes du mot sont contraintes aux notes de l'accord courant
@@ -33,7 +33,7 @@ export interface ChordProgression {
 const CHORD_PROGRESSIONS: Record<ChordProgressionTheme, ChordProgression> = {
   terminal: {
     themeId: 'terminal',
-    // Am – G – F – Em : progression mineure sombre
+    // Am - G - F - Em : progression mineure sombre
     chords: [
       { symbol: 'Am', notes: ['A', 'C', 'E'] },
       { symbol: 'G',  notes: ['G', 'B', 'D'] },
@@ -43,7 +43,7 @@ const CHORD_PROGRESSIONS: Record<ChordProgressionTheme, ChordProgression> = {
   },
   noir: {
     themeId: 'noir',
-    // Dm7 – G7 – Cmaj7 – Am7 : progression jazz
+    // Dm7 - G7 - Cmaj7 - Am7 : progression jazz
     chords: [
       { symbol: 'Dm7',   notes: ['D', 'F', 'A', 'C'] },
       { symbol: 'G7',    notes: ['G', 'B', 'D', 'F'] },
@@ -53,7 +53,7 @@ const CHORD_PROGRESSIONS: Record<ChordProgressionTheme, ChordProgression> = {
   },
   'midnight-sun': {
     themeId: 'midnight-sun',
-    // Fmaj7 – Am – Em – Cmaj7 : progression ambient
+    // Fmaj7 - Am - Em - Cmaj7 : progression ambient
     chords: [
       { symbol: 'Fmaj7', notes: ['F', 'A', 'C', 'E'] },
       { symbol: 'Am',    notes: ['A', 'C', 'E'] },
@@ -63,7 +63,7 @@ const CHORD_PROGRESSIONS: Record<ChordProgressionTheme, ChordProgression> = {
   },
   arcade: {
     themeId: 'arcade',
-    // C – G – Am – F : progression majeure pop
+    // C - G - Am - F : progression majeure pop
     chords: [
       { symbol: 'C',  notes: ['C', 'E', 'G'] },
       { symbol: 'G',  notes: ['G', 'B', 'D'] },
