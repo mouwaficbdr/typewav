@@ -7,7 +7,7 @@ vi.mock('next-intl', () => ({
 
 import { KeyboardDiagram } from '../KeyboardDiagram';
 
-describe('KeyboardDiagram — disposition QWERTY (par défaut)', () => {
+describe('KeyboardDiagram : disposition QWERTY (par défaut)', () => {
   it('affiche les labels QWERTY sans prop layout', () => {
     render(<KeyboardDiagram />);
     expect(screen.getByText('A')).toBeInTheDocument();
@@ -25,7 +25,7 @@ describe('KeyboardDiagram — disposition QWERTY (par défaut)', () => {
   });
 });
 
-describe('KeyboardDiagram — disposition AZERTY (ticket #62)', () => {
+describe('KeyboardDiagram : disposition AZERTY (ticket #62)', () => {
   it('échange les labels Q/A (positions physiquement différentes)', () => {
     render(<KeyboardDiagram layout="azerty" />);
     // Position physique home-row-gauche (x:8,y:68) affiche Q en AZERTY.
@@ -34,7 +34,7 @@ describe('KeyboardDiagram — disposition AZERTY (ticket #62)', () => {
     expect(screen.getByText('A')).toBeInTheDocument();
   });
 
-  it("';' (home row) affiche 'M', et 'm' (bottom row) affiche ',' — pas un simple échange", () => {
+  it("';' (home row) affiche 'M', et 'm' (bottom row) affiche ',' : pas un simple échange", () => {
     render(<KeyboardDiagram layout="azerty" />);
     expect(screen.getByText('M')).toBeInTheDocument();
     expect(screen.getByText(',')).toBeInTheDocument();
@@ -64,7 +64,7 @@ describe('KeyboardDiagram — disposition AZERTY (ticket #62)', () => {
   });
 });
 
-describe('KeyboardDiagram — agrandissement (ticket #62)', () => {
+describe('KeyboardDiagram : agrandissement (ticket #62)', () => {
   it('remplit son conteneur (flex:1) plutôt que de deviner une taille en vh', () => {
     const { container } = render(<KeyboardDiagram />);
     const svg = container.querySelector('svg');
@@ -81,7 +81,7 @@ describe('KeyboardDiagram — agrandissement (ticket #62)', () => {
   });
 });
 
-describe('KeyboardDiagram — showAllFingerColors (écran de positionnement des doigts, ticket #62)', () => {
+describe('KeyboardDiagram : showAllFingerColors (écran de positionnement des doigts, ticket #62)', () => {
   it('sans la prop, les 8 touches home row ne sont pas colorées par doigt (comportement existant)', () => {
     const { container } = render(<KeyboardDiagram allowedKeys={['a', 's', 'd', 'f', 'j', 'k', 'l', ';']} />);
     // Aucune touche active : aucun rect ne doit porter la couleur d'un doigt.
@@ -121,7 +121,7 @@ describe('KeyboardDiagram — showAllFingerColors (écran de positionnement des 
   });
 });
 
-describe('KeyboardDiagram — confirmedKeys (étape interactive, ticket #62)', () => {
+describe('KeyboardDiagram : confirmedKeys (étape interactive, ticket #62)', () => {
   it("marque visuellement les touches confirmées d'un repère distinct", () => {
     const { container: confirmed } = render(
       <KeyboardDiagram showAllFingerColors confirmedKeys={['f']} />,

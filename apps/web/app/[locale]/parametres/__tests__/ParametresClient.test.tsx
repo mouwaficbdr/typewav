@@ -309,7 +309,7 @@ describe('ParametresClient : disposition du clavier (ticket #60)', () => {
   });
 });
 
-describe('ParametresClient — revoir le positionnement des doigts (ticket #62)', () => {
+describe('ParametresClient : revoir le positionnement des doigts (ticket #62)', () => {
   beforeEach(() => {
     mockPush.mockClear();
     mockSetMode.mockClear();

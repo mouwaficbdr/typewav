@@ -19,7 +19,7 @@ describe('mapKeyForLayout (rendu : position physique → caractère affiché)', 
     expect(mapKeyForLayout('z', 'azerty')).toBe('w');
   });
 
-  it("';' affiche 'm', et 'm' affiche ',' — pas un échange à 2, deux relabellings distincts", () => {
+  it("';' affiche 'm', et 'm' affiche ',' : pas un échange à 2, deux relabellings distincts", () => {
     expect(mapKeyForLayout(';', 'azerty')).toBe('m');
     expect(mapKeyForLayout('m', 'azerty')).toBe(',');
   });

@@ -873,7 +873,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           // Mode Apprentissage : ce wrapper doit avoir une vraie hauteur
           // (flex:1 dans la colonne fixe de <main>) pour que le schéma
           // clavier puisse remplir "l'espace qui reste" au lieu de deviner
-          // une taille en vh — sinon rien ne garantit que titre + onglets +
+          // une taille en vh : sinon rien ne garantit que titre + onglets +
           // texte + clavier tiennent ensemble sans pousser le footer hors
           // du conteneur (qui ne scrolle jamais). Les autres modes gardent
           // le comportement existant (hauteur intrinsèque, espace restant

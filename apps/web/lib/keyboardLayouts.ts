@@ -1,10 +1,10 @@
 /**
- * Disposition clavier physique — QWERTY vs AZERTY.
+ * Disposition clavier physique : QWERTY vs AZERTY.
  *
  * Rien qu'une relation "symétrique à 2" ne suffit pas ici : Q/A et W/Z sont
  * de vrais échanges (2 positions physiques qui échangent leurs 2
  * caractères), mais la position ";" (QWERTY) affiche "m" en AZERTY tandis
- * que la position "m" (QWERTY) affiche "," en AZERTY — 3 caractères
+ * que la position "m" (QWERTY) affiche "," en AZERTY : 3 caractères
  * distincts sur 2 positions, pas un échange. D'où deux tables séparées
  * plutôt qu'une seule table utilisée dans les deux sens.
  *

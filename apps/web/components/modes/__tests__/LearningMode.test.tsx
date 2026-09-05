@@ -422,7 +422,7 @@ describe('LearningMode, isOnboarding', () => {
   });
 });
 
-describe('LearningMode — disposition clavier (ticket #62)', () => {
+describe('LearningMode : disposition clavier (ticket #62)', () => {
   beforeEach(() => {
     typingAreaPropsRef.current = null;
     keyboardDiagramPropsRef.current = null;
@@ -464,7 +464,7 @@ describe('LearningMode — disposition clavier (ticket #62)', () => {
   });
 });
 
-describe('LearningMode — écran de positionnement des doigts (ticket #62)', () => {
+describe('LearningMode : écran de positionnement des doigts (ticket #62)', () => {
   beforeEach(() => {
     typingAreaPropsRef.current = null;
     mockLoadLearningProgress.mockClear().mockResolvedValue(undefined);

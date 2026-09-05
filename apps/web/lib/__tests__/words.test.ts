@@ -49,7 +49,7 @@ describe('generateLearningText', () => {
   });
 });
 
-describe('generateLearningText — disposition AZERTY (ticket #62)', () => {
+describe('generateLearningText : disposition AZERTY (ticket #62)', () => {
   it("niveau 1 en azerty ne produit que des lettres de la rangée du repos AZERTY, jamais un vrai mot QWERTY", () => {
     // Rangée du repos physique AZERTY : q s d f j k l m, sans voyelle.
     // Aucun mot de WORDS_HOME_ROW (qui utilise le 'a') ne peut donc y passer.

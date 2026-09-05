@@ -439,7 +439,7 @@ export function LearningMode({
           Remplace un titre H2 séparé + une rangée de 5 boutons pleine
           largeur avec noms (retour Mouwafic) : le nom de niveau était
           répété deux fois (titre ET onglet actif), et connaître le NOM des
-          étapes suivantes n'apporte rien tant qu'on n'y est pas — seule la
+          étapes suivantes n'apporte rien tant qu'on n'y est pas. Seule la
           position/le nombre compte. Le stepper ci-dessous reste un pur
           outil de navigation (revenir sur un niveau déjà débloqué) ; le
           nom du niveau courant vit désormais à côté, en petit, une seule
@@ -723,7 +723,7 @@ export function LearningMode({
       )}
 
       {/* Schéma clavier : remplit l'espace vertical qui reste (flex:1)
-          plutôt que de deviner une taille en vh (voir KeyboardDiagram) —
+          plutôt que de deviner une taille en vh (voir KeyboardDiagram) :
           c'est ce qui garantit que le pied de page (HomeClient) ne se fait
           plus jamais pousser hors de l'écran, quel que soit l'écran.
           alignItems:'flex-start' plutôt que 'center' : sur un écran haut,
