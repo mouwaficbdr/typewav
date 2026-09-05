@@ -92,7 +92,7 @@ export function NavLogo({ locale }: NavLogoProps) {
               color: 'var(--color-text-primary)',
               fontWeight: 500,
               fontStyle: 'italic',
-              fontSize: '1.72rem',
+              fontSize: '1.42rem',
               letterSpacing: '0',
               lineHeight: 1,
               marginLeft: '1px',
