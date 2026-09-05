@@ -29,6 +29,7 @@ import { PersonalTextsPanel } from '@/components/typing/PersonalTextsPanel';
 import { TypingArea } from '@/components/typing/TypingArea';
 import { WaveformBars } from '@/components/typing/WaveformBars';
 import { Keycap } from '@/components/ui/Keycap';
+import { ThemeQuickSwitcher } from '@/components/ui/ThemeQuickSwitcher';
 import {
   GhostIcon,
   MusicNoteIcon,
@@ -1081,6 +1082,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
         {/* === DROITE: Musique, Outils contextuels et versioning === */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <ThemeQuickSwitcher />
           <span
             className="hover:text-text-primary cursor-pointer transition-colors"
             style={{ display: 'flex', alignItems: 'center', gap: 6 }}
