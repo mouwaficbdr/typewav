@@ -368,14 +368,20 @@
     "levelHeading": "Niveau {id} : {name}",
     "progressStats": "{samples}/{minSamples} frappes • {accuracy}% précision (visé {targetAccuracy}%)",
     "lastSession": "Dernière session : {wpm} MPM · {accuracy}% ({correct}/{total})",
-    "readyToAdvance": "Objectif atteint : clique sur le niveau suivant, juste au-dessus, pour continuer.",
     "needMoreReps": "Encore {samples} frappes à enchaîner (vise {accuracy}% de précision) pour débloquer la suite. Termine chaque série jusqu'au bout : une série interrompue ne compte pas.",
     "needMoreAccuracy": "Tu as fait assez de frappes, mais ta précision cumulée est encore sous les {accuracy}% visés. Enchaîne des séries précises pour la faire remonter.",
     "skipTutorial": "Passer le tutoriel",
     "tutorialComplete": "Tutoriel terminé ! Tu improvises déjà.",
     "exitToClassic": "Passer en mode classique →",
     "readyToUnlock": "Niveau {id} prêt : {name}. Cliquer pour continuer.",
-    "unlockedAnnouncement": "Niveau {id} débloqué : {name}."
+    "unlockedAnnouncement": "Niveau {id} débloqué : {name}.",
+    "fingerIntro": {
+      "title": "Où poser tes doigts",
+      "caption": "F et J ont une petite bosse que tu peux sentir sans regarder : ce n'est pas un hasard, ce sont tes deux repères. Pose tes index dessus, les 6 autres doigts se posent juste à côté, chacun sur sa propre touche.",
+      "practiceLabel": "Touche chaque repère pour t'entraîner",
+      "practiceProgress": "{count}/{total} repères touchés",
+      "start": "Commencer"
+    }
   },
   "hint": {
     "restart": "Recommencer (Tab + Entrée)",
@@ -412,7 +418,8 @@
     "layoutQwerty": "QWERTY",
     "layoutAzerty": "AZERTY",
     "selectLayout": "Utiliser la disposition {name}",
-    "keyboardLayoutHint": "Utilisée par le clavier visuel du mode Apprentissage."
+    "keyboardLayoutHint": "Utilisée par le clavier visuel du mode Apprentissage.",
+    "reviewFingerPositioning": "Revoir le clavier et le positionnement des doigts"
   },
   "about": {
     "metaTitle": "À propos",

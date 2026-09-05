@@ -14,6 +14,7 @@
  */
 
 import { GhostCursor } from '@/components/typing/GhostCursor';
+import { CursorIcon } from '@/components/ui/icons';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useSession } from '@/hooks/useSession';
 import { CorrectionEchoTracker } from '@/lib/correction-echo';
@@ -540,6 +541,9 @@ export function TypingArea({
         >
           <span
             style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
               fontFamily: 'var(--font-ui)',
               fontSize: '1rem',
               color: 'var(--color-text-primary)',
@@ -547,6 +551,11 @@ export function TypingArea({
               fontWeight: 500,
             }}
           >
+            <CursorIcon
+              size={16}
+              className="shrink-0"
+              data-testid="typing-activation-cursor-icon"
+            />
             {t('clickToFocus')}
           </span>
         </div>

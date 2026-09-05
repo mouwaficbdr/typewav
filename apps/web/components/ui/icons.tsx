@@ -40,14 +40,25 @@ import {
   Palette,
   Search,
   Check,
+  MousePointer2,
 } from 'lucide-react';
 
-type IconProps = { size?: number; className?: string };
+type IconProps = {
+  size?: number;
+  className?: string;
+  'data-testid'?: string;
+};
 
 // Wrapper helper to maintain the same props interface
 const withProps = (IconComponent: any) => {
-  return function IconWrapper({ size = 16, className }: IconProps) {
-    return <IconComponent size={size} className={className} />;
+  return function IconWrapper({
+    size = 16,
+    className,
+    'data-testid': dataTestId,
+  }: IconProps) {
+    return (
+      <IconComponent size={size} className={className} data-testid={dataTestId} />
+    );
   };
 };
 
@@ -88,3 +99,4 @@ export const PlusIcon = withProps(Plus);
 export const PaletteIcon = withProps(Palette);
 export const SearchIcon = withProps(Search);
 export const CheckIcon = withProps(Check);
+export const CursorIcon = withProps(MousePointer2);
