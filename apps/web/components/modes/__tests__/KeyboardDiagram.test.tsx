@@ -65,13 +65,19 @@ describe('KeyboardDiagram — disposition AZERTY (ticket #62)', () => {
 });
 
 describe('KeyboardDiagram — agrandissement (ticket #62)', () => {
+  it('remplit son conteneur (flex:1) plutôt que de deviner une taille en vh', () => {
+    const { container } = render(<KeyboardDiagram />);
+    const svg = container.querySelector('svg');
+    expect(svg?.style.flex).toBe('1 1 0%');
+    expect(svg?.style.objectFit).toBe('contain');
+  });
+
   it('a un plafond de largeur nettement plus grand que l’ancien (500px)', () => {
     const { container } = render(<KeyboardDiagram />);
     const svg = container.querySelector('svg');
-    const maxWidth = svg?.style.maxWidth ?? '';
-    const ceilingMatch = maxWidth.match(/,\s*(\d+)px\)/);
-    expect(ceilingMatch).not.toBeNull();
-    expect(Number(ceilingMatch?.[1])).toBeGreaterThan(500);
+    expect(Number.parseInt(svg?.style.maxWidth ?? '0', 10)).toBeGreaterThan(
+      500,
+    );
   });
 });
 

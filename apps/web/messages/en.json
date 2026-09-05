@@ -368,7 +368,6 @@
     "levelHeading": "Level {id}: {name}",
     "progressStats": "{samples}/{minSamples} keystrokes • {accuracy}% accuracy (target {targetAccuracy}%)",
     "lastSession": "Last session: {wpm} WPM · {accuracy}% ({correct}/{total})",
-    "readyToAdvance": "Goal reached: click the next level, just above, to continue.",
     "needMoreReps": "{samples} more keystrokes to go (aim for {accuracy}% accuracy) to unlock the next level. Finish each round to the end: an interrupted round doesn't count.",
     "needMoreAccuracy": "You've typed enough, but your cumulative accuracy is still below the {accuracy}% target. Run through precise rounds to bring it back up.",
     "skipTutorial": "Skip tutorial",

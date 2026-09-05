@@ -120,26 +120,27 @@ export function KeyboardDiagram({
   const fingerLabel = activeFinger ? t(`finger.${activeFinger}`) : '';
 
   return (
-    <div className="flex flex-col items-center gap-3 select-none">
+    <div
+      className="flex flex-col items-center gap-3 select-none"
+      style={{ height: '100%', minHeight: 0 }}
+    >
       <svg
         viewBox={showAllFingerColors ? '0 0 330 232' : '0 0 330 172'}
         aria-label={t('ariaKeyboardDiagram')}
-        // clamp() plutôt qu'une largeur fixe : ce schéma est le plus gros
-        // contributeur à la hauteur du mode Apprentissage (colonne dense,
-        // conteneur main à hauteur fixe qui ne scrolle jamais). Il se
-        // réduit lui-même sur un viewport bas au lieu de forcer le reste
-        // du contenu à déborder hors de l'écran. Plafond relevé (ticket
-        // #62) : le clavier était le composant central du mode et restait
-        // minuscule alors que l'écran avait de la place disponible.
-        // Coefficient vh plus bas en showAllFingerColors : le viewBox y est
-        // nettement plus haut (schéma de mains sous le clavier), donc une
-        // même largeur y produirait une hauteur rendue disproportionnée par
-        // rapport au reste de l'écran (titre, légende, étape interactive).
+        // Remplit l'espace que son conteneur lui donne réellement (flex:1
+        // côté appelant) plutôt que de deviner une taille en vh : un
+        // coefficient vh fixe ignore tout ce qui est empilé au-dessus (le
+        // solde varie avec chaque écran), et ça a fini par couper le pied
+        // de page sur un environnement différent de celui où il avait été
+        // mesuré. objectFit:'contain' garde le ratio du viewBox, ne déborde
+        // jamais ni en largeur ni en hauteur ; maxWidth reste une limite de
+        // bon goût sur un très grand écran, pas un calcul de taille.
         style={{
+          flex: '1 1 0%',
+          minHeight: 0,
           width: '100%',
-          maxWidth: showAllFingerColors
-            ? 'clamp(260px, 43vh, 620px)'
-            : 'clamp(320px, 58vh, 760px)',
+          maxWidth: showAllFingerColors ? 620 : 900,
+          objectFit: 'contain',
         }}
       >
         {/* Schéma de mains : un point coloré par doigt, relié à sa touche.
@@ -271,7 +272,7 @@ export function KeyboardDiagram({
       {showAllFingerColors && (
         <div
           className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1"
-          style={{ maxWidth: 460 }}
+          style={{ maxWidth: 460, flexShrink: 0 }}
         >
           {HOME_ROW_KEYS.map((key) => {
             const keyData = KEYS.find((k) => k.key === key)!;
@@ -315,6 +316,7 @@ export function KeyboardDiagram({
             fontFamily: 'var(--font-ui)',
             fontSize: 13,
             fontWeight: 600,
+            flexShrink: 0,
           }}
         >
           {fingerLabel}

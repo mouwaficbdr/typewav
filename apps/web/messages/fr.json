@@ -368,7 +368,6 @@
     "levelHeading": "Niveau {id} : {name}",
     "progressStats": "{samples}/{minSamples} frappes • {accuracy}% précision (visé {targetAccuracy}%)",
     "lastSession": "Dernière session : {wpm} MPM · {accuracy}% ({correct}/{total})",
-    "readyToAdvance": "Objectif atteint : clique sur le niveau suivant, juste au-dessus, pour continuer.",
     "needMoreReps": "Encore {samples} frappes à enchaîner (vise {accuracy}% de précision) pour débloquer la suite. Termine chaque série jusqu'au bout : une série interrompue ne compte pas.",
     "needMoreAccuracy": "Tu as fait assez de frappes, mais ta précision cumulée est encore sous les {accuracy}% visés. Enchaîne des séries précises pour la faire remonter.",
     "skipTutorial": "Passer le tutoriel",

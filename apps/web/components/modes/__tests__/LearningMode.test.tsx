@@ -198,7 +198,7 @@ describe('LearningMode progression wiring', () => {
     ).not.toBeInTheDocument();
   });
 
-  it("anime l'onglet du niveau suivant et permet d'avancer en cliquant dessus quand les objectifs sont atteints", () => {
+  it("transforme la barre de progression en CTA et permet d'avancer en cliquant dessus quand les objectifs sont atteints", () => {
     render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
 
     act(() => {
@@ -210,14 +210,12 @@ describe('LearningMode progression wiring', () => {
       });
     });
 
-    expect(screen.getByText(/Objectif atteint/i)).toBeInTheDocument();
-
-    const readyTab = screen.getByRole('button', {
+    const readyCta = screen.getByRole('button', {
       name: /Niveau 2 pr.t/i,
     });
-    expect(readyTab).toBeInTheDocument();
+    expect(readyCta).toBeInTheDocument();
 
-    fireEvent.click(readyTab);
+    fireEvent.click(readyCta);
 
     expect(screen.getByText(/Niveau 2.*Vers les aigus/i)).toBeInTheDocument();
   });
@@ -237,6 +235,49 @@ describe('LearningMode progression wiring', () => {
     });
 
     expect(screen.getByRole('status')).toHaveTextContent(/Niveau 2 d.bloqu./i);
+  });
+
+  it('le stepper permet de revenir sur un niveau déjà débloqué (navigation, pas seulement avancer)', async () => {
+    mockLoadLearningProgress.mockResolvedValue([
+      { levelId: 1, accuracy: 92, samples: 60, unlocked: true },
+      { levelId: 2, accuracy: 0, samples: 0, unlocked: true },
+      { levelId: 3, accuracy: 0, samples: 0, unlocked: false },
+      { levelId: 4, accuracy: 0, samples: 0, unlocked: false },
+      { levelId: 5, accuracy: 0, samples: 0, unlocked: false },
+    ]);
+
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
+
+    const level2Step = await screen.findByRole('button', {
+      name: /Niveau 2 : Vers les aigus/i,
+    });
+    await waitFor(() => expect(level2Step).toBeEnabled());
+    fireEvent.click(level2Step);
+    expect(screen.getByText(/Niveau 2.*Vers les aigus/i)).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: /Niveau 1 : Les premières notes/i,
+      }),
+    );
+    expect(
+      screen.getByText(/Niveau 1.*Les premières notes/i),
+    ).toBeInTheDocument();
+  });
+
+  it('le stepper désactive les niveaux encore verrouillés', async () => {
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
+    await waitFor(() => expect(mockLoadLearningProgress).toHaveBeenCalled());
+
+    const lockedStep = screen.getByRole('button', {
+      name: /Niveau 2 : Vers les aigus/i,
+    });
+    expect(lockedStep).toBeDisabled();
+
+    fireEvent.click(lockedStep);
+    expect(
+      screen.getByText(/Niveau 1.*Les premières notes/i),
+    ).toBeInTheDocument();
   });
 });
 
