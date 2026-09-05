@@ -9,19 +9,19 @@ export const fontDisplay = Cormorant_Garamond({
   subsets: ['latin'],
   weight: ['300', '400', '600'],
   variable: '--font-display',
-  display: 'swap',
+  display: 'optional',
 });
 
 export const fontUi = Sora({
   subsets: ['latin'],
   weight: ['300', '400', '600', '700'],
   variable: '--font-ui',
-  display: 'swap',
+  display: 'optional',
 });
 
 export const fontMono = JetBrains_Mono({
   subsets: ['latin'],
   weight: ['400', '500', '700'],
   variable: '--font-mono',
-  display: 'swap',
+  display: 'optional',
 });
