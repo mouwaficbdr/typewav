@@ -10,6 +10,7 @@
 import { KeyboardDiagram } from '@/components/modes/KeyboardDiagram';
 import { TypingArea } from '@/components/typing/TypingArea';
 import { useKeyboardLayoutPreference } from '@/hooks/useKeyboardLayoutPreference';
+import { resolvePhysicalKey } from '@/lib/keyboardLayouts';
 import {
   applySessionStats,
   calculateProgressPercent,
@@ -81,6 +82,33 @@ export function LearningMode({
     setFingerIntroDismissed(true);
     void markLearningFingerIntroSeen();
   }, []);
+
+  // Étape interactive de l'écran de positionnement des doigts (ticket #62,
+  // obsession-architect) : transforme une lecture passive en pratique
+  // active (effet de génération), jamais chronométrée ni notée. N'importe
+  // quel ordre, aucune contrainte : le but est de sentir les 8 repères, pas
+  // de réussir un test.
+  const [touchedFingerKeys, setTouchedFingerKeys] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const homeRowKeys = useMemo(
+    () => LEARNING_LEVELS.find((l) => l.id === 1)?.keys ?? [],
+    [],
+  );
+
+  useEffect(() => {
+    if (fingerIntroDismissed) return;
+    function onKeyDown(e: KeyboardEvent) {
+      const physicalKey = resolvePhysicalKey(e.key.toLowerCase(), layout);
+      if (!homeRowKeys.includes(physicalKey)) return;
+      setTouchedFingerKeys((prev) => {
+        if (prev.has(physicalKey)) return prev;
+        return new Set(prev).add(physicalKey);
+      });
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [fingerIntroDismissed, layout, homeRowKeys]);
 
   const [currentLevelId, setCurrentLevelId] = useState(1);
   const [levelProgress, setLevelProgress] = useState<LevelProgress[]>(() =>
@@ -224,45 +252,109 @@ export function LearningMode({
   // fois (flag persisté), toujours ré-accessible manuellement depuis
   // Paramètres (qui réinitialise ce flag avant de naviguer ici).
   if (!fingerIntroDismissed) {
+    const touchedCount = touchedFingerKeys.size;
     return (
-      <div className="flex flex-col items-center gap-6 w-full max-w-3xl">
-        <h2
-          style={{
-            fontFamily: 'var(--font-display)',
-            color: 'var(--color-accent)',
-            fontSize: '1.75rem',
-            textAlign: 'center',
-          }}
-        >
-          {t('fingerIntro.title')}
-        </h2>
-        <p
-          style={{
-            fontFamily: 'var(--font-ui)',
-            fontSize: 14,
-            color: 'var(--color-text-muted)',
-            textAlign: 'center',
-            maxWidth: 480,
-            margin: 0,
-          }}
-        >
-          {t('fingerIntro.caption')}
-        </p>
+      <div
+        className="flex flex-col items-center gap-5 w-full max-w-3xl"
+        style={{
+          // Occupe réellement l'espace disponible du mode Apprentissage
+          // (conteneur 100dvh, jamais de scroll) au lieu de rester collé
+          // en haut. minHeight mesuré empiriquement (Chrome, DevTools) sur
+          // le conteneur réel de ce mode : au-delà, le `overflow: hidden`
+          // de <main> (HomeClient) coupe silencieusement le bas de l'écran
+          // (pas de scroll ici) plutôt que de le rendre visible.
+          minHeight: 'calc(100dvh - var(--nav-height) - 300px)',
+          justifyContent: 'center',
+        }}
+      >
+        <div className="flex flex-col items-center gap-2">
+          <h2
+            style={{
+              fontFamily: 'var(--font-display)',
+              color: 'var(--color-accent)',
+              fontSize: '2rem',
+              textAlign: 'center',
+            }}
+          >
+            {t('fingerIntro.title')}
+          </h2>
+          <p
+            style={{
+              fontFamily: 'var(--font-ui)',
+              fontSize: 15,
+              color: 'var(--color-text-muted)',
+              textAlign: 'center',
+              maxWidth: 520,
+              margin: 0,
+              lineHeight: 1.5,
+            }}
+          >
+            {t('fingerIntro.caption')}
+          </p>
+        </div>
+
         <KeyboardDiagram
           layout={layout}
-          allowedKeys={LEARNING_LEVELS.find((l) => l.id === 1)!.keys}
+          showAllFingerColors
+          confirmedKeys={Array.from(touchedFingerKeys)}
+          allowedKeys={homeRowKeys}
         />
+
+        <div className="flex flex-col items-center gap-2">
+          <p
+            style={{
+              fontFamily: 'var(--font-ui)',
+              fontSize: 14,
+              color: 'var(--color-text-primary)',
+              textAlign: 'center',
+              margin: 0,
+            }}
+          >
+            {t('fingerIntro.practiceLabel')}
+          </p>
+          <span
+            role="status"
+            aria-live="polite"
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 13,
+              color:
+                touchedCount === homeRowKeys.length
+                  ? 'var(--color-accent)'
+                  : 'var(--color-text-muted)',
+              fontWeight: 600,
+            }}
+          >
+            {t('fingerIntro.practiceProgress', {
+              count: touchedCount,
+              total: homeRowKeys.length,
+            })}
+          </span>
+          <p
+            style={{
+              fontFamily: 'var(--font-ui)',
+              fontSize: 12,
+              color: 'var(--color-text-muted)',
+              textAlign: 'center',
+              margin: 0,
+              fontStyle: 'italic',
+            }}
+          >
+            {t('fingerIntro.reassurance')}
+          </p>
+        </div>
+
         <button
           onClick={handleFingerIntroStart}
           style={{
-            padding: '10px 24px',
+            padding: '12px 32px',
             background: 'var(--color-accent)',
             color: '#000',
             borderRadius: 'var(--radius-lg)',
             border: 'none',
             fontFamily: 'var(--font-ui)',
             fontWeight: 700,
-            fontSize: 14,
+            fontSize: 15,
             cursor: 'pointer',
           }}
         >

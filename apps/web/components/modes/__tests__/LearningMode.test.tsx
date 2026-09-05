@@ -45,12 +45,22 @@ vi.mock('@/components/typing/TypingArea', () => ({
   },
 }));
 
-const keyboardDiagramPropsRef: { current: null | { layout?: string } } = {
+const keyboardDiagramPropsRef: {
+  current: null | {
+    layout?: string;
+    showAllFingerColors?: boolean;
+    confirmedKeys?: string[];
+  };
+} = {
   current: null,
 };
 
 vi.mock('@/components/modes/KeyboardDiagram', () => ({
-  KeyboardDiagram: (props: { layout?: string }) => {
+  KeyboardDiagram: (props: {
+    layout?: string;
+    showAllFingerColors?: boolean;
+    confirmedKeys?: string[];
+  }) => {
     keyboardDiagramPropsRef.current = props;
     return <div data-testid="keyboard-diagram" />;
   },
@@ -462,5 +472,59 @@ describe('LearningMode — écran de positionnement des doigts (ticket #62)', ()
     expect(
       screen.queryByRole('button', { name: /commencer/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it('demande à KeyboardDiagram de colorer les 8 doigts simultanément (pas juste une touche active)', async () => {
+    mockHasSeenFingerIntro.mockResolvedValue(false);
+
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
+    await screen.findByTestId('keyboard-diagram');
+
+    expect(keyboardDiagramPropsRef.current?.showAllFingerColors).toBe(true);
+  });
+
+  it("l'étape interactive démarre à 0 repère touché", async () => {
+    mockHasSeenFingerIntro.mockResolvedValue(false);
+
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
+
+    expect(await screen.findByText(/0\/8/)).toBeInTheDocument();
+  });
+
+  it('toucher une touche de la home row au clavier incrémente le compteur', async () => {
+    mockHasSeenFingerIntro.mockResolvedValue(false);
+
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
+    await screen.findByText(/0\/8/);
+
+    fireEvent.keyDown(window, { key: 'f' });
+
+    expect(await screen.findByText(/1\/8/)).toBeInTheDocument();
+    expect(keyboardDiagramPropsRef.current?.confirmedKeys).toEqual(['f']);
+  });
+
+  it('une touche hors home row (ex. la barre espace) ne compte pas', async () => {
+    mockHasSeenFingerIntro.mockResolvedValue(false);
+
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
+    await screen.findByText(/0\/8/);
+
+    fireEvent.keyDown(window, { key: ' ' });
+
+    expect(screen.getByText(/0\/8/)).toBeInTheDocument();
+  });
+
+  it('"Commencer" reste cliquable sans avoir touché aucun repère (skippable, exigence du ticket #62)', async () => {
+    mockHasSeenFingerIntro.mockResolvedValue(false);
+
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
+
+    const startButton = await screen.findByRole('button', {
+      name: /commencer/i,
+    });
+    expect(startButton).toBeEnabled();
+    fireEvent.click(startButton);
+
+    expect(await screen.findByTestId('typing-area')).toBeInTheDocument();
   });
 });

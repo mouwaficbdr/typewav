@@ -74,3 +74,55 @@ describe('KeyboardDiagram — agrandissement (ticket #62)', () => {
     expect(Number(ceilingMatch?.[1])).toBeGreaterThan(500);
   });
 });
+
+describe('KeyboardDiagram — showAllFingerColors (écran de positionnement des doigts, ticket #62)', () => {
+  it('sans la prop, les 8 touches home row ne sont pas colorées par doigt (comportement existant)', () => {
+    const { container } = render(<KeyboardDiagram allowedKeys={['a', 's', 'd', 'f', 'j', 'k', 'l', ';']} />);
+    // Aucune touche active : aucun rect ne doit porter la couleur d'un doigt.
+    const coloredRects = Array.from(container.querySelectorAll('rect')).filter(
+      (r) => /^#[0-9A-Fa-f]{6}$/.test(r.getAttribute('fill') ?? ''),
+    );
+    expect(coloredRects).toHaveLength(0);
+  });
+
+  it('avec la prop, les 8 touches home row sont simultanément colorées par doigt', () => {
+    const { container } = render(
+      <KeyboardDiagram
+        showAllFingerColors
+        allowedKeys={['a', 's', 'd', 'f', 'j', 'k', 'l', ';']}
+      />,
+    );
+    const coloredRects = Array.from(container.querySelectorAll('rect')).filter(
+      (r) => /^#[0-9A-Fa-f]{6}$/.test(r.getAttribute('fill') ?? ''),
+    );
+    expect(coloredRects).toHaveLength(8);
+  });
+
+  it('affiche une légende des noms de doigts (accessibilité : ne pas reposer que sur la couleur)', () => {
+    render(<KeyboardDiagram showAllFingerColors />);
+    expect(screen.getByText(/finger\.LI/)).toBeInTheDocument();
+    expect(screen.getByText(/finger\.RP/)).toBeInTheDocument();
+  });
+
+  it('agrandit le viewBox pour laisser la place au schéma de mains', () => {
+    const { container: withHands } = render(<KeyboardDiagram showAllFingerColors />);
+    const { container: without } = render(<KeyboardDiagram />);
+    const heightOf = (c: HTMLElement) => {
+      const viewBox = c.querySelector('svg')?.getAttribute('viewBox') ?? '';
+      return Number(viewBox.split(' ')[3]);
+    };
+    expect(heightOf(withHands)).toBeGreaterThan(heightOf(without));
+  });
+});
+
+describe('KeyboardDiagram — confirmedKeys (étape interactive, ticket #62)', () => {
+  it("marque visuellement les touches confirmées d'un repère distinct", () => {
+    const { container: confirmed } = render(
+      <KeyboardDiagram showAllFingerColors confirmedKeys={['f']} />,
+    );
+    const { container: none } = render(<KeyboardDiagram showAllFingerColors />);
+    // Un cercle de confirmation supplémentaire apparaît par touche confirmée.
+    expect(confirmed.querySelectorAll('[data-confirmed="true"]')).toHaveLength(1);
+    expect(none.querySelectorAll('[data-confirmed="true"]')).toHaveLength(0);
+  });
+});

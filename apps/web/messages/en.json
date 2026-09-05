@@ -378,7 +378,10 @@
     "unlockedAnnouncement": "Level {id} unlocked: {name}.",
     "fingerIntro": {
       "title": "Where to rest your fingers",
-      "caption": "Index fingers on F and J (the two raised bumps), the other fingers follow naturally.",
+      "caption": "F and J have a small bump you can feel without looking: that's not an accident, those are your two anchors. Rest your index fingers there, the other 6 fingers land right next to them, each on its own key.",
+      "practiceLabel": "Touch each anchor to get a feel for it",
+      "practiceProgress": "{count}/{total} anchors touched",
+      "reassurance": "No timer, no score here: just get a feel for your anchors.",
       "start": "Start"
     }
   },

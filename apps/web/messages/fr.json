@@ -378,7 +378,10 @@
     "unlockedAnnouncement": "Niveau {id} débloqué : {name}.",
     "fingerIntro": {
       "title": "Où poser tes doigts",
-      "caption": "Index sur F et J (les deux repères en relief), les autres doigts suivent naturellement.",
+      "caption": "F et J ont une petite bosse que tu peux sentir sans regarder : ce n'est pas un hasard, ce sont tes deux repères. Pose tes index dessus, les 6 autres doigts se posent juste à côté, chacun sur sa propre touche.",
+      "practiceLabel": "Touche chaque repère pour t'entraîner",
+      "practiceProgress": "{count}/{total} repères touchés",
+      "reassurance": "Pas de chrono, pas de note ici : entraîne-toi juste à sentir tes repères.",
       "start": "Commencer"
     }
   },
