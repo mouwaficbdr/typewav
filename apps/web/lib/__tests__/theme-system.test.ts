@@ -17,17 +17,9 @@ const milestoneThemeIds = MILESTONES.flatMap((m) =>
 );
 
 describe('APP_THEMES', () => {
-  it('contient les 4 thèmes de base et les 3 thèmes de jalon', () => {
+  it('contient les 26 thèmes débloqués d’office et les 3 thèmes de jalon (ticket #64)', () => {
     expect(Object.keys(APP_THEMES).sort()).toEqual(
-      [
-        'terminal',
-        'deep-burgundy',
-        'cyprus-sand',
-        'night-imperial',
-        'noir',
-        'midnight-sun',
-        'arcade',
-      ].sort(),
+      [...BASE_UNLOCKED_THEME_IDS, 'noir', 'midnight-sun', 'arcade'].sort(),
     );
   });
 
@@ -53,9 +45,36 @@ describe('récompenses de thème des jalons', () => {
 });
 
 describe('BASE_UNLOCKED_THEME_IDS', () => {
-  it('est la seule vérité des thèmes débloqués d’office', () => {
+  it('est la seule vérité des thèmes débloqués d’office (26, ticket #64)', () => {
     expect([...BASE_UNLOCKED_THEME_IDS].sort()).toEqual(
-      ['terminal', 'deep-burgundy', 'cyprus-sand', 'night-imperial'].sort(),
+      [
+        'terminal',
+        'deep-burgundy',
+        'cyprus-sand',
+        'night-imperial',
+        'terminal-amber',
+        'blueprint',
+        'matcha',
+        'abysse',
+        'cuivre-anthracite',
+        'sable-lunaire',
+        'rouille-lin',
+        'bitume-chlorophylle',
+        'carbone-menthe',
+        'nocturne-dore',
+        'cassis',
+        'corail-nocturne',
+        'ardoise-tilleul',
+        'sakura-nuit',
+        'neon-tokyo',
+        'sable-sahara',
+        'vieux-cuivre',
+        'glacier',
+        'cobalt-industriel',
+        'volcan-obsidienne',
+        'ardoise-ecarlate',
+        'riviera',
+      ].sort(),
     );
   });
 

@@ -266,6 +266,12 @@
     "dark": "Sombre",
     "light": "Clair"
   },
+  "themeSwitcher": {
+    "title": "Changer de thème",
+    "searchPlaceholder": "Rechercher un thème…",
+    "noResults": "Aucun thème ne correspond à « {query} ».",
+    "close": "Fermer"
+  },
   "common": {
     "loading": "Chargement…",
     "error": "Une erreur est survenue.",

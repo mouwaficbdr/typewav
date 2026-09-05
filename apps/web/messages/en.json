@@ -266,6 +266,12 @@
     "dark": "Dark",
     "light": "Light"
   },
+  "themeSwitcher": {
+    "title": "Change theme",
+    "searchPlaceholder": "Search a theme…",
+    "noResults": "No theme matches “{query}”.",
+    "close": "Close"
+  },
   "common": {
     "loading": "Loading…",
     "error": "Something went wrong.",

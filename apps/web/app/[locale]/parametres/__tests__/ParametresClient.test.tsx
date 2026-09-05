@@ -73,6 +73,7 @@ vi.mock('lucide-react', () => ({
   Upload: () => null,
 }));
 
+import { BASE_UNLOCKED_THEME_IDS } from '@/lib/theme/defaultThemes';
 import { ParametresClient } from '../ParametresClient';
 
 // Libellés visibles des boutons de thème : la refonte les rend en minuscules
@@ -178,8 +179,10 @@ describe('ParametresClient : sélecteur de thème', () => {
     render(<ParametresClient />);
 
     // aria-label = t('selectTheme', { name }) ; le mock i18n renvoie la clé.
+    // Profil jamais résolu : seuls les thèmes débloqués d'office sont rendus
+    // (ticket #64 : 26 désormais, BASE_NAMES ne couvre que les 4 historiques).
     const buttons = screen.getAllByRole('button', { name: 'selectTheme' });
-    expect(buttons.length).toBe(BASE_NAMES.length);
+    expect(buttons.length).toBe(BASE_UNLOCKED_THEME_IDS.length);
   });
 });
 
