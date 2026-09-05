@@ -1,7 +1,13 @@
 import { MilestoneToast } from '@/components/progression/MilestoneToast';
 import { GlobalNav } from '@/components/ui/GlobalNav';
 import { routing } from '@/i18n/routing';
-import { fontDisplay, fontMono, fontUi } from '@/lib/fonts';
+import {
+  fontDisplay,
+  fontLogoMono,
+  fontLogoSerif,
+  fontMono,
+  fontUi,
+} from '@/lib/fonts';
 import { buildMetadata } from '@/lib/seo';
 import { ThemeProvider } from '@/lib/theme/ThemeProvider';
 import { ThemeScript } from '@/lib/theme/ThemeScript';
@@ -51,7 +57,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <html
       lang={locale}
-      className={`${fontDisplay.variable} ${fontUi.variable} ${fontMono.variable}`}
+      className={`${fontDisplay.variable} ${fontUi.variable} ${fontMono.variable} ${fontLogoMono.variable} ${fontLogoSerif.variable}`}
       suppressHydrationWarning
     >
       <head>

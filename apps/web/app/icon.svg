@@ -1,27 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 28">
   <title>TypeWav</title>
   <rect x="2" y="2" width="4" height="24" rx="2" fill="#00d4aa">
-    <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" begin="0s" repeatCount="indefinite" />
+    <animate attributeName="opacity" values="0.85;1;0.85" dur="3s" begin="0s" repeatCount="indefinite" />
     <animate attributeName="height" values="24;20;24" dur="3s" begin="0s" repeatCount="indefinite" />
     <animate attributeName="y" values="2;4;2" dur="3s" begin="0s" repeatCount="indefinite" />
   </rect>
-  <rect x="9" y="9" width="4" height="10" rx="2" fill="#00d4aa">
-    <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" begin="0.15s" repeatCount="indefinite" />
-    <animate attributeName="height" values="10;12;10" dur="3s" begin="0.15s" repeatCount="indefinite" />
-    <animate attributeName="y" values="9;8;9" dur="3s" begin="0.15s" repeatCount="indefinite" />
+  <rect x="9" y="9" width="4" height="17" rx="2" fill="#00d4aa">
+    <animate attributeName="opacity" values="0.85;1;0.85" dur="3s" begin="0.15s" repeatCount="indefinite" />
+    <animate attributeName="height" values="17;20;17" dur="3s" begin="0.15s" repeatCount="indefinite" />
+    <animate attributeName="y" values="9;7.5;9" dur="3s" begin="0.15s" repeatCount="indefinite" />
   </rect>
-  <rect x="16" y="5" width="4" height="18" rx="2" fill="#00d4aa">
-    <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" begin="0.3s" repeatCount="indefinite" />
-    <animate attributeName="height" values="18;20;18" dur="3s" begin="0.3s" repeatCount="indefinite" />
-    <animate attributeName="y" values="5;4;5" dur="3s" begin="0.3s" repeatCount="indefinite" />
+  <rect x="16" y="5" width="4" height="21" rx="2" fill="#00d4aa">
+    <animate attributeName="opacity" values="0.85;1;0.85" dur="3s" begin="0.3s" repeatCount="indefinite" />
+    <animate attributeName="height" values="21;24;21" dur="3s" begin="0.3s" repeatCount="indefinite" />
+    <animate attributeName="y" values="5;3.5;5" dur="3s" begin="0.3s" repeatCount="indefinite" />
   </rect>
-  <rect x="23" y="9" width="4" height="10" rx="2" fill="#00d4aa">
-    <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" begin="0.45s" repeatCount="indefinite" />
-    <animate attributeName="height" values="10;12;10" dur="3s" begin="0.45s" repeatCount="indefinite" />
-    <animate attributeName="y" values="9;8;9" dur="3s" begin="0.45s" repeatCount="indefinite" />
+  <rect x="23" y="9" width="4" height="17" rx="2" fill="#00d4aa">
+    <animate attributeName="opacity" values="0.85;1;0.85" dur="3s" begin="0.45s" repeatCount="indefinite" />
+    <animate attributeName="height" values="17;20;17" dur="3s" begin="0.45s" repeatCount="indefinite" />
+    <animate attributeName="y" values="9;7.5;9" dur="3s" begin="0.45s" repeatCount="indefinite" />
   </rect>
   <rect x="30" y="2" width="4" height="24" rx="2" fill="#00d4aa">
-    <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" begin="0.6s" repeatCount="indefinite" />
+    <animate attributeName="opacity" values="0.85;1;0.85" dur="3s" begin="0.6s" repeatCount="indefinite" />
     <animate attributeName="height" values="24;20;24" dur="3s" begin="0.6s" repeatCount="indefinite" />
     <animate attributeName="y" values="2;4;2" dur="3s" begin="0.6s" repeatCount="indefinite" />
   </rect>

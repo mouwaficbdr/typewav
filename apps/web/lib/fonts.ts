@@ -1,4 +1,10 @@
-import { Cormorant_Garamond, JetBrains_Mono, Sora } from 'next/font/google';
+import {
+  Cormorant_Garamond,
+  Courier_Prime,
+  Fraunces,
+  JetBrains_Mono,
+  Sora,
+} from 'next/font/google';
 
 /**
  * Polices Google chargées via next/font.
@@ -23,5 +29,22 @@ export const fontMono = JetBrains_Mono({
   subsets: ['latin'],
   weight: ['400', '500', '700'],
   variable: '--font-mono',
+  display: 'swap',
+});
+
+/** Wordmark uniquement (`NavLogo`) : moitié "type", texture machine à écrire. */
+export const fontLogoMono = Courier_Prime({
+  subsets: ['latin'],
+  weight: ['700'],
+  variable: '--font-logo-mono',
+  display: 'swap',
+});
+
+/** Wordmark uniquement (`NavLogo`) : moitié "wav", élégance musicale. */
+export const fontLogoSerif = Fraunces({
+  subsets: ['latin'],
+  weight: ['500'],
+  style: ['italic'],
+  variable: '--font-logo-serif',
   display: 'swap',
 });

@@ -107,9 +107,15 @@ describe('NavLogo', () => {
     expect(cursor).not.toBeInTheDocument();
   });
 
-  it('la partie wav utilise --font-display', () => {
+  it('la partie type utilise --font-logo-mono', () => {
+    render(<NavLogo locale="fr" />);
+    const textSpan = screen.getByText('type');
+    expect(textSpan).toHaveStyle({ fontFamily: 'var(--font-logo-mono)' });
+  });
+
+  it('la partie wav utilise --font-logo-serif', () => {
     render(<NavLogo locale="fr" />);
     const textSpan = screen.getByText('wav');
-    expect(textSpan).toHaveStyle({ fontFamily: 'var(--font-display)' });
+    expect(textSpan).toHaveStyle({ fontFamily: 'var(--font-logo-serif)' });
   });
 });
