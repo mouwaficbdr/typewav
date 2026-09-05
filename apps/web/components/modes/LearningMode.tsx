@@ -255,15 +255,18 @@ export function LearningMode({
     const touchedCount = touchedFingerKeys.size;
     return (
       <div
-        className="flex flex-col items-center gap-5 w-full max-w-3xl"
+        className="flex flex-col items-center gap-5 w-full max-w-4xl"
         style={{
-          // Occupe réellement l'espace disponible du mode Apprentissage
-          // (conteneur 100dvh, jamais de scroll) au lieu de rester collé
-          // en haut. minHeight mesuré empiriquement (Chrome, DevTools) sur
-          // le conteneur réel de ce mode : au-delà, le `overflow: hidden`
-          // de <main> (HomeClient) coupe silencieusement le bas de l'écran
-          // (pas de scroll ici) plutôt que de le rendre visible.
-          minHeight: 'calc(100dvh - var(--nav-height) - 300px)',
+          // Un minHeight calé sur une mesure précise déborde dès que le
+          // rendu réel diffère un peu (police, hauteur de fenêtre) du poste
+          // où il a été mesuré : <main> (HomeClient) a overflow:hidden et
+          // ne scrolle jamais, donc tout dépassement coupe silencieusement
+          // le bas de l'écran (footer inclus). Un minHeight volontairement
+          // modeste évite ce risque ; le contenu (clavier + légende côte à
+          // côte plutôt qu'empilés, voir KeyboardDiagram) est déjà assez
+          // conséquent pour ne plus avoir l'air coincé en haut sans avoir
+          // besoin de forcer une hauteur précise.
+          minHeight: 'min(60vh, 520px)',
           justifyContent: 'center',
         }}
       >
@@ -284,7 +287,11 @@ export function LearningMode({
               fontSize: 15,
               color: 'var(--color-text-muted)',
               textAlign: 'center',
-              maxWidth: 520,
+              // Large plutôt qu'étroit : ce texte tenait sur 3 lignes à
+              // 520px alors que la page a bien plus de largeur disponible.
+              // Moins de lignes = moins de hauteur empilée sur un
+              // conteneur qui ne scrolle jamais (voir minHeight ci-dessus).
+              maxWidth: 820,
               margin: 0,
               lineHeight: 1.5,
             }}
@@ -330,18 +337,6 @@ export function LearningMode({
               total: homeRowKeys.length,
             })}
           </span>
-          <p
-            style={{
-              fontFamily: 'var(--font-ui)',
-              fontSize: 12,
-              color: 'var(--color-text-muted)',
-              textAlign: 'center',
-              margin: 0,
-              fontStyle: 'italic',
-            }}
-          >
-            {t('fingerIntro.reassurance')}
-          </p>
         </div>
 
         <button
