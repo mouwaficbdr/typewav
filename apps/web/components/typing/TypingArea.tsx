@@ -56,6 +56,13 @@ interface TypingAreaProps {
   /** Callback appelé à la fin du test avec le WPM final (utile si autoNavigate=false) */
   onComplete?: (wpm: number) => void;
   /**
+   * Callback : redémarrer le test (Tab puis Entrée, ticket #61). Actif à
+   * tout moment tant que la zone de frappe a le focus — avant, pendant, et
+   * après la frappe (utile aux modes sans navigation auto comme Zen/Fantôme,
+   * qui restent sur cet écran une fois terminés).
+   */
+  onRestart?: () => void;
+  /**
    * Callback riche de fin de session (utile pour le mode Learning).
    */
   onSessionComplete?: (stats: {
@@ -88,6 +95,7 @@ export function TypingArea({
   onActiveKeyChange,
   ghostTimings,
   onComplete,
+  onRestart,
   onSessionComplete,
   onNoteChange,
 }: TypingAreaProps) {
@@ -121,6 +129,13 @@ export function TypingArea({
   );
   const [isFocused, setIsFocused] = useState(false);
   const [translateY, setTranslateY] = useState(0);
+  // Redémarrer à tout moment (Tab puis Entrée, ticket #61) : Tab arme cet
+  // état (et empêche le navigateur de déplacer le focus, qui viderait la
+  // zone de frappe de son listener natif) ; le prochain keydown consomme
+  // l'armement — Entrée redémarre, toute autre touche désarme silencieusement
+  // et retombe dans le traitement normal ci-dessous (ne bloque pas la frappe
+  // réelle qui suit un Tab accidentel).
+  const restartArmedRef = useRef(false);
 
   // Accessibilité : la zone de frappe est un widget d'interaction custom
   // (role="application"), pas un champ de texte. Un lecteur d'écran ne
@@ -257,6 +272,23 @@ export function TypingArea({
   const handleKeyDown = useCallback(
     async (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      // Redémarrer à tout moment (Tab puis Entrée, ticket #61) : avant le
+      // `if (isComplete) return` ci-dessous, pour fonctionner aussi une fois
+      // le test terminé (modes sans navigation auto).
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        restartArmedRef.current = true;
+        return;
+      }
+      if (restartArmedRef.current) {
+        restartArmedRef.current = false;
+        if (e.key === 'Enter') {
+          onRestart?.();
+          return;
+        }
+      }
+
       if (isComplete) return;
 
       // Démarre l'initialisation audio (Tone.start() doit être appelé de
@@ -305,6 +337,7 @@ export function TypingArea({
       wordIndex,
       initialize,
       handleKeystroke,
+      onRestart,
       handleBackspace,
       playNote,
       triggerSilence,
