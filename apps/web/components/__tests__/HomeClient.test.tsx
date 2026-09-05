@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -734,6 +734,77 @@ describe('HomeClient — la config bar se verrouille dès la première frappe (a
     });
 
     expect(configBar.closest('[inert]')).not.toBeNull();
+  });
+});
+
+describe('HomeClient — réouverture de la config bar au survol pendant la frappe (ticket #61)', () => {
+  // Les minuteurs falsifiés cassent findBy*/waitFor de testing-library (leur
+  // polling interne dépend de vrais setTimeout) : on n'active
+  // vi.useFakeTimers() qu'une fois le rendu déjà stabilisé, jamais avant un
+  // await findByTestId. afterEach en filet de sécurité si une assertion
+  // échoue avant la restauration explicite, pour ne pas faire fuiter les
+  // faux minuteurs sur les tests suivants.
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('le survol de la zone rend la config bar interactive malgré le focus mode, la sortie du survol (après la grâce) la referme', async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    const configBar = await screen.findByTestId('config-bar');
+    const hoverZone = screen.getByTestId('config-header-hover-zone');
+
+    act(() => {
+      typingAreaPropsRef.current?.onNoteChange?.(null, true, false);
+    });
+    expect(configBar.closest('[inert]')).not.toBeNull();
+
+    act(() => {
+      fireEvent.mouseEnter(hoverZone);
+    });
+    expect(configBar.closest('[inert]')).toBeNull();
+
+    vi.useFakeTimers();
+
+    act(() => {
+      fireEvent.mouseLeave(hoverZone);
+    });
+    // Grâce de 200ms : ne se referme pas immédiatement.
+    expect(configBar.closest('[inert]')).toBeNull();
+
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+    expect(configBar.closest('[inert]')).not.toBeNull();
+  });
+
+  it('changer de mode en pleine frappe abandonne réellement la séance en cours (sort du focus mode)', async () => {
+    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
+    const { HomeClient } = await import('../typing/HomeClient');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    const configBar = await screen.findByTestId('config-bar');
+
+    act(() => {
+      typingAreaPropsRef.current?.onNoteChange?.(null, true, false);
+    });
+    expect(configBar.closest('[inert]')).not.toBeNull();
+
+    // Le reset (setRestartKey/setHasStarted) est différé par microtâche
+    // dans le composant (react-hooks/set-state-in-effect) : flush explicite
+    // avant l'assertion, même patron que les effets équivalents ailleurs
+    // dans le code (voir useSession.secondsRemaining).
+    await act(async () => {
+      useConfigStore.setState({ activeMode: 'sprint' });
+      await Promise.resolve();
+    });
+
+    expect(configBar.closest('[inert]')).toBeNull();
   });
 });
 
