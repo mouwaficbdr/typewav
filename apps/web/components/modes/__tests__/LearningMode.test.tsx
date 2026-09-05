@@ -45,12 +45,44 @@ vi.mock('@/components/typing/TypingArea', () => ({
   },
 }));
 
+const keyboardDiagramPropsRef: { current: null | { layout?: string } } = {
+  current: null,
+};
+
 vi.mock('@/components/modes/KeyboardDiagram', () => ({
-  KeyboardDiagram: () => <div data-testid="keyboard-diagram" />,
+  KeyboardDiagram: (props: { layout?: string }) => {
+    keyboardDiagramPropsRef.current = props;
+    return <div data-testid="keyboard-diagram" />;
+  },
 }));
 
+const mockGenerateLearningText = vi.fn(
+  (levelId: number, _wordCount?: number, _layout?: string) =>
+    `level-${levelId}`,
+);
+
 vi.mock('@/lib/words', () => ({
-  generateLearningText: (levelId: number) => `level-${levelId}`,
+  generateLearningText: (
+    levelId: number,
+    wordCount?: number,
+    layout?: string,
+  ) => mockGenerateLearningText(levelId, wordCount, layout),
+}));
+
+const mockUseKeyboardLayoutPreference = vi.fn(() => ({ layout: 'qwerty' }));
+
+vi.mock('@/hooks/useKeyboardLayoutPreference', () => ({
+  useKeyboardLayoutPreference: () => mockUseKeyboardLayoutPreference(),
+}));
+
+// Par défaut "déjà vu" : l'écran de positionnement des doigts ne doit
+// jamais s'interposer dans les tests qui ne le concernent pas explicitement.
+const mockHasSeenFingerIntro = vi.fn().mockResolvedValue(true);
+const mockMarkFingerIntroSeen = vi.fn().mockResolvedValue(undefined);
+
+vi.mock('@/lib/onboarding', () => ({
+  hasSeenLearningFingerIntro: () => mockHasSeenFingerIntro(),
+  markLearningFingerIntroSeen: () => mockMarkFingerIntroSeen(),
 }));
 
 const mockLoadLearningProgress = vi.fn().mockResolvedValue(undefined);
@@ -105,6 +137,12 @@ describe('LearningMode progression wiring', () => {
     mockLoadLearningProgress.mockClear().mockResolvedValue(undefined);
     mockSaveLearningProgress.mockClear().mockResolvedValue(undefined);
     mockOnExitTutorial.mockClear();
+    mockGenerateLearningText.mockClear();
+    mockUseKeyboardLayoutPreference.mockClear().mockReturnValue({
+      layout: 'qwerty',
+    });
+    mockHasSeenFingerIntro.mockClear().mockResolvedValue(true);
+    mockMarkFingerIntroSeen.mockClear().mockResolvedValue(undefined);
   });
 
   it("affiche l'exigence dès un niveau tout juste ouvert, avant toute frappe", () => {
@@ -198,6 +236,12 @@ describe('LearningMode — persistance de la progression', () => {
     mockLoadLearningProgress.mockClear().mockResolvedValue(undefined);
     mockSaveLearningProgress.mockClear().mockResolvedValue(undefined);
     mockOnExitTutorial.mockClear();
+    mockGenerateLearningText.mockClear();
+    mockUseKeyboardLayoutPreference.mockClear().mockReturnValue({
+      layout: 'qwerty',
+    });
+    mockHasSeenFingerIntro.mockClear().mockResolvedValue(true);
+    mockMarkFingerIntroSeen.mockClear().mockResolvedValue(undefined);
   });
 
   it('charge la progression sauvegardée au montage', async () => {
@@ -253,6 +297,12 @@ describe('LearningMode — sélection manuelle (pas d’onboarding)', () => {
     mockLoadLearningProgress.mockClear().mockResolvedValue(undefined);
     mockSaveLearningProgress.mockClear().mockResolvedValue(undefined);
     mockOnExitTutorial.mockClear();
+    mockGenerateLearningText.mockClear();
+    mockUseKeyboardLayoutPreference.mockClear().mockReturnValue({
+      layout: 'qwerty',
+    });
+    mockHasSeenFingerIntro.mockClear().mockResolvedValue(true);
+    mockMarkFingerIntroSeen.mockClear().mockResolvedValue(undefined);
   });
 
   it("n'affiche pas de bouton \"Passer le tutoriel\" quand isOnboarding n'est pas passé", () => {
@@ -301,6 +351,12 @@ describe('LearningMode, isOnboarding', () => {
     mockLoadLearningProgress.mockClear().mockResolvedValue(undefined);
     mockSaveLearningProgress.mockClear().mockResolvedValue(undefined);
     mockOnExitTutorial.mockClear();
+    mockGenerateLearningText.mockClear();
+    mockUseKeyboardLayoutPreference.mockClear().mockReturnValue({
+      layout: 'qwerty',
+    });
+    mockHasSeenFingerIntro.mockClear().mockResolvedValue(true);
+    mockMarkFingerIntroSeen.mockClear().mockResolvedValue(undefined);
   });
 
   it('affiche le bouton "Passer le tutoriel" et appelle onExitTutorial au clic', () => {
@@ -312,5 +368,99 @@ describe('LearningMode, isOnboarding', () => {
     fireEvent.click(skipButton);
 
     expect(mockOnExitTutorial).toHaveBeenCalledOnce();
+  });
+});
+
+describe('LearningMode — disposition clavier (ticket #62)', () => {
+  beforeEach(() => {
+    typingAreaPropsRef.current = null;
+    keyboardDiagramPropsRef.current = null;
+    mockLoadLearningProgress.mockClear().mockResolvedValue(undefined);
+    mockSaveLearningProgress.mockClear().mockResolvedValue(undefined);
+    mockOnExitTutorial.mockClear();
+    mockGenerateLearningText.mockClear();
+    mockUseKeyboardLayoutPreference.mockClear().mockReturnValue({
+      layout: 'qwerty',
+    });
+    mockHasSeenFingerIntro.mockClear().mockResolvedValue(true);
+    mockMarkFingerIntroSeen.mockClear().mockResolvedValue(undefined);
+  });
+
+  it('transmet la disposition qwerty par défaut au clavier visuel et au générateur de texte', async () => {
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
+    await screen.findByTestId('keyboard-diagram');
+
+    expect(keyboardDiagramPropsRef.current?.layout).toBe('qwerty');
+    expect(mockGenerateLearningText).toHaveBeenCalledWith(
+      1,
+      expect.any(Number),
+      'qwerty',
+    );
+  });
+
+  it('transmet la disposition azerty au clavier visuel et au générateur de texte', async () => {
+    mockUseKeyboardLayoutPreference.mockReturnValue({ layout: 'azerty' });
+
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
+    await screen.findByTestId('keyboard-diagram');
+
+    expect(keyboardDiagramPropsRef.current?.layout).toBe('azerty');
+    expect(mockGenerateLearningText).toHaveBeenCalledWith(
+      1,
+      expect.any(Number),
+      'azerty',
+    );
+  });
+});
+
+describe('LearningMode — écran de positionnement des doigts (ticket #62)', () => {
+  beforeEach(() => {
+    typingAreaPropsRef.current = null;
+    mockLoadLearningProgress.mockClear().mockResolvedValue(undefined);
+    mockSaveLearningProgress.mockClear().mockResolvedValue(undefined);
+    mockOnExitTutorial.mockClear();
+    mockGenerateLearningText.mockClear();
+    mockUseKeyboardLayoutPreference.mockClear().mockReturnValue({
+      layout: 'qwerty',
+    });
+    mockHasSeenFingerIntro.mockClear();
+    mockMarkFingerIntroSeen.mockClear().mockResolvedValue(undefined);
+  });
+
+  it("affiche l'écran de positionnement des doigts quand il n'a jamais été vu, à la place de la leçon", async () => {
+    mockHasSeenFingerIntro.mockResolvedValue(false);
+
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
+
+    expect(
+      await screen.findByRole('button', { name: /commencer/i }),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId('typing-area')).not.toBeInTheDocument();
+  });
+
+  it('passe à la leçon après clic sur "Commencer" et persiste le flag', async () => {
+    mockHasSeenFingerIntro.mockResolvedValue(false);
+
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
+
+    const startButton = await screen.findByRole('button', {
+      name: /commencer/i,
+    });
+    fireEvent.click(startButton);
+
+    expect(mockMarkFingerIntroSeen).toHaveBeenCalledOnce();
+    expect(await screen.findByTestId('typing-area')).toBeInTheDocument();
+  });
+
+  it("n'affiche pas l'écran si déjà vu : la leçon est immédiatement accessible", async () => {
+    mockHasSeenFingerIntro.mockResolvedValue(true);
+
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
+    await screen.findByTestId('typing-area');
+
+    expect(screen.getByTestId('typing-area')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /commencer/i }),
+    ).not.toBeInTheDocument();
   });
 });

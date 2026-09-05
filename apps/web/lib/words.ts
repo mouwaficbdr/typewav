@@ -5,6 +5,11 @@
  * Organisés par longueur pour la difficulté adaptative.
  */
 
+import {
+  HOME_ROW_AZERTY,
+  mapKeyForLayout,
+  type KeyboardLayout,
+} from '@/lib/keyboardLayouts';
 import { LEARNING_LEVELS } from '@typewav/types';
 
 /** Niveau facile : mots courts et tres frequents (2 a 4 lettres). */
@@ -236,16 +241,54 @@ function generatePunctuatedText(wordCount: number): string {
  * Génère un texte pour le mode Apprentissage selon le niveau.
  * Les mots n'utilisent que les touches autorisées au niveau courant.
  */
-export function generateLearningText(levelId: number, wordCount = 20): string {
-  if (levelId === 1) {
-    const allowedKeys = LEARNING_LEVELS.find((l) => l.id === 1)?.keys ?? [];
-    const filtered = filterWordsByKeys(WORDS_HOME_ROW, allowedKeys);
-    const pool = filtered.length > 0 ? filtered : WORDS_HOME_ROW;
-    return pickRandomWords(pool, wordCount).join(' ');
+// Longueurs qui imitent la variété naturelle de WORDS_HOME_ROW (2 à 7
+// lettres). Aucun vrai mot ne tient sur les 8 lettres de HOME_ROW_AZERTY
+// (aucune voyelle) : on tire donc des suites de lettres façon exercice
+// plutôt que des mots, uniquement pour ce cas.
+const AZERTY_DRILL_LENGTHS = [2, 3, 3, 4, 4, 5];
+
+function generateAzertyHomeRowDrill(wordCount: number): string {
+  const words: string[] = [];
+  for (let i = 0; i < wordCount; i++) {
+    const length =
+      AZERTY_DRILL_LENGTHS[
+        Math.floor(Math.random() * AZERTY_DRILL_LENGTHS.length)
+      ]!;
+    let word = '';
+    for (let j = 0; j < length; j++) {
+      word +=
+        HOME_ROW_AZERTY[Math.floor(Math.random() * HOME_ROW_AZERTY.length)];
+    }
+    words.push(word);
+  }
+  return words.join(' ');
+}
+
+export function generateLearningText(
+  levelId: number,
+  wordCount = 20,
+  layout: KeyboardLayout = 'qwerty',
+): string {
+  if (levelId === 1 && layout === 'azerty') {
+    return generateAzertyHomeRowDrill(wordCount);
   }
 
   if (levelId === 5) {
     return generatePunctuatedText(wordCount);
+  }
+
+  // Les positions physiques des niveaux (LEARNING_LEVELS[n].keys) sont
+  // toujours exprimées en labels QWERTY ; en AZERTY, le caractère réellement
+  // tapé à chaque position diffère pour 4 touches (voir mapKeyForLayout).
+  // Le filtrage de mots doit porter sur les vrais caractères tapés, pas sur
+  // les labels internes.
+  const qwertyKeys = LEARNING_LEVELS.find((l) => l.id === levelId)?.keys ?? [];
+  const allowedKeys = qwertyKeys.map((k) => mapKeyForLayout(k, layout));
+
+  if (levelId === 1) {
+    const filtered = filterWordsByKeys(WORDS_HOME_ROW, allowedKeys);
+    const pool = filtered.length > 0 ? filtered : WORDS_HOME_ROW;
+    return pickRandomWords(pool, wordCount).join(' ');
   }
 
   // Pour les niveaux 2-4, utiliser des mots de difficulté croissante
@@ -256,8 +299,6 @@ export function generateLearningText(levelId: number, wordCount = 20): string {
         ? [...WORDS_EASY, ...WORDS_NORMAL]
         : WORDS_NORMAL;
 
-  const allowedKeys =
-    LEARNING_LEVELS.find((l) => l.id === levelId)?.keys ?? [];
   const filtered = filterWordsByKeys(basePool, allowedKeys);
   const pool = filtered.length > 0 ? filtered : basePool;
 

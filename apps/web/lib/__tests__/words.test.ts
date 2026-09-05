@@ -48,3 +48,39 @@ describe('generateLearningText', () => {
     expect(text[0]).toMatch(/[A-Z]/);
   });
 });
+
+describe('generateLearningText — disposition AZERTY (ticket #62)', () => {
+  it("niveau 1 en azerty ne produit que des lettres de la rangée du repos AZERTY, jamais un vrai mot QWERTY", () => {
+    // Rangée du repos physique AZERTY : q s d f j k l m, sans voyelle.
+    // Aucun mot de WORDS_HOME_ROW (qui utilise le 'a') ne peut donc y passer.
+    const allowed = new Set(['q', 's', 'd', 'f', 'j', 'k', 'l', 'm', ' ']);
+    for (let i = 0; i < 10; i++) {
+      const text = generateLearningText(1, 20, 'azerty');
+      for (const ch of text.toLowerCase()) {
+        expect(allowed.has(ch)).toBe(true);
+      }
+      expect(text).not.toContain('a');
+    }
+  });
+
+  it('niveau 2 en azerty remplace w par z et ; par m dans les caractères autorisés', () => {
+    const qwertyKeys = getLevel(2).keys;
+    const allowed = new Set(
+      qwertyKeys.map((k) => (k === 'w' ? 'z' : k === ';' ? 'm' : k)).concat(' '),
+    );
+    for (let i = 0; i < 10; i++) {
+      const text = generateLearningText(2, 20, 'azerty');
+      for (const ch of text.toLowerCase()) {
+        expect(allowed.has(ch)).toBe(true);
+      }
+    }
+  });
+
+  it('niveau 1 sans disposition précisée reste identique au comportement qwerty existant', () => {
+    const allowed = new Set([...getLevel(1).keys, ' ']);
+    const text = generateLearningText(1, 20);
+    for (const ch of text.toLowerCase()) {
+      expect(allowed.has(ch)).toBe(true);
+    }
+  });
+});

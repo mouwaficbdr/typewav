@@ -6,6 +6,11 @@
  * Spec : docs/specs/03-training-modes.md — Mode Apprentissage
  */
 
+import {
+  mapKeyForLayout,
+  resolvePhysicalKey,
+  type KeyboardLayout,
+} from '@/lib/keyboardLayouts';
 import { useTranslations } from 'next-intl';
 
 interface KeyData {
@@ -72,16 +77,25 @@ const KEYS: KeyData[] = [
 interface KeyboardDiagramProps {
   activeKey?: string;
   allowedKeys?: string[];
+  /** Disposition physique du clavier de l'utilisateur (ticket #62). */
+  layout?: KeyboardLayout;
 }
 
 export function KeyboardDiagram({
   activeKey,
   allowedKeys,
+  layout = 'qwerty',
 }: KeyboardDiagramProps) {
   const t = useTranslations('typing');
 
-  const activeKeyData = activeKey
-    ? KEYS.find((k) => k.key === activeKey.toLowerCase())
+  // `keyData.key` est toujours un identifiant de position physique en
+  // label QWERTY (invariant par disposition) : resolvePhysicalKey retrouve
+  // cette position à partir du caractère réellement tapé.
+  const activePhysicalKey = activeKey
+    ? resolvePhysicalKey(activeKey.toLowerCase(), layout)
+    : undefined;
+  const activeKeyData = activePhysicalKey
+    ? KEYS.find((k) => k.key === activePhysicalKey)
     : undefined;
 
   const activeFinger = activeKeyData?.finger;
@@ -96,11 +110,13 @@ export function KeyboardDiagram({
         // contributeur à la hauteur du mode Apprentissage (colonne dense,
         // conteneur main à hauteur fixe qui ne scrolle jamais). Il se
         // réduit lui-même sur un viewport bas au lieu de forcer le reste
-        // du contenu à déborder hors de l'écran.
-        style={{ width: '100%', maxWidth: 'clamp(260px, 38vh, 500px)' }}
+        // du contenu à déborder hors de l'écran. Plafond relevé (ticket
+        // #62) : le clavier était le composant central du mode et restait
+        // minuscule alors que l'écran avait de la place disponible.
+        style={{ width: '100%', maxWidth: 'clamp(320px, 58vh, 760px)' }}
       >
         {KEYS.map((keyData) => {
-          const isActive = activeKey?.toLowerCase() === keyData.key;
+          const isActive = activePhysicalKey === keyData.key;
           const isAllowed = !allowedKeys || allowedKeys.includes(keyData.key);
           const isHomeRow = ['a', 's', 'd', 'f', 'j', 'k', 'l', ';'].includes(
             keyData.key,
@@ -151,7 +167,7 @@ export function KeyboardDiagram({
                     fontWeight: isActive ? 700 : 400,
                   }}
                 >
-                  {keyData.key.toUpperCase()}
+                  {mapKeyForLayout(keyData.key, layout).toUpperCase()}
                 </text>
               )}
             </g>

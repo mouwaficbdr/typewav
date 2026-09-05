@@ -9,14 +9,11 @@
  */
 
 import { getPreference, setPreference } from '@/lib/db';
+import { KEYBOARD_LAYOUTS, type KeyboardLayout } from '@/lib/keyboardLayouts';
 import { useEffect, useState } from 'react';
 
-export type KeyboardLayout = 'qwerty' | 'azerty';
-
-export const KEYBOARD_LAYOUTS: readonly KeyboardLayout[] = [
-  'qwerty',
-  'azerty',
-];
+export { KEYBOARD_LAYOUTS };
+export type { KeyboardLayout };
 
 const PREFERENCE_KEY = 'keyboardLayout';
 const DEFAULT_LAYOUT: KeyboardLayout = 'qwerty';

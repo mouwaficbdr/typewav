@@ -27,8 +27,20 @@ vi.mock('next-intl', () => ({
   useLocale: () => 'fr',
 }));
 
+const mockPush = vi.fn();
 vi.mock('next/navigation', () => ({
   usePathname: () => '/fr/parametres',
+  useRouter: () => ({ push: mockPush }),
+}));
+
+const mockSetMode = vi.fn();
+vi.mock('@/stores/useConfigStore', () => ({
+  useConfigStore: () => ({ setMode: mockSetMode }),
+}));
+
+const mockResetLearningFingerIntroSeen = vi.fn().mockResolvedValue(undefined);
+vi.mock('@/lib/onboarding', () => ({
+  resetLearningFingerIntroSeen: () => mockResetLearningFingerIntroSeen(),
 }));
 
 vi.mock('next/link', () => ({
@@ -68,6 +80,7 @@ vi.mock('lucide-react', () => ({
   CheckCircle2: () => null,
   Palette: () => null,
   Languages: () => null,
+  Keyboard: () => null,
   HardDrive: () => null,
   Download: () => null,
   Upload: () => null,
@@ -293,5 +306,29 @@ describe('ParametresClient : disposition du clavier (ticket #60)', () => {
       expect(mockSetPreference).toHaveBeenCalledWith('keyboardLayout', 'azerty'),
     );
     expect(azerty).toHaveAttribute('aria-pressed', 'true');
+  });
+});
+
+describe('ParametresClient — revoir le positionnement des doigts (ticket #62)', () => {
+  beforeEach(() => {
+    mockPush.mockClear();
+    mockSetMode.mockClear();
+    mockResetLearningFingerIntroSeen.mockClear().mockResolvedValue(undefined);
+  });
+
+  it('réinitialise l’écran de positionnement, bascule sur Apprentissage et navigue vers l’accueil', async () => {
+    mockGetUserProfile.mockReturnValue(new Promise(() => {}));
+    const user = userEvent.setup();
+
+    render(<ParametresClient />);
+
+    const reviewButton = await screen.findByRole('button', {
+      name: 'reviewFingerPositioning',
+    });
+    await user.click(reviewButton);
+
+    expect(mockResetLearningFingerIntroSeen).toHaveBeenCalledOnce();
+    expect(mockSetMode).toHaveBeenCalledWith('learning');
+    expect(mockPush).toHaveBeenCalledWith('/fr');
   });
 });

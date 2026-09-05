@@ -375,7 +375,12 @@
     "tutorialComplete": "Tutorial complete! You're already improvising.",
     "exitToClassic": "Switch to Classic mode →",
     "readyToUnlock": "Level {id} ready: {name}. Click to continue.",
-    "unlockedAnnouncement": "Level {id} unlocked: {name}."
+    "unlockedAnnouncement": "Level {id} unlocked: {name}.",
+    "fingerIntro": {
+      "title": "Where to rest your fingers",
+      "caption": "Index fingers on F and J (the two raised bumps), the other fingers follow naturally.",
+      "start": "Start"
+    }
   },
   "hint": {
     "restart": "Restart (Tab + Enter)",
@@ -412,7 +417,8 @@
     "layoutQwerty": "QWERTY",
     "layoutAzerty": "AZERTY",
     "selectLayout": "Use the {name} layout",
-    "keyboardLayoutHint": "Used by the visual keyboard in Learning mode."
+    "keyboardLayoutHint": "Used by the visual keyboard in Learning mode.",
+    "reviewFingerPositioning": "Review the keyboard and finger positioning"
   },
   "about": {
     "metaTitle": "About",

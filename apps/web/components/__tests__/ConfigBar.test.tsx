@@ -41,6 +41,11 @@ describe('ConfigBar', () => {
     expect(screen.getByTitle('code')).toBeInTheDocument();
   });
 
+  it("n'affiche plus le mode Apprentissage, sorti vers Paramètres (ticket #62)", () => {
+    render(<ConfigBar />);
+    expect(screen.queryByTitle('learning')).not.toBeInTheDocument();
+  });
+
   it('le mode actif (sprint) a aria-pressed="true"', () => {
     useConfigStore.setState({ activeMode: 'sprint' });
     render(<ConfigBar />);

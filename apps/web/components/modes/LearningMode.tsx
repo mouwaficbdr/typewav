@@ -9,6 +9,7 @@
 
 import { KeyboardDiagram } from '@/components/modes/KeyboardDiagram';
 import { TypingArea } from '@/components/typing/TypingArea';
+import { useKeyboardLayoutPreference } from '@/hooks/useKeyboardLayoutPreference';
 import {
   applySessionStats,
   calculateProgressPercent,
@@ -19,6 +20,10 @@ import {
   unlockLevel,
   type LevelProgress,
 } from '@/lib/learning-progress';
+import {
+  hasSeenLearningFingerIntro,
+  markLearningFingerIntroSeen,
+} from '@/lib/onboarding';
 import { generateLearningText } from '@/lib/words';
 import { LEARNING_LEVELS } from '@typewav/types';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
@@ -52,6 +57,30 @@ export function LearningMode({
   const t = useTranslations('learning');
   const shouldReduceMotion = useReducedMotion();
   const duration = shouldReduceMotion ? 0 : 0.3;
+  const { layout } = useKeyboardLayoutPreference();
+
+  // Fail open, comme isOnboarding dans HomeClient : ne jamais interposer
+  // l'écran s'il est impossible de confirmer qu'il n'a pas déjà été vu.
+  const [fingerIntroDismissed, setFingerIntroDismissed] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    hasSeenLearningFingerIntro()
+      .then((seen) => {
+        if (!cancelled && !seen) setFingerIntroDismissed(false);
+      })
+      .catch(() => {
+        // Fail open : ne jamais forcer l'écran si on ne peut pas confirmer son état.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleFingerIntroStart = useCallback(() => {
+    setFingerIntroDismissed(true);
+    void markLearningFingerIntroSeen();
+  }, []);
 
   const [currentLevelId, setCurrentLevelId] = useState(1);
   const [levelProgress, setLevelProgress] = useState<LevelProgress[]>(() =>
@@ -141,7 +170,7 @@ export function LearningMode({
     setCurrentLevelId(levelId);
     setLastSessionStats(null);
     setRunIndex((prev) => prev + 1);
-    setText(generateLearningText(levelId));
+    setText(generateLearningText(levelId, 20, layout));
   }
 
   function handleNextLevel() {
@@ -153,7 +182,7 @@ export function LearningMode({
     setCurrentLevelId(nextId);
     setLastSessionStats(null);
     setRunIndex((prev) => prev + 1);
-    setText(generateLearningText(nextId));
+    setText(generateLearningText(nextId, 20, layout));
   }
 
   const handleLearningSessionComplete = useCallback(
@@ -178,16 +207,70 @@ export function LearningMode({
       );
 
       // Redémarre une session d'entraînement immédiatement sur le même niveau.
-      setText(generateLearningText(currentLevelId));
+      setText(generateLearningText(currentLevelId, 20, layout));
       setRunIndex((prev) => prev + 1);
     },
-    [currentLevelId],
+    [currentLevelId, layout],
   );
 
-  // Régénérer le texte quand le niveau change
+  // Régénérer le texte quand le niveau (ou la disposition clavier) change
   useEffect(() => {
-    setText(generateLearningText(currentLevelId));
-  }, [currentLevelId]);
+    setText(generateLearningText(currentLevelId, 20, layout));
+  }, [currentLevelId, layout]);
+
+  // Écran de positionnement des doigts (ticket #62) : remplace entièrement
+  // la leçon plutôt que de s'empiler dessus, pour ne jamais ajouter de
+  // hauteur au conteneur à hauteur fixe du mode Apprentissage. Montré une
+  // fois (flag persisté), toujours ré-accessible manuellement depuis
+  // Paramètres (qui réinitialise ce flag avant de naviguer ici).
+  if (!fingerIntroDismissed) {
+    return (
+      <div className="flex flex-col items-center gap-6 w-full max-w-3xl">
+        <h2
+          style={{
+            fontFamily: 'var(--font-display)',
+            color: 'var(--color-accent)',
+            fontSize: '1.75rem',
+            textAlign: 'center',
+          }}
+        >
+          {t('fingerIntro.title')}
+        </h2>
+        <p
+          style={{
+            fontFamily: 'var(--font-ui)',
+            fontSize: 14,
+            color: 'var(--color-text-muted)',
+            textAlign: 'center',
+            maxWidth: 480,
+            margin: 0,
+          }}
+        >
+          {t('fingerIntro.caption')}
+        </p>
+        <KeyboardDiagram
+          layout={layout}
+          allowedKeys={LEARNING_LEVELS.find((l) => l.id === 1)!.keys}
+        />
+        <button
+          onClick={handleFingerIntroStart}
+          style={{
+            padding: '10px 24px',
+            background: 'var(--color-accent)',
+            color: '#000',
+            borderRadius: 'var(--radius-lg)',
+            border: 'none',
+            fontFamily: 'var(--font-ui)',
+            fontWeight: 700,
+            fontSize: 14,
+            cursor: 'pointer',
+          }}
+        >
+          {t('fingerIntro.start')}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center gap-4 w-full max-w-3xl">
@@ -480,6 +563,7 @@ export function LearningMode({
       {/* Schéma clavier */}
       <div style={{ width: '100%' }}>
         <KeyboardDiagram
+          layout={layout}
           {...(activeKey !== undefined ? { activeKey } : {})}
           {...(currentLevel.keys.length > 0
             ? { allowedKeys: currentLevel.keys }

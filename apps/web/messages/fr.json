@@ -375,7 +375,12 @@
     "tutorialComplete": "Tutoriel terminé ! Tu improvises déjà.",
     "exitToClassic": "Passer en mode classique →",
     "readyToUnlock": "Niveau {id} prêt : {name}. Cliquer pour continuer.",
-    "unlockedAnnouncement": "Niveau {id} débloqué : {name}."
+    "unlockedAnnouncement": "Niveau {id} débloqué : {name}.",
+    "fingerIntro": {
+      "title": "Où poser tes doigts",
+      "caption": "Index sur F et J (les deux repères en relief), les autres doigts suivent naturellement.",
+      "start": "Commencer"
+    }
   },
   "hint": {
     "restart": "Recommencer (Tab + Entrée)",
@@ -412,7 +417,8 @@
     "layoutQwerty": "QWERTY",
     "layoutAzerty": "AZERTY",
     "selectLayout": "Utiliser la disposition {name}",
-    "keyboardLayoutHint": "Utilisée par le clavier visuel du mode Apprentissage."
+    "keyboardLayoutHint": "Utilisée par le clavier visuel du mode Apprentissage.",
+    "reviewFingerPositioning": "Revoir le clavier et le positionnement des doigts"
   },
   "about": {
     "metaTitle": "À propos",

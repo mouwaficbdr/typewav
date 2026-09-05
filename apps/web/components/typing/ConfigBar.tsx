@@ -26,7 +26,6 @@ import {
   ClockIcon,
   CodeIcon,
   GhostIcon,
-  GraduationIcon,
   HashIcon,
   PenIcon,
   QuoteIcon,
@@ -39,19 +38,24 @@ const MODE_ICONS = {
   quote: QuoteIcon,
   zen: ZenIcon,
   code: CodeIcon,
-  learning: GraduationIcon,
   ghost: GhostIcon,
   custom: PenIcon,
 } as const;
 
-// On retire 'classics', 'challenge', potentiellement 'libre' si c'est un mode existant
+// On retire 'classics', 'challenge', potentiellement 'libre' si c'est un mode existant.
+// 'learning' volontairement absent (ticket #62, obsession-architect) :
+// un mode utile une fois par utilisateur (ou après un changement de
+// disposition clavier) ne mérite pas un onglet permanent à côté des modes
+// récurrents. Accessible depuis Paramètres → "Revoir le clavier et le
+// positionnement des doigts" (ParametresClient.tsx), qui bascule le mode
+// programmatiquement. La ConfigBar reste affichée pendant l'onboarding
+// automatique (voir HomeClient) : ce n'est donc pas un piège de navigation.
 const MODES = [
   'classic',
   'sprint',
   'quote',
   'zen',
   'code',
-  'learning',
   'ghost',
   'custom',
 ] as const;
