@@ -868,9 +868,19 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         style={{
           width: '100%',
           display: 'flex',
-          alignItems: 'flex-start',
+          alignItems: isLearningMode ? 'stretch' : 'flex-start',
           justifyContent: 'center',
-          marginBottom: 'auto',
+          // Mode Apprentissage : ce wrapper doit avoir une vraie hauteur
+          // (flex:1 dans la colonne fixe de <main>) pour que le schéma
+          // clavier puisse remplir "l'espace qui reste" au lieu de deviner
+          // une taille en vh : sinon rien ne garantit que titre + onglets +
+          // texte + clavier tiennent ensemble sans pousser le footer hors
+          // du conteneur (qui ne scrolle jamais). Les autres modes gardent
+          // le comportement existant (hauteur intrinsèque, espace restant
+          // absorbé par marginBottom:auto).
+          flex: isLearningMode ? '1 1 0%' : 'initial',
+          minHeight: isLearningMode ? 0 : undefined,
+          marginBottom: isLearningMode ? 0 : 'auto',
           // On descend la zone de texte pour la centrer visuellement (sauf en mode apprentissage)
           marginTop: isLearningMode ? '0' : '4vh',
         }}
@@ -894,6 +904,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               display: 'flex',
               justifyContent: 'center',
               animation: 'fadeIn 0.3s ease-out',
+              minHeight: 0,
             }}
           >
             <LearningMode

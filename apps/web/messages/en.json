@@ -368,14 +368,20 @@
     "levelHeading": "Level {id}: {name}",
     "progressStats": "{samples}/{minSamples} keystrokes • {accuracy}% accuracy (target {targetAccuracy}%)",
     "lastSession": "Last session: {wpm} WPM · {accuracy}% ({correct}/{total})",
-    "readyToAdvance": "Goal reached: click the next level, just above, to continue.",
     "needMoreReps": "{samples} more keystrokes to go (aim for {accuracy}% accuracy) to unlock the next level. Finish each round to the end: an interrupted round doesn't count.",
     "needMoreAccuracy": "You've typed enough, but your cumulative accuracy is still below the {accuracy}% target. Run through precise rounds to bring it back up.",
     "skipTutorial": "Skip tutorial",
     "tutorialComplete": "Tutorial complete! You're already improvising.",
     "exitToClassic": "Switch to Classic mode →",
     "readyToUnlock": "Level {id} ready: {name}. Click to continue.",
-    "unlockedAnnouncement": "Level {id} unlocked: {name}."
+    "unlockedAnnouncement": "Level {id} unlocked: {name}.",
+    "fingerIntro": {
+      "title": "Where to rest your fingers",
+      "caption": "F and J have a small bump you can feel without looking: that's not an accident, those are your two anchors. Rest your index fingers there, the other 6 fingers land right next to them, each on its own key.",
+      "practiceLabel": "Touch each anchor to get a feel for it",
+      "practiceProgress": "{count}/{total} anchors touched",
+      "start": "Start"
+    }
   },
   "hint": {
     "restart": "Restart (Tab + Enter)",
@@ -412,7 +418,8 @@
     "layoutQwerty": "QWERTY",
     "layoutAzerty": "AZERTY",
     "selectLayout": "Use the {name} layout",
-    "keyboardLayoutHint": "Used by the visual keyboard in Learning mode."
+    "keyboardLayoutHint": "Used by the visual keyboard in Learning mode.",
+    "reviewFingerPositioning": "Review the keyboard and finger positioning"
   },
   "about": {
     "metaTitle": "About",

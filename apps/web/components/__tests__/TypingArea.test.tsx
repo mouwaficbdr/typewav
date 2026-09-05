@@ -1,5 +1,5 @@
 import type { KeystrokeEntry } from '@typewav/types';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -127,6 +127,16 @@ describe('TypingArea — affordance activation (Fix D)', () => {
     expect(screen.getByTestId('typing-activation-overlay')).toHaveStyle({
       opacity: '0',
     });
+  });
+
+  it("affiche une icône curseur juste avant le texte de l'overlay (ticket #62)", () => {
+    render(<TypingArea text="hello world" />);
+    const area = screen.getByRole('application');
+    fireEvent.blur(area);
+    const overlay = screen.getByTestId('typing-activation-overlay');
+    expect(
+      within(overlay).getByTestId('typing-activation-cursor-icon'),
+    ).toBeInTheDocument();
   });
 });
 

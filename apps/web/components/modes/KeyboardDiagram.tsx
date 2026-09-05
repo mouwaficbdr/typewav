@@ -6,6 +6,11 @@
  * Spec : docs/specs/03-training-modes.md — Mode Apprentissage
  */
 
+import {
+  mapKeyForLayout,
+  resolvePhysicalKey,
+  type KeyboardLayout,
+} from '@/lib/keyboardLayouts';
 import { useTranslations } from 'next-intl';
 
 interface KeyData {
@@ -69,42 +74,131 @@ const KEYS: KeyData[] = [
   { key: ' ', x: 88, y: 132, w: 140, h: 28, finger: 'RT' },
 ];
 
+// Rangée du repos (positions physiques, invariantes par disposition).
+const HOME_ROW_KEYS = ['a', 's', 'd', 'f', 'j', 'k', 'l', ';'];
+
 interface KeyboardDiagramProps {
   activeKey?: string;
   allowedKeys?: string[];
+  /** Disposition physique du clavier de l'utilisateur (ticket #62). */
+  layout?: KeyboardLayout;
+  /**
+   * Colore simultanément les 8 touches home row par doigt (au lieu d'une
+   * seule touche "active" à la fois) et affiche un schéma de mains + une
+   * légende des noms de doigts. Écran de positionnement des doigts du mode
+   * Apprentissage (ticket #62) : contrairement à la frappe réelle, il n'y a
+   * pas de touche active ici, donc rien ne s'allumait sans ce mode dédié.
+   */
+  showAllFingerColors?: boolean;
+  /**
+   * Positions physiques déjà "confirmées" par l'utilisateur (étape
+   * interactive de l'écran de positionnement des doigts, ticket #62).
+   */
+  confirmedKeys?: string[];
 }
 
 export function KeyboardDiagram({
   activeKey,
   allowedKeys,
+  layout = 'qwerty',
+  showAllFingerColors = false,
+  confirmedKeys,
 }: KeyboardDiagramProps) {
   const t = useTranslations('typing');
 
-  const activeKeyData = activeKey
-    ? KEYS.find((k) => k.key === activeKey.toLowerCase())
+  // `keyData.key` est toujours un identifiant de position physique en
+  // label QWERTY (invariant par disposition) : resolvePhysicalKey retrouve
+  // cette position à partir du caractère réellement tapé.
+  const activePhysicalKey = activeKey
+    ? resolvePhysicalKey(activeKey.toLowerCase(), layout)
+    : undefined;
+  const activeKeyData = activePhysicalKey
+    ? KEYS.find((k) => k.key === activePhysicalKey)
     : undefined;
 
   const activeFinger = activeKeyData?.finger;
   const fingerLabel = activeFinger ? t(`finger.${activeFinger}`) : '';
 
   return (
-    <div className="flex flex-col items-center gap-3 select-none">
+    <div
+      className="flex flex-col items-center gap-3 select-none"
+      style={{ height: '100%', minHeight: 0 }}
+    >
       <svg
-        viewBox="0 0 330 172"
+        viewBox={showAllFingerColors ? '0 0 330 232' : '0 0 330 172'}
         aria-label={t('ariaKeyboardDiagram')}
-        // clamp() plutôt qu'une largeur fixe : ce schéma est le plus gros
-        // contributeur à la hauteur du mode Apprentissage (colonne dense,
-        // conteneur main à hauteur fixe qui ne scrolle jamais). Il se
-        // réduit lui-même sur un viewport bas au lieu de forcer le reste
-        // du contenu à déborder hors de l'écran.
-        style={{ width: '100%', maxWidth: 'clamp(260px, 38vh, 500px)' }}
+        // Remplit l'espace que son conteneur lui donne réellement (flex:1
+        // côté appelant) plutôt que de deviner une taille en vh : un
+        // coefficient vh fixe ignore tout ce qui est empilé au-dessus (le
+        // solde varie avec chaque écran), et ça a fini par couper le pied
+        // de page sur un environnement différent de celui où il avait été
+        // mesuré. objectFit:'contain' garde le ratio du viewBox, ne déborde
+        // jamais ni en largeur ni en hauteur ; maxWidth reste une limite de
+        // bon goût sur un très grand écran, pas un calcul de taille.
+        style={{
+          flex: '1 1 0%',
+          minHeight: 0,
+          width: '100%',
+          maxWidth: showAllFingerColors ? 620 : 900,
+          objectFit: 'contain',
+        }}
       >
+        {/* Schéma de mains : un point coloré par doigt, relié à sa touche.
+            Rendu en premier pour rester visuellement derrière le clavier
+            (les lignes passent discrètement sous les rangées supérieures). */}
+        {showAllFingerColors && (
+          <g aria-hidden="true">
+            <rect
+              x={8}
+              y={195}
+              width={124}
+              height={26}
+              rx={13}
+              fill="rgba(255,255,255,0.04)"
+              stroke="rgba(255,255,255,0.1)"
+            />
+            <rect
+              x={200}
+              y={195}
+              width={124}
+              height={26}
+              rx={13}
+              fill="rgba(255,255,255,0.04)"
+              stroke="rgba(255,255,255,0.1)"
+            />
+            {HOME_ROW_KEYS.map((key) => {
+              const keyData = KEYS.find((k) => k.key === key)!;
+              const cx = keyData.x + keyData.w / 2;
+              const color = FINGER_COLORS[keyData.finger];
+              return (
+                <g key={`hand-${key}`}>
+                  <line
+                    x1={cx}
+                    y1={208}
+                    x2={cx}
+                    y2={keyData.y + keyData.h}
+                    stroke={color}
+                    strokeWidth={2}
+                    opacity={0.55}
+                  />
+                  <circle cx={cx} cy={keyData.y + keyData.h} r={3} fill={color} />
+                </g>
+              );
+            })}
+            <line x1={120} y1={208} x2={140} y2={146} stroke={FINGER_COLORS.LT} strokeWidth={2} opacity={0.55} />
+            <circle cx={140} cy={146} r={3} fill={FINGER_COLORS.LT} />
+            <line x1={200} y1={208} x2={176} y2={146} stroke={FINGER_COLORS.RT} strokeWidth={2} opacity={0.55} />
+            <circle cx={176} cy={146} r={3} fill={FINGER_COLORS.RT} />
+          </g>
+        )}
+
         {KEYS.map((keyData) => {
-          const isActive = activeKey?.toLowerCase() === keyData.key;
+          const isActive = activePhysicalKey === keyData.key;
           const isAllowed = !allowedKeys || allowedKeys.includes(keyData.key);
-          const isHomeRow = ['a', 's', 'd', 'f', 'j', 'k', 'l', ';'].includes(
-            keyData.key,
-          );
+          const isHomeRow = HOME_ROW_KEYS.includes(keyData.key);
+          const isHighlighted =
+            isActive || (showAllFingerColors && isHomeRow);
+          const isConfirmed = confirmedKeys?.includes(keyData.key) ?? false;
 
           const fingerColor = FINGER_COLORS[keyData.finger];
           const bgOpacity = isAllowed ? (isHomeRow ? 0.15 : 0.08) : 0.03;
@@ -117,15 +211,17 @@ export function KeyboardDiagram({
                 width={keyData.w}
                 height={keyData.h}
                 rx={4}
-                fill={isActive ? fingerColor : `rgba(255,255,255,${bgOpacity})`}
+                fill={
+                  isHighlighted ? fingerColor : `rgba(255,255,255,${bgOpacity})`
+                }
                 stroke={
-                  isActive
+                  isHighlighted
                     ? fingerColor
                     : isAllowed
                       ? `rgba(255,255,255,0.15)`
                       : `rgba(255,255,255,0.05)`
                 }
-                strokeWidth={isActive ? 2 : 1}
+                strokeWidth={isActive ? 2 : isHighlighted ? 1.5 : 1}
                 style={{
                   filter: isActive
                     ? `drop-shadow(0 0 6px ${fingerColor})`
@@ -140,7 +236,7 @@ export function KeyboardDiagram({
                   textAnchor="middle"
                   fontSize={10}
                   fill={
-                    isActive
+                    isHighlighted
                       ? '#000'
                       : isAllowed
                         ? 'rgba(255,255,255,0.7)'
@@ -148,16 +244,69 @@ export function KeyboardDiagram({
                   }
                   style={{
                     fontFamily: 'var(--font-mono)',
-                    fontWeight: isActive ? 700 : 400,
+                    fontWeight: isHighlighted ? 700 : 400,
                   }}
                 >
-                  {keyData.key.toUpperCase()}
+                  {mapKeyForLayout(keyData.key, layout).toUpperCase()}
                 </text>
+              )}
+              {isConfirmed && (
+                <circle
+                  data-confirmed="true"
+                  cx={keyData.x + keyData.w - 3}
+                  cy={keyData.y + 3}
+                  r={4}
+                  style={{ fill: 'var(--color-accent)' }}
+                  stroke="#000"
+                  strokeWidth={0.5}
+                />
               )}
             </g>
           );
         })}
       </svg>
+
+      {/* Légende des doigts : ne pas reposer uniquement sur la couleur pour
+          transmettre l'information (accessibilité), écran de
+          positionnement des doigts (ticket #62). */}
+      {showAllFingerColors && (
+        <div
+          className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1"
+          style={{ maxWidth: 460, flexShrink: 0 }}
+        >
+          {HOME_ROW_KEYS.map((key) => {
+            const keyData = KEYS.find((k) => k.key === key)!;
+            const color = FINGER_COLORS[keyData.finger];
+            return (
+              <span
+                key={`legend-${key}`}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontFamily: 'var(--font-ui)',
+                  fontSize: 12,
+                  color: 'var(--color-text-muted)',
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: color,
+                    display: 'inline-block',
+                    flexShrink: 0,
+                  }}
+                />
+                {mapKeyForLayout(key, layout).toUpperCase()} ·{' '}
+                {t(`finger.${keyData.finger}`)}
+              </span>
+            );
+          })}
+        </div>
+      )}
 
       {/* Indicateur de doigt */}
       {activeFinger && (
@@ -167,6 +316,7 @@ export function KeyboardDiagram({
             fontFamily: 'var(--font-ui)',
             fontSize: 13,
             fontWeight: 600,
+            flexShrink: 0,
           }}
         >
           {fingerLabel}

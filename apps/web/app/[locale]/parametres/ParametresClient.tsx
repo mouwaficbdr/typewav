@@ -7,12 +7,14 @@ import {
 } from '@/hooks/useKeyboardLayoutPreference';
 import { getUserProfile } from '@/lib/db';
 import { routing } from '@/i18n/routing';
+import { resetLearningFingerIntroSeen } from '@/lib/onboarding';
 import { APP_THEMES, BASE_UNLOCKED_THEME_IDS } from '@/lib/theme/defaultThemes';
+import { useConfigStore } from '@/stores/useConfigStore';
 import { useThemeStore } from '@/stores/useThemeStore';
-import { CheckCircle2, Languages, Palette } from 'lucide-react';
+import { CheckCircle2, Keyboard, Languages, Palette } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 const LANGUAGE_LABEL_KEYS: Record<string, string> = {
@@ -24,9 +26,24 @@ export function ParametresClient() {
   const t = useTranslations('settings');
   const locale = useLocale();
   const pathname = usePathname();
+  const router = useRouter();
   const { layout, setLayout } = useKeyboardLayoutPreference();
+  const { setMode } = useConfigStore();
   const themeId = useThemeStore((s) => s.themeId);
   const setTheme = useThemeStore((s) => s.setTheme);
+
+  // Sort de la ConfigBar (ticket #62, obsession-architect) : le mode
+  // Apprentissage n'est utile qu'une fois par utilisateur (ou après un
+  // changement de disposition), pas assez pour mériter un onglet permanent
+  // à côté des modes récurrents. Ce lien réinitialise explicitement l'écran
+  // de positionnement des doigts avant d'y naviguer : contrairement au
+  // premier passage automatique (jamais revu une fois vu), ici l'intention
+  // explicite de le revoir doit toujours le montrer.
+  function handleReviewFingerPositioning() {
+    void resetLearningFingerIntroSeen();
+    setMode('learning');
+    router.push(`/${locale}`);
+  }
 
   // Thèmes débloqués : `UserProfile.unlockedThemes` (IndexedDB), alimenté par
   // les jalons. Avant chargement, on montre les thèmes de base pour éviter un
@@ -220,6 +237,14 @@ export function ParametresClient() {
             <p className="text-xs text-[var(--color-text-muted)] font-mono">
               {t('keyboardLayoutHint')}
             </p>
+            <button
+              type="button"
+              onClick={handleReviewFingerPositioning}
+              className="self-start flex items-center gap-2 px-3 py-2 rounded font-mono text-xs border border-[var(--color-border)] text-[var(--color-text-muted)] transition-transform hover:scale-[1.02] hover:text-[var(--color-text-primary)] focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--color-accent)]"
+            >
+              <Keyboard className="w-3.5 h-3.5" aria-hidden="true" />
+              {t('reviewFingerPositioning')}
+            </button>
           </div>
         </section>
 
