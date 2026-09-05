@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * WpmProgressChart — évolution WPM dans le temps.
- * Recharts 3.8.0 — LineChart avec courbe de tendance.
- * Spec : docs/specs/08-10-social-analytics-extensibility.md — Dashboard profil
+ * WpmProgressChart : évolution WPM dans le temps.
+ * Recharts 3.8.0 : LineChart avec courbe de tendance.
+ * Spec : docs/specs/08-10-social-analytics-extensibility.md (Dashboard profil)
  * Client Component justifié : Recharts est interactif, accès aux données client.
  */
 

@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * useKeyboardLayoutPreference — disposition de clavier physique choisie par
+ * useKeyboardLayoutPreference : disposition de clavier physique choisie par
  * l'utilisateur (azerty, qwerty...), persistée dans IndexedDB
  * (user_preferences). Consommée par le clavier visuel du mode Apprentissage
  * pour suivre le vrai clavier physique de la personne plutôt qu'un QWERTY

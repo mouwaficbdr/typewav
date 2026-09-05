@@ -36,7 +36,7 @@ const wordsRef = { current: null } as React.RefObject<HTMLDivElement | null>;
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('GhostCursor — Fix C (suppression label texte)', () => {
+describe('GhostCursor : Fix C (suppression label texte)', () => {
   it("n'affiche pas de label texte 'record' qui chevaucherait le contenu", () => {
     render(
       <GhostCursor

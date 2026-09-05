@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * PersonalTextsPanel — gestion complète des textes personnels (mode Libre).
+ * PersonalTextsPanel : gestion complète des textes personnels (mode Libre).
  *
  * Premier modal "maison" du projet (aucun composant modal générique
  * n'existait encore) : overlay + panneau, fermeture Échap/clic extérieur,

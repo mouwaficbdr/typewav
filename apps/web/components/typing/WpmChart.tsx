@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * WpmChart — graphique WPM de la session.
+ * WpmChart : graphique WPM de la session.
  *
  * Courbes : raw (gris) + net (teal).
  * Points erreurs : var(--color-error).
  * SessionWaveform en overlay fond (opacité 0.15).
  *
- * Utilise SVG natif (pas de lib externe — bundle léger).
+ * Utilise SVG natif (pas de lib externe, bundle léger).
  * Client Component justifié : ResizeObserver (dimensions dynamiques).
  * Spec : docs/specs/30-results-refonte.md
  */
@@ -82,7 +82,7 @@ export function WpmChart({
 
   return (
     <div ref={containerRef} style={{ width: '100%', position: 'relative' }}>
-      {/* SessionWaveform en overlay fond — opacité 15% */}
+      {/* SessionWaveform en overlay fond : opacité 15% */}
       {noteEvents.length > 2 && (
         <div
           style={{
@@ -129,7 +129,7 @@ export function WpmChart({
           stroke="var(--color-border)"
           strokeWidth={1}
         />
-        {/* Courbe raw — gris */}
+        {/* Courbe raw : gris */}
         <path
           d={rawPath}
           fill="none"
@@ -137,7 +137,7 @@ export function WpmChart({
           strokeWidth={1.5}
           opacity={0.5}
         />
-        {/* Courbe net — teal */}
+        {/* Courbe net : teal */}
         <path
           d={netPath}
           fill="none"

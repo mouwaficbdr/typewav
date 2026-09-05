@@ -151,7 +151,7 @@ describe('loadMidiPieceWithAssets', () => {
     getMidiAssetPathMock.mockReturnValue('/midi/fur_Elise_WoO59.mid');
     getMidiAssetCacheVersionMock.mockReturnValue('fur_Elise_WoO59.mid:v2');
 
-    // Une pièce déjà en cache, mais corrompue par un bug de parsing passé —
+    // Une pièce déjà en cache, mais corrompue par un bug de parsing passé :
     // c'est exactement le scénario reproduit en session live sur Für Elise.
     await setCachedMidiPiece('fur-elise', 'fur_Elise_WoO59.mid:v2', {
       ...BASE_PIECE,

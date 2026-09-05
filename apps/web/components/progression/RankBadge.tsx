@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * RankBadge — badge de rang narratif.
+ * RankBadge : badge de rang narratif.
  * Spec : docs/specs/05-progression.md
  */
 

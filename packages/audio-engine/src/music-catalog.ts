@@ -1,5 +1,5 @@
 /**
- * music-catalog.ts — unification catalogue musical et lecture MIDI.
+ * music-catalog.ts : unification catalogue musical et lecture MIDI.
  */
 
 import { MUSIC_LIBRARY, type MusicPiece } from './library';

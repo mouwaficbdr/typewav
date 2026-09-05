@@ -92,7 +92,7 @@ export function useMusicRecommendation() {
    * "Recommandation" d'ActiveSessionHeader) de changer réellement la
    * musique jouée : lire `recommendedPlayablePieceId` juste après avoir
    * appelé `refresh()` renvoyait encore l'ancienne valeur (setCurrentPiece
-   * est asynchrone), donc le clic semblait ne rien faire — l'audit
+   * est asynchrone), donc le clic semblait ne rien faire : l'audit
    * configbar B4 le décrit précisément. Exclut aussi la pièce actuellement
    * active (currentPiece.id, pas seulement recentIds) : sans ça, le tout
    * premier clic pouvait re-tirer exactement la pièce déjà en cours.

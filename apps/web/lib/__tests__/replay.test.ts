@@ -14,7 +14,7 @@ const SAMPLE_REPLAY: ReplayData = {
 };
 
 describe('encodeReplay / decodeReplay', () => {
-  it('round-trip — encode puis decode retourne les mêmes données', () => {
+  it('round-trip : encode puis decode retourne les mêmes données', () => {
     const encoded = encodeReplay(SAMPLE_REPLAY);
     const decoded = decodeReplay(encoded);
     expect(decoded).toEqual(SAMPLE_REPLAY);

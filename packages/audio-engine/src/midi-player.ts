@@ -1,5 +1,5 @@
 /**
- * midi-player.ts — séquenceur MIDI piloté par notes parsées.
+ * midi-player.ts : séquenceur MIDI piloté par notes parsées.
  *
  * Source de vérité: MUSIC_LIBRARY (fallback) + pièces parsées depuis .mid.
  * Compatibilité legacy: alias d'IDs conservés.
@@ -186,7 +186,7 @@ function markPhraseBoundaries(
 
 /**
  * Retourne null pour un pitch non fini (NaN/Infinity) plutôt que de le
- * clamper silencieusement — Math.round/clamp propagent NaN sans jamais le
+ * clamper silencieusement : Math.round/clamp propagent NaN sans jamais le
  * signaler, et une note ainsi corrompue finit par crasher le scheduler
  * Tone.js en aval (Tone.Frequency(NaN, 'midi').toNote() === "undefinedNaN").
  */

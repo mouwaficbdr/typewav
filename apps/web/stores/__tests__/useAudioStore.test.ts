@@ -5,7 +5,7 @@ beforeEach(() => {
   useAudioStore.setState({ liveBpm: 80 });
 });
 
-describe('useAudioStore — liveBpm', () => {
+describe('useAudioStore : liveBpm', () => {
   it('démarre à 80 BPM, même défaut que warpEngine au repos', () => {
     expect(useAudioStore.getState().liveBpm).toBe(80);
   });

@@ -1,6 +1,6 @@
 export type CollectionLanguage = 'fr' | 'en' | 'multi';
 
-/** Langage de programmation d'un snippet — utilisé pour le Mode Code */
+/** Langage de programmation d'un snippet : utilisé pour le Mode Code */
 export type CodeLanguage =
   | 'javascript'
   | 'typescript'
@@ -13,7 +13,7 @@ export interface TextEntry {
   id: string;
   /** Contenu textuel brut à taper */
   content: string;
-  /** Attribution : "Auteur — Œuvre (Année)" — optionnel pour code/gaming */
+  /** Attribution : "Auteur, Œuvre (Année)" : optionnel pour code/gaming */
   source?: string;
   /** Langue du contenu (indépendant de la langue de l'interface) */
   language: 'fr' | 'en';
@@ -28,7 +28,7 @@ export interface TextEntry {
   charCount: number;
   /** Tags libres pour filtrage futur */
   tags?: string[];
-  /** Langage de programmation — renseigné uniquement pour la collection code */
+  /** Langage de programmation : renseigné uniquement pour la collection code */
   codeLanguage?: CodeLanguage;
 }
 

@@ -28,7 +28,7 @@ vi.mock('tone', () => ({
   })),
 }));
 
-// Mock DB — évite les appels à IndexedDB
+// Mock DB : évite les appels à IndexedDB
 vi.mock('@/lib/db', () => ({
   saveSession: vi.fn().mockResolvedValue('test-session-id'),
 }));
@@ -75,7 +75,7 @@ import { useSession } from '../useSession';
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('useSession — navigation vers /results', () => {
+describe('useSession : navigation vers /results', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSessionStore.position = 0;
@@ -228,7 +228,7 @@ describe('useSession : trackProgress false (Zen)', () => {
   });
 });
 
-describe('useSession — handleBackspace', () => {
+describe('useSession : handleBackspace', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSessionStore.position = 0;
@@ -299,7 +299,7 @@ describe('useSession — handleBackspace', () => {
   });
 });
 
-describe('useSession — live stats interval', () => {
+describe('useSession : live stats interval', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSessionStore.position = 0;
@@ -317,7 +317,7 @@ describe('useSession — live stats interval', () => {
       useSession({ text: 'hello world', autoNavigate: false }),
     );
 
-    // Frappes toutes les 100ms — largement plus rapide que le tick d'1s.
+    // Frappes toutes les 100ms : largement plus rapide que le tick d'1s.
     for (let i = 1; i <= 5; i++) {
       act(() => {
         vi.advanceTimersByTime(100);
@@ -339,7 +339,7 @@ describe('useSession — live stats interval', () => {
   });
 });
 
-describe('useSession — changement de thème audio en cours de session', () => {
+describe('useSession : changement de thème audio en cours de session', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSessionStore.position = 0;
@@ -356,7 +356,7 @@ describe('useSession — changement de thème audio en cours de session', () => 
 
     expect(mockSessionStore.startSession).toHaveBeenCalledTimes(1);
 
-    // Changement de thème audio en pleine frappe — ne doit pas redémarrer.
+    // Changement de thème audio en pleine frappe : ne doit pas redémarrer.
     mockAudioStore.themeId = 'nightclub';
     rerender();
 
@@ -377,7 +377,7 @@ describe('useSession — changement de thème audio en cours de session', () => 
   });
 });
 
-describe('useSession — finalStats', () => {
+describe('useSession : finalStats', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSessionStore.position = 0;
@@ -387,7 +387,7 @@ describe('useSession — finalStats', () => {
   });
 
   it("expose un wpm final correct dès la fin de session, même si le tick périodique (1s) n'a jamais eu le temps de se déclencher", () => {
-    // Session très courte : 10 frappes correctes en 300ms — bien en dessous
+    // Session très courte : 10 frappes correctes en 300ms, bien en dessous
     // du délai de 1s du tick périodique de liveStats.
     const start = Date.now();
     const keystrokes = Array.from({ length: 10 }, (_, i) => ({
@@ -404,7 +404,7 @@ describe('useSession — finalStats', () => {
       useSession({ text: 'hello world', autoNavigate: false }),
     );
 
-    // liveStats n'a jamais été mis à jour (aucun tick périodique déclenché) —
+    // liveStats n'a jamais été mis à jour (aucun tick périodique déclenché) :
     // il reste à sa valeur initiale.
     expect(result.current.liveStats.wpm).toBe(0);
 
@@ -417,7 +417,7 @@ describe('useSession — finalStats', () => {
   });
 });
 
-describe('useSession — duration timeout', () => {
+describe('useSession : duration timeout', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSessionStore.position = 0;
@@ -443,7 +443,7 @@ describe('useSession — duration timeout', () => {
   });
 });
 
-describe('useSession — compte à rebours (audit configbar, décision 1)', () => {
+describe('useSession : compte à rebours (audit configbar, décision 1)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSessionStore.position = 0;

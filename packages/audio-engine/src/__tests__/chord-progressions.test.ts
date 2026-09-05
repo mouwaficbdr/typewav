@@ -55,7 +55,7 @@ describe('getChordAtIndex', () => {
   });
 
   it('cycle correctement au-delà de 4 accords', () => {
-    // La progression a 4 accords — index 4 doit revenir à l'accord 0
+    // La progression a 4 accords : index 4 doit revenir à l'accord 0
     const chord0 = getChordAtIndex('arcade', 0);
     const chord4 = getChordAtIndex('arcade', 4);
     expect(chord0.symbol).toBe(chord4.symbol);

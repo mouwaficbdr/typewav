@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * useProgressionCheck — hook exécuté après chaque session terminée.
+ * useProgressionCheck : hook exécuté après chaque session terminée.
  *
  * Responsabilités :
  * - Calcule le nouveau rang (médiane 10 dernières sessions)

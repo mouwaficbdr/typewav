@@ -1,6 +1,6 @@
 /**
- * textentry.test.ts — validation de la structure des TextEntry.
- * Spec : docs/specs/34-collections-refonte.md — Tests requis
+ * textentry.test.ts : validation de la structure des TextEntry.
+ * Spec : docs/specs/34-collections-refonte.md (Tests requis)
  */
 
 import { describe, expect, it } from 'vitest';
@@ -18,7 +18,7 @@ const allCollections = [
   codeCollection,
 ];
 
-describe('TextEntry — wordCount et charCount', () => {
+describe('TextEntry : wordCount et charCount', () => {
   it('wordCount est cohérent avec le contenu', () => {
     const entry = litteratureCollection.texts[0]!;
     const expected = entry.content.split(/\s+/).filter(Boolean).length;

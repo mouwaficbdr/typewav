@@ -1,5 +1,5 @@
 /**
- * Types de progression narrative — rangs, jalons, récompenses.
+ * Types de progression narrative : rangs, jalons, récompenses.
  * Spec : docs/specs/05-progression.md
  */
 

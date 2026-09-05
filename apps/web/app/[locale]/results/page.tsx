@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import { ResultsPageClient } from './ResultsPageClient';
 
 /**
- * Route /results — Server Component wrapper.
+ * Route /results : Server Component wrapper.
  * Les params URL contiennent les stats essentielles (wpm, accuracy, etc.)
  * Le détail complet est en IndexedDB (chargé côté client).
  */

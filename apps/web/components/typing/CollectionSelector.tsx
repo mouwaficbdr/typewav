@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * CollectionSelector — sélecteur de collection de textes (Poésie,
+ * CollectionSelector : sélecteur de collection de textes (Poésie,
  * Philosophie, Gaming, Code, Littérature). Calqué sur le menu déroulant de
  * ContextSelectors (langue) : un bouton compact qui déplie la liste des
  * collections disponibles.

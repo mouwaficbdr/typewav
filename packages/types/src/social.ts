@@ -22,17 +22,17 @@ export interface ReplayData {
 }
 
 // ---------------------------------------------------------------------------
-// Challenge direct — tout dans l'URL, sans serveur
+// Challenge direct : tout dans l'URL, sans serveur
 // ---------------------------------------------------------------------------
 
 export interface ChallengeParams {
-  /** Hash SHA-1 tronqué du texte — garantit le même texte */
+  /** Hash SHA-1 tronqué du texte : garantit le même texte */
   textHash: string;
   /** Texte compressé en base64url (max 2048 chars URL totale) */
   textB64: string;
   duration: number;
   mode: TypingMode;
-  /** WPM du créateur — affiché "Battre X WPM" */
+  /** WPM du créateur : affiché "Battre X WPM" */
   creatorWpm?: number;
 }
 

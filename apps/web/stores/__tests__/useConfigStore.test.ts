@@ -7,7 +7,7 @@ import { DEFAULT_CONFIG, useConfigStore } from '../useConfigStore';
 // Le storage IndexedDB est asynchrone : l'hydratation automatique déclenchée
 // à la création du store (une seule fois, à l'import du module) peut se
 // résoudre à un moment imprévisible par rapport au premier test. On force
-// une réhydratation déterministe avant chaque test — sinon un test peut
+// une réhydratation déterministe avant chaque test, sinon un test peut
 // s'exécuter pendant qu'un set() d'hydratation en vol retombe hors d'act(),
 // rendant le composant de test instable.
 beforeEach(async () => {

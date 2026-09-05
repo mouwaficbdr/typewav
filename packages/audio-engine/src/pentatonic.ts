@@ -2,7 +2,7 @@
  * Gamme pentatonique de Do majeur : C D E G A
  * Distribution sur 26 lettres via cycling sur 15 positions (5 notes × 3 octaves).
  *
- * Spec : docs/specs/01-audio-engine.md — Mode génératif, algorithme A+C
+ * Spec : docs/specs/01-audio-engine.md (Mode génératif, algorithme A+C)
  */
 
 /** Notes valides dans la gamme pentatonique de Do majeur */

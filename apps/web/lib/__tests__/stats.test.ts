@@ -72,7 +72,7 @@ describe('calculateWPMNet', () => {
     expect(calculateWPMNet(ks, 30_000)).toBe(calculateWPM(ks, 30_000));
   });
 
-  it('ne compte que les caractères corrects, dans la même unité que le WPM brut — sans pénalité supplémentaire', () => {
+  it('ne compte que les caractères corrects, dans la même unité que le WPM brut, sans pénalité supplémentaire', () => {
     // 50 corrects + 10 incorrects sur 30 s (0.5 min).
     const ks: KeystrokeEntry[] = [
       ...Array.from({ length: 50 }, (_, i) => ({

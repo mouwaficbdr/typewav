@@ -1,10 +1,10 @@
 'use client';
 
 /**
- * MilestoneToast — notification de jalon débloqué.
+ * MilestoneToast : notification de jalon débloqué.
  *
  * S'affiche en bas à droite de l'écran, s'auto-dismiss après 4s.
- * Spec : docs/specs/05-progression.md — Jalons débloquables
+ * Spec : docs/specs/05-progression.md (Jalons débloquables)
  * Client Component justifié : animation, timer, state UI.
  */
 

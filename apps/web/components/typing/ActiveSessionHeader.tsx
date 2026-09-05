@@ -106,7 +106,7 @@ export function ActiveSessionHeader({
     // Lit le retour direct de refresh() plutôt que
     // recommendedPlayablePieceId : ce dernier ne reflète le nouveau tirage
     // qu'au rendu suivant (setCurrentPiece est async), donc le lire ici
-    // renvoyait encore l'ancienne pièce — le chip semblait ne rien faire
+    // renvoyait encore l'ancienne pièce : le chip semblait ne rien faire
     // (audit configbar, décision 5 / B4).
     const next = refresh();
     const midiId =

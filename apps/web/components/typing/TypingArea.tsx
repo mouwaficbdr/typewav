@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * TypingArea — zone de frappe principale.
+ * TypingArea : zone de frappe principale.
  *
  * Client Component justifié : événements clavier, état interactif, Tone.js.
- * Spec : docs/ARCHITECTURE.md — Client Components ('use client')
+ * Spec : docs/ARCHITECTURE.md (Client Components : 'use client')
  *
  * Refonte spec-29 :
- * - Aucune boîte (no bg, no border) — texte flottant sur fond.
+ * - Aucune boîte (no bg, no border) : texte flottant sur fond.
  * - 3 lignes visibles, scroll translateY par ligne active.
  * - Live stats overlay Option A (au-dessus, opacity 0→0.45 après première frappe).
  * - WaveformBars extrait : onNoteChange pilote Zone 5 de HomeClient.
@@ -52,13 +52,13 @@ interface TypingAreaProps {
   trackProgress?: boolean;
   /** Callback : touche attendue actuellement (pour KeyboardDiagram) */
   onActiveKeyChange?: (key: string | undefined) => void;
-  /** Timings inter-frappe du record personnel (ms) — active le ghost mode */
+  /** Timings inter-frappe du record personnel (ms) : active le ghost mode */
   ghostTimings?: number[];
   /** Callback appelé à la fin du test avec le WPM final (utile si autoNavigate=false) */
   onComplete?: (wpm: number) => void;
   /**
    * Callback : redémarrer le test (Tab puis Entrée, ticket #61). Actif à
-   * tout moment tant que la zone de frappe a le focus — avant, pendant, et
+   * tout moment tant que la zone de frappe a le focus : avant, pendant, et
    * après la frappe (utile aux modes sans navigation auto comme Zen/Fantôme,
    * qui restent sur cet écran une fois terminés).
    */
@@ -73,7 +73,7 @@ interface TypingAreaProps {
     total: number;
   }) => void;
   /**
-   * Callback appelé à chaque frappe — pilote WaveformBars et AmbientAura.
+   * Callback appelé à chaque frappe : pilote WaveformBars et AmbientAura.
    * note = note réellement jouée (ou null si silence/erreur).
    * isPhraseBoundary = true si cette note marque la fin d'une phrase
    * musicale réelle (voir ParsedNote dans @typewav/audio-engine) : toujours
@@ -133,7 +133,7 @@ export function TypingArea({
   // Redémarrer à tout moment (Tab puis Entrée, ticket #61) : Tab arme cet
   // état (et empêche le navigateur de déplacer le focus, qui viderait la
   // zone de frappe de son listener natif) ; le prochain keydown consomme
-  // l'armement — Entrée redémarre, toute autre touche désarme silencieusement
+  // l'armement : Entrée redémarre, toute autre touche désarme silencieusement
   // et retombe dans le traitement normal ci-dessous (ne bloque pas la frappe
   // réelle qui suit un Tab accidentel).
   const restartArmedRef = useRef(false);
@@ -188,7 +188,7 @@ export function TypingArea({
 
   // Remettre le séquenceur MIDI à zéro pour chaque nouvelle tentative.
   // TypingArea remonte entièrement à chaque nouveau test (restart, shuffle,
-  // changement de collection/pièce — via la key React côté HomeClient),
+  // changement de collection/pièce, via la key React côté HomeClient),
   // mais le séquenceur est un singleton de module qui, sans ce reset,
   // garde la position laissée par la tentative précédente.
   useEffect(() => {
@@ -230,7 +230,7 @@ export function TypingArea({
     });
   }, [isComplete, finalStats, keystrokes, onComplete, onSessionComplete]);
 
-  // Scroll 3 lignes — translateY calculé via getBoundingClientRect
+  // Scroll 3 lignes : translateY calculé via getBoundingClientRect
   // Note : spanRect.top - wordsRect.top est indépendant du transform appliqué
   // (les deux rects sont décalés par le même translateY → différence = offset naturel).
   useLayoutEffect(() => {
@@ -348,7 +348,7 @@ export function TypingArea({
   );
 
   // handleKeyDown change de référence à chaque frappe (deps de son
-  // useCallback) — passer par un ref permet au listener natif ci-dessous de
+  // useCallback) : passer par un ref permet au listener natif ci-dessous de
   // toujours appeler la version courante sans avoir à se détacher/rattacher
   // à chaque frappe.
   const handleKeyDownRef = useRef(handleKeyDown);
@@ -361,7 +361,7 @@ export function TypingArea({
   // en build de prod, avec focus DOM/fenêtre confirmés corrects et les props
   // bien attachées aux internals React) : un keydown, même natif et fiable
   // au niveau DOM, n'atteignait jamais le dispatch synthétique de React
-  // après un focus purement programmatique — un vrai clic le débloquait
+  // après un focus purement programmatique : un vrai clic le débloquait
   // systématiquement, un addEventListener natif posé directement sur le
   // conteneur aussi. Cause exacte non identifiée côté React ; on contourne
   // son système d'événements synthétique pour ce chemin critique plutôt que
@@ -370,7 +370,7 @@ export function TypingArea({
   // useLayoutEffect (pas useEffect), et les listeners posés AVANT
   // container.focus() : sinon le focus automatique au montage émet son
   // événement 'focus' natif avant que le listener ne soit attaché, et cet
-  // évènement — non rejouable, un élément déjà focus ne réémet rien — est
+  // évènement (non rejouable, un élément déjà focus ne réémet rien) est
   // perdu pour de bon (overlay "Cliquez pour activer" resté affiché à tort).
   useLayoutEffect(() => {
     const container = containerRef.current;
@@ -423,7 +423,7 @@ export function TypingArea({
         {liveMessage}
       </div>
 
-      {/* Live stats overlay — Option A : au-dessus, opacity 0 avant la première frappe.
+      {/* Live stats overlay : Option A : au-dessus, opacity 0 avant la première frappe.
           Masqué en mode zen : « sans pression, sans timer » veut dire sans métrique
           affichée en direct non plus, sinon zen == quote avec juste un timer en moins.
           aria-hidden : ces chiffres sont annoncés via la région live ci-dessus,
@@ -449,7 +449,7 @@ export function TypingArea({
             pointerEvents: 'none',
           }}
         >
-          {/* Compte à rebours — mode Temps uniquement (audit configbar,
+          {/* Compte à rebours : mode Temps uniquement (audit configbar,
               décision 1) : seul repère de fin d'un test chronométré, sinon
               absent de l'écran. */}
           {mode === 'classic' && secondsRemaining !== null && (
@@ -487,7 +487,7 @@ export function TypingArea({
         </div>
       )}
 
-      {/* Zone de frappe — aérée, fluide, text muté pour l'attente.
+      {/* Zone de frappe : aérée, fluide, text muté pour l'attente.
           role="application" : widget d'interaction custom, force le passage
           des touches lettres au lieu de les laisser piloter les raccourcis
           de navigation du lecteur d'écran. Décrite par les instructions
@@ -578,7 +578,7 @@ export function TypingArea({
               'filter 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
-          {/* Conteneur des mots — scroll par translateY, transition ultra douce. */}
+          {/* Conteneur des mots : scroll par translateY, transition ultra douce. */}
           <div
             ref={wordsRef}
             aria-hidden="true"

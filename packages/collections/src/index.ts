@@ -1,5 +1,5 @@
 /**
- * @typewav/collections — re-export de toutes les collections officielles.
+ * @typewav/collections : re-export de toutes les collections officielles.
  */
 
 export { codeCollection } from './code/collection.config';

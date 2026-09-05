@@ -1,11 +1,11 @@
 /**
- * lib/replay.ts — Génération et encodage de replays partageables.
+ * lib/replay.ts : Génération et encodage de replays partageables.
  *
  * Le replay est stocké dans IndexedDB (personal_records.keystrokeTimings).
  * Un lien partageable encode les timings + métadonnées en base64url dans l'URL.
  * La musique est régénérée lors de la lecture depuis les timings.
  *
- * Spec : docs/specs/08-10-social-analytics-extensibility.md — Replay partageable
+ * Spec : docs/specs/08-10-social-analytics-extensibility.md (Replay partageable)
  */
 
 import type { ReplayData } from '@typewav/types';
@@ -19,7 +19,7 @@ const MAX_URL_BYTES = 2048;
  */
 export function encodeReplay(data: ReplayData): string {
   const json = JSON.stringify(data);
-  // btoa fonctionne uniquement avec Latin-1 — encoder en UTF-8 d'abord
+  // btoa fonctionne uniquement avec Latin-1 : encoder en UTF-8 d'abord
   const bytes = new TextEncoder().encode(json);
   const b64 = bytesToBase64Url(bytes);
   return b64;

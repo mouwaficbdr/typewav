@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * KeyboardDiagram — schéma QWERTY SVG interactif.
+ * KeyboardDiagram : schéma QWERTY SVG interactif.
  * S'illumine sur la touche active et indique le doigt recommandé.
- * Spec : docs/specs/03-training-modes.md — Mode Apprentissage
+ * Spec : docs/specs/03-training-modes.md (Mode Apprentissage)
  */
 
 import {
@@ -37,7 +37,7 @@ const FINGER_COLORS: Record<KeyData['finger'], string> = {
 
 // Les labels sont maintenant gérés via next-intl dans le composant
 
-// Disposition QWERTY — coordonnées normalisées
+// Disposition QWERTY : coordonnées normalisées
 const KEYS: KeyData[] = [
   // Row 1 : chiffres (omis dans l'apprentissage de base)
   // Row 2 : QWERTYUIOP

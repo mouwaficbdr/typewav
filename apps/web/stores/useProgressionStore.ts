@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * useProgressionStore — rangs, jalons et records personnels.
+ * useProgressionStore : rangs, jalons et records personnels.
  * Client Component justifié : accès IndexedDB, état UI réactif.
  * Spec : docs/specs/05-progression.md
  */

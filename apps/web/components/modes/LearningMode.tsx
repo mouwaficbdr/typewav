@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * LearningMode — mode d'apprentissage Home Row avec niveaux progressifs.
+ * LearningMode : mode d'apprentissage Home Row avec niveaux progressifs.
  *
- * Spec : docs/specs/03-training-modes.md — Mode Apprentissage
+ * Spec : docs/specs/03-training-modes.md (Mode Apprentissage)
  * Client Component justifié : événements clavier, état de progression.
  */
 
@@ -44,7 +44,7 @@ interface LearningModeProps {
   /**
    * Appelé quand l'utilisateur passe explicitement le tutoriel (isOnboarding
    * uniquement) OU le termine réellement (toujours, onboarding ou sélection
-   * manuelle). LearningMode ne sait pas lequel des deux s'est produit — il
+   * manuelle). LearningMode ne sait pas lequel des deux s'est produit : il
    * appelle juste ce callback, à charge de l'appelant de marquer l'onboarding
    * comme fait et de changer de mode.
    */
@@ -141,7 +141,7 @@ export function LearningMode({
     };
   }, []);
 
-  // Sauvegarder à chaque changement, une fois le chargement initial terminé —
+  // Sauvegarder à chaque changement, une fois le chargement initial terminé :
   // sans ce garde, on écraserait la progression sauvegardée par l'état
   // initial (tout à zéro) pendant le court instant où le chargement est en vol.
   useEffect(() => {

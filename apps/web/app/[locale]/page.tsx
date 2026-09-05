@@ -20,12 +20,12 @@ const WEB_APP_SCHEMA = {
 };
 
 /**
- * Page d'accueil — Server Component.
+ * Page d'accueil : Server Component.
  * Seule la collection initiale (littérature) est passée au Client Component.
  * Les autres collections sont chargées à la demande via Server Action.
  *
- * Spec : docs/specs/18-performance.md — Lazy loading collections
- * Spec : docs/specs/17-seo-og.md — JSON-LD WebApplication
+ * Spec : docs/specs/18-performance.md (Lazy loading collections)
+ * Spec : docs/specs/17-seo-og.md (JSON-LD WebApplication)
  */
 export default function HomePage() {
   return (

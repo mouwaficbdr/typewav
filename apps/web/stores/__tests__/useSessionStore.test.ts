@@ -6,7 +6,7 @@ beforeEach(() => {
   useSessionStore.getState().reset();
 });
 
-describe('useSessionStore — recordKeystroke', () => {
+describe('useSessionStore : recordKeystroke', () => {
   it('la session démarre avec startedAt à null', () => {
     useSessionStore.getState().startSession('abc');
     expect(useSessionStore.getState().startedAt).toBeNull();
@@ -47,7 +47,7 @@ describe('useSessionStore — recordKeystroke', () => {
   });
 });
 
-describe('useSessionStore — moveBack', () => {
+describe('useSessionStore : moveBack', () => {
   it('décrémente position de 1 après des frappes', () => {
     // Texte long pour ne pas terminer la session avant moveBack
     useSessionStore.getState().startSession('abcdef');
@@ -150,7 +150,7 @@ describe('useSessionStore — moveBack', () => {
   });
 });
 
-describe('useSessionStore — endSession', () => {
+describe('useSessionStore : endSession', () => {
   it("ne modifie pas endedAt si endSession est appelée une seconde fois", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1_000);
@@ -169,7 +169,7 @@ describe('useSessionStore — endSession', () => {
   });
 });
 
-describe('useSessionStore — noteEvents', () => {
+describe('useSessionStore : noteEvents', () => {
   it('recordNoteEvent ajoute un événement au tableau', () => {
     useSessionStore.getState().startSession('abc');
     useSessionStore.getState().recordNoteEvent('C4', 0);

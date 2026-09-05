@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ALL_SOUND_PACKS, pianoPack } from '../index';
 
-describe('soundpacks — index', () => {
+describe('soundpacks : index', () => {
   it('ALL_SOUND_PACKS contient exactement piano', () => {
     expect(ALL_SOUND_PACKS).toEqual(['piano']);
   });

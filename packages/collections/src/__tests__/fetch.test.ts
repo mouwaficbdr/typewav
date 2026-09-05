@@ -1,6 +1,6 @@
 /**
- * fetch.test.ts — tests pour fetchCollection() adaptatif.
- * Spec : docs/specs/34-collections-refonte.md — Tests requis
+ * fetch.test.ts : tests pour fetchCollection() adaptatif.
+ * Spec : docs/specs/34-collections-refonte.md (Tests requis)
  */
 
 import { describe, expect, it } from 'vitest';
@@ -25,7 +25,7 @@ describe('fetchCollection', () => {
     expect(t?.language).toBe('en');
   });
 
-  it('filtre par wordCount 10 — ne retourne jamais moins de 10 mots réels (troncature exacte en aval)', () => {
+  it('filtre par wordCount 10 : ne retourne jamais moins de 10 mots réels (troncature exacte en aval)', () => {
     const t = fetchCollection('litterature', { wordCount: 10 });
     if (t) {
       expect(t.wordCount).toBeGreaterThanOrEqual(10);
@@ -59,8 +59,8 @@ describe('fetchCollection', () => {
     expect(t).not.toBeNull();
   });
 
-  it('filtre par durationSeconds — textes de longueur appropriée', () => {
-    // 30s * 3.5 chars/s = 105 chars, ±40% → 63–147 chars
+  it('filtre par durationSeconds : textes de longueur appropriée', () => {
+    // 30s * 3.5 chars/s = 105 chars, ±40% → 63-147 chars
     const t = fetchCollection('litterature', { durationSeconds: 30 });
     if (t) {
       expect(t.charCount).toBeGreaterThanOrEqual(63);
@@ -68,7 +68,7 @@ describe('fetchCollection', () => {
     }
   });
 
-  it('filtre par difficultyMin — retourne seulement les difficultés ≥ min', () => {
+  it('filtre par difficultyMin : retourne seulement les difficultés ≥ min', () => {
     const t = fetchCollection('philosophie', { difficultyMin: 4 });
     if (t) expect(t.difficulty).toBeGreaterThanOrEqual(4);
   });
@@ -83,7 +83,7 @@ describe('fetchCollection', () => {
 });
 
 describe('selectFromTexts', () => {
-  it('opère sur un tableau explicite — pas besoin de connaître un collectionId', () => {
+  it('opère sur un tableau explicite, pas besoin de connaître un collectionId', () => {
     const texts = litteratureCollection.texts;
     const t = selectFromTexts(texts);
     expect(t).not.toBeNull();
@@ -94,7 +94,7 @@ describe('selectFromTexts', () => {
     expect(selectFromTexts([])).toBeNull();
   });
 
-  it('wordCount ne retourne jamais un texte plus court que la cible — la troncature en aval doit toujours pouvoir couper exactement N mots', () => {
+  it('wordCount ne retourne jamais un texte plus court que la cible : la troncature en aval doit toujours pouvoir couper exactement N mots', () => {
     const mixedLengthPool: TextEntry[] = [
       {
         id: 'short',
@@ -141,7 +141,7 @@ describe('selectFromTexts', () => {
 
   it('produit le même comportement que fetchCollection pour la même collection', () => {
     // fetchCollection(id, opts) doit être un simple raccourci vers
-    // selectFromTexts(COLLECTION_MAP[id].texts, opts) — vérifié indirectement
+    // selectFromTexts(COLLECTION_MAP[id].texts, opts) : vérifié indirectement
     // via la cohérence des plages retournées plutôt que l'égalité exacte
     // (sélection aléatoire).
     const t = selectFromTexts(litteratureCollection.texts, { wordCount: 10 });
@@ -151,7 +151,7 @@ describe('selectFromTexts', () => {
   });
 });
 
-describe('selectFromTexts — numbersEnabled', () => {
+describe('selectFromTexts : numbersEnabled', () => {
   const mixedPool: TextEntry[] = [
     {
       id: 'a',
@@ -224,7 +224,7 @@ describe('selectFromTexts — numbersEnabled', () => {
   });
 
   it('garde numbersEnabled même quand durationSeconds ne correspond à aucun texte (relâche la longueur avant le chiffre)', () => {
-    // Les 3 textes du pool font 28-35 caractères — aucun ne correspond à la
+    // Les 3 textes du pool font 28-35 caractères, aucun ne correspond à la
     // bande attendue pour 60s (126-294 caractères). Le relâchement doit
     // abandonner la cible de durée avant d'abandonner la préférence chiffres,
     // sans quoi les deux se relâchent ensemble et le pick redevient aléatoire.

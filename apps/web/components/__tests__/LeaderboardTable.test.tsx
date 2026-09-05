@@ -61,7 +61,7 @@ function makeEntry(overrides: Partial<LeaderboardEntry> = {}): LeaderboardEntry 
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('LeaderboardTable — i18n', () => {
+describe('LeaderboardTable : i18n', () => {
   it('état vide affiche t(leaderboard.noData)', () => {
     render(<LeaderboardTable entries={[]} />);
     // Mock retourne la clé : 'noData' (namespace 'leaderboard')

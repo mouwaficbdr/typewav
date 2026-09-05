@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * useConfigStore — état de configuration de la barre config (Zone 2).
+ * useConfigStore : état de configuration de la barre config (Zone 2).
  *
  * Persisté dans IndexedDB (store user_preferences, clé 'typewav-config').
  * Spec : docs/specs/29-home-layout.md
@@ -43,7 +43,7 @@ interface ConfigActions {
 }
 
 // Un environnement sans IndexedDB (SSR, tests sans fake-indexeddb) ne doit
-// jamais empêcher le store de fonctionner en mémoire — on dégrade
+// jamais empêcher le store de fonctionner en mémoire : on dégrade
 // silencieusement plutôt que de laisser une promesse rejetée remonter dans
 // le middleware persist (comportement interne non garanti dans ce cas).
 const indexedDBStorage: StateStorage = {
