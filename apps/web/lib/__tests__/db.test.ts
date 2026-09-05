@@ -14,6 +14,7 @@ import {
   saveSession,
   updateKeystrokeStats,
 } from '../db';
+import { BASE_UNLOCKED_THEME_IDS } from '../theme/defaultThemes';
 
 // ─── Fixture ──────────────────────────────────────────────────────────────────
 
@@ -129,11 +130,6 @@ describe('getUserProfile', () => {
 
     const profile3 = await getUserProfile();
     expect(profile3.currentRank).toBe('novice');
-    expect(profile3.unlockedThemes).toEqual([
-      'terminal',
-      'deep-burgundy',
-      'cyprus-sand',
-      'night-imperial',
-    ]);
+    expect(profile3.unlockedThemes).toEqual([...BASE_UNLOCKED_THEME_IDS]);
   });
 });
