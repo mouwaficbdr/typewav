@@ -7,21 +7,23 @@ vi.mock('next-intl', () => ({
 
 import { KeyboardDiagram } from '../KeyboardDiagram';
 
-describe('KeyboardDiagram : disposition QWERTY (par défaut)', () => {
-  it('affiche les labels QWERTY sans prop layout', () => {
+describe('KeyboardDiagram : disposition AZERTY (par défaut)', () => {
+  it('affiche les labels AZERTY sans prop layout', () => {
     render(<KeyboardDiagram />);
-    expect(screen.getByText('A')).toBeInTheDocument();
     expect(screen.getByText('Q')).toBeInTheDocument();
+    expect(screen.getByText('A')).toBeInTheDocument();
     expect(screen.getByText('M')).toBeInTheDocument();
-    expect(screen.getByText(';')).toBeInTheDocument();
+    expect(screen.getByText(',')).toBeInTheDocument();
   });
 
   it('surligne la position physique correspondant à activeKey', () => {
+    // Par défaut (azerty) : taper « a » correspond à la touche physique « q »
+    // (voir resolvePhysicalKey), donc à sa position physique, pas celle de « a ».
     const { container } = render(<KeyboardDiagram activeKey="a" />);
     const activeRect = container.querySelector('rect[stroke-width="2"]');
     expect(activeRect).not.toBeNull();
-    expect(activeRect?.getAttribute('x')).toBe('8');
-    expect(activeRect?.getAttribute('y')).toBe('68');
+    expect(activeRect?.getAttribute('x')).toBe('0');
+    expect(activeRect?.getAttribute('y')).toBe('36');
   });
 });
 

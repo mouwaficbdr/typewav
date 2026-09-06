@@ -16,7 +16,7 @@ export { KEYBOARD_LAYOUTS };
 export type { KeyboardLayout };
 
 const PREFERENCE_KEY = 'keyboardLayout';
-const DEFAULT_LAYOUT: KeyboardLayout = 'qwerty';
+const DEFAULT_LAYOUT: KeyboardLayout = 'azerty';
 
 export function useKeyboardLayoutPreference() {
   const [layout, setLayoutState] = useState<KeyboardLayout>(DEFAULT_LAYOUT);

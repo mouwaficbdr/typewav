@@ -22,9 +22,9 @@ beforeEach(() => {
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('useKeyboardLayoutPreference', () => {
-  it('retombe sur qwerty tant que rien n’est stocké', async () => {
+  it('retombe sur azerty tant que rien n’est stocké', async () => {
     const { result } = renderHook(() => useKeyboardLayoutPreference());
-    expect(result.current.layout).toBe('qwerty');
+    expect(result.current.layout).toBe('azerty');
     await waitFor(() => expect(mockGetPreference).toHaveBeenCalledWith('keyboardLayout'));
   });
 
