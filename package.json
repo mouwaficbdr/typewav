@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "description": "A musical, customizable typing test",
+  "license": "MIT",
   "homepage": "https://typewav.mouwaficbdr.me",
   "repository": {
     "type": "git",
