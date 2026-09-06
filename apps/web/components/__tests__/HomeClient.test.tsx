@@ -831,6 +831,14 @@ describe('HomeClient : la config bar se verrouille dès la première frappe (aud
     const configBar = await screen.findByTestId('config-bar');
     expect(configBar.closest('[inert]')).toBeNull();
 
+    // Le mock TypingArea peut n'être pas encore monté quand config-bar
+    // apparaît (la porte d'onboarding se résout en async) : attendre qu'il
+    // ait exposé ses props avant de simuler la frappe, sinon le `?.` passe
+    // en silence et le focus mode ne s'arme jamais (test intermittent).
+    await waitFor(() =>
+      expect(typingAreaPropsRef.current?.onNoteChange).toBeTruthy(),
+    );
+
     // Une frappe en erreur (silence, pas de note) marque déjà le début de
     // séance au même titre qu'une frappe correcte.
     act(() => {
@@ -861,6 +869,10 @@ describe('HomeClient : réouverture de la config bar au survol pendant la frappe
     const configBar = await screen.findByTestId('config-bar');
     const hoverZone = screen.getByTestId('config-header-hover-zone');
 
+    // Voir la note du test « passe en inert au premier événement de frappe ».
+    await waitFor(() =>
+      expect(typingAreaPropsRef.current?.onNoteChange).toBeTruthy(),
+    );
     act(() => {
       typingAreaPropsRef.current?.onNoteChange?.(null, true, false);
     });
@@ -894,6 +906,10 @@ describe('HomeClient : réouverture de la config bar au survol pendant la frappe
 
     const configBar = await screen.findByTestId('config-bar');
 
+    // Voir la note du test « passe en inert au premier événement de frappe ».
+    await waitFor(() =>
+      expect(typingAreaPropsRef.current?.onNoteChange).toBeTruthy(),
+    );
     act(() => {
       typingAreaPropsRef.current?.onNoteChange?.(null, true, false);
     });
