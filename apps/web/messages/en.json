@@ -171,7 +171,12 @@
     "backHome": "← Back to home",
     "wonWithWpm": "✓ Won: {wpm} WPM!",
     "remainingToBeat": "{wpm} WPM, {remaining} WPM left to beat",
-    "retry": "Retry"
+    "retry": "Retry",
+    "metaTitle": "Challenge",
+    "metaDescription": "A TypeWav typing challenge, all in the link: same text, same duration.",
+    "ogTitleScore": "Beat my {wpm} WPM",
+    "ogTitleNoScore": "Take on this typing challenge",
+    "ogDescription": "A TypeWav challenge over {seconds} seconds. Same text, your turn."
   },
   "replay": {
     "title": "TypeWav Replay",
@@ -184,7 +189,11 @@
     "linkErrorTitle": "This replay couldn't load",
     "banner": "Replay · {wpm} WPM · {accuracy}% · {theme}",
     "preLaunchDescription": "Press the first key to start your session. The ghost cursor replays the shared record in real time.",
-    "backHome": "← Back to home"
+    "backHome": "← Back to home",
+    "metaTitle": "Replay",
+    "metaDescription": "A TypeWav run replayed note by note.",
+    "ogTitle": "My run: {wpm} WPM at {accuracy}%",
+    "ogDescription": "A TypeWav run replayed keystroke by keystroke, in music."
   },
   "leaderboard": {
     "title": "Your best sessions",
@@ -206,10 +215,14 @@
       "endurance": "Endurance",
       "code": "Code"
     },
-    "subtitle": "Your fastest sessions, on this device."
+    "subtitle": "Your fastest sessions, on this device.",
+    "metaTitle": "Leaderboard",
+    "metaDescription": "Your weekly ranking of TypeWav runs, on this device."
   },
   "profile": {
     "title": "Profile",
+    "metaTitle": "Profile",
+    "metaDescription": "Your TypeWav progress, records and stats.",
     "sessions": "Sessions",
     "avgWpm": "Avg WPM",
     "bestWpm": "Best WPM",
