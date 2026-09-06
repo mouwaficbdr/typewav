@@ -20,8 +20,9 @@ import { AmbientAura } from '@/components/typing/AmbientAura';
 import { useEntranceAnimated } from '@/hooks/useEntranceAnimated';
 import { SessionWaveform } from '@/components/typing/SessionWaveform';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
+import { copyText } from '@/lib/clipboard';
 import { getSessionById } from '@/lib/db';
-import { generateReplayLink } from '@/lib/replay';
+import { generateReplayLink, REPLAY_SHARE_TEXT_LIMIT } from '@/lib/replay';
 import { getSessionVerdict } from '@/lib/session-verdict';
 import type { SessionResult, TypingMode } from '@typewav/types';
 import { RANKS } from '@typewav/types';
@@ -176,6 +177,7 @@ export function ResultsPage({
   const [session, setSession] = useState<SessionResult | null>(null);
   const [isReplaying, setIsReplaying] = useState(false);
   const [copied, setCopied] = useState<null | 'share' | 'defy'>(null);
+  const [copyFailed, setCopyFailed] = useState(false);
   const replayTimeouts = useRef<ReturnType<typeof setTimeout>[]>([]);
   const copiedTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -271,31 +273,41 @@ export function ResultsPage({
   };
 
   const flashCopied = (which: 'share' | 'defy') => {
+    setCopyFailed(false);
     setCopied(which);
     if (copiedTimeout.current) clearTimeout(copiedTimeout.current);
     copiedTimeout.current = setTimeout(() => setCopied(null), 2200);
   };
 
-  const handleShare = () => {
-    if (!sessionId || !session?.text) return;
-    const path = generateReplayLink({
-      sessionId,
-      text: session.text,
-      keystrokeTimings: session.keystrokeData.map((k) => k.deltaMs),
-      wpm,
-      accuracy,
-      theme: session.themeId,
-      soundPack: session.soundPackId,
-      achievedAt: session.timestamp,
-    });
-    const url = `${globalThis.location.origin}/${locale}${path}`;
-    void navigator.clipboard
-      .writeText(url)
-      .then(() => flashCopied('share'))
-      .catch(() => null);
+  const flashCopyFailed = () => {
+    setCopied(null);
+    setCopyFailed(true);
+    if (copiedTimeout.current) clearTimeout(copiedTimeout.current);
+    copiedTimeout.current = setTimeout(() => setCopyFailed(false), 4000);
   };
 
-  const handleDefy = () => {
+  const handleShare = async () => {
+    if (!session?.text) return;
+    const path = generateReplayLink(
+      {
+        sessionId: sessionId ?? session.id,
+        text: session.text,
+        keystrokeTimings: session.keystrokeData.map((k) => k.deltaMs),
+        wpm,
+        accuracy,
+        theme: session.themeId,
+        soundPack: session.soundPackId,
+        achievedAt: session.timestamp,
+      },
+      '',
+      REPLAY_SHARE_TEXT_LIMIT,
+    );
+    const url = `${globalThis.location.origin}/${locale}${path}`;
+    if (await copyText(url)) flashCopied('share');
+    else flashCopyFailed();
+  };
+
+  const handleDefy = async () => {
     if (!session?.text) return;
     const path = generateChallengeLink(session.text, {
       duration: durationMs,
@@ -303,10 +315,8 @@ export function ResultsPage({
       ...(Number.isFinite(wpm) ? { creatorWpm: Math.round(wpm) } : {}),
     });
     const url = `${globalThis.location.origin}/${locale}${path}`;
-    void navigator.clipboard
-      .writeText(url)
-      .then(() => flashCopied('defy'))
-      .catch(() => null);
+    if (await copyText(url)) flashCopied('defy');
+    else flashCopyFailed();
   };
 
   const modeLabel = (() => {
@@ -602,18 +612,30 @@ export function ResultsPage({
             icon={<Share2 size={15} />}
             label={t('share')}
             ariaLabel={t('shareReplay')}
-            onClick={handleShare}
-            disabled={!sessionId}
+            onClick={() => void handleShare()}
+            disabled={!session?.text}
             active={copied === 'share'}
           />
           <IconTextButton
             icon={<Swords size={15} />}
             label={t('defy')}
             ariaLabel={t('challenge')}
-            onClick={handleDefy}
+            onClick={() => void handleDefy()}
             disabled={!session?.text}
             active={copied === 'defy'}
           />
+
+          {copyFailed && (
+            <span
+              style={{
+                color: 'var(--color-error)',
+                fontFamily: 'var(--font-ui)',
+                fontSize: '0.8rem',
+              }}
+            >
+              {t('copyFailed')}
+            </span>
+          )}
 
           <span
             aria-live="polite"
@@ -625,7 +647,7 @@ export function ResultsPage({
               clip: 'rect(0 0 0 0)',
             }}
           >
-            {copied ? t('copied') : ''}
+            {copyFailed ? t('copyFailed') : copied ? t('copied') : ''}
           </span>
         </motion.div>
       </div>

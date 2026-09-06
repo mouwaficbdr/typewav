@@ -249,4 +249,48 @@ describe('ResultsPage : partager / défier', () => {
     await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
     expect(String(writeText.mock.calls[0]![0])).toContain('/fr/challenge?c=');
   });
+
+  it('le bouton partager est désactivé tant que la session n’est pas chargée', () => {
+    // sessionId fourni mais getSessionById n’a encore rien résolu.
+    render(<ResultsPage {...baseProps} sessionId="s1" />);
+    expect(
+      screen.getByRole('button', { name: 'shareReplay' }),
+    ).toBeDisabled();
+  });
+
+  it('partager copie un lien de replay une fois la session chargée', async () => {
+    mockSession = makeSession();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true,
+    });
+    render(<ResultsPage {...baseProps} sessionId="s1" />);
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'shareReplay' }),
+      ).not.toBeDisabled(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'shareReplay' }));
+    await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
+    expect(String(writeText.mock.calls[0]![0])).toContain('/fr/replay?d=');
+  });
+
+  it('affiche un message quand la copie échoue au lieu d’échouer en silence', async () => {
+    mockSession = makeSession();
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: vi.fn().mockRejectedValue(new Error('NotAllowed')) },
+      configurable: true,
+    });
+    render(<ResultsPage {...baseProps} sessionId="s1" />);
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'shareReplay' }),
+      ).not.toBeDisabled(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'shareReplay' }));
+    await waitFor(() =>
+      expect(screen.getAllByText('copyFailed').length).toBeGreaterThan(0),
+    );
+  });
 });
