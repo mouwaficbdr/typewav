@@ -320,6 +320,9 @@ beforeEach(async () => {
     useConfigStore.setState(DEFAULT_CONFIG);
   });
   localStorage.clear();
+  // Plusieurs tests posent un vi.spyOn sur @typewav/collections sans le
+  // restaurer : sans ça les compteurs .mock.calls fuient d'un test à l'autre.
+  vi.restoreAllMocks();
   mockFetchCollection.mockClear();
   learningModePropsRef.current = null;
   mockHasCompletedOnboarding.mockClear().mockResolvedValue(true);
@@ -749,7 +752,15 @@ describe('HomeClient : mode Zen sans notation (audit configbar, décision 3 / B1
       await vi.advanceTimersByTimeAsync(1300);
     });
 
-    expect(selectSpy.mock.calls.length).toBeGreaterThan(callsBeforeCompletion);
+    // Attendre la condition plutôt que d'assumer que la chaîne
+    // setTimeout -> setState -> effet -> queueMicrotask -> selectFromTexts
+    // a fini de se dérouler pile à la fin de l'advance (flush non
+    // déterministe sous fake timers, surtout en CI).
+    await waitFor(() =>
+      expect(selectSpy.mock.calls.length).toBeGreaterThan(
+        callsBeforeCompletion,
+      ),
+    );
 
     vi.useRealTimers();
   });

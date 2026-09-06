@@ -53,11 +53,14 @@ const DURATION_TOLERANCE = 0.4; // ±40%
 /**
  * Longueur cible du buffer du mode Temps, en caractères, AVANT filtres de
  * ponctuation/chiffres (qui peuvent raboter ~10 %). Dimensionné pour
- * qu'aucun typiste ne le termine avant l'expiration du chrono : ~200 MPM
- * soutenu sur la durée max (120 s) produit ~2000 caractères, on garde une
- * marge large au-dessus même après filtrage.
+ * qu'aucun typiste ne le termine avant l'expiration du chrono : ~180 MPM
+ * soutenu sur la durée max (120 s) produit ~1800 caractères, la marge
+ * au-dessus reste large après filtrage. Pas plus haut que nécessaire : le
+ * buffer entier est monté dans le DOM (voir le composant Word mémoïsé de
+ * TypingArea qui garde le coût par frappe constant quelle que soit sa
+ * longueur, mais le coût de montage initial, lui, croît avec).
  */
-export const TIMED_BUFFER_MIN_CHARS = 4800;
+export const TIMED_BUFFER_MIN_CHARS = 3200;
 
 const COLLECTION_MAP: Record<CollectionId, { texts: TextEntry[] }> = {
   litterature: litteratureCollection,

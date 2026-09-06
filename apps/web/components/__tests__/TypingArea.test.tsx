@@ -1,5 +1,11 @@
 import type { KeystrokeEntry } from '@typewav/types';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -421,7 +427,7 @@ describe("TypingArea : accessibilité lecteur d'écran (WS-1)", () => {
     expect(live).toBeEmptyDOMElement();
   });
 
-  it('annonce la progression quand un palier de 25 % est franchi', () => {
+  it('annonce la progression quand un palier de 25 % est franchi', async () => {
     const { rerender } = render(<TypingArea text="aaaa bbbb" />);
     expect(screen.getByTestId('typing-live-region')).toBeEmptyDOMElement();
 
@@ -431,20 +437,25 @@ describe("TypingArea : accessibilité lecteur d'écran (WS-1)", () => {
     });
     rerender(<TypingArea text="aaaa bbbb" />);
 
-    expect(screen.getByTestId('typing-live-region')).toHaveTextContent(
-      'srProgress',
+    // Le message est posé via queueMicrotask (react-hooks/set-state-in-effect).
+    await waitFor(() =>
+      expect(screen.getByTestId('typing-live-region')).toHaveTextContent(
+        'srProgress',
+      ),
     );
   });
 
-  it('annonce la fin du texte via la région live', () => {
+  it('annonce la fin du texte via la région live', async () => {
     Object.assign(mockSessionState, {
       position: 'hello world'.length,
       isComplete: true,
       finalStats: { wpm: 50, wpmNet: 48, accuracy: 99, consistency: 90 },
     });
     render(<TypingArea text="hello world" />);
-    expect(screen.getByTestId('typing-live-region')).toHaveTextContent(
-      'srComplete',
+    await waitFor(() =>
+      expect(screen.getByTestId('typing-live-region')).toHaveTextContent(
+        'srComplete',
+      ),
     );
   });
 
