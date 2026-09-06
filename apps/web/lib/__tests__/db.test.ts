@@ -23,7 +23,7 @@ function makeSession(overrides: Partial<SessionResult> = {}): SessionResult {
     id: `session-${Math.random().toString(36).slice(2)}`,
     timestamp: Date.now(),
     wpm: 75,
-    wpmNet: 70,
+    wpmRaw: 78,
     accuracy: 96.5,
     consistency: 88,
     duration: 60_000,

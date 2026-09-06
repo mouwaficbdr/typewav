@@ -77,8 +77,8 @@ vi.mock('next/navigation', () => ({
 import { ResultsPage } from '../typing/ResultsPage';
 
 const baseProps = {
-  wpm: 87,
-  wpmNet: 82,
+  wpm: 82,
+  wpmRaw: 87,
   accuracy: 96,
   consistency: 88,
   durationMs: 51000,

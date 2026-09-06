@@ -19,17 +19,17 @@ vi.mock('@/components/typing/ResultsPage', () => ({
   ResultsPage: vi.fn(
     ({
       wpm,
-      wpmNet,
+      wpmRaw,
       isNewWpmRecord,
     }: {
       wpm: number;
-      wpmNet: number;
+      wpmRaw: number;
       isNewWpmRecord?: boolean;
       [key: string]: unknown;
     }) => (
       <div>
         <span data-testid="wpm">{wpm}</span>
-        <span data-testid="wpmNet">{wpmNet}</span>
+        <span data-testid="wpmRaw">{wpmRaw}</span>
         <span data-testid="isNewWpmRecord">{String(isNewWpmRecord)}</span>
       </div>
     ),
@@ -43,10 +43,10 @@ describe('ResultsPageClient', () => {
     mockGetPersonalRecords.mockReset().mockResolvedValue(null);
   });
 
-  it('lit wpmNet depuis searchParams et le passe indépendamment de wpm', () => {
+  it('lit wpm (chiffre de tête) et wpmRaw depuis searchParams, indépendamment', () => {
     const params = new URLSearchParams({
       wpm: '60',
-      wpmNet: '45',
+      wpmRaw: '72',
       accuracy: '90',
       consistency: '80',
       recommendation: 'great',
@@ -59,10 +59,10 @@ describe('ResultsPageClient', () => {
     render(<ResultsPageClient />);
 
     expect(screen.getByTestId('wpm').textContent).toBe('60');
-    expect(screen.getByTestId('wpmNet').textContent).toBe('45');
+    expect(screen.getByTestId('wpmRaw').textContent).toBe('72');
   });
 
-  it('utilise 0 comme fallback si wpmNet est absent des params', () => {
+  it('utilise 0 comme fallback si wpmRaw est absent des params', () => {
     const params = new URLSearchParams({
       wpm: '60',
       accuracy: '90',
@@ -76,13 +76,13 @@ describe('ResultsPageClient', () => {
     render(<ResultsPageClient />);
 
     expect(screen.getByTestId('wpm').textContent).toBe('60');
-    expect(screen.getByTestId('wpmNet').textContent).toBe('0');
+    expect(screen.getByTestId('wpmRaw').textContent).toBe('0');
   });
 
-  it('wpmNet est différent de wpm quand des erreurs ont été commises', () => {
+  it('le chiffre de tête peut être plus bas que le brut (mots fautés non pénalisés dans le brut)', () => {
     const params = new URLSearchParams({
-      wpm: '70',
-      wpmNet: '50',
+      wpm: '50',
+      wpmRaw: '70',
       accuracy: '80',
       consistency: '75',
     });
@@ -94,15 +94,15 @@ describe('ResultsPageClient', () => {
     render(<ResultsPageClient />);
 
     const wpm = Number(screen.getByTestId('wpm').textContent);
-    const wpmNet = Number(screen.getByTestId('wpmNet').textContent);
+    const wpmRaw = Number(screen.getByTestId('wpmRaw').textContent);
 
-    expect(wpmNet).toBeLessThan(wpm);
+    expect(wpm).toBeLessThan(wpmRaw);
   });
 
-  it('calcule isNewWpmRecord à partir de wpmNet, pas du wpm brut', async () => {
-    // wpm brut (70) dépasse le record stocké (65), mais wpmNet (60) non :
-    // pas un nouveau record, puisque wpmNet est le chiffre réellement affiché
-    // et celui que suivent les records personnels (voir progression.ts).
+  it('calcule isNewWpmRecord à partir du wpm de tête, pas du wpm brut', async () => {
+    // wpm brut (70) dépasse le record stocké (65), mais le chiffre de tête
+    // (60) non : pas un nouveau record, puisque c'est le chiffre de tête qui
+    // est affiché et que suivent les records personnels (voir progression.ts).
     mockGetPersonalRecords.mockResolvedValue({
       maxWpm: { value: 65, sessionId: 's1', achievedAt: 0 },
       maxAccuracy: { value: 0, sessionId: '', achievedAt: 0 },
@@ -111,8 +111,8 @@ describe('ResultsPageClient', () => {
       byCollection: {},
     });
     const params = new URLSearchParams({
-      wpm: '70',
-      wpmNet: '60',
+      wpm: '60',
+      wpmRaw: '70',
       accuracy: '90',
       consistency: '80',
     });
@@ -128,7 +128,7 @@ describe('ResultsPageClient', () => {
     expect(screen.getByTestId('isNewWpmRecord').textContent).toBe('false');
   });
 
-  it('détecte un nouveau record quand wpmNet dépasse le record stocké', async () => {
+  it('détecte un nouveau record quand le wpm de tête dépasse le record stocké', async () => {
     mockGetPersonalRecords.mockResolvedValue({
       maxWpm: { value: 65, sessionId: 's1', achievedAt: 0 },
       maxAccuracy: { value: 0, sessionId: '', achievedAt: 0 },
@@ -137,8 +137,8 @@ describe('ResultsPageClient', () => {
       byCollection: {},
     });
     const params = new URLSearchParams({
-      wpm: '70',
-      wpmNet: '80',
+      wpm: '80',
+      wpmRaw: '85',
       accuracy: '90',
       consistency: '80',
     });

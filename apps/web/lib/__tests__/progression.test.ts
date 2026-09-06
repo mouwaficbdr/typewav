@@ -13,7 +13,7 @@ function makeSession(overrides: Partial<SessionResult> = {}): SessionResult {
     id: crypto.randomUUID(),
     timestamp: Date.now(),
     wpm: 60,
-    wpmNet: 58,
+    wpmRaw: 62,
     accuracy: 95,
     consistency: 85,
     duration: 60_000,
@@ -32,75 +32,75 @@ describe('calculateRank', () => {
     expect(calculateRank([])).toBe('novice');
   });
 
-  it('retourne novice pour médiane WPM net ≤ 30', () => {
+  it('retourne novice pour médiane WPM de tête ≤ 30', () => {
     const sessions = Array.from({ length: 5 }, () =>
-      makeSession({ wpmNet: 25 }),
+      makeSession({ wpm: 25 }),
     );
     expect(calculateRank(sessions)).toBe('novice');
   });
 
-  it('retourne apprentice pour médiane WPM net 31-50', () => {
+  it('retourne apprentice pour médiane WPM de tête 31-50', () => {
     const sessions = Array.from({ length: 5 }, () =>
-      makeSession({ wpmNet: 40 }),
+      makeSession({ wpm: 40 }),
     );
     expect(calculateRank(sessions)).toBe('apprentice');
   });
 
-  it('retourne operator pour médiane WPM net 51-70', () => {
+  it('retourne operator pour médiane WPM de tête 51-70', () => {
     const sessions = Array.from({ length: 5 }, () =>
-      makeSession({ wpmNet: 60 }),
+      makeSession({ wpm: 60 }),
     );
     expect(calculateRank(sessions)).toBe('operator');
   });
 
-  it('retourne architect pour médiane WPM net 71-90', () => {
+  it('retourne architect pour médiane WPM de tête 71-90', () => {
     const sessions = Array.from({ length: 5 }, () =>
-      makeSession({ wpmNet: 80 }),
+      makeSession({ wpm: 80 }),
     );
     expect(calculateRank(sessions)).toBe('architect');
   });
 
-  it('retourne ghost uniquement à 91+ WPM net médian', () => {
+  it('retourne ghost uniquement à 91+ WPM de tête médian', () => {
     const sessions = Array.from({ length: 5 }, () =>
-      makeSession({ wpmNet: 100 }),
+      makeSession({ wpm: 100 }),
     );
     expect(calculateRank(sessions)).toBe('ghost');
   });
 
   it("n'utilise que les 10 dernières sessions", () => {
-    // 15 sessions à 100 WPM net (anciennes) + 10 récentes à 20 WPM net
-    const old = Array.from({ length: 15 }, () => makeSession({ wpmNet: 100 }));
+    // 15 sessions à 100 WPM de tête (anciennes) + 10 récentes à 20 WPM de tête
+    const old = Array.from({ length: 15 }, () => makeSession({ wpm: 100 }));
     // Les plus récentes doivent apparaître en tête de liste
     const recent = Array.from({ length: 10 }, () =>
-      makeSession({ wpmNet: 20 }),
+      makeSession({ wpm: 20 }),
     );
-    // slice(0, 10) = 10 sessions à 20 WPM net → médiane = 20 → novice
+    // slice(0, 10) = 10 sessions à 20 WPM de tête → médiane = 20 → novice
     expect(calculateRank([...recent, ...old])).toBe('novice');
   });
 
   it('exclut les modes non compétitifs (zen, learning, endurance) de la médiane', () => {
-    // Sessions zen à 100 WPM net (devraient être ignorées) + classic à 25
+    // Sessions zen à 100 WPM de tête (devraient être ignorées) + classic à 25
     const zen = Array.from({ length: 5 }, () =>
-      makeSession({ wpmNet: 100, mode: 'zen' }),
+      makeSession({ wpm: 100, mode: 'zen' }),
     );
     const classic = Array.from({ length: 5 }, () =>
-      makeSession({ wpmNet: 25, mode: 'classic' }),
+      makeSession({ wpm: 25, mode: 'classic' }),
     );
     expect(calculateRank([...zen, ...classic])).toBe('novice');
   });
 
   it('retourne novice si seules des sessions non compétitives existent', () => {
     const learning = Array.from({ length: 5 }, () =>
-      makeSession({ wpmNet: 100, mode: 'learning' }),
+      makeSession({ wpm: 100, mode: 'learning' }),
     );
     expect(calculateRank(learning)).toBe('novice');
   });
 
-  it('se base sur le WPM net, pas le WPM brut (erreurs non pénalisées dans le brut)', () => {
-    // wpm brut élevé (100, gonflé par des erreurs non corrigées) mais wpmNet
-    // modeste (35) : le rang doit suivre le net, pas le brut.
+  it('se base sur le WPM de tête (word-level), pas le WPM brut (erreurs non pénalisées dans le brut)', () => {
+    // wpm brut élevé (100, gonflé par des mots fautés non pénalisés) mais wpm
+    // de tête modeste (35) : le rang doit suivre le chiffre de tête, pas le brut.
     const sessions = Array.from({ length: 5 }, () =>
-      makeSession({ wpm: 100, wpmNet: 35 }),
+      makeSession({ wpm: 35, wpmRaw: 100 }),
     );
     expect(calculateRank(sessions)).toBe('apprentice');
   });
@@ -135,7 +135,7 @@ describe('rankTierForWpm', () => {
   });
 
   it('reste cohérent avec calculateRank pour une seule performance', () => {
-    const single = [makeSession({ wpmNet: 85 })];
+    const single = [makeSession({ wpm: 85 })];
     expect(calculateRank(single)).toBe(rankTierForWpm(85));
   });
 });
@@ -145,7 +145,7 @@ describe('rankTierForWpm', () => {
 describe('updatePersonalRecords', () => {
   it('initialise les records avec la première session', () => {
     const session = makeSession({
-      wpmNet: 70,
+      wpm: 70,
       accuracy: 97,
       consistency: 88,
     });
@@ -156,57 +156,58 @@ describe('updatePersonalRecords', () => {
   });
 
   it('met à jour maxWpm si la session est plus rapide', () => {
-    const session1 = makeSession({ wpmNet: 70 });
+    const session1 = makeSession({ wpm: 70 });
     const records1 = updatePersonalRecords(null, session1);
-    const session2 = makeSession({ wpmNet: 85 });
+    const session2 = makeSession({ wpm: 85 });
     const records2 = updatePersonalRecords(records1, session2);
     expect(records2.maxWpm.value).toBe(85);
   });
 
   it('ne modifie pas maxWpm si la session est plus lente', () => {
-    const session1 = makeSession({ wpmNet: 80 });
+    const session1 = makeSession({ wpm: 80 });
     const records1 = updatePersonalRecords(null, session1);
-    const session2 = makeSession({ wpmNet: 50 });
+    const session2 = makeSession({ wpm: 50 });
     const records2 = updatePersonalRecords(records1, session2);
     expect(records2.maxWpm.value).toBe(80);
   });
 
-  it('se base sur le WPM net, pas le WPM brut, pour le record', () => {
-    // wpm brut à 120 (gonflé par des erreurs non corrigées) mais wpmNet à 70 :
-    // le record doit refléter le net, celui affiché à l'écran de résultats.
-    const session = makeSession({ wpm: 120, wpmNet: 70 });
+  it('se base sur le WPM de tête (word-level), pas le WPM brut, pour le record', () => {
+    // wpm brut à 120 (gonflé par des mots fautés non pénalisés) mais wpm de
+    // tête à 70 : le record doit refléter le chiffre affiché à l'écran de
+    // résultats.
+    const session = makeSession({ wpm: 70, wpmRaw: 120 });
     const records = updatePersonalRecords(null, session);
     expect(records.maxWpm.value).toBe(70);
   });
 
   it('stocke le record par collection', () => {
-    const session = makeSession({ wpmNet: 75, collectionId: 'litterature' });
+    const session = makeSession({ wpm: 75, collectionId: 'litterature' });
     const records = updatePersonalRecords(null, session);
     expect(records.byCollection['litterature']?.wpm).toBe(75);
   });
 
   it("est immutable, ne modifie pas l'original", () => {
-    const session1 = makeSession({ wpmNet: 70 });
+    const session1 = makeSession({ wpm: 70 });
     const records = updatePersonalRecords(null, session1);
     const original = { ...records };
-    const session2 = makeSession({ wpmNet: 90 });
+    const session2 = makeSession({ wpm: 90 });
     updatePersonalRecords(records, session2);
     expect(records.maxWpm.value).toBe(original.maxWpm.value);
   });
 
   it('ignore les sessions en mode non compétitif (zen, learning, endurance)', () => {
-    const session1 = makeSession({ wpmNet: 70, mode: 'classic' });
+    const session1 = makeSession({ wpm: 70, mode: 'classic' });
     const records1 = updatePersonalRecords(null, session1);
 
-    const zenSession = makeSession({ wpmNet: 200, mode: 'zen' });
+    const zenSession = makeSession({ wpm: 200, mode: 'zen' });
     const records2 = updatePersonalRecords(records1, zenSession);
     expect(records2.maxWpm.value).toBe(70);
 
-    const learningSession = makeSession({ wpmNet: 200, mode: 'learning' });
+    const learningSession = makeSession({ wpm: 200, mode: 'learning' });
     const records3 = updatePersonalRecords(records2, learningSession);
     expect(records3.maxWpm.value).toBe(70);
 
-    const enduranceSession = makeSession({ wpmNet: 200, mode: 'endurance' });
+    const enduranceSession = makeSession({ wpm: 200, mode: 'endurance' });
     const records4 = updatePersonalRecords(records3, enduranceSession);
     expect(records4.maxWpm.value).toBe(70);
   });

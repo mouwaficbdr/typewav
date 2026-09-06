@@ -78,8 +78,8 @@ import { ResultsPage } from '../typing/ResultsPage';
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 const baseProps = {
-  wpm: 87,
-  wpmNet: 82,
+  wpm: 82,
+  wpmRaw: 87,
   accuracy: 96,
   consistency: 88,
   durationMs: 51000,
@@ -96,8 +96,8 @@ function makeSession(overrides: Partial<SessionResult> = {}): SessionResult {
   return {
     id: 's1',
     timestamp: Date.now(),
-    wpm: 87,
-    wpmNet: 82,
+    wpm: 82,
+    wpmRaw: 87,
     accuracy: 96,
     consistency: 88,
     duration: 51000,
@@ -126,11 +126,12 @@ beforeEach(() => {
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('ResultsPage : le chiffre héros', () => {
-  it('affiche le wpm net, pas le wpm brut', () => {
+  it('affiche le wpm de tête (word-level) en héros et le wpm brut en second', () => {
     render(<ResultsPage {...baseProps} />);
+    // Héros : le chiffre de tête word-level.
     expect(screen.getByText('82')).toBeInTheDocument();
-    // Le wpm brut (87) n'est plus un chiffre affiché.
-    expect(screen.queryByText('87')).not.toBeInTheDocument();
+    // Le wpm brut (87) reste visible, en repère secondaire.
+    expect(screen.getByTestId('wpm-raw')).toHaveTextContent('87');
   });
 
   it('affiche précision et régularité en satellites', () => {

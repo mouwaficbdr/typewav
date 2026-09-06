@@ -4,7 +4,8 @@ import {
   calculateAccuracy,
   calculateConsistency,
   calculateWPM,
-  calculateWPMNet,
+  calculateWpmPoints,
+  calculateWpmWordLevel,
   detectBigramSlowdowns,
   detectFatigue,
   generateRecommendation,
@@ -22,6 +23,30 @@ function makeKeystrokes(
     char,
     timestamp: startTs + i * intervalMs,
     correct: allCorrect,
+    deltaMs: i === 0 ? 0 : intervalMs,
+  }));
+}
+
+/**
+ * Suite de frappes à partir d'un texte : une entrée par caractère (espaces
+ * inclus), toutes correctes sauf les index listés dans `wrongAt`. Reproduit
+ * l'état FINAL stocké dans `keystrokeData` : une erreur corrigée via Backspace
+ * a déjà été retirée du tableau par `moveBack`, donc « corrigée » = absente,
+ * pas une entrée `correct: false`.
+ */
+function wordKs(
+  text: string,
+  { wrongAt = [], intervalMs = 100, startTs = 1_000 }: {
+    wrongAt?: number[];
+    intervalMs?: number;
+    startTs?: number;
+  } = {},
+): KeystrokeEntry[] {
+  const wrong = new Set(wrongAt);
+  return text.split('').map((char, i) => ({
+    char,
+    timestamp: startTs + i * intervalMs,
+    correct: !wrong.has(i),
     deltaMs: i === 0 ? 0 : intervalMs,
   }));
 }
@@ -55,44 +80,94 @@ describe('calculateWPM', () => {
   });
 });
 
-// ─── calculateWPMNet ───────────────────────────────────────────────────────────
+// ─── calculateWpmWordLevel ────────────────────────────────────────────────────
 
-describe('calculateWPMNet', () => {
+describe('calculateWpmWordLevel', () => {
   it('retourne 0 si aucune frappe', () => {
-    expect(calculateWPMNet([], 30_000)).toBe(0);
+    expect(calculateWpmWordLevel([], 30_000)).toBe(0);
   });
 
-  it('retourne 0 si durée est 0', () => {
-    const ks = makeKeystrokes('hello', 200);
-    expect(calculateWPMNet(ks, 0)).toBe(0);
+  it('retourne 0 si la durée est nulle ou négative', () => {
+    expect(calculateWpmWordLevel(wordKs('the cat'), 0)).toBe(0);
+    expect(calculateWpmWordLevel(wordKs('the cat'), -10)).toBe(0);
   });
 
-  it('est égal au WPM brut si aucune erreur', () => {
-    const ks = makeKeystrokes('a'.repeat(60), 500);
-    expect(calculateWPMNet(ks, 30_000)).toBe(calculateWPM(ks, 30_000));
+  it('compte les caractères des mots parfaits, espace de fin inclus', () => {
+    // "the cat sat" tapé parfaitement : "the "(4) + "cat "(4) + "sat"(3) = 11
+    // caractères comptés. 11 / 5 / 0.5 min = 4,4 → 4.
+    expect(calculateWpmWordLevel(wordKs('the cat sat'), 30_000)).toBe(4);
   });
 
-  it('ne compte que les caractères corrects, dans la même unité que le WPM brut, sans pénalité supplémentaire', () => {
-    // 50 corrects + 10 incorrects sur 30 s (0.5 min).
-    const ks: KeystrokeEntry[] = [
-      ...Array.from({ length: 50 }, (_, i) => ({
-        char: 'a',
-        timestamp: 1000 + i * 300,
-        correct: true,
-        deltaMs: 300,
-      })),
-      ...Array.from({ length: 10 }, (_, i) => ({
-        char: 'x',
-        timestamp: 1000 + (50 + i) * 300,
-        correct: false,
-        deltaMs: 300,
-      })),
-    ];
+  it('exclut entièrement un mot fauté, son espace de fin compris', () => {
+    // Une faute non corrigée sur le "a" de "cat" (index 5). "cat " (4
+    // caractères) ne compte plus du tout : "the "(4) + "sat"(3) = 7.
+    // 7 / 5 / 0.5 min = 2,8 → 3. Plus sévère que le char-level, qui ne
+    // retirerait qu'un seul caractère.
+    const ks = wordKs('the cat sat', { wrongAt: [5] });
+    expect(calculateWpmWordLevel(ks, 30_000)).toBe(3);
+    expect(calculateWpmWordLevel(ks, 30_000)).toBeLessThan(
+      calculateWpmWordLevel(wordKs('the cat sat'), 30_000),
+    );
+  });
 
-    // Brut : 60 chars / 5 / 0.5 min = 24 WPM
-    expect(calculateWPM(ks, 30_000)).toBe(24);
-    // Net : 50 chars corrects / 5 / 0.5 min = 20 WPM
-    expect(calculateWPMNet(ks, 30_000)).toBe(20);
+  it('donne un crédit partiel au dernier mot incomplet : ses caractères corrects, sans espace de fin', () => {
+    // "the cat" sans espace final : "the "(4) + "cat"(3, mot en cours) = 7.
+    expect(calculateWpmWordLevel(wordKs('the cat'), 30_000)).toBe(3);
+    // Avec le "t" final fauté (index 6) : "the "(4) + "ca"(2) = 6.
+    // 6 / 5 / 0.5 min = 2,4 → 2.
+    expect(
+      calculateWpmWordLevel(wordKs('the cat', { wrongAt: [6] }), 30_000),
+    ).toBe(2);
+  });
+
+  it('un espace délimiteur fauté (non corrigé) exclut le mot qui le précède', () => {
+    // "ab cd", l'espace (index 2) est fauté : "ab" perd son statut de mot
+    // complété, "cd"(2, mot en cours) seul compte. 2 / 5 / 0.5 min = 0,8 → 1.
+    expect(
+      calculateWpmWordLevel(wordKs('ab cd', { wrongAt: [2] }), 30_000),
+    ).toBe(1);
+  });
+
+  it('n’ajoute pas de bonus d’espace pour une zone de mot vide (espaces multiples, espace en tête)', () => {
+    // "a  b" : "a "(2) + espace surnuméraire (zone vide, aucun bonus) +
+    // "b"(1) = 3. 3 / 5 / 0.5 min = 1,2 → 1.
+    expect(calculateWpmWordLevel(wordKs('a  b'), 30_000)).toBe(1);
+    // " ab" : espace en tête (zone vide) + "ab"(2) = 2 → 0,8 → 1.
+    expect(calculateWpmWordLevel(wordKs(' ab'), 30_000)).toBe(1);
+  });
+});
+
+// ─── calculateWpmPoints ───────────────────────────────────────────────────────
+
+describe('calculateWpmPoints', () => {
+  it('retourne [] en dessous de deux frappes', () => {
+    expect(calculateWpmPoints([])).toEqual([]);
+    expect(calculateWpmPoints(wordKs('a'))).toEqual([]);
+  });
+
+  it('sans faute, la ligne word-level colle à la ligne brute', () => {
+    // "the cat sat" parfait : à chaque frontière, mêmes caractères comptés
+    // des deux côtés (mots complétés + espaces = toutes les frappes).
+    const points = calculateWpmPoints(wordKs('the cat sat', { intervalMs: 300 }));
+    expect(points.length).toBeGreaterThan(0);
+    for (const p of points) {
+      expect(p.wpmWord).toBe(p.wpmRaw);
+      expect(p.hasError).toBe(false);
+    }
+  });
+
+  it('un mot fauté fait décrocher la ligne word-level sous la ligne brute et marque le point', () => {
+    // Faute non corrigée sur le "a" de "cat" (index 5).
+    const points = calculateWpmPoints(
+      wordKs('the cat sat', { wrongAt: [5], intervalMs: 300 }),
+    );
+    // Point de la frontière après "cat" : mot exclu → word-level < brut.
+    const catBoundary = points[1]!;
+    expect(catBoundary.hasError).toBe(true);
+    expect(catBoundary.wpmWord).toBeLessThan(catBoundary.wpmRaw);
+    // Le premier mot ("the") reste identique des deux côtés.
+    expect(points[0]!.wpmWord).toBe(points[0]!.wpmRaw);
+    expect(points[0]!.hasError).toBe(false);
   });
 });
 
@@ -231,7 +306,7 @@ describe('generateRecommendation', () => {
     id: 'test-1',
     timestamp: Date.now(),
     wpm: 70,
-    wpmNet: 65,
+    wpmRaw: 72,
     accuracy: 96,
     consistency: 85,
     duration: 60_000,

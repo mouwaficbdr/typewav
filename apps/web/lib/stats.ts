@@ -24,20 +24,50 @@ export function calculateWPM(
 }
 
 /**
- * Calcule les WPM nets (seuls les caractères corrects comptent).
- * Même unité que calculateWPM : aucune pénalité supplémentaire n'est
- * appliquée en plus de l'exclusion des caractères incorrects, pour éviter
- * de pénaliser deux fois la même erreur.
- * Formule : (nombre de caractères corrects / 5) / minutes écoulées
+ * Calcule le WPM « word-level » façon Monkeytype : seuls les caractères des
+ * mots tapés à 100 % correctement comptent, l'espace de fin du mot inclus.
+ * C'est le chiffre de tête de TypeWav (live et écran résultats).
+ *
+ * - Un mot est délimité par des espaces (frappes `char === ' '`).
+ * - Un mot complété (suivi d'un espace) compte `longueur + 1` (ses caractères
+ *   plus l'espace) si TOUTES ses frappes ET l'espace sont `correct`. Sinon 0.
+ * - Le dernier mot, s'il n'est pas suivi d'un espace, est « en cours » : il
+ *   rapporte le nombre de ses frappes `correct`, sans bonus d'espace.
+ * - Une zone de mot vide (espaces consécutifs, espace en tête) ne rapporte
+ *   aucun bonus d'espace.
+ *
+ * Formule finale : (caractères comptés / 5) / minutes écoulées.
  */
-export function calculateWPMNet(
+export function calculateWpmWordLevel(
   keystrokes: KeystrokeEntry[],
   durationMs: number,
 ): number {
   if (durationMs <= 0 || keystrokes.length === 0) return 0;
-  const correctChars = keystrokes.filter((k) => k.correct).length;
+
+  let counted = 0;
+  let wordLength = 0;
+  let wordCorrectCount = 0;
+
+  for (const k of keystrokes) {
+    if (k.char === ' ') {
+      // Mot complété : tous ses caractères ET l'espace doivent être corrects.
+      if (wordLength > 0 && wordCorrectCount === wordLength && k.correct) {
+        counted += wordLength + 1;
+      }
+      wordLength = 0;
+      wordCorrectCount = 0;
+      continue;
+    }
+    wordLength += 1;
+    if (k.correct) wordCorrectCount += 1;
+  }
+
+  // Dernier mot en cours (aucun espace de fin) : crédit partiel sur ses
+  // caractères corrects, sans bonus d'espace.
+  counted += wordCorrectCount;
+
   const minutes = durationMs / 60_000;
-  return Math.round(correctChars / 5 / minutes);
+  return Math.round(counted / 5 / minutes);
 }
 
 /**
@@ -200,8 +230,10 @@ export function generateRecommendation(session: SessionResult): string {
 /** Données d'un point WPM pour le graphe de progression. Compatibles avec WpmChart. */
 export interface WpmPoint {
   wordIndex: number;
+  /** WPM brut cumulé (toutes les frappes) à cette frontière de mot. */
   wpmRaw: number;
-  wpmNet: number;
+  /** WPM word-level cumulé (chiffre de tête) à cette frontière de mot. */
+  wpmWord: number;
   hasError: boolean;
 }
 
@@ -229,12 +261,12 @@ export function calculateWpmPoints(keystrokes: KeystrokeEntry[]): WpmPoint[] {
 
       const allUpToHere = keystrokes.slice(0, i + 1);
       const wpmRaw = calculateWPM(allUpToHere, elapsed);
-      const wpmNet = calculateWPMNet(allUpToHere, elapsed);
+      const wpmWord = calculateWpmWordLevel(allUpToHere, elapsed);
       const hasError = keystrokes
         .slice(wordStart, i + 1)
         .some((k) => !k.correct);
 
-      points.push({ wordIndex, wpmRaw, wpmNet, hasError });
+      points.push({ wordIndex, wpmRaw, wpmWord, hasError });
       wordIndex++;
       wordStart = i + 1;
     }

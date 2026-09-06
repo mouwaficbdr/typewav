@@ -101,7 +101,7 @@ describe('useSession : navigation vers /results', () => {
     return new URLSearchParams(pushedUrl.split('?')[1]);
   }
 
-  it('inclut wpmNet dans les params URL en fin de session avec erreurs', async () => {
+  it('inclut wpm (word-level, chiffre de tête) et wpmRaw dans les params URL ; wpm < wpmRaw quand des frappes sont fautées', async () => {
     const start = Date.now() - 30_000;
     mockSessionStore.startedAt = start;
     mockSessionStore.keystrokes = [
@@ -121,14 +121,16 @@ describe('useSession : navigation vers /results', () => {
 
     const urlParams = await endSessionAndWait();
 
-    expect(urlParams.has('wpmNet')).toBe(true);
+    expect(urlParams.has('wpmNet')).toBe(false);
     expect(urlParams.has('wpm')).toBe(true);
+    expect(urlParams.has('wpmRaw')).toBe(true);
     const wpm = Number(urlParams.get('wpm'));
-    const wpmNet = Number(urlParams.get('wpmNet'));
-    expect(wpmNet).toBeLessThanOrEqual(wpm);
+    const wpmRaw = Number(urlParams.get('wpmRaw'));
+    // 50 caractères corrects (mot en cours) vs 60 frappes brutes.
+    expect(wpm).toBeLessThan(wpmRaw);
   });
 
-  it('inclut wpmNet ≈ wpm si aucune erreur commise (session parfaite)', async () => {
+  it('wpm === wpmRaw sur une session parfaite (aucune frappe fautée)', async () => {
     const start = Date.now() - 30_000;
     mockSessionStore.startedAt = start;
     mockSessionStore.keystrokes = Array.from({ length: 60 }, (_, i) => ({
@@ -141,8 +143,8 @@ describe('useSession : navigation vers /results', () => {
     const urlParams = await endSessionAndWait();
 
     const wpm = Number(urlParams.get('wpm'));
-    const wpmNet = Number(urlParams.get('wpmNet'));
-    expect(wpmNet).toBe(wpm);
+    const wpmRaw = Number(urlParams.get('wpmRaw'));
+    expect(wpm).toBe(wpmRaw);
   });
 
   it('ne re-navigue PAS vers /results si on monte avec une séance déjà terminée (retour depuis /results via « Encore »)', async () => {

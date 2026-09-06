@@ -10,7 +10,7 @@ function sessionsWithWpm(wpms: number[]): SessionResult[] {
     id: `s-${i}`,
     timestamp: 1_700_000_000_000 + i * 86_400_000,
     wpm,
-    wpmNet: wpm - 2,
+    wpmRaw: wpm + 2,
     accuracy: 95,
     consistency: 80,
     duration: 60_000,

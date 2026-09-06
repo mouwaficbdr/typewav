@@ -11,7 +11,7 @@ function makeSession(
     id: `s-${timestamp}`,
     timestamp,
     wpm: overrides.wpm,
-    wpmNet: overrides.wpmNet ?? overrides.wpm,
+    wpmRaw: overrides.wpmRaw ?? overrides.wpm,
     accuracy: overrides.accuracy ?? 95,
     consistency: overrides.consistency ?? 85,
     duration: overrides.duration ?? 60_000,

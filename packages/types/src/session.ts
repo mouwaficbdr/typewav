@@ -38,10 +38,18 @@ export type FatiguePattern =
 export interface SessionResult {
   id: string;
   timestamp: number;
-  /** WPM brut (total caractères / 5 / minutes) */
+  /**
+   * WPM de tête : définition word-level façon Monkeytype (caractères des
+   * mots tapés à 100 % correctement, espace de fin inclus, / 5 / minutes).
+   * C'est le chiffre affiché en live et en résultats, et la base du rang et
+   * des records.
+   */
   wpm: number;
-  /** WPM net : pénalité erreurs (non corrigées) */
-  wpmNet: number;
+  /**
+   * WPM brut : toutes les frappes comptées, correctes ou non (/ 5 / minutes).
+   * Affiché en second sur l'écran résultats.
+   */
+  wpmRaw: number;
   /** Pourcentage de frappes correctes sur le total */
   accuracy: number;
   /** Stabilité de la vitesse : 100 - (σWPM / μWPM × 100) */

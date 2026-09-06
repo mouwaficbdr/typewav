@@ -24,7 +24,7 @@ export function ResultsPageClient() {
     startedAt !== null && endedAt !== null ? endedAt - startedAt : undefined;
 
   const wpm = Number(searchParams.get('wpm') ?? '0');
-  const wpmNet = Number(searchParams.get('wpmNet') ?? '0');
+  const wpmRaw = Number(searchParams.get('wpmRaw') ?? '0');
   const accuracy = Number(searchParams.get('accuracy') ?? '0');
   const consistency = Number(searchParams.get('consistency') ?? '0');
   const durationMs = Number(searchParams.get('duration') ?? '60000');
@@ -40,17 +40,17 @@ export function ResultsPageClient() {
       .catch(() => null);
   }, []);
 
-  // wpmNet (pas le wpm brut) : c'est le chiffre réellement affiché à l'écran
-  // de résultats, et celui que suivent les records personnels
+  // Le wpm de tête (word-level), pas le brut : c'est le chiffre affiché en
+  // grand et celui que suivent les records personnels
   // (voir apps/web/lib/progression.ts).
-  const isNewWpmRecord = records !== null && wpmNet > records.maxWpm.value;
+  const isNewWpmRecord = records !== null && wpm > records.maxWpm.value;
   const isNewAccuracyRecord =
     records !== null && accuracy > records.maxAccuracy.value;
 
   return (
     <ResultsPage
       wpm={wpm}
-      wpmNet={wpmNet}
+      wpmRaw={wpmRaw}
       accuracy={accuracy}
       consistency={consistency}
       durationMs={computedDurationMs}

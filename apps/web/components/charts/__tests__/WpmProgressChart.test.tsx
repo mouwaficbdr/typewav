@@ -45,7 +45,7 @@ function makeSession(wpm: number, timestamp: number): SessionResult {
     id: `s-${timestamp}-${wpm}`,
     timestamp,
     wpm,
-    wpmNet: wpm,
+    wpmRaw: wpm,
     accuracy: 95,
     consistency: 85,
     duration: 60_000,

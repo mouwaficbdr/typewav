@@ -17,7 +17,7 @@ import {
   calculateAccuracy,
   calculateConsistency,
   calculateWPM,
-  calculateWPMNet,
+  calculateWpmWordLevel,
   generateRecommendation,
 } from '@/lib/stats';
 import { useAudioStore } from '@/stores/useAudioStore';
@@ -33,8 +33,10 @@ interface LiveStats {
 }
 
 interface FinalStats {
+  /** WPM word-level (Monkeytype) : chiffre de tête. */
   wpm: number;
-  wpmNet: number;
+  /** WPM brut (toutes les frappes) : affiché en second sur les résultats. */
+  wpmRaw: number;
   accuracy: number;
   consistency: number;
 }
@@ -102,8 +104,8 @@ export function useSession({
     if (endedAt === null || startedAt === null) return null;
     const duration = endedAt - startedAt;
     return {
-      wpm: calculateWPM(keystrokes, duration),
-      wpmNet: calculateWPMNet(keystrokes, duration),
+      wpm: calculateWpmWordLevel(keystrokes, duration),
+      wpmRaw: calculateWPM(keystrokes, duration),
       accuracy: calculateAccuracy(keystrokes),
       consistency: calculateConsistency(keystrokes),
     };
@@ -158,7 +160,7 @@ export function useSession({
       if (elapsed < 1000 || currentKeystrokes.length === 0) return;
 
       setLiveStats({
-        wpm: calculateWPM(currentKeystrokes, elapsed),
+        wpm: calculateWpmWordLevel(currentKeystrokes, elapsed),
         accuracy: calculateAccuracy(currentKeystrokes),
         consistency: calculateConsistency(currentKeystrokes),
       });
@@ -240,13 +242,13 @@ export function useSession({
     if (!trackProgress) return; // Zen : ni sauvegarde ni progression
 
     const duration = endedAt - startedAt;
-    const { wpm, wpmNet, accuracy, consistency } = finalStats;
+    const { wpm, wpmRaw, accuracy, consistency } = finalStats;
 
     const sessionResult: SessionResult = {
       id: crypto.randomUUID(),
       timestamp: startedAt,
       wpm,
-      wpmNet,
+      wpmRaw,
       accuracy,
       consistency,
       duration,
@@ -270,7 +272,7 @@ export function useSession({
       const params = new URLSearchParams({
         id,
         wpm: String(Math.round(wpm)),
-        wpmNet: String(Math.round(wpmNet)),
+        wpmRaw: String(Math.round(wpmRaw)),
         accuracy: String(Math.round(accuracy)),
         consistency: String(Math.round(consistency)),
         mode,

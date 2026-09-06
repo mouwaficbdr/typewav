@@ -48,8 +48,10 @@ const REVEAL_INITIAL = { opacity: 0, y: 14 } as const;
 const REVEAL_ANIMATE = { opacity: 1, y: 0 } as const;
 
 interface ResultsPageProps {
+  /** WPM word-level (Monkeytype) : le chiffre héros. */
   wpm: number;
-  wpmNet: number;
+  /** WPM brut (toutes les frappes) : repère secondaire sous le héros. */
+  wpmRaw: number;
   accuracy: number;
   consistency: number;
   /** Durée totale en ms */
@@ -147,7 +149,7 @@ function IconTextButton({
 
 export function ResultsPage({
   wpm,
-  wpmNet,
+  wpmRaw,
   accuracy,
   consistency,
   durationMs,
@@ -179,7 +181,7 @@ export function ResultsPage({
 
   const { initialize, playNoteName } = useAudioEngine();
 
-  const wpmNetShown = useCountUp(Math.round(wpmNet), animating);
+  const wpmShown = useCountUp(Math.round(wpm), animating);
 
   const verdict = getSessionVerdict({
     keystrokes: session?.keystrokeData ?? [],
@@ -470,7 +472,7 @@ export function ResultsPage({
                 color: 'var(--color-text-primary)',
               }}
             >
-              {wpmNetShown}
+              {wpmShown}
             </span>
             <span
               style={{
@@ -482,7 +484,19 @@ export function ResultsPage({
                 marginTop: 14,
               }}
             >
-              {t('wpmNet')}
+              {t('wpm')}
+            </span>
+            <span
+              data-testid="wpm-raw"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.72rem',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'var(--color-text-muted)',
+                marginTop: 6,
+              }}
+            >
+              {Math.round(wpmRaw)} {t('wpmGross')}
             </span>
           </div>
 
