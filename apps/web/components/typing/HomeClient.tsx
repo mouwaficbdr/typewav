@@ -1030,11 +1030,12 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               <RepeatIcon size={20} />
             </button>
 
-            {/* Restart Hint : une seule touche façon MonkeyType (rectangle
-                à jupe), portant "Tab + Entrée" en toutes lettres. La touche
-                elle-même reste à pleine opacité (comme sur monkeytype.com,
-                où la touche ne s'efface jamais) : seul le libellé de fin
-                s'atténue au repos et remonte au survol. */}
+            {/* Restart Hint : un combo de DEUX touches distinctes façon
+                clavier ([Tab] + [Entrée]), pas un badge unique portant tout
+                le libellé (retour Mouwafic : ça ne ressemblait pas assez a
+                une touche). Les touches restent a pleine opacité (comme sur
+                monkeytype.com) ; seul le libellé de fin s'atténue au repos
+                et remonte au survol. */}
             <button
               onClick={handleRestart}
               aria-label={tHint('restart')}
@@ -1053,7 +1054,22 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               className="group hover:text-text-primary transition-colors"
               title={tHint('restartTestTooltip')}
             >
-              <Keycap size="sm">{tHint('restartKeys')}</Keycap>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5,
+                }}
+              >
+                <Keycap size="md">{tHint('restartKeyTab')}</Keycap>
+                <span
+                  aria-hidden="true"
+                  style={{ opacity: 0.45, fontSize: '0.8rem' }}
+                >
+                  +
+                </span>
+                <Keycap size="md">{tHint('restartKeyEnter')}</Keycap>
+              </span>
               <span className="opacity-60 group-hover:opacity-100 transition-opacity">
                 {tHint('restartHintSuffix')}
               </span>
