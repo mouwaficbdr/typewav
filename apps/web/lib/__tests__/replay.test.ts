@@ -64,4 +64,32 @@ describe('generateReplayLink', () => {
     const url = generateReplayLink(SAMPLE_REPLAY, 'https://typewav.mouwaficbdr.me');
     expect(url).toMatch(/^https:\/\/typewav\.mouwaficbdr\.me\/replay\?d=/);
   });
+
+  it('avec maxTextLength : tronque un texte long, URL sous 2048, ghost préservé', () => {
+    const longText = 'lorsque '.repeat(500).trim(); // ~4000 caractères
+    const data: ReplayData = {
+      ...SAMPLE_REPLAY,
+      text: longText,
+      keystrokeTimings: Array.from({ length: longText.length }, () => 90),
+    };
+
+    const url = generateReplayLink(data, '', 300);
+    const decoded = decodeReplay(url.split('/replay?d=')[1]!);
+
+    expect(url.length).toBeLessThanOrEqual(2048);
+    expect(decoded.text.length).toBeLessThanOrEqual(300);
+    // Le ghost ne doit plus être réduit à ~9 frappes (bug d'origine).
+    expect(decoded.keystrokeTimings.length).toBeGreaterThanOrEqual(30);
+  });
+
+  it('sans maxTextLength : ne tronque pas le texte (rétro-compat, nav interne)', () => {
+    const longText = 'a '.repeat(400).trim();
+    const data: ReplayData = { ...SAMPLE_REPLAY, text: longText };
+
+    const decoded = decodeReplay(
+      generateReplayLink(data).split('/replay?d=')[1]!,
+    );
+
+    expect(decoded.text).toBe(longText);
+  });
 });

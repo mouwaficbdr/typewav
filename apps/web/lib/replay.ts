@@ -14,6 +14,14 @@ const REPLAY_PREFIX = '/replay?d=';
 const MAX_URL_BYTES = 2048;
 
 /**
+ * Plafond de texte pour un lien de replay PARTAGÉ : garde l'URL raisonnable
+ * (~1 Ko) et le ghost intact, au prix d'un extrait plutôt que la séance
+ * entière. Aligné sur `MAX_TEXT_LENGTH` de lib/challenge.ts. La navigation
+ * interne (profil) n'passe pas ce plafond et rejoue le record complet.
+ */
+export const REPLAY_SHARE_TEXT_LIMIT = 300;
+
+/**
  * Encode un ReplayData en base64url pour partage via URL.
  * Tronque les timings si l'URL dépasserait la limite.
  */
@@ -41,10 +49,27 @@ export function decodeReplay(encoded: string): ReplayData {
 
 /**
  * Génère un lien partageable (chemin relatif).
- * Si l'URL dépasse MAX_URL_BYTES, tronque les timings.
+ *
+ * `maxTextLength` (partage) : plafonne le texte ET aligne les timings sur le
+ * nombre de frappes gardées, AVANT la réduction de secours des timings.
+ * Sans lui (nav interne profil), le texte n'est jamais tronqué ; seuls les
+ * timings sont réduits si l'URL dépasse MAX_URL_BYTES : c'était l'unique
+ * comportement, et il gardait un texte long entier au prix d'un ghost réduit
+ * à ~10 frappes. Le plafond corrige ça pour les liens réellement partagés.
  */
-export function generateReplayLink(data: ReplayData, baseUrl = ''): string {
-  let payload = data;
+export function generateReplayLink(
+  data: ReplayData,
+  baseUrl = '',
+  maxTextLength?: number,
+): string {
+  let payload =
+    maxTextLength !== undefined && data.text.length > maxTextLength
+      ? {
+          ...data,
+          text: data.text.slice(0, maxTextLength),
+          keystrokeTimings: data.keystrokeTimings.slice(0, maxTextLength),
+        }
+      : data;
 
   // Réduire les timings si nécessaire
   while (true) {
