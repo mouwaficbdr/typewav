@@ -1,7 +1,8 @@
 {
   "name": "create-typewav",
   "version": "0.1.0",
-  "description": "CLI de scaffolding TypeWav — créer un thème, soundpack ou collection",
+  "description": "CLI de scaffolding TypeWav : créer un thème, soundpack ou collection",
+  "license": "MIT",
   "type": "module",
   "bin": {
     "create-typewav-theme": "./dist/create-theme.js",

@@ -132,3 +132,11 @@ public-domain / royalty-free criteria for any text or audio addition.
 TypeWav owes a lot to [**Monkeytype**](https://github.com/monkeytypegame/monkeytype). Its clarity,
 restraint and focus were the reference and the case study throughout the build. Thank you to its
 team and contributors.
+
+## License
+
+The code is released under the [MIT License](LICENSE).
+
+The bundled `.mid` files and audio samples are not covered by that license: they remain the
+property of their respective rights holders and ship here only so the app can play. The text
+collections are public domain (criteria in [`CONTRIBUTING.md`](CONTRIBUTING.md)).
