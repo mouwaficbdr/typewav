@@ -34,7 +34,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const themeId = useThemeStore((s) => s.themeId);
 
   useEffect(() => {
-    applyThemeColors(APP_THEMES[themeId] ?? APP_THEMES['terminal']!);
+    applyThemeColors(APP_THEMES[themeId] ?? APP_THEMES['cyprus-sand']!);
   }, [themeId]);
 
   return <>{children}</>;

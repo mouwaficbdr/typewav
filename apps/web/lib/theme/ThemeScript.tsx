@@ -5,7 +5,7 @@ export function ThemeScript() {
     (function() {
       try {
         var storage = localStorage.getItem('typewav-theme-storage');
-        var themeId = 'terminal';
+        var themeId = 'cyprus-sand';
         if (storage) {
           var parsed = JSON.parse(storage);
           if (parsed && parsed.state && parsed.state.themeId) {
@@ -13,7 +13,7 @@ export function ThemeScript() {
           }
         }
         var themes = ${JSON.stringify(APP_THEMES)};
-        var theme = themes[themeId] || themes['terminal'];
+        var theme = themes[themeId] || themes['cyprus-sand'];
         if (theme && theme.colors) {
           var root = document.documentElement;
           root.style.setProperty('--color-bg', theme.colors.bg);
