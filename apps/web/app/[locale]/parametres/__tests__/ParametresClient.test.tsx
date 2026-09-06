@@ -86,18 +86,19 @@ vi.mock('lucide-react', () => ({
   Upload: () => null,
 }));
 
-import { BASE_UNLOCKED_THEME_IDS } from '@/lib/theme/defaultThemes';
+import { APP_THEMES } from '@/lib/theme/defaultThemes';
 import { ParametresClient } from '../ParametresClient';
 
 // Libellés visibles des boutons de thème : la refonte les rend en minuscules
-// (choix produit). base vs derrière un jalon.
-const BASE_NAMES = [
+// (choix produit). Tous les thèmes sont débloqués d'office : plus aucun n'est
+// derrière un déblocage conditionnel.
+const HISTORIC_NAMES = [
   'dark terminal',
   'deep burgundy',
   'cyprus sand',
   'night imperial',
 ];
-const GATED_NAMES = ['noir', 'arcade', 'soleil de minuit'];
+const FORMERLY_GATED_NAMES = ['noir', 'arcade', 'soleil de minuit'];
 
 beforeEach(() => {
   mockGetUserProfile.mockReset();
@@ -106,77 +107,23 @@ beforeEach(() => {
 });
 
 describe('ParametresClient : sélecteur de thème', () => {
-  it('n’affiche que les thèmes débloqués du profil', async () => {
-    mockGetUserProfile.mockResolvedValue({
-      unlockedThemes: [
-        'terminal',
-        'deep-burgundy',
-        'cyprus-sand',
-        'night-imperial',
-      ],
-    });
-
+  it('propose tous les thèmes d’APP_THEMES, sans dépendre du profil', () => {
     render(<ParametresClient />);
 
-    await waitFor(() => {
-      for (const name of BASE_NAMES) {
-        expect(screen.getByText(name)).toBeTruthy();
-      }
-    });
-    for (const name of GATED_NAMES) {
-      expect(screen.queryByText(name)).toBeNull();
-    }
+    const buttons = screen.getAllByRole('button', { name: 'selectTheme' });
+    expect(buttons.length).toBe(Object.keys(APP_THEMES).length);
   });
 
-  it('affiche un thème débloqué par un jalon', async () => {
-    mockGetUserProfile.mockResolvedValue({
-      unlockedThemes: [
-        'terminal',
-        'deep-burgundy',
-        'cyprus-sand',
-        'night-imperial',
-        'noir',
-      ],
-    });
-
+  it('affiche les thèmes historiques et les anciens thèmes de jalon côte à côte', () => {
     render(<ParametresClient />);
 
-    expect(await screen.findByText('noir')).toBeTruthy();
-    expect(screen.queryByText('arcade')).toBeNull();
-  });
-
-  it('un profil ancien (unlockedThemes = ["terminal"]) garde les 4 thèmes de base', async () => {
-    mockGetUserProfile.mockResolvedValue({ unlockedThemes: ['terminal'] });
-
-    render(<ParametresClient />);
-
-    await waitFor(() => {
-      for (const name of BASE_NAMES) {
-        expect(screen.getByText(name)).toBeTruthy();
-      }
-    });
-    for (const name of GATED_NAMES) {
-      expect(screen.queryByText(name)).toBeNull();
-    }
-  });
-
-  it('avant le chargement du profil, montre les thèmes de base', () => {
-    mockGetUserProfile.mockReturnValue(new Promise(() => {})); // jamais résolue
-
-    render(<ParametresClient />);
-
-    for (const name of BASE_NAMES) {
+    for (const name of [...HISTORIC_NAMES, ...FORMERLY_GATED_NAMES]) {
       expect(screen.getByText(name)).toBeTruthy();
-    }
-    for (const name of GATED_NAMES) {
-      expect(screen.queryByText(name)).toBeNull();
     }
   });
 
   it('expose le thème actif à l’AT via aria-pressed (pas seulement la couleur)', () => {
     // Le store mocké renvoie themeId 'terminal' = « Dark Terminal ».
-    mockGetUserProfile.mockReturnValue(new Promise(() => {}));
-
     render(<ParametresClient />);
 
     const active = screen.getByText('dark terminal').closest('button')!;
@@ -187,15 +134,11 @@ describe('ParametresClient : sélecteur de thème', () => {
   });
 
   it('chaque bouton de thème porte un nom accessible explicite', () => {
-    mockGetUserProfile.mockReturnValue(new Promise(() => {}));
-
     render(<ParametresClient />);
 
     // aria-label = t('selectTheme', { name }) ; le mock i18n renvoie la clé.
-    // Profil jamais résolu : seuls les thèmes débloqués d'office sont rendus
-    // (ticket #64 : 26 désormais, BASE_NAMES ne couvre que les 4 historiques).
     const buttons = screen.getAllByRole('button', { name: 'selectTheme' });
-    expect(buttons.length).toBe(BASE_UNLOCKED_THEME_IDS.length);
+    expect(buttons.length).toBe(Object.keys(APP_THEMES).length);
   });
 });
 

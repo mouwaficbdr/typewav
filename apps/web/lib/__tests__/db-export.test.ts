@@ -68,7 +68,6 @@ describe('exportAll', () => {
     await saveUserProfile({
       unlockedThemes: ['terminal'],
       unlockedCollections: ['litterature'],
-      unlockedMilestoneIds: [],
       currentRank: 'novice',
       pseudo: 'Ada',
     });

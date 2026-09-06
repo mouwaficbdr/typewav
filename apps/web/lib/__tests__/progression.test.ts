@@ -1,8 +1,7 @@
-import type { SessionResult, UserProfile } from '@typewav/types';
+import type { SessionResult } from '@typewav/types';
 import { describe, expect, it } from 'vitest';
 import {
   calculateRank,
-  checkMilestones,
   rankTierForWpm,
   updatePersonalRecords,
 } from '../progression';
@@ -25,14 +24,6 @@ function makeSession(overrides: Partial<SessionResult> = {}): SessionResult {
     ...overrides,
   };
 }
-
-const emptyProfile: UserProfile = {
-  unlockedThemes: ['terminal'],
-  unlockedCollections: ['litterature'],
-  unlockedMilestoneIds: [],
-  currentRank: 'novice',
-  pseudo: '',
-};
 
 // ─── calculateRank ─────────────────────────────────────────────────────────────
 
@@ -146,57 +137,6 @@ describe('rankTierForWpm', () => {
   it('reste cohérent avec calculateRank pour une seule performance', () => {
     const single = [makeSession({ wpmNet: 85 })];
     expect(calculateRank(single)).toBe(rankTierForWpm(85));
-  });
-});
-
-// ─── checkMilestones ───────────────────────────────────────────────────────────
-
-describe('checkMilestones', () => {
-  it('détecte le jalon first_session à la première session', () => {
-    const sessions = [makeSession()];
-    const newMilestones = checkMilestones(sessions, emptyProfile);
-    expect(newMilestones.map((m) => m.id)).toContain('first_session');
-  });
-
-  it('ne redéclenche pas un jalon déjà débloqué', () => {
-    const profile: UserProfile = {
-      ...emptyProfile,
-      unlockedMilestoneIds: ['first_session'],
-    };
-    const sessions = [makeSession()];
-    const newMilestones = checkMilestones(sessions, profile);
-    expect(newMilestones.map((m) => m.id)).not.toContain('first_session');
-  });
-
-  it('détecte le jalon wpm_50 quand session ≥ 50 WPM net', () => {
-    const sessions = [makeSession({ wpmNet: 55 })];
-    const newMilestones = checkMilestones(sessions, emptyProfile);
-    expect(newMilestones.map((m) => m.id)).toContain('wpm_50');
-  });
-
-  it('ne déclenche pas wpm_70 si la session est à 60 WPM net', () => {
-    const sessions = [makeSession({ wpmNet: 60 })];
-    const newMilestones = checkMilestones(sessions, emptyProfile);
-    expect(newMilestones.map((m) => m.id)).not.toContain('wpm_70');
-  });
-
-  it('retourne une liste vide si aucune condition remplie', () => {
-    const sessions = [makeSession({ wpmNet: 10, accuracy: 50 })];
-    // first_session devrait quand même se déclencher (1 session)
-    const profile: UserProfile = {
-      ...emptyProfile,
-      unlockedMilestoneIds: ['first_session'],
-    };
-    const newMilestones = checkMilestones(sessions, profile);
-    expect(newMilestones).toHaveLength(0);
-  });
-
-  it('se base sur le WPM net, pas le WPM brut, pour le jalon wpm_70', () => {
-    // wpm brut à 70 (gonflé par des erreurs non corrigées) mais wpmNet à 60 :
-    // le jalon ne doit pas se déclencher sur le brut.
-    const sessions = [makeSession({ wpm: 70, wpmNet: 60 })];
-    const newMilestones = checkMilestones(sessions, emptyProfile);
-    expect(newMilestones.map((m) => m.id)).not.toContain('wpm_70');
   });
 });
 

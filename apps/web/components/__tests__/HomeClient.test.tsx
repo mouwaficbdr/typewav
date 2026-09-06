@@ -42,7 +42,6 @@ vi.mock('@/lib/db', () => ({
     pseudo: '',
     unlockedThemes: [],
     unlockedCollections: [],
-    unlockedMilestoneIds: [],
   }),
 }));
 

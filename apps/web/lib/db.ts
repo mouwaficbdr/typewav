@@ -415,7 +415,6 @@ export async function deletePreference(key: string): Promise<void> {
 const DEFAULT_PROFILE: UserProfile = {
   unlockedThemes: [...BASE_UNLOCKED_THEME_IDS],
   unlockedCollections: ['litterature'],
-  unlockedMilestoneIds: [],
   currentRank: 'novice',
   pseudo: '',
 };

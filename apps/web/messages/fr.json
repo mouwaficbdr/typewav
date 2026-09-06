@@ -248,12 +248,6 @@
     "heatmapMore": "Plus",
     "heatmapSessions": "{count, plural, one {# session} other {# sessions}}"
   },
-  "progression": {
-    "rank": "Rang",
-    "nextMilestone": "Prochain jalon",
-    "milestoneUnlocked": "Jalon débloqué !",
-    "rankSoundHint": "Le piano gagne en profondeur. Réécoutez."
-  },
   "audio": {
     "pack": "Pack sonore",
     "volume": "Volume",

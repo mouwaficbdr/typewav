@@ -1,25 +1,21 @@
-import { MILESTONES } from '@typewav/types';
 import { describe, expect, it } from 'vitest';
 import { APP_THEMES, BASE_UNLOCKED_THEME_IDS } from '../theme/defaultThemes';
 
 /**
- * Cohérence du système de thèmes (WS-5 #6).
+ * Cohérence du système de thèmes.
  *
- * Deux sources de thèmes coexistaient : `APP_THEMES` (rendu par l'app) et
- * `@typewav/themes` (jamais importé). Les jalons `MILESTONES` récompensaient
- * `noir` / `midnight-sun` / `arcade`, absents d'`APP_THEMES` : récompense
- * creuse (`APP_THEMES[id] ?? terminal`). Ces gardes verrouillent la
- * réconciliation.
+ * Tous les thèmes rendus par l'app (`APP_THEMES`) sont débloqués d'office :
+ * `BASE_UNLOCKED_THEME_IDS` en est la seule vérité, et il couvre exactement
+ * `APP_THEMES`. Il n'y a plus de thème derrière un déblocage conditionnel
+ * (l'ancien système de jalons a été retiré ; `noir` / `midnight-sun` /
+ * `arcade`, jadis récompenses de jalon, sont désormais libres comme les
+ * autres).
  */
 
-const milestoneThemeIds = MILESTONES.flatMap((m) =>
-  m.reward.type === 'theme' ? [m.reward.themeId] : [],
-);
-
 describe('APP_THEMES', () => {
-  it('contient les 26 thèmes débloqués d’office et les 3 thèmes de jalon (ticket #64)', () => {
+  it('contient exactement les thèmes débloqués d’office', () => {
     expect(Object.keys(APP_THEMES).sort()).toEqual(
-      [...BASE_UNLOCKED_THEME_IDS, 'noir', 'midnight-sun', 'arcade'].sort(),
+      [...BASE_UNLOCKED_THEME_IDS].sort(),
     );
   });
 
@@ -28,24 +24,17 @@ describe('APP_THEMES', () => {
       expect(theme.id).toBe(key);
     }
   });
-});
 
-describe('récompenses de thème des jalons', () => {
-  it('chaque jalon qui débloque un thème pointe vers un thème rendu', () => {
-    for (const themeId of milestoneThemeIds) {
-      expect(Object.keys(APP_THEMES)).toContain(themeId);
+  it('inclut noir, midnight-sun et arcade (anciens thèmes de jalon, désormais libres)', () => {
+    for (const id of ['noir', 'midnight-sun', 'arcade']) {
+      expect(Object.keys(APP_THEMES)).toContain(id);
+      expect(BASE_UNLOCKED_THEME_IDS).toContain(id);
     }
-  });
-
-  it('récompense noir, midnight-sun et arcade (dette WS-5 #6)', () => {
-    expect(milestoneThemeIds.sort()).toEqual(
-      ['arcade', 'midnight-sun', 'noir'].sort(),
-    );
   });
 });
 
 describe('BASE_UNLOCKED_THEME_IDS', () => {
-  it('est la seule vérité des thèmes débloqués d’office (26, ticket #64)', () => {
+  it('est la seule vérité des thèmes débloqués d’office', () => {
     expect([...BASE_UNLOCKED_THEME_IDS].sort()).toEqual(
       [
         'terminal',
@@ -74,17 +63,16 @@ describe('BASE_UNLOCKED_THEME_IDS', () => {
         'volcan-obsidienne',
         'ardoise-ecarlate',
         'riviera',
+        'noir',
+        'midnight-sun',
+        'arcade',
       ].sort(),
     );
   });
 
-  it('partitionne APP_THEMES avec les thèmes de jalon (disjoint, exhaustif)', () => {
-    const base = new Set<string>(BASE_UNLOCKED_THEME_IDS);
-    const gated = new Set(milestoneThemeIds);
-
-    for (const id of base) expect(gated.has(id)).toBe(false);
-    expect(new Set([...base, ...gated])).toEqual(
-      new Set(Object.keys(APP_THEMES)),
+  it('ne contient aucun doublon', () => {
+    expect(new Set(BASE_UNLOCKED_THEME_IDS).size).toBe(
+      BASE_UNLOCKED_THEME_IDS.length,
     );
   });
 });

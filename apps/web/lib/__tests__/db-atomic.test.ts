@@ -33,19 +33,19 @@ describe('mutateUserProfile', () => {
   });
 
   it('N mutations concurrentes : aucune écriture perdue (+N exact)', async () => {
-    const before = (await getUserProfile()).unlockedMilestoneIds.length;
+    const before = (await getUserProfile()).unlockedThemes.length;
     const N = 25;
 
     await Promise.all(
       Array.from({ length: N }, (_, i) =>
         mutateUserProfile((p) => ({
           ...p,
-          unlockedMilestoneIds: [...p.unlockedMilestoneIds, `m-${i}`],
+          unlockedThemes: [...p.unlockedThemes, `t-${i}`],
         })),
       ),
     );
 
-    const after = (await getUserProfile()).unlockedMilestoneIds.length;
+    const after = (await getUserProfile()).unlockedThemes.length;
     expect(after - before).toBe(N);
   });
 });

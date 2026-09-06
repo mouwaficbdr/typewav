@@ -5,17 +5,15 @@ import {
   KEYBOARD_LAYOUTS,
   useKeyboardLayoutPreference,
 } from '@/hooks/useKeyboardLayoutPreference';
-import { getUserProfile } from '@/lib/db';
 import { routing } from '@/i18n/routing';
 import { resetLearningFingerIntroSeen } from '@/lib/onboarding';
-import { APP_THEMES, BASE_UNLOCKED_THEME_IDS } from '@/lib/theme/defaultThemes';
+import { APP_THEMES } from '@/lib/theme/defaultThemes';
 import { useConfigStore } from '@/stores/useConfigStore';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { CheckCircle2, Keyboard, Languages, Palette } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
 
 const LANGUAGE_LABEL_KEYS: Record<string, string> = {
   fr: 'languageFr',
@@ -45,27 +43,9 @@ export function ParametresClient() {
     router.push(`/${locale}`);
   }
 
-  // Thèmes débloqués : `UserProfile.unlockedThemes` (IndexedDB), alimenté par
-  // les jalons. Avant chargement, on montre les thèmes de base pour éviter un
-  // écran vide (ils n'apparaissent jamais après coup, ils disparaissent
-  // seulement si l'utilisateur n'en a débloqué aucun de plus).
-  const [unlockedThemes, setUnlockedThemes] =
-    useState<readonly string[]>(BASE_UNLOCKED_THEME_IDS);
-
-  useEffect(() => {
-    getUserProfile()
-      .then((profile) => setUnlockedThemes(profile.unlockedThemes))
-      .catch(() => undefined);
-  }, []);
-
-  // Les thèmes de base sont toujours proposés, quel que soit le profil stocké.
-  const visibleIds = new Set<string>([
-    ...BASE_UNLOCKED_THEME_IDS,
-    ...unlockedThemes,
-  ]);
-  const themes = Object.values(APP_THEMES).filter((theme) =>
-    visibleIds.has(theme.id),
-  );
+  // Tous les thèmes d'`APP_THEMES` sont débloqués d'office : le sélecteur les
+  // propose tous, sans filtrage par profil.
+  const themes = Object.values(APP_THEMES);
 
   return (
     <main className="min-h-screen text-[var(--color-text-primary)] pb-32">

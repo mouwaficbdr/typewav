@@ -5,13 +5,11 @@ import type { ThemeConfig } from '@typewav/types';
  * Thèmes rendus par l'application (sélecteur de /parametres, ThemeProvider,
  * ThemeScript).
  *
- * Tous les thèmes définis inline ici sont débloqués d'office
- * (`BASE_UNLOCKED_THEME_IDS`, ticket #64 : palette étendue à 26 thèmes libres
- * d'entrée). `noir` / `midnight-sun` / `arcade` viennent de `@typewav/themes`
- * (objets `ThemeConfig` complets, déjà AA) et restent débloqués par les
- * jalons `MILESTONES` (`first_session`, `sessions_50`, `wpm_70`) ; ce
- * déblocage par jalon devient peu pertinent maintenant que la majorité de la
- * palette est libre d'office, à retrancher séparément (voir HANDOFF.md).
+ * Tous les thèmes sont débloqués d'office : `BASE_UNLOCKED_THEME_IDS` en est
+ * la seule vérité et couvre l'intégralité d'`APP_THEMES`. `noir` /
+ * `midnight-sun` / `arcade` viennent de `@typewav/themes` (objets
+ * `ThemeConfig` complets, déjà AA) ; ils étaient jadis récompensés par un
+ * système de jalons, désormais retiré, et sont libres comme les autres.
  *
  * Contraste AA vérifié combinaison par combinaison dans
  * `apps/web/lib/__tests__/theme-contrast.test.ts`, qui boucle automatiquement
@@ -640,7 +638,7 @@ export const APP_THEMES: Record<string, ThemeConfig> = {
     chordProgressionId: 'terminal',
     defaultSoundPackId: 'piano',
   },
-  // Thèmes de jalon : définis dans `@typewav/themes`, débloqués via MILESTONES.
+  // Anciens thèmes de jalon, définis dans `@typewav/themes`, désormais libres.
   noir: noirTheme,
   'midnight-sun': midnightSunTheme,
   arcade: arcadeTheme,
@@ -649,7 +647,7 @@ export const APP_THEMES: Record<string, ThemeConfig> = {
 /**
  * Thèmes débloqués d'office. Seule vérité du défaut, importée par
  * `db.ts` (`DEFAULT_PROFILE.unlockedThemes`) et par le sélecteur de thème.
- * Tout ce qui n'est pas là est derrière un jalon.
+ * Couvre l'intégralité d'`APP_THEMES` : aucun thème n'est verrouillé.
  */
 export const BASE_UNLOCKED_THEME_IDS = [
   'terminal',
@@ -678,4 +676,7 @@ export const BASE_UNLOCKED_THEME_IDS = [
   'volcan-obsidienne',
   'ardoise-ecarlate',
   'riviera',
+  'noir',
+  'midnight-sun',
+  'arcade',
 ] as const;
