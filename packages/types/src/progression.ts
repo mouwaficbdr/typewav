@@ -1,5 +1,5 @@
 /**
- * Types de progression narrative : rangs, jalons, récompenses.
+ * Types de progression narrative : rangs et records personnels.
  * Spec : docs/specs/05-progression.md
  */
 
@@ -57,95 +57,6 @@ export const RANKS: Record<RankTier, Rank> = {
   },
 };
 
-// ─── Jalons ────────────────────────────────────────────────────────────────────
-
-export type Reward =
-  | { type: 'theme'; themeId: string }
-  | { type: 'collection'; collectionId: string }
-  | { type: 'accent'; color: string };
-
-export type MilestoneCondition =
-  | { type: 'wpm'; value: number }
-  | { type: 'accuracy'; value: number }
-  | { type: 'sessions'; value: number }
-  | { type: 'rank'; tier: RankTier }
-  | { type: 'streak'; days: number };
-
-export interface Milestone {
-  id: string;
-  condition: MilestoneCondition;
-  reward: Reward;
-  labelFr: string;
-  labelEn: string;
-}
-
-/** Jalons disponibles dans l'application */
-export const MILESTONES: Milestone[] = [
-  {
-    id: 'first_session',
-    condition: { type: 'sessions', value: 1 },
-    reward: { type: 'theme', themeId: 'noir' },
-    labelFr: 'Première session',
-    labelEn: 'First session',
-  },
-  {
-    id: 'sessions_10',
-    condition: { type: 'sessions', value: 10 },
-    reward: { type: 'accent', color: '#FF6B35' },
-    labelFr: '10 sessions complétées',
-    labelEn: '10 sessions completed',
-  },
-  {
-    id: 'sessions_50',
-    condition: { type: 'sessions', value: 50 },
-    reward: { type: 'theme', themeId: 'midnight-sun' },
-    labelFr: '50 sessions complétées',
-    labelEn: '50 sessions completed',
-  },
-  {
-    id: 'wpm_50',
-    condition: { type: 'wpm', value: 50 },
-    reward: { type: 'accent', color: '#4A9EFF' },
-    labelFr: '50 WPM atteints',
-    labelEn: '50 WPM reached',
-  },
-  {
-    id: 'wpm_70',
-    condition: { type: 'wpm', value: 70 },
-    reward: { type: 'theme', themeId: 'arcade' },
-    labelFr: '70 WPM atteints',
-    labelEn: '70 WPM reached',
-  },
-  {
-    id: 'wpm_90',
-    condition: { type: 'wpm', value: 90 },
-    reward: { type: 'accent', color: '#FF3D7F' },
-    labelFr: '90 WPM atteints',
-    labelEn: '90 WPM reached',
-  },
-  {
-    id: 'accuracy_99',
-    condition: { type: 'accuracy', value: 99 },
-    reward: { type: 'accent', color: '#FFD700' },
-    labelFr: '99% de précision',
-    labelEn: '99% accuracy',
-  },
-  {
-    id: 'rank_architect',
-    condition: { type: 'rank', tier: 'architect' },
-    reward: { type: 'accent', color: '#00D4AA' },
-    labelFr: 'Rang Architecte atteint',
-    labelEn: 'Architect rank reached',
-  },
-  {
-    id: 'rank_ghost',
-    condition: { type: 'rank', tier: 'ghost' },
-    reward: { type: 'accent', color: '#FFD700' },
-    labelFr: 'Rang Fantôme atteint',
-    labelEn: 'Ghost rank reached',
-  },
-];
-
 // ─── Profil utilisateur ────────────────────────────────────────────────────────
 
 export interface PersonalRecords {
@@ -159,7 +70,6 @@ export interface PersonalRecords {
 export interface UserProfile {
   unlockedThemes: string[];
   unlockedCollections: string[];
-  unlockedMilestoneIds: string[];
   currentRank: RankTier;
   pseudo: string;
 }

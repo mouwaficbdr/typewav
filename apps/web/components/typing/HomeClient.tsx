@@ -149,6 +149,11 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     isPhraseBoundary: boolean;
   }>({ pitch: null, isError: false, isPhraseBoundary: false });
   const [isOnboarding, setIsOnboarding] = useState(false);
+  // Tant que la première visite n'est pas tranchée (lecture IndexedDB async),
+  // on ne rend NI la zone de frappe NI l'apprentissage : sinon la frappe
+  // s'affiche un court instant avant de basculer sur l'onboarding (flash).
+  // En dev, l'onboarding est court-circuité (IS_DEV_MODE) : rien à attendre.
+  const [onboardingResolved, setOnboardingResolved] = useState(IS_DEV_MODE);
   const [personalTexts, setPersonalTexts] = useState<PersonalText[]>([]);
   const [isPersonalTextsPanelOpen, setIsPersonalTextsPanelOpen] =
     useState(false);
@@ -430,12 +435,17 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     let cancelled = false;
     hasCompletedOnboarding()
       .then((done) => {
-        if (cancelled || done) return;
-        setIsOnboarding(true);
-        setActiveMode('learning');
+        if (cancelled) return;
+        if (!done) {
+          setIsOnboarding(true);
+          setActiveMode('learning');
+        }
+        setOnboardingResolved(true);
       })
       .catch(() => {
-        // Fail open : ne jamais forcer l'onboarding si on ne peut pas confirmer son état.
+        // Fail open : ne jamais forcer l'onboarding si on ne peut pas
+        // confirmer son état, mais débloquer quand même l'affichage.
+        if (!cancelled) setOnboardingResolved(true);
       });
     return () => {
       cancelled = true;
@@ -896,7 +906,17 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           marginTop: isLearningMode ? '0' : '4vh',
         }}
       >
-        {loadingCollection && !isLearningMode ? (
+        {!onboardingResolved ? (
+          // Fenêtre "première visite pas encore tranchée" : fond de page nu,
+          // même boîte que le reste pour ne pas provoquer de saut. Invisible
+          // en pratique (quelques ms de lecture IndexedDB), mais garantit
+          // qu'on ne voit jamais le mauvais écran avant l'onboarding.
+          <div
+            aria-hidden="true"
+            className="content-typing"
+            style={{ height: 150, backgroundColor: 'var(--color-bg)' }}
+          />
+        ) : loadingCollection && !isLearningMode ? (
           <div
             role="status"
             aria-label={tHint('ariaLoadingCollection')}
