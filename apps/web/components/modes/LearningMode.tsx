@@ -35,7 +35,12 @@ import {
 import { generateLearningText } from '@/lib/words';
 import { LEARNING_LEVELS } from '@typewav/types';
 import { Pointer } from 'lucide-react';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import {
+  AnimatePresence,
+  motion,
+  useAnimationControls,
+  useReducedMotion,
+} from 'motion/react';
 import { useTranslations } from 'next-intl';
 import {
   Fragment,
@@ -45,6 +50,18 @@ import {
   useRef,
   useState,
 } from 'react';
+
+// Halo de la consigne (écran « Où poser tes doigts »). Intensité au repos,
+// intensité apaisée une fois les 8 repères touchés, et le text-shadow diffus
+// calculé depuis la variable CSS `--halo-strength` (pattern color-mix déjà
+// utilisé ailleurs dans l'app). Trois couches proche/moyenne/lointaine pour
+// une décroissance douce plutôt qu'un anneau net.
+const HALO_STRENGTH_REST = 0.22;
+const HALO_STRENGTH_CALM = 0.05;
+const HINT_HALO_TEXT_SHADOW =
+  '0 0 4px color-mix(in srgb, var(--color-accent) calc(var(--halo-strength) * 34%), transparent), ' +
+  '0 0 22px color-mix(in srgb, var(--color-accent) calc(var(--halo-strength) * 46%), transparent), ' +
+  '0 0 42px color-mix(in srgb, var(--color-accent) calc(var(--halo-strength) * 24%), transparent)';
 
 interface LearningSessionStats {
   correct: number;
@@ -100,9 +117,9 @@ export function LearningMode({
 
   // Étape interactive de l'écran de positionnement des doigts (ticket #62,
   // obsession-architect) : transforme une lecture passive en pratique
-  // active (effet de génération), jamais chronométrée ni notée. N'importe
-  // quel ordre, aucune contrainte : le but est de sentir les 8 repères, pas
-  // de réussir un test.
+  // active (effet de génération), jamais chronométrée ni notée. L'ordre est
+  // libre, mais toucher les 8 repères est requis pour poursuivre : le
+  // bouton « Commencer » ne s'active qu'à 8/8.
   const [touchedFingerKeys, setTouchedFingerKeys] = useState<Set<string>>(
     () => new Set(),
   );
@@ -110,6 +127,55 @@ export function LearningMode({
     () => LEARNING_LEVELS.find((l) => l.id === 1)?.keys ?? [],
     [],
   );
+  const fingerAnchorsReady =
+    homeRowKeys.length > 0 && touchedFingerKeys.size === homeRowKeys.length;
+
+  // Halo de la consigne : une seule variable CSS (--halo-strength) animée
+  // impérativement via des controls motion, donc entièrement hors du cycle
+  // de rendu React (aucun re-render pendant la pulsation). Le text-shadow
+  // des deux éléments (consigne + compteur) est calculé depuis cette
+  // variable. Repos discret, pulsation à 2 respirations sur un clic
+  // prématuré, apaisement une fois les 8 repères touchés.
+  const hintControls = useAnimationControls();
+  const startHintAnim = useCallback(
+    (definition: Record<string, unknown>) => {
+      // motion type ses cibles sans les custom properties CSS : cast local.
+      void hintControls.start(
+        definition as Parameters<typeof hintControls.start>[0],
+      );
+    },
+    [hintControls],
+  );
+
+  useEffect(() => {
+    if (fingerIntroDismissed) return;
+    startHintAnim({
+      '--halo-strength': fingerAnchorsReady
+        ? HALO_STRENGTH_CALM
+        : HALO_STRENGTH_REST,
+      scale: 1,
+      transition: { duration: 0.4, ease: 'easeOut' },
+    });
+  }, [fingerAnchorsReady, fingerIntroDismissed, startHintAnim]);
+
+  const pulseHintNow = useCallback(() => {
+    if (shouldReduceMotion) {
+      startHintAnim({
+        '--halo-strength': [HALO_STRENGTH_REST, 0.9, HALO_STRENGTH_REST],
+        transition: { duration: 0.5, ease: 'easeInOut' },
+      });
+      return;
+    }
+    startHintAnim({
+      '--halo-strength': [HALO_STRENGTH_REST, 1, 0.55, 1, HALO_STRENGTH_REST],
+      scale: [1, 1.025, 1.01, 1.025, 1],
+      transition: {
+        duration: 1.9,
+        times: [0, 0.2, 0.5, 0.8, 1],
+        ease: 'easeInOut',
+      },
+    });
+  }, [startHintAnim, shouldReduceMotion]);
 
   useEffect(() => {
     if (fingerIntroDismissed) return;
@@ -387,17 +453,31 @@ export function LearningMode({
           />
         </div>
 
-        <div
+        <motion.div
           className="flex flex-col items-center gap-2"
-          style={{ flexShrink: 0 }}
+          initial={false}
+          animate={hintControls}
+          style={{
+            flexShrink: 0,
+            // Valeur de repos ; l'animation la fait osciller puis y revient,
+            // et l'apaise à HALO_STRENGTH_CALM une fois les 8 repères touchés.
+            // motion pose son propre will-change le temps de l'animation.
+            ['--halo-strength' as string]: HALO_STRENGTH_REST,
+          }}
         >
           <p
             style={{
               fontFamily: 'var(--font-ui)',
               fontSize: 14,
+              // Le texte reste en couleur primaire (contraste AA garanti) :
+              // c'est le halo accent qui porte la mise en avant, pas un
+              // recoloriage du texte.
               color: 'var(--color-text-primary)',
+              fontWeight: 500,
+              letterSpacing: '0.01em',
               textAlign: 'center',
               margin: 0,
+              textShadow: HINT_HALO_TEXT_SHADOW,
             }}
           >
             {t('fingerIntro.practiceLabel')}
@@ -408,11 +488,9 @@ export function LearningMode({
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: 13,
-              color:
-                touchedCount === homeRowKeys.length
-                  ? 'var(--color-accent)'
-                  : 'var(--color-text-muted)',
+              color: 'var(--color-accent)',
               fontWeight: 600,
+              textShadow: HINT_HALO_TEXT_SHADOW,
             }}
           >
             {t('fingerIntro.practiceProgress', {
@@ -420,10 +498,13 @@ export function LearningMode({
               total: homeRowKeys.length,
             })}
           </span>
-        </div>
+        </motion.div>
 
         <button
-          onClick={handleFingerIntroStart}
+          type="button"
+          onClick={fingerAnchorsReady ? handleFingerIntroStart : pulseHintNow}
+          aria-disabled={!fingerAnchorsReady}
+          className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--color-accent)]"
           style={{
             flexShrink: 0,
             padding: '12px 32px',
@@ -434,7 +515,12 @@ export function LearningMode({
             fontFamily: 'var(--font-ui)',
             fontWeight: 700,
             fontSize: 15,
-            cursor: 'pointer',
+            // Pas l'attribut `disabled` natif : il avalerait le clic, or on
+            // veut détecter le clic prématuré pour déclencher le halo. Le
+            // bouton « s'allume » (opacité pleine) quand les 8 sont touchés.
+            opacity: fingerAnchorsReady ? 1 : 0.45,
+            cursor: fingerAnchorsReady ? 'pointer' : 'not-allowed',
+            transition: 'opacity 220ms ease',
           }}
         >
           {t('fingerIntro.start')}

@@ -153,22 +153,34 @@ vi.mock('@/lib/learning-progress', async (importOriginal) => {
   };
 });
 
+type MotionExtraProps = {
+  initial?: unknown;
+  animate?: unknown;
+  exit?: unknown;
+  transition?: unknown;
+};
+
 vi.mock('motion/react', () => ({
   AnimatePresence: ({ children }: { children: ReactNode }) => children,
   motion: {
-    div: ({ children, ...props }: HTMLAttributes<HTMLDivElement>) => (
-      <div {...props}>{children}</div>
-    ),
-    span: ({ children, ...props }: HTMLAttributes<HTMLSpanElement>) => (
-      <span {...props}>{children}</span>
-    ),
+    div: (props: HTMLAttributes<HTMLDivElement> & MotionExtraProps) => {
+      const { initial, animate, exit, transition, children, ...rest } = props;
+      void initial;
+      void animate;
+      void exit;
+      void transition;
+      return <div {...rest}>{children}</div>;
+    },
+    span: (props: HTMLAttributes<HTMLSpanElement> & MotionExtraProps) => {
+      const { initial, animate, exit, transition, children, ...rest } = props;
+      void initial;
+      void animate;
+      void exit;
+      void transition;
+      return <span {...rest}>{children}</span>;
+    },
     button: (
-      props: ButtonHTMLAttributes<HTMLButtonElement> & {
-        initial?: unknown;
-        animate?: unknown;
-        exit?: unknown;
-        transition?: unknown;
-      },
+      props: ButtonHTMLAttributes<HTMLButtonElement> & MotionExtraProps,
     ) => {
       const { initial, animate, exit, transition, ...rest } = props;
       void initial;
@@ -179,6 +191,11 @@ vi.mock('motion/react', () => ({
     },
   },
   useReducedMotion: () => false,
+  useAnimationControls: () => ({
+    start: () => Promise.resolve(),
+    set: () => {},
+    stop: () => {},
+  }),
 }));
 
 import { LearningMode } from '../LearningMode';
@@ -592,14 +609,27 @@ describe('LearningMode : écran de positionnement des doigts (ticket #62)', () =
     expect(screen.queryByTestId('typing-area')).not.toBeInTheDocument();
   });
 
-  it('passe à la leçon après clic sur "Commencer" et persiste le flag', async () => {
+  // Les 8 repères de la home row (niveau 1), en disposition qwerty (mock).
+  const HOME_ROW_ANCHORS = ['a', 's', 'd', 'f', 'j', 'k', 'l', ';'];
+
+  async function touchAllAnchors() {
+    await screen.findByText(/0\/8/);
+    // Laisse l'effet qui pose le listener window keydown se monter.
+    await act(async () => {});
+    for (const key of HOME_ROW_ANCHORS) {
+      fireEvent.keyDown(window, { key });
+    }
+    await screen.findByText(/8\/8/);
+  }
+
+  it('passe à la leçon après avoir touché les 8 repères puis cliqué "Commencer", et persiste le flag', async () => {
     mockHasSeenFingerIntro.mockResolvedValue(false);
 
     render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
 
-    const startButton = await screen.findByRole('button', {
-      name: /commencer/i,
-    });
+    await touchAllAnchors();
+    const startButton = screen.getByRole('button', { name: /commencer/i });
+    expect(startButton).toHaveAttribute('aria-disabled', 'false');
     fireEvent.click(startButton);
 
     expect(mockMarkFingerIntroSeen).toHaveBeenCalledOnce();
@@ -668,7 +698,7 @@ describe('LearningMode : écran de positionnement des doigts (ticket #62)', () =
     expect(screen.getByText(/0\/8/)).toBeInTheDocument();
   });
 
-  it('"Commencer" reste cliquable sans avoir touché aucun repère (skippable, exigence du ticket #62)', async () => {
+  it('"Commencer" est aria-disabled tant que les 8 repères ne sont pas touchés', async () => {
     mockHasSeenFingerIntro.mockResolvedValue(false);
 
     render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
@@ -676,9 +706,34 @@ describe('LearningMode : écran de positionnement des doigts (ticket #62)', () =
     const startButton = await screen.findByRole('button', {
       name: /commencer/i,
     });
-    expect(startButton).toBeEnabled();
+    expect(startButton).toHaveAttribute('aria-disabled', 'true');
+
+    await screen.findByText(/0\/8/);
+    await act(async () => {});
+    fireEvent.keyDown(window, { key: 'f' });
+    await screen.findByText(/1\/8/);
+    expect(startButton).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('un clic prématuré sur "Commencer" ne quitte pas l\'écran et ne persiste rien', async () => {
+    mockHasSeenFingerIntro.mockResolvedValue(false);
+
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
+
+    const startButton = await screen.findByRole('button', {
+      name: /commencer/i,
+    });
+    await screen.findByText(/0\/8/);
+    await act(async () => {});
+    fireEvent.keyDown(window, { key: 'f' });
+    await screen.findByText(/1\/8/);
+
     fireEvent.click(startButton);
 
-    expect(await screen.findByTestId('typing-area')).toBeInTheDocument();
+    expect(mockMarkFingerIntroSeen).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('typing-area')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /commencer/i }),
+    ).toBeInTheDocument();
   });
 });
