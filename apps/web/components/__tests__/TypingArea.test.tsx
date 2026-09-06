@@ -280,6 +280,43 @@ describe('TypingArea : compte à rebours (audit configbar, décision 1)', () => 
   });
 });
 
+describe('TypingArea : compteur de mots (mode Mots, ticket #93)', () => {
+  const compact = (el: HTMLElement) => (el.textContent ?? '').replace(/\s/g, '');
+
+  it('affiche 0 / N dès la sélection du mode, avant la première frappe', () => {
+    Object.assign(mockSessionState, { position: 0 });
+    render(<TypingArea text="alpha beta gamma delta" mode="sprint" />);
+    const wp = screen.getByTestId('word-progress');
+    expect(compact(wp)).toBe('0/4');
+    expect(wp).toHaveStyle({ opacity: '0.55' });
+  });
+
+  it('incrémente le nombre de mots complétés au fil de la frappe', () => {
+    Object.assign(mockSessionState, { position: 'alpha beta '.length });
+    render(<TypingArea text="alpha beta gamma delta" mode="sprint" />);
+    expect(compact(screen.getByTestId('word-progress'))).toBe('2/4');
+  });
+
+  it('affiche N / N une fois la séance terminée', () => {
+    Object.assign(mockSessionState, {
+      position: 'alpha beta gamma delta'.length,
+      isComplete: true,
+    });
+    render(<TypingArea text="alpha beta gamma delta" mode="sprint" />);
+    expect(compact(screen.getByTestId('word-progress'))).toBe('4/4');
+  });
+
+  it('ne s’affiche pas hors du mode Mots', () => {
+    for (const mode of ['classic', 'quote', 'zen'] as const) {
+      const { unmount } = render(
+        <TypingArea text="alpha beta gamma" mode={mode} />,
+      );
+      expect(screen.queryByTestId('word-progress')).not.toBeInTheDocument();
+      unmount();
+    }
+  });
+});
+
 describe('TypingArea : redémarrer à tout moment (Tab + Entrée, ticket #61)', () => {
   // mockHandleKeystroke n'est pas remis à zéro entre tests par défaut
   // (pas de clearMocks global dans vitest.config.ts) : sans ce nettoyage

@@ -564,6 +564,40 @@ export function TypingArea({
         </span>
       )}
 
+      {/* Compteur de mots du mode Mots (ticket #93) : même emplacement et
+          même traitement que le compte à rebours du mode Temps, sans
+          libellé (comme le compte à rebours affiche « 60 » et non « 60 s »).
+          Visible dès la sélection du mode (affiche 0 / N avant la 1re
+          frappe). */}
+      {mode === 'sprint' && words.length > 0 && (
+        <span
+          data-testid="word-progress"
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: '-3.6rem',
+            left: 0,
+            right: 0,
+            textAlign: 'center',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '1.5rem',
+            fontWeight: 600,
+            lineHeight: 1,
+            fontVariantNumeric: 'tabular-nums',
+            color: 'var(--color-accent)',
+            opacity: position === 0 ? 0.55 : 1,
+            transition: 'opacity 0.3s',
+            userSelect: 'none',
+            zIndex: 2,
+            pointerEvents: 'none',
+          }}
+        >
+          {isComplete ? words.length : Math.max(0, wordIndex)}
+          <span style={{ opacity: 0.45, margin: '0 0.4em' }}>/</span>
+          {words.length}
+        </span>
+      )}
+
       {/* Live stats overlay : Option A : au-dessus, opacity 0 avant la première frappe.
           Masqué en mode zen : « sans pression, sans timer » veut dire sans métrique
           affichée en direct non plus, sinon zen == quote avec juste un timer en moins.
