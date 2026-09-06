@@ -320,9 +320,6 @@ beforeEach(async () => {
     useConfigStore.setState(DEFAULT_CONFIG);
   });
   localStorage.clear();
-  // Plusieurs tests posent un vi.spyOn sur @typewav/collections sans le
-  // restaurer : sans ça les compteurs .mock.calls fuient d'un test à l'autre.
-  vi.restoreAllMocks();
   mockFetchCollection.mockClear();
   learningModePropsRef.current = null;
   mockHasCompletedOnboarding.mockClear().mockResolvedValue(true);
@@ -748,18 +745,20 @@ describe('HomeClient : mode Zen sans notation (audit configbar, décision 3 / B1
     // rebond instantané, le temps de "voir" que l'extrait est terminé).
     expect(selectSpy.mock.calls.length).toBe(callsBeforeCompletion);
 
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(1300);
-    });
-
-    // Attendre la condition plutôt que d'assumer que la chaîne
-    // setTimeout -> setState -> effet -> queueMicrotask -> selectFromTexts
-    // a fini de se dérouler pile à la fin de l'advance (flush non
-    // déterministe sous fake timers, surtout en CI).
-    await waitFor(() =>
-      expect(selectSpy.mock.calls.length).toBeGreaterThan(
-        callsBeforeCompletion,
-      ),
+    // Pompe l'horloge ET les microtâches à chaque itération : la chaîne
+    // setTimeout(1200) -> setState -> effet -> queueMicrotask ->
+    // selectFromTexts ne finit pas de se dérouler pile à la fin d'un advance
+    // unique, surtout sous la charge de la CI.
+    await waitFor(
+      async () => {
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(200);
+        });
+        expect(selectSpy.mock.calls.length).toBeGreaterThan(
+          callsBeforeCompletion,
+        );
+      },
+      { timeout: 5000 },
     );
 
     vi.useRealTimers();
