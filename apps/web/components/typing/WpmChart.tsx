@@ -3,7 +3,7 @@
 /**
  * WpmChart : graphique WPM de la session.
  *
- * Courbes : raw (gris) + net (teal).
+ * Courbes : brut (gris) + word-level (teal).
  * Points erreurs : var(--color-error).
  * SessionWaveform en overlay fond (opacité 0.15).
  *
@@ -20,7 +20,7 @@ import { useEffect, useRef, useState } from 'react';
 export interface WpmPoint {
   wordIndex: number;
   wpmRaw: number;
-  wpmNet: number;
+  wpmWord: number;
   hasError: boolean;
 }
 
@@ -77,7 +77,7 @@ export function WpmChart({
     .join(' ');
 
   const netPath = points
-    .map((p, i) => `${i === 0 ? 'M' : 'L'}${toX(i)},${toY(p.wpmNet)}`)
+    .map((p, i) => `${i === 0 ? 'M' : 'L'}${toX(i)},${toY(p.wpmWord)}`)
     .join(' ');
 
   return (
@@ -151,7 +151,7 @@ export function WpmChart({
             <circle
               key={p.wordIndex}
               cx={toX(points.indexOf(p))}
-              cy={toY(p.wpmNet)}
+              cy={toY(p.wpmWord)}
               r={3}
               fill="var(--color-error)"
             />

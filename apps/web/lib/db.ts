@@ -22,6 +22,8 @@ import type {
   UserProfile,
 } from '@typewav/types';
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
+import { updatePersonalRecords } from './progression';
+import { calculateWpmWordLevel } from './stats';
 import { BASE_UNLOCKED_THEME_IDS } from './theme/defaultThemes';
 
 // ─── Types locaux DB ──────────────────────────────────────────────────────────
@@ -165,6 +167,96 @@ async function getDB(): Promise<IDBPDatabase<TypeWavDB>> {
   return dbInstance;
 }
 
+// ─── Migration ponctuelle du WPM (ticket #93, chantier 3) ────────────────────
+
+const WPM_DEFINITION_MIGRATED_KEY = 'wpm_definition_migrated';
+
+/**
+ * Bascule une session enregistrée avant la redéfinition du WPM vers le
+ * nouveau schéma : `wpm` devient le WPM word-level (Monkeytype) recalculé
+ * depuis `keystrokeData`, et l'ancien `wpm` (qui était le brut « toutes les
+ * frappes ») passe dans `wpmRaw`. Un éventuel `wpmNet` résiduel est retiré.
+ *
+ * Idempotente : une session portant déjà `wpmRaw` est rendue inchangée. Une
+ * session sans `keystrokeData` exploitable (historique très ancien) garde son
+ * `wpm` d'origine, seulement recopié dans `wpmRaw`, faute de pouvoir le
+ * recalculer.
+ */
+export function migrateSessionWpmDefinition(
+  session: SessionResult & { wpmRaw?: number; wpmNet?: number },
+): SessionResult {
+  const { wpmNet: _legacyNet, ...rest } = session;
+  if (typeof rest.wpmRaw === 'number') {
+    return rest as SessionResult;
+  }
+  const canRecompute = rest.keystrokeData.length > 0 && rest.duration > 0;
+  return {
+    ...(rest as SessionResult),
+    wpmRaw: rest.wpm,
+    wpm: canRecompute
+      ? calculateWpmWordLevel(rest.keystrokeData, rest.duration)
+      : rest.wpm,
+  };
+}
+
+let wpmMigrationRun: Promise<void> | null = null;
+
+/**
+ * Recalcule une seule fois par session navigateur (drapeau persisté en plus)
+ * tout l'historique et les records personnels sur la nouvelle définition du
+ * WPM. Les readers qui exposent `wpm` ou les records l'attendent, donc
+ * l'utilisateur ne voit jamais un chiffre à l'ancienne définition.
+ *
+ * Les records sont reconstruits depuis l'historique recalculé : accuracy,
+ * régularité et durée sont inchangées, seuls maxWpm et byCollection basculent
+ * sur le word-level. Un record dont la session source a été supprimée n'est
+ * pas conservé, l'état canonique étant l'historique réel.
+ */
+async function ensureWpmDefinitionMigration(): Promise<void> {
+  wpmMigrationRun ??= (async () => {
+    try {
+      const db = await getDB();
+      const done = await db.get(
+        'user_preferences',
+        WPM_DEFINITION_MIGRATED_KEY,
+      );
+      if (done) return;
+
+      const stored = (await db.getAll('sessions')) as Array<
+        SessionResult & { wpmRaw?: number; wpmNet?: number }
+      >;
+      for (const s of stored) {
+        const migrated = migrateSessionWpmDefinition(s);
+        if (
+          migrated.wpm !== s.wpm ||
+          migrated.wpmRaw !== s.wpmRaw ||
+          'wpmNet' in s
+        ) {
+          await db.put('sessions', migrated);
+        }
+      }
+
+      const migratedSessions = (await db.getAll('sessions')) as SessionResult[];
+      migratedSessions.sort((a, b) => a.timestamp - b.timestamp);
+      let records: PersonalRecords | null = null;
+      for (const s of migratedSessions) {
+        records = updatePersonalRecords(records, s);
+      }
+      if (records) {
+        await db.put('personal_records', records, 'records');
+      }
+
+      await db.put('user_preferences', true, WPM_DEFINITION_MIGRATED_KEY);
+    } catch (err) {
+      // Ne jamais bloquer l'accès DB sur un échec : le drapeau reste non
+      // posé, la migration sera retentée au prochain chargement.
+      wpmMigrationRun = null;
+      console.error('[db] wpm definition migration failed', err);
+    }
+  })();
+  return wpmMigrationRun;
+}
+
 // ─── Export / import de toutes les données (local-first) ─────────────────────
 
 const ALL_STORES = [
@@ -205,6 +297,7 @@ function isDBExport(v: unknown): v is DBExport {
  * `personal_records` ont des clés hors-ligne, non contenues dans la valeur).
  */
 export async function exportAll(): Promise<DBExport> {
+  await ensureWpmDefinitionMigration();
   const db = await getDB();
   const tx = db.transaction(ALL_STORES, 'readonly');
   const stores: DBExport['stores'] = {};
@@ -264,6 +357,10 @@ export async function importAll(data: unknown): Promise<void> {
     }
   }
   await tx.done;
+
+  // Les données viennent d'être remplacées : un export d'avant la
+  // redéfinition du WPM doit pouvoir être re-migré au prochain accès.
+  wpmMigrationRun = null;
 }
 
 // ─── Sérialisation des read-modify-write ──────────────────────────────────────
@@ -310,6 +407,7 @@ export async function saveSession(session: SessionResult): Promise<string> {
  * Récupère toutes les sessions triées par timestamp décroissant.
  */
 export async function getSessions(): Promise<SessionResult[]> {
+  await ensureWpmDefinitionMigration();
   const db = await getDB();
   const all = await db.getAllFromIndex('sessions', 'by-timestamp');
   return all.reverse();
@@ -321,6 +419,7 @@ export async function getSessions(): Promise<SessionResult[]> {
 export async function getSessionById(
   id: string,
 ): Promise<SessionResult | undefined> {
+  await ensureWpmDefinitionMigration();
   const db = await getDB();
   return db.get('sessions', id);
 }
@@ -462,6 +561,7 @@ export async function mutateUserProfile(
 // ─── Records personnels ───────────────────────────────────────────────────────
 
 export async function getPersonalRecords(): Promise<PersonalRecords | null> {
+  await ensureWpmDefinitionMigration();
   const db = await getDB();
   return (await db.get('personal_records', 'records')) ?? null;
 }
@@ -482,6 +582,9 @@ export async function mutatePersonalRecords(
   mutator: (current: PersonalRecords | null) => PersonalRecords,
 ): Promise<PersonalRecords> {
   return enqueueMutation('personal_records', async () => {
+    // Le recalcul du WPM doit précéder toute nouvelle écriture de records,
+    // sinon il écraserait celle-ci en reconstruisant depuis l'historique.
+    await ensureWpmDefinitionMigration();
     const db = await getDB();
     const tx = db.transaction('personal_records', 'readwrite');
     const current = (await tx.store.get('records')) ?? null;

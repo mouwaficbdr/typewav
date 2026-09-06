@@ -31,7 +31,7 @@ function makeSessions(n: number): SessionResult[] {
     id: `s-${i}`,
     timestamp: 1_700_000_000_000 + i * 86_400_000,
     wpm: 40 + i,
-    wpmNet: 38 + i,
+    wpmRaw: 42 + i,
     accuracy: 90 + (i % 10),
     consistency: 80,
     duration: 60_000,

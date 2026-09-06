@@ -32,7 +32,7 @@ function makeSession(id: string): SessionResult {
     id,
     timestamp: 1_700_000_000_000,
     wpm: 80,
-    wpmNet: 76,
+    wpmRaw: 82,
     accuracy: 97,
     consistency: 90,
     duration: 60_000,

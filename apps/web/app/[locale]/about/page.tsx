@@ -52,7 +52,7 @@ const MODE_KEYS = [
   'custom',
 ] as const;
 
-const GLOSSARY_KEYS = ['wpm', 'wpmNet', 'accuracy', 'consistency'] as const;
+const GLOSSARY_KEYS = ['wpm', 'wpmRaw', 'accuracy', 'consistency'] as const;
 
 /**
  * Page À propos : Server Component, contenu statique traduit.

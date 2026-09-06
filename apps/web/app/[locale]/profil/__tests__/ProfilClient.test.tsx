@@ -7,7 +7,7 @@ const mockSessions: SessionResult[] = Array.from({ length: 8 }, (_, i) => ({
   id: `session-${i}`,
   timestamp: Date.now() - i * 86_400_000,
   wpm: 60 + i,
-  wpmNet: 58 + i,
+  wpmRaw: 62 + i,
   accuracy: 95,
   consistency: 80,
   duration: 60_000,

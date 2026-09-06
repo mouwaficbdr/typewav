@@ -22,7 +22,7 @@ const defaultMockSessionState = {
   liveStats: { wpm: 0, accuracy: 100, consistency: 100 },
   finalStats: null as {
     wpm: number;
-    wpmNet: number;
+    wpmRaw: number;
     accuracy: number;
     consistency: number;
   } | null,
@@ -381,7 +381,7 @@ describe('TypingArea : fin de session', () => {
     mockSessionState.liveStats = { wpm: 0, accuracy: 100, consistency: 100 };
     mockSessionState.finalStats = {
       wpm: 42,
-      wpmNet: 40,
+      wpmRaw: 45,
       accuracy: 95,
       consistency: 88,
     };
@@ -486,7 +486,7 @@ describe("TypingArea : accessibilité lecteur d'écran (WS-1)", () => {
     Object.assign(mockSessionState, {
       position: 'hello world'.length,
       isComplete: true,
-      finalStats: { wpm: 50, wpmNet: 48, accuracy: 99, consistency: 90 },
+      finalStats: { wpm: 50, wpmRaw: 53, accuracy: 99, consistency: 90 },
     });
     render(<TypingArea text="hello world" />);
     await waitFor(() =>

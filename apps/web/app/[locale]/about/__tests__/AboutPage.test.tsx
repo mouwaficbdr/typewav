@@ -164,7 +164,7 @@ describe('AboutPage', () => {
       .getAllByRole('heading', { level: 2 })
       .find((h) => h.textContent === 'Glossaire')!
       .closest('section')!;
-    for (const term of ['WPM', 'WPM net', 'Précision', 'Régularité']) {
+    for (const term of ['WPM', 'WPM brut', 'Précision', 'Régularité']) {
       expect(within(glossary).getByText(term)).toBeInTheDocument();
     }
   });

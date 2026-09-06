@@ -24,7 +24,7 @@ function makeSession(timestamp: number): SessionResult {
     id: `s-${timestamp}`,
     timestamp,
     wpm: 60,
-    wpmNet: 60,
+    wpmRaw: 62,
     accuracy: 95,
     consistency: 85,
     duration: 60_000,
