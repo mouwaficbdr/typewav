@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 876 292" width="876" height="292" role="img" aria-label="TypeWav: a musical, customizable typing test">
+  <rect width="876" height="292" fill="#0d0d0d"/>
+  <rect x="7" y="7" width="862" height="278" rx="12" fill="none" stroke="#242424" stroke-width="2"/>
+
+  <!-- Waveform mark : 5 barres, memes proportions que /public icon.svg -->
+  <g transform="translate(226 96)" fill="#00d4aa">
+    <rect x="0"  y="0"  width="14" height="84" rx="7"/>
+    <rect x="24" y="12" width="14" height="60" rx="7"/>
+    <rect x="48" y="5"  width="14" height="74" rx="7"/>
+    <rect x="72" y="12" width="14" height="60" rx="7"/>
+    <rect x="96" y="0"  width="14" height="84" rx="7"/>
+  </g>
+
+  <!-- Wordmark : "type" machine a ecrire, "wav" serif italique -->
+  <text x="362" y="160" fill="#ededed">
+    <tspan font-family="'Courier New', ui-monospace, monospace" font-size="68" font-weight="700" letter-spacing="-1">type</tspan><tspan dx="3" font-family="Georgia, 'Times New Roman', serif" font-size="70" font-style="italic" font-weight="500">wav</tspan>
+  </text>
+
+  <text x="438" y="220" text-anchor="middle" fill="#8a8a8a" font-family="-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" letter-spacing="0.4">A musical, customizable typing test</text>
+</svg>

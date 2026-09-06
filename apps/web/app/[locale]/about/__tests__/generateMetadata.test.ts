@@ -5,6 +5,7 @@ vi.mock('next-intl/server', () => ({
   getTranslations: async () => (key: string) => key,
 }));
 
+import { APP_URL } from '@/lib/seo';
 import { generateMetadata } from '../page';
 
 describe('about generateMetadata', () => {
@@ -12,7 +13,7 @@ describe('about generateMetadata', () => {
     const meta = await generateMetadata({
       params: Promise.resolve({ locale: 'en' }),
     });
-    expect(meta.alternates?.canonical).toBe('https://typewav.app/en');
+    expect(meta.alternates?.canonical).toBe(`${APP_URL}/en`);
     expect(meta.openGraph?.locale).toBe('en_US');
   });
 
@@ -20,13 +21,13 @@ describe('about generateMetadata', () => {
     const meta = await generateMetadata({
       params: Promise.resolve({ locale: 'fr' }),
     });
-    expect(meta.alternates?.canonical).toBe('https://typewav.app/fr');
+    expect(meta.alternates?.canonical).toBe(`${APP_URL}/fr`);
   });
 
   it('une locale inconnue retombe sur la locale par défaut', async () => {
     const meta = await generateMetadata({
       params: Promise.resolve({ locale: 'de' }),
     });
-    expect(meta.alternates?.canonical).toBe('https://typewav.app/fr');
+    expect(meta.alternates?.canonical).toBe(`${APP_URL}/fr`);
   });
 });

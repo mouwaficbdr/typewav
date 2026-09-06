@@ -2,7 +2,16 @@
   "name": "typewav",
   "version": "0.0.1",
   "private": true,
-  "description": "TypeWav — immersive musical typing experience",
+  "description": "A musical, customizable typing test",
+  "homepage": "https://typewav.mouwaficbdr.me",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mouwaficbdr/typewav.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mouwaficbdr/typewav/issues"
+  },
+  "author": "mouwaficbdr",
   "scripts": {
     "dev": "pnpm --filter @typewav/web dev",
     "build": "pnpm --filter @typewav/web build",

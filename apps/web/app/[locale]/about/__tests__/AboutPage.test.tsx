@@ -62,7 +62,7 @@ describe('AboutPage', () => {
     expect(h1[0]).toHaveTextContent('Tape juste. La note tombe.');
   });
 
-  it('rend les huit rubriques numérotées de 01 à 08', async () => {
+  it('rend les neuf rubriques numérotées de 01 à 09', async () => {
     await renderPage();
     const headings = screen
       .getAllByRole('heading', { level: 2 })
@@ -76,10 +76,24 @@ describe('AboutPage', () => {
       'Raccourcis clavier',
       'Glossaire',
       'Liens',
+      'Crédits',
     ]);
-    for (const n of ['01', '02', '03', '04', '05', '06', '07', '08']) {
+    for (const n of ['01', '02', '03', '04', '05', '06', '07', '08', '09']) {
       expect(screen.getByText(n)).toBeInTheDocument();
     }
+  });
+
+  it('crédite Monkeytype avec un lien vers son dépôt', async () => {
+    await renderPage();
+    const credits = screen
+      .getAllByRole('heading', { level: 2 })
+      .find((h) => h.textContent === 'Crédits')!
+      .closest('section')!;
+    const link = within(credits).getByRole('link', { name: 'Monkeytype' });
+    expect(link).toHaveAttribute(
+      'href',
+      'https://github.com/monkeytypegame/monkeytype',
+    );
   });
 
   it('liste les huit modes avec leur nom', async () => {

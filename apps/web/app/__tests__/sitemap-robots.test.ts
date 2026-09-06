@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { APP_URL } from '@/lib/seo';
 import robots from '../robots';
 import sitemap from '../sitemap';
 
@@ -8,8 +9,8 @@ describe('sitemap', () => {
 
   it('liste chaque page publique dans les deux locales', () => {
     for (const path of ['', '/classement', '/about']) {
-      expect(urls).toContain(`https://typewav.app/fr${path}`);
-      expect(urls).toContain(`https://typewav.app/en${path}`);
+      expect(urls).toContain(`${APP_URL}/fr${path}`);
+      expect(urls).toContain(`${APP_URL}/en${path}`);
     }
   });
 
@@ -23,8 +24,12 @@ describe('sitemap', () => {
 
   it('chaque entrée porte les alternates hreflang fr et en', () => {
     for (const entry of entries) {
-      expect(entry.alternates?.languages?.fr).toMatch(/^https:\/\/typewav\.app\/fr/);
-      expect(entry.alternates?.languages?.en).toMatch(/^https:\/\/typewav\.app\/en/);
+      expect(entry.alternates?.languages?.fr?.startsWith(`${APP_URL}/fr`)).toBe(
+        true,
+      );
+      expect(entry.alternates?.languages?.en?.startsWith(`${APP_URL}/en`)).toBe(
+        true,
+      );
     }
   });
 });
@@ -33,7 +38,7 @@ describe('robots', () => {
   const rules = robots();
 
   it('pointe vers le sitemap', () => {
-    expect(rules.sitemap).toBe('https://typewav.app/sitemap.xml');
+    expect(rules.sitemap).toBe(`${APP_URL}/sitemap.xml`);
   });
 
   it('interdit les zones privées et l’API', () => {

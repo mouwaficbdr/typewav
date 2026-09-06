@@ -908,9 +908,9 @@ export function LearningMode({
               flexShrink: 0,
             }}
           >
-            {/* La promesse "musicothérapie" existe dans les meta SEO depuis
-                toujours, mais aucun utilisateur ne les voit jamais : c'est ici,
-                au tout premier contact, qu'elle doit vivre à l'écran.
+            {/* La promesse musicale du produit vit dans les meta SEO, mais
+                aucun utilisateur ne les voit jamais : c'est ici, au tout
+                premier contact, qu'elle doit vivre à l'écran.
                 Alignée à gauche plutôt que centrée sur toute la ligne : la
                 centrer forçait un calcul de largeur fragile pour ne jamais
                 chevaucher le bouton (vérifié en navigateur, cassait sur ce
