@@ -341,8 +341,10 @@ describe('HomeClient : lazy loading collections', () => {
   it('charge seulement litterature au premier rendu', async () => {
     const { HomeClient } = await import('../typing/HomeClient');
     render(<HomeClient initialCollection={mockLitterature as never} />);
+    // La zone de frappe n'apparaît qu'une fois l'onboarding tranché (lecture
+    // IndexedDB async, mockée résolue par beforeEach).
+    expect(await screen.findByTestId('typing-area')).toBeInTheDocument();
     expect(mockFetchCollection).not.toHaveBeenCalled();
-    expect(screen.getByTestId('typing-area')).toBeInTheDocument();
   });
 
   it("charge la collection poésie quand activeCollection passe à 'poesie'", async () => {
@@ -414,7 +416,7 @@ describe('HomeClient : application des filtres config', () => {
       <HomeClient initialCollection={mockConfigFiltersCollection as never} />,
     );
 
-    expect(screen.getByTestId('typing-area')).toHaveTextContent(
+    expect(await screen.findByTestId('typing-area')).toHaveTextContent(
       'Hello world test rapide complet',
     );
   });
@@ -538,7 +540,7 @@ describe('HomeClient : application des filtres config', () => {
       <HomeClient initialCollection={mockConfigFiltersCollection as never} />,
     );
 
-    expect(screen.getByTestId('typing-area')).toHaveTextContent(
+    expect(await screen.findByTestId('typing-area')).toHaveTextContent(
       'Hello, world! 2026',
     );
   });
@@ -1165,6 +1167,28 @@ describe('HomeClient : mode Libre (textes personnels)', () => {
 });
 
 describe('HomeClient : onboarding première visite', () => {
+  it("ne montre ni frappe ni apprentissage tant que l'onboarding n'est pas tranché (pas de flash)", async () => {
+    // hasCompletedOnboarding ne répond jamais : on est dans la fenêtre juste
+    // après le montage, avant que la lecture IndexedDB ait abouti.
+    mockHasCompletedOnboarding.mockImplementation(
+      () => new Promise<boolean>(() => {}),
+    );
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    expect(screen.queryByTestId('typing-area')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('learning-mode')).not.toBeInTheDocument();
+  });
+
+  it("montre la frappe dès que l'onboarding est confirmé terminé", async () => {
+    mockHasCompletedOnboarding.mockResolvedValue(true);
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    expect(await screen.findByTestId('typing-area')).toBeInTheDocument();
+    expect(screen.queryByTestId('learning-mode')).not.toBeInTheDocument();
+  });
+
   it("force le mode apprentissage mais garde la ConfigBar visible : la navigation doit toujours rester possible", async () => {
     mockHasCompletedOnboarding.mockResolvedValue(false);
     const { HomeClient } = await import('../typing/HomeClient');
