@@ -90,9 +90,53 @@ vi.mock('@/hooks/useKeyboardLayoutPreference', () => ({
 const mockHasSeenFingerIntro = vi.fn().mockResolvedValue(true);
 const mockMarkFingerIntroSeen = vi.fn().mockResolvedValue(undefined);
 
+const mockGetCelebratedLevels = vi.fn().mockResolvedValue([]);
+const mockMarkLevelCelebrated = vi.fn().mockResolvedValue(undefined);
+
 vi.mock('@/lib/onboarding', () => ({
   hasSeenLearningFingerIntro: () => mockHasSeenFingerIntro(),
   markLearningFingerIntroSeen: () => mockMarkFingerIntroSeen(),
+  getCelebratedLearningLevels: () => mockGetCelebratedLevels(),
+  markLearningLevelCelebrated: (id: number) => mockMarkLevelCelebrated(id),
+}));
+
+// Le moment "Niveau N validé" a ses propres tests (motion, audio, timers) ;
+// ici on veut juste vérifier qu'il apparaît/disparaît au bon moment et
+// déclenche le relais. Stub qui expose ses props + un bouton de fermeture.
+const levelClearedPropsRef: {
+  current: null | {
+    levelId: number;
+    samples: number;
+    accuracy: number;
+    onDismiss: () => void;
+  };
+} = { current: null };
+
+vi.mock('@/components/modes/LevelClearedMoment', () => ({
+  // Même règle que le vrai module : tous les niveaux sauf le dernier.
+  LEVELS_WITH_CLEARED_MOMENT: [1, 2, 3, 4],
+  LevelClearedMoment: (props: {
+    levelId: number;
+    samples: number;
+    accuracy: number;
+    onDismiss: () => void;
+  }) => {
+    levelClearedPropsRef.current = props;
+    return (
+      <div data-testid="level-cleared-moment">
+        <button type="button" onClick={props.onDismiss}>
+          fermer le moment
+        </button>
+      </div>
+    );
+  },
+}));
+
+vi.mock('@/components/modes/LevelRailSpotlight', () => ({
+  LevelRailSpotlight: ({ onDone }: { onDone: () => void }) => {
+    void onDone;
+    return <div data-testid="level-rail-spotlight" />;
+  },
 }));
 
 const mockLoadLearningProgress = vi.fn().mockResolvedValue(undefined);
@@ -140,6 +184,12 @@ vi.mock('motion/react', () => ({
 import { LearningMode } from '../LearningMode';
 
 const mockOnExitTutorial = vi.fn();
+
+beforeEach(() => {
+  levelClearedPropsRef.current = null;
+  mockGetCelebratedLevels.mockClear().mockResolvedValue([]);
+  mockMarkLevelCelebrated.mockClear().mockResolvedValue(undefined);
+});
 
 describe('LearningMode progression wiring', () => {
   beforeEach(() => {
@@ -198,7 +248,7 @@ describe('LearningMode progression wiring', () => {
     ).not.toBeInTheDocument();
   });
 
-  it("transforme la barre de progression en CTA et permet d'avancer en cliquant dessus quand les objectifs sont atteints", () => {
+  it("une fois l'objectif atteint, c'est le point du niveau suivant qui porte le CTA (et cliquer dessus avance)", () => {
     render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
 
     act(() => {
@@ -210,14 +260,22 @@ describe('LearningMode progression wiring', () => {
       });
     });
 
-    const readyCta = screen.getByRole('button', {
-      name: /Niveau 2 pr.t/i,
-    });
+    // Le CTA "prêt" est sur le point du niveau 2, pas sur le point actif
+    // (niveau 1, qui garde son libellé neutre "vous êtes ici").
+    const readyCta = screen.getByRole('button', { name: /Niveau 2 pr.t/i });
     expect(readyCta).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: /^Niveau 1 : Les premières notes$/i,
+      }),
+    ).toBeInTheDocument();
 
     fireEvent.click(readyCta);
 
-    expect(screen.getByText(/Niveau 2.*Vers les aigus/i)).toBeInTheDocument();
+    // Libellé visible exact (pas l'annonce SR "Niveau 2 débloqué : ...").
+    expect(
+      screen.getByText('Niveau 2 : Vers les aigus'),
+    ).toBeInTheDocument();
   });
 
   it("annonce le déblocage pour un lecteur d'écran, pas seulement visuellement", () => {
@@ -235,6 +293,51 @@ describe('LearningMode progression wiring', () => {
     });
 
     expect(screen.getByRole('status')).toHaveTextContent(/Niveau 2 d.bloqu./i);
+  });
+
+  it('joue le moment "Niveau N validé" quand l\'objectif est atteint, puis le relais spotlight à la fermeture', async () => {
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
+    await act(async () => {}); // laisse getCelebratedLearningLevels() se résoudre
+
+    expect(screen.queryByTestId('level-cleared-moment')).not.toBeInTheDocument();
+
+    act(() => {
+      typingAreaPropsRef.current?.onSessionComplete?.({
+        wpm: 55,
+        accuracy: 100,
+        correct: 50,
+        total: 50,
+      });
+    });
+
+    expect(screen.getByTestId('level-cleared-moment')).toBeInTheDocument();
+    expect(levelClearedPropsRef.current?.levelId).toBe(1);
+    expect(levelClearedPropsRef.current?.samples).toBeGreaterThanOrEqual(50);
+    expect(screen.queryByTestId('level-rail-spotlight')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /fermer le moment/i }));
+
+    expect(mockMarkLevelCelebrated).toHaveBeenCalledWith(1);
+    expect(screen.queryByTestId('level-cleared-moment')).not.toBeInTheDocument();
+    expect(screen.getByTestId('level-rail-spotlight')).toBeInTheDocument();
+  });
+
+  it('ne rejoue pas le moment pour un niveau déjà célébré', async () => {
+    mockGetCelebratedLevels.mockResolvedValue([1]);
+
+    render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
+    await act(async () => {}); // laisse celebratedLevelsRef se peupler ([1])
+
+    act(() => {
+      typingAreaPropsRef.current?.onSessionComplete?.({
+        wpm: 55,
+        accuracy: 100,
+        correct: 50,
+        total: 50,
+      });
+    });
+
+    expect(screen.queryByTestId('level-cleared-moment')).not.toBeInTheDocument();
   });
 
   it('le stepper permet de revenir sur un niveau déjà débloqué (navigation, pas seulement avancer)', async () => {
@@ -521,7 +624,13 @@ describe('LearningMode : écran de positionnement des doigts (ticket #62)', () =
     render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
     await screen.findByTestId('keyboard-diagram');
 
-    expect(keyboardDiagramPropsRef.current?.showAllFingerColors).toBe(true);
+    // waitFor plutôt qu'une assertion synchrone juste après findByTestId :
+    // le nœud peut apparaître au commit avant que le ref de props capturé
+    // par le mock (assigné pendant le rendu, mais potentiellement un rendu
+    // précédent laissé par un test voisin) ne reflète le rendu courant.
+    await waitFor(() =>
+      expect(keyboardDiagramPropsRef.current?.showAllFingerColors).toBe(true),
+    );
   });
 
   it("l'étape interactive démarre à 0 repère touché", async () => {
@@ -537,6 +646,9 @@ describe('LearningMode : écran de positionnement des doigts (ticket #62)', () =
 
     render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
     await screen.findByText(/0\/8/);
+    // Laisse l'effet qui pose le listener window keydown se monter avant de
+    // frapper (sinon la frappe part dans le vide sous charge du full-suite).
+    await act(async () => {});
 
     fireEvent.keyDown(window, { key: 'f' });
 
@@ -549,6 +661,7 @@ describe('LearningMode : écran de positionnement des doigts (ticket #62)', () =
 
     render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
     await screen.findByText(/0\/8/);
+    await act(async () => {});
 
     fireEvent.keyDown(window, { key: ' ' });
 

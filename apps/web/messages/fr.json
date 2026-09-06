@@ -365,7 +365,13 @@
       }
     },
     "levelHeading": "Niveau {id} : {name}",
-    "progressStats": "{samples}/{minSamples} frappes • {accuracy}% précision (visé {targetAccuracy}%)",
+    "levelCleared": {
+      "eyebrow": "Niveau {id}",
+      "status": "validé",
+      "proof": "{samples} frappes enchaînées à {accuracy}% de précision",
+      "continueHint": "une touche pour continuer"
+    },
+    "progressStats":"{samples}/{minSamples} frappes • {accuracy}% précision (visé {targetAccuracy}%)",
     "lastSession": "Dernière session : {wpm} MPM · {accuracy}% ({correct}/{total})",
     "needMoreReps": "Encore {samples} frappes à enchaîner (vise {accuracy}% de précision) pour débloquer la suite. Termine chaque série jusqu'au bout : une série interrompue ne compte pas.",
     "needMoreAccuracy": "Tu as fait assez de frappes, mais ta précision cumulée est encore sous les {accuracy}% visés. Enchaîne des séries précises pour la faire remonter.",

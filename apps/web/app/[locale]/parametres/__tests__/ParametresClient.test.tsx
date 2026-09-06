@@ -263,7 +263,7 @@ describe('ParametresClient : langue d’affichage (ticket #60)', () => {
 });
 
 describe('ParametresClient : disposition du clavier (ticket #60)', () => {
-  it('affiche qwerty comme disposition active par défaut', async () => {
+  it('affiche azerty comme disposition active par défaut', async () => {
     mockGetUserProfile.mockReturnValue(new Promise(() => {}));
 
     render(<ParametresClient />);
@@ -272,8 +272,8 @@ describe('ParametresClient : disposition du clavier (ticket #60)', () => {
     const buttons = screen.getAllByRole('button', { name: 'selectLayout' });
     expect(buttons).toHaveLength(2);
     // Le mock i18n renvoie la clé brute, pas le libellé traduit.
-    const qwerty = buttons.find((b) => b.textContent?.includes('layoutQwerty'))!;
-    expect(qwerty).toHaveAttribute('aria-pressed', 'true');
+    const azerty = buttons.find((b) => b.textContent?.includes('layoutAzerty'))!;
+    expect(azerty).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('charge la disposition déjà stockée', async () => {

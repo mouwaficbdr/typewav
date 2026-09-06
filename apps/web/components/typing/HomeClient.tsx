@@ -603,11 +603,22 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         // un conteneur à hauteur fixe qui ne scrolle jamais : le "airy
         // spacing" pensé pour les modes de test tient moins bien ici, donc
         // resserré spécifiquement pour ce mode plutôt que globalement.
-        gap: isLearningMode ? 20 : 36,
-        padding: isLearningMode ? '20px 32px 16px' : '32px 32px 16px',
+        // Apprentissage : le compteur wpm/précision de TypingArea flotte en
+        // position:absolute a top:-1.75rem au-dessus de sa boite. Depuis que
+        // le bandeau de niveau est parti dans le rail lateral, la zone de
+        // frappe est le premier element sous la ConfigBar : cet ecart doit
+        // rester > ~30px pour que le compteur ne chevauche pas la ConfigBar.
+        gap: isLearningMode ? 40 : 36,
+        padding: isLearningMode ? '16px 32px 12px' : '32px 32px 16px',
         height: 'calc(100dvh - var(--nav-height))',
         overflow: 'hidden', // Account for nav height
-        maxWidth: '1600px',
+        // Mode Apprentissage : pas de plafond de largeur. Le rail de niveaux
+        // vit dans la 1re colonne (1fr) de la grille de LearningMode et doit
+        // toucher le bord gauche de la page, exactement comme dans
+        // l'onboarding (dont le <main> n'a pas ce plafond). Le contenu (zone
+        // de frappe, clavier) reste centre sur la fenetre via la colonne
+        // centrale symetrique de la grille. Les autres modes gardent 1600.
+        maxWidth: isLearningMode ? 'none' : '1600px',
         margin: '0 auto',
         width: '100%',
         backgroundColor: 'transparent',
@@ -1064,11 +1075,11 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           // (main a seulement 16px de padding bas). marginTop:auto absorbe
           // l'espace libre en premier, donc sur écran court ça se resserre
           // proprement sans pousser le contenu hors du cadre overflow:hidden.
-          marginBottom: '30px',
+          marginBottom: isLearningMode ? '14px' : '30px',
           fontFamily: 'var(--font-ui)',
           fontSize: '0.75rem',
           color: 'var(--color-text-muted)',
-          paddingTop: '32px',
+          paddingTop: isLearningMode ? '14px' : '32px',
           ...fadeOnStart(10),
         }}
       >

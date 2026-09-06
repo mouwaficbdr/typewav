@@ -24,7 +24,7 @@ interface ThemeActions {
 export const useThemeStore = create<ThemeState & ThemeActions>()(
   persist(
     (set) => ({
-      themeId: 'terminal',
+      themeId: 'cyprus-sand',
       setTheme: (themeId) => set({ themeId }),
     }),
     {

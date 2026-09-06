@@ -8,6 +8,11 @@
  */
 
 import { KeyboardDiagram } from '@/components/modes/KeyboardDiagram';
+import {
+  LEVELS_WITH_CLEARED_MOMENT,
+  LevelClearedMoment,
+} from '@/components/modes/LevelClearedMoment';
+import { LevelRailSpotlight } from '@/components/modes/LevelRailSpotlight';
 import { TypingArea } from '@/components/typing/TypingArea';
 import { useKeyboardLayoutPreference } from '@/hooks/useKeyboardLayoutPreference';
 import { resolvePhysicalKey } from '@/lib/keyboardLayouts';
@@ -22,14 +27,24 @@ import {
   type LevelProgress,
 } from '@/lib/learning-progress';
 import {
+  getCelebratedLearningLevels,
   hasSeenLearningFingerIntro,
   markLearningFingerIntroSeen,
+  markLearningLevelCelebrated,
 } from '@/lib/onboarding';
 import { generateLearningText } from '@/lib/words';
 import { LEARNING_LEVELS } from '@typewav/types';
+import { Pointer } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 interface LearningSessionStats {
   correct: number;
@@ -167,25 +182,79 @@ export function LearningMode({
   const isLastLevel = currentLevelId === LEARNING_LEVELS.length;
   const tutorialComplete = isLastLevel && canUnlockNext;
 
-  // Le CTA "Débloquer le niveau X" empilé en bas de la colonne était la
-  // vraie cause du débordement intermittent du mode Apprentissage (~60px
-  // ajoutés uniquement quand il apparaissait, sur un conteneur à hauteur
-  // fixe). Au lieu de lui trouver une place, l'action se déplace dans le
-  // sélecteur de niveaux lui-même : l'onglet suivant s'anime et devient
-  // cliquable directement, avec une salve de notes ponctuelle (aucune
-  // hauteur ajoutée, jamais).
+  // Moment "Niveau N validé" : joué une fois quand l'objectif cumulé du
+  // niveau vient d'être atteint (canUnlockNext bascule), sauf sur le dernier
+  // niveau (qui enchaîne sur l'écran de fin de tutoriel) et sauf s'il a déjà
+  // été célébré (flag persisté). L'invite permanente à avancer reste le
+  // pulse + la main sur le point suivant du rail ; ce moment est le pic
+  // ponctuel qui pointe vers lui, puis se résout en spotlight.
   const prevCanUnlockNextRef = useRef(false);
-  const [showUnlockBurst, setShowUnlockBurst] = useState(false);
+  const celebratedLevelsRef = useRef<Set<number>>(new Set());
+  const [celebration, setCelebration] = useState<{
+    levelId: number;
+    samples: number;
+    accuracy: number;
+  } | null>(null);
+  const [spotlight, setSpotlight] = useState<{ x: number; y: number } | null>(
+    null,
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    getCelebratedLearningLevels().then((ids) => {
+      if (!cancelled) celebratedLevelsRef.current = new Set(ids);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const justUnlocked = canUnlockNext && !prevCanUnlockNextRef.current;
     prevCanUnlockNextRef.current = canUnlockNext;
     if (!justUnlocked || isLastLevel) return;
+    if (!LEVELS_WITH_CLEARED_MOMENT.includes(currentLevelId)) return;
+    if (celebratedLevelsRef.current.has(currentLevelId)) return;
+    // Seulement si franchir CE niveau débloque vraiment le suivant : revenir
+    // sur un niveau déjà bouclé (suivant déjà ouvert) ne rejoue rien. Couvre
+    // aussi le chargement d'une sauvegarde où la progression était déjà
+    // au-delà du seuil.
+    const nextUnlocked = !!levelProgress.find(
+      (p) => p.levelId === currentLevelId + 1,
+    )?.unlocked;
+    if (nextUnlocked) return;
 
-    setShowUnlockBurst(true);
-    const timeout = setTimeout(() => setShowUnlockBurst(false), 1300);
-    return () => clearTimeout(timeout);
-  }, [canUnlockNext, isLastLevel]);
+    setCelebration({
+      levelId: currentLevelId,
+      samples: currentProgress.samples,
+      accuracy: currentProgress.accuracy,
+    });
+  }, [
+    canUnlockNext,
+    isLastLevel,
+    currentLevelId,
+    levelProgress,
+    currentProgress.samples,
+    currentProgress.accuracy,
+  ]);
+
+  const handleCelebrationDismiss = useCallback(() => {
+    setCelebration((current) => {
+      if (current) {
+        celebratedLevelsRef.current.add(current.levelId);
+        void markLearningLevelCelebrated(current.levelId);
+      }
+      return null;
+    });
+    // Le point suivant du rail existe déjà (il pulse depuis que canUnlockNext
+    // a basculé) : on mesure sa position ici (gestionnaire, pas un effet) et
+    // on enchaîne sur le spotlight de relais.
+    const dot = document.getElementById('level-rail-next-dot');
+    if (dot) {
+      const r = dot.getBoundingClientRect();
+      setSpotlight({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+    }
+  }, []);
 
   const remainingSamples = Math.max(
     0,
@@ -374,292 +443,426 @@ export function LearningMode({
     );
   }
 
+  const isReadyToAdvance = canUnlockNext && !isLastLevel;
+
+  // Le trait de liaison du stepper doit finir au centre du dernier point.
+  // Un grand point numéroté (niveau débloqué, actif, ou tout juste
+  // débloquable) a son centre à ~15px du bas de la grille ; un petit point
+  // verrouillé, à ~6px.
+  const lastLevelId = LEARNING_LEVELS[LEARNING_LEVELS.length - 1]!.id;
+  const lastDotIsBig =
+    currentLevelId === lastLevelId ||
+    !!levelProgress.find((p) => p.levelId === lastLevelId)?.unlocked ||
+    (isReadyToAdvance && currentLevelId + 1 === lastLevelId);
+  const connectorBottom = lastDotIsBig ? 15 : 6;
+
   return (
     <div
-      // gap-11 (44px) uniforme entre toutes les sections majeures (en-tête,
-      // zone de frappe, dernière session, clavier) plutôt qu'un cas
-      // particulier ponctuel : le compteur wpm/précision de TypingArea
-      // flotte en `position: absolute; top: -1.75rem` (-28px) au-dessus de
-      // sa propre boîte, donc n'importe quel écart en dessous de ~44px le
-      // fait sembler collé à ce qu'il y a juste au-dessus.
-      className="flex flex-col items-center gap-11 w-full max-w-3xl"
-      style={{ height: '100%', minHeight: 0 }}
+      // Grille à 3 colonnes (marge élastique, contenu, marge élastique)
+      // plutôt qu'un flex centré sur (rail + contenu) comme bloc unique :
+      // ce dernier collait le rail juste à gauche du texte, au milieu de
+      // la page, pas contre le vrai bord gauche (retour Mouwafic sur le
+      // premier rendu réel). En grille, le contenu reste centré sur la
+      // largeur réelle de la page (2ᵉ colonne, à sa taille naturelle) et le
+      // rail se cale contre le bord gauche de la 1ʳᵉ colonne élastique,
+      // quelle que soit la largeur de l'écran.
+      className="w-full"
+      style={{
+        height: '100%',
+        minHeight: 0,
+        display: 'grid',
+        gridTemplateColumns: '1fr minmax(0, 920px) 1fr',
+        columnGap: 28,
+      }}
     >
-      {/* Annonce lecteur d'écran du déblocage : le glow et la salve de notes
-          sur la barre de progression sont purement visuels, ce changement
-          d'état doit rester perceptible sans les yeux. */}
-      <div role="status" aria-live="polite" className="sr-only">
-        {showUnlockBurst && !isLastLevel
-          ? t('unlockedAnnouncement', {
-              id: currentLevelId + 1,
-              name: t(`level.${currentLevelId + 1}.name`),
-            })
-          : ''}
-      </div>
-
-      {isOnboarding && (
-        <>
-          {/* La promesse "musicothérapie" existe dans les meta SEO depuis
-              toujours, mais aucun utilisateur ne les voit jamais : c'est ici,
-              au tout premier contact, qu'elle doit vivre à l'écran. */}
-          <p
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontStyle: 'italic',
-              color: 'var(--color-accent)',
-              fontSize: '1.1rem',
-              textAlign: 'center',
-              margin: 0,
-              flexShrink: 0,
-            }}
-          >
-            {t('tagline')}
-          </p>
-          <button
-            onClick={onExitTutorial}
-            style={{
-              alignSelf: 'flex-end',
-              flexShrink: 0,
-              background: 'transparent',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)',
-              color: 'var(--color-text-muted)',
-              fontFamily: 'var(--font-ui)',
-              fontSize: 12,
-              padding: '6px 12px',
-              cursor: 'pointer',
-            }}
-          >
-            {t('skipTutorial')}
-          </button>
-        </>
-      )}
-
-      {/* Position dans le parcours + niveau courant.
-          Remplace un titre H2 séparé + une rangée de 5 boutons pleine
-          largeur avec noms (retour Mouwafic) : le nom de niveau était
-          répété deux fois (titre ET onglet actif), et connaître le NOM des
-          étapes suivantes n'apporte rien tant qu'on n'y est pas. Seule la
-          position/le nombre compte. Le stepper ci-dessous reste un pur
-          outil de navigation (revenir sur un niveau déjà débloqué) ; le
-          nom du niveau courant vit désormais à côté, en petit, une seule
-          fois. Avancer se fait via la barre de progression juste en
-          dessous (voir "level-cta-ready"), pas en cliquant un onglet. */}
       <style>{`
-        @keyframes level-ready-glow {
-          0%, 100% {
-            box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 0%, transparent);
+        @keyframes level-next-ping {
+          0% {
+            box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 55%, transparent);
           }
-          50% {
-            box-shadow: 0 0 10px 2px color-mix(in srgb, var(--color-accent) 45%, transparent);
+          70%, 100% {
+            box-shadow: 0 0 0 9px color-mix(in srgb, var(--color-accent) 0%, transparent);
           }
         }
+        .level-next-cta {
+          animation: level-next-ping 1.6s ease-out infinite;
+        }
         @media (prefers-reduced-motion: reduce) {
-          .level-cta-ready {
+          .level-next-cta {
             animation: none !important;
           }
         }
       `}</style>
+
+      {/* Rail de niveaux, en marge plutôt qu'empilé au-dessus de la leçon.
+          Coûtait auparavant une rangée horizontale complète (stepper + nom +
+          barre de progression), donc sa propre hauteur ET son propre gap-11 ;
+          en colonne latérale, il ne coûte plus aucune hauteur au flux
+          vertical principal, la vraie cause de l'ancien clavier réduit à
+          zéro pixel pendant l'onboarding (mesuré en navigateur réel). Sert
+          à revenir sur un niveau déjà débloqué ; pour avancer, une fois
+          l'objectif atteint, le point suivant pulse et une main animée
+          pointe vers lui (cliquer dessus passe au niveau suivant). N'a pas
+          encore de repli dédié sous une largeur de fenêtre réduite : la
+          vraie passe responsive est le ticket #71, volontairement après
+          coup pour ne pas refaire ce travail plusieurs fois. */}
       <div
-        className="flex flex-col items-center gap-2"
-        style={{ flexShrink: 0 }}
+        style={{
+          justifySelf: 'start',
+          width: 264,
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'flex-start',
+          paddingTop: 64,
+        }}
       >
-        <div className="flex items-center gap-4">
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <div
-              aria-hidden="true"
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: 14,
-                right: 14,
-                height: 1,
-                background: 'var(--color-border)',
-                transform: 'translateY(-50%)',
-              }}
-            />
-            {LEARNING_LEVELS.map((level, idx) => {
-              const progress = levelProgress.find(
-                (p) => p.levelId === level.id,
-              )!;
-              const isActive = level.id === currentLevelId;
-              const isSelectable = progress.unlocked;
-              const levelName = t(`level.${level.id}.name`);
+        {/* Grille à deux colonnes (point, 30px ; étiquette, le reste) plutôt
+            qu'une étiquette positionnée en absolu à côté du point : en flux
+            normal, la colonne de contenu ne peut jamais en hériter un
+            chevauchement, quelle que soit la longueur du texte traduit
+            (repéré en navigateur réel avec l'ancienne version en absolu, qui
+            chevauchait "0/50 frappes..." juste à côté). Chaque niveau
+            fournit exactement deux cellules (point, puis étiquette vide ou
+            pleine) via Fragment pour ne jamais désaligner la grille. */}
+        <div
+          style={{
+            position: 'relative',
+            display: 'grid',
+            gridTemplateColumns: '30px 1fr',
+            alignItems: 'center',
+            rowGap: 18,
+            columnGap: 16,
+            width: '100%',
+          }}
+        >
+          {/* Trait de liaison : du centre du premier point (~15px, le
+              niveau 1 est toujours un grand point) au centre du dernier.
+              Les points ont un fond opaque : ils masquent le trait sur leur
+              diamètre, il ne reste visible que dans les intervalles, comme
+              un vrai stepper. */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              left: 15,
+              top: 15,
+              bottom: connectorBottom,
+              width: 1,
+              background:
+                'color-mix(in srgb, var(--color-text-muted) 32%, transparent)',
+              zIndex: 0,
+            }}
+          />
+          {LEARNING_LEVELS.map((level) => {
+            const progress = levelProgress.find(
+              (p) => p.levelId === level.id,
+            )!;
+            const isActive = level.id === currentLevelId;
+            const isUnlocked = progress.unlocked;
+            const levelName = t(`level.${level.id}.name`);
+
+            // Prochaine étape : le niveau juste après l'actif, franchissable
+            // maintenant mais pas encore franchi. C'est LUI qui porte
+            // l'invite à avancer (pulse + main qui pointe), pas le point
+            // actif (retour Mouwafic). Une fois franchi (ou déjà débloqué
+            // dans une sauvegarde), il redevient un point ordinaire.
+            const isNextUp =
+              isReadyToAdvance &&
+              level.id === currentLevelId + 1 &&
+              !isUnlocked;
+
+            // Verrouillé : petit point sobre, sans numéro. Tout le reste
+            // (actif, déjà débloqué, ou tout juste débloquable) : grand
+            // point numéroté, même diamètre que le point actif, pour ne pas
+            // semer la confusion entre les états (retour Mouwafic).
+            const isBig = isActive || isUnlocked || isNextUp;
+
+            if (!isBig) {
               return (
+                <Fragment key={level.id}>
+                  <button
+                    onClick={() => handleLevelSelect(level.id)}
+                    disabled
+                    aria-label={t('levelHeading', {
+                      id: level.id,
+                      name: levelName,
+                    })}
+                    style={{
+                      justifySelf: 'center',
+                      position: 'relative',
+                      zIndex: 1,
+                      width: 12,
+                      height: 12,
+                      padding: 0,
+                      borderRadius: '50%',
+                      boxSizing: 'border-box',
+                      background: 'var(--color-bg)',
+                      border:
+                        '1.5px solid color-mix(in srgb, var(--color-text-muted) 55%, transparent)',
+                      cursor: 'not-allowed',
+                    }}
+                  />
+                  <span aria-hidden="true" />
+                </Fragment>
+              );
+            }
+
+            const ringPercent = isActive
+              ? isReadyToAdvance
+                ? 100
+                : Math.min(100, Math.max(0, progressPercent))
+              : 100;
+
+            return (
+              <Fragment key={level.id}>
                 <button
-                  key={level.id}
-                  onClick={() => handleLevelSelect(level.id)}
-                  disabled={!isSelectable}
-                  aria-label={t('levelHeading', {
-                    id: level.id,
-                    name: levelName,
-                  })}
+                  {...(isNextUp ? { id: 'level-rail-next-dot' } : {})}
+                  onClick={
+                    isNextUp
+                      ? () => handleNextLevel()
+                      : () => handleLevelSelect(level.id)
+                  }
                   aria-current={isActive ? 'step' : undefined}
+                  aria-label={
+                    isNextUp
+                      ? t('readyToUnlock', { id: level.id, name: levelName })
+                      : t('levelHeading', { id: level.id, name: levelName })
+                  }
+                  className={isNextUp ? 'level-next-cta' : undefined}
                   style={{
+                    justifySelf: 'center',
+                    // Le point actif est calé en haut de sa rangée (son
+                    // étiquette la rend plus haute que 30px) ; les autres
+                    // grands points tiennent dans une rangée de 30px.
+                    ...(isActive ? { alignSelf: 'start' } : {}),
                     position: 'relative',
                     zIndex: 1,
-                    width: 28,
-                    height: 28,
+                    width: 30,
+                    height: 30,
+                    padding: 3,
                     borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginRight:
-                      idx < LEARNING_LEVELS.length - 1 ? 14 : 0,
-                    border: `1px solid ${
-                      isActive
-                        ? 'var(--color-accent)'
-                        : isSelectable
-                          ? 'var(--color-text-muted)'
-                          : 'var(--color-border)'
-                    }`,
+                    border: 'none',
+                    cursor: 'pointer',
+                    // Anneau : progression réelle pour l'actif ; accent plein
+                    // et vif pour le prochain (invite au clic) ; accent
+                    // atténué pour un niveau déjà franchi.
                     background: isActive
-                      ? 'var(--color-accent)'
-                      : 'var(--color-surface)',
-                    color: isActive
-                      ? '#000'
-                      : isSelectable
-                        ? 'var(--color-text-primary)'
-                        : 'var(--color-text-muted)',
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    cursor: isSelectable ? 'pointer' : 'not-allowed',
-                    opacity: isSelectable ? 1 : 0.5,
-                    transition: 'all 0.15s',
+                      ? `conic-gradient(var(--color-accent) ${ringPercent * 3.6}deg, var(--color-border) 0deg)`
+                      : isNextUp
+                        ? 'var(--color-accent)'
+                        : 'color-mix(in srgb, var(--color-accent) 45%, var(--color-border))',
+                    boxShadow: isActive
+                      ? `0 0 0 5px color-mix(in srgb, var(--color-accent) 22%, transparent), 0 0 22px 3px color-mix(in srgb, var(--color-accent) ${isReadyToAdvance ? 70 : 48}%, transparent)`
+                      : undefined,
+                    transition: 'background 0.2s',
                   }}
                 >
-                  {level.id}
+                  <span
+                    style={{
+                      display: 'flex',
+                      width: '100%',
+                      height: '100%',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '50%',
+                      background:
+                        isActive && isReadyToAdvance
+                          ? 'var(--color-accent)'
+                          : 'var(--color-surface)',
+                      color:
+                        isActive && isReadyToAdvance
+                          ? '#000'
+                          : isNextUp || isActive
+                            ? 'var(--color-accent)'
+                            : 'color-mix(in srgb, var(--color-accent) 80%, var(--color-text))',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 12,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {level.id}
+                  </span>
                 </button>
-              );
-            })}
-          </div>
 
-          <div className="flex flex-col" style={{ textAlign: 'left' }}>
-            <span
-              style={{
-                fontFamily: 'var(--font-display)',
-                color: 'var(--color-accent)',
-                fontSize: '1.15rem',
-              }}
-            >
-              {t('levelHeading', {
-                id: currentLevelId,
-                name: t(`level.${currentLevelId}.name`),
-              })}
-            </span>
-            <span
-              style={{
-                fontFamily: 'var(--font-ui)',
-                fontSize: 12,
-                color: 'var(--color-text-muted)',
-                fontStyle: 'italic',
-              }}
-            >
-              {t(`level.${currentLevelId}.tagline`)}
-            </span>
-          </div>
-        </div>
-
-        {/* Progression : devient elle-même le mécanisme pour avancer une
-            fois l'objectif atteint, à la place d'un onglet séparé à
-            cliquer. C'est l'endroit que l'œil regarde déjà pendant la
-            frappe, la transition progression → bouton n'a besoin d'aucune
-            explication. */}
-        <div className="flex items-center gap-3 mt-1">
-          <div
-            style={{
-              width: 160,
-              height: 4,
-              background: 'var(--color-border)',
-              borderRadius: 'var(--radius-sm)',
-            }}
-          >
-            <motion.div
-              style={{
-                height: '100%',
-                background: 'var(--color-accent)',
-                borderRadius: 'var(--radius-sm)',
-              }}
-              animate={{ width: `${Math.min(100, progressPercent)}%` }}
-              transition={{ duration }}
-            />
-          </div>
-          {canUnlockNext && !isLastLevel ? (
-            <button
-              onClick={handleNextLevel}
-              className="level-cta-ready"
-              style={{
-                position: 'relative',
-                background: 'transparent',
-                border: 'none',
-                // Vraie zone cliquable des deux côtés (10px), mais la
-                // marge négative à gauche ne compense qu'une partie du
-                // padding (-4px sur 10px) : le bouton ne se rapproche que
-                // de 6px de la barre de progression à sa gauche, jamais
-                // au point d'empiéter sur son espace (gap-3 = 12px).
-                padding: '4px 10px',
-                margin: '-4px -10px -4px -4px',
-                fontFamily: 'var(--font-mono)',
-                fontSize: 12,
-                fontWeight: 700,
-                color: 'var(--color-accent)',
-                cursor: 'pointer',
-                borderRadius: 'var(--radius-sm)',
-                animation: 'level-ready-glow 2.2s ease-in-out infinite',
-              }}
-            >
-              {t('readyToUnlock', {
-                id: currentLevelId + 1,
-                name: t(`level.${currentLevelId + 1}.name`),
-              })}
-              {showUnlockBurst && !shouldReduceMotion && (
-                <AnimatePresence>
-                  {['♪', '♫', '♪'].map((glyph, i) => (
-                    <motion.span
-                      key={`unlock-note-${i}`}
-                      aria-hidden="true"
-                      initial={{ opacity: 0, y: 0, x: (i - 1) * 8 }}
-                      animate={{ opacity: [0, 1, 0], y: -22 }}
-                      transition={{
-                        duration: 1.1,
-                        delay: i * 0.15,
-                        ease: [0.16, 1, 0.3, 1],
-                      }}
+                {isActive ? (
+                  <div
+                    style={{
+                      textAlign: 'left',
+                      minWidth: 0,
+                      alignSelf: 'start',
+                      paddingTop: 2,
+                    }}
+                  >
+                    <div
                       style={{
-                        position: 'absolute',
-                        top: -4,
-                        left: `${30 + i * 20}%`,
+                        fontFamily: 'var(--font-display)',
                         color: 'var(--color-accent)',
-                        fontSize: 14,
-                        pointerEvents: 'none',
+                        fontSize: '1.05rem',
+                        lineHeight: 1.25,
                       }}
                     >
-                      {glyph}
+                      {t('levelHeading', { id: level.id, name: levelName })}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 11,
+                        color: 'var(--color-text-muted)',
+                        lineHeight: 1.35,
+                        marginTop: 2,
+                      }}
+                    >
+                      {t('progressStats', {
+                        samples: currentProgress.samples,
+                        minSamples: currentLevel.minSamples,
+                        accuracy: currentProgress.accuracy.toFixed(0),
+                        targetAccuracy: currentLevel.minAccuracy,
+                      })}
+                    </div>
+                  </div>
+                ) : isNextUp ? (
+                  <motion.div
+                    initial={
+                      shouldReduceMotion
+                        ? { opacity: 1 }
+                        : { opacity: 0, x: 10 }
+                    }
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{
+                      delay: 0.45,
+                      duration: 0.35,
+                      ease: [0.16, 1, 0.3, 1],
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      minWidth: 0,
+                    }}
+                  >
+                    <motion.span
+                      aria-hidden="true"
+                      {...(shouldReduceMotion
+                        ? {}
+                        : {
+                            animate: { x: [0, -4, 0] },
+                            transition: {
+                              duration: 1.1,
+                              repeat: Infinity,
+                              ease: 'easeInOut',
+                            },
+                          })}
+                      style={{
+                        color: 'var(--color-accent)',
+                        flexShrink: 0,
+                        display: 'flex',
+                      }}
+                    >
+                      {/* Main lucide qui vise le point, à sa gauche
+                          (l'icône pointe vers le haut par défaut). */}
+                      <Pointer
+                        size={17}
+                        strokeWidth={2.25}
+                        style={{ transform: 'rotate(-90deg)' }}
+                      />
                     </motion.span>
-                  ))}
-                </AnimatePresence>
-              )}
-            </button>
-          ) : (
-            <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 12,
-                color: 'var(--color-text-muted)',
-              }}
-            >
-              {t('progressStats', {
-                samples: currentProgress.samples,
-                minSamples: currentLevel.minSamples,
-                accuracy: currentProgress.accuracy.toFixed(0),
-                targetAccuracy: currentLevel.minAccuracy,
-              })}
-            </span>
-          )}
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: 'var(--color-accent)',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {levelName}
+                    </span>
+                  </motion.div>
+                ) : (
+                  <span aria-hidden="true" />
+                )}
+              </Fragment>
+            );
+          })}
         </div>
       </div>
 
+      <div
+        // gap-8 (32px) entre les sections majeures : le compteur
+        // wpm/précision de TypingArea flotte en `position: absolute;
+        // top: -1.75rem` (-28px) au-dessus de sa propre boîte, donc l'écart
+        // doit rester > ~28px (ici 4px de marge) pour qu'il ne semble pas
+        // collé à ce qui précède ; en dessous de ça on redonne au clavier la
+        // hauteur verticale que 3 gap-11 lui prenaient.
+        className="flex flex-col items-center gap-8 w-full"
+        style={{ height: '100%', minHeight: 0, maxWidth: 920 }}
+      >
+        {/* Annonce lecteur d'écran du déblocage : le moment "Niveau N validé"
+            et le pulse du point suivant sont visuels, ce changement d'état
+            doit rester perceptible sans les yeux. */}
+        <div role="status" aria-live="polite" className="sr-only">
+          {celebration && !isLastLevel
+            ? t('unlockedAnnouncement', {
+                id: celebration.levelId + 1,
+                name: t(`level.${celebration.levelId + 1}.name`),
+              })
+            : ''}
+        </div>
+
+        {isOnboarding && (
+          <div
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 16,
+              flexShrink: 0,
+            }}
+          >
+            {/* La promesse "musicothérapie" existe dans les meta SEO depuis
+                toujours, mais aucun utilisateur ne les voit jamais : c'est ici,
+                au tout premier contact, qu'elle doit vivre à l'écran.
+                Alignée à gauche plutôt que centrée sur toute la ligne : la
+                centrer forçait un calcul de largeur fragile pour ne jamais
+                chevaucher le bouton (vérifié en navigateur, cassait sur ce
+                texte précis) ; space-between garantit qu'ils ne se
+                chevauchent jamais, quelle que soit la longueur traduite. */}
+            <p
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontStyle: 'italic',
+                color: 'var(--color-accent)',
+                fontSize: '1.1rem',
+                margin: 0,
+                minWidth: 0,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {t('tagline')}
+            </p>
+            <button
+              onClick={onExitTutorial}
+              style={{
+                flexShrink: 0,
+                background: 'transparent',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-md)',
+                color: 'var(--color-text-muted)',
+                fontFamily: 'var(--font-ui)',
+                fontSize: 12,
+                padding: '6px 12px',
+                cursor: 'pointer',
+              }}
+            >
+              {t('skipTutorial')}
+            </button>
+          </div>
+        )}
       {/* Zone de frappe. Le compteur wpm/précision de TypingArea se
           positionne en absolute à top: -1.75rem (-28px) au-dessus de sa
           propre boîte (voir apps/web/components/typing/TypingArea.tsx) :
@@ -701,12 +904,12 @@ export function LearningMode({
               })}
             </div>
           )}
-          {/* Le message "objectif atteint" vit désormais uniquement dans
-              la barre de progression ci-dessus (le CTA "level-cta-ready") :
-              plus besoin de le répéter ici une fois l'objectif rempli. Ne
-              reste que le cas où il manque encore quelque chose, avec le
-              détail de ce qui bloque (frappes ou précision), et le rappel
-              qu'une série interrompue ne compte pas. */}
+          {/* Le décompte brut ("X/Y frappes") vit désormais sur le point de
+              niveau actif (rail de gauche), pas ici en double : ne reste que
+              le détail de ce qui bloque encore (frappes ou précision) et le
+              rappel qu'une série interrompue ne compte pas. Le message
+              "objectif atteint" vit lui aussi uniquement sur le point actif
+              (anneau plein et lumineux), plus besoin de le répéter ici. */}
           {!canUnlockNext && (
             <div>
               {remainingSamples > 0
@@ -797,6 +1000,28 @@ export function LearningMode({
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
+
+      {/* Moment "Niveau N validé" : overlay plein écran transitoire, puis
+          relais spotlight vers le point suivant du rail. */}
+      <AnimatePresence>
+        {celebration && (
+          <LevelClearedMoment
+            key="level-cleared"
+            levelId={celebration.levelId}
+            samples={celebration.samples}
+            accuracy={celebration.accuracy}
+            onDismiss={handleCelebrationDismiss}
+          />
+        )}
+      </AnimatePresence>
+      {spotlight && (
+        <LevelRailSpotlight
+          x={spotlight.x}
+          y={spotlight.y}
+          onDone={() => setSpotlight(null)}
+        />
+      )}
     </div>
   );
 }

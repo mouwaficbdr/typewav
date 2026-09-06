@@ -100,7 +100,7 @@ interface KeyboardDiagramProps {
 export function KeyboardDiagram({
   activeKey,
   allowedKeys,
-  layout = 'qwerty',
+  layout = 'azerty',
   showAllFingerColors = false,
   confirmedKeys,
 }: KeyboardDiagramProps) {
@@ -122,10 +122,22 @@ export function KeyboardDiagram({
   return (
     <div
       className="flex flex-col items-center gap-3 select-none"
-      style={{ height: '100%', minHeight: 0 }}
+      // width:100% explicite : sans lui, ce conteneur (placé dans un parent
+      // flex qui le centre) se rétrécit à la largeur intrinsèque par défaut
+      // du <svg> (~300px), et le width:100% du <svg> se résout alors contre
+      // ces 300px. Résultat : un clavier bloqué à ~300px quel que soit
+      // l'espace réellement disponible.
+      style={{ width: '100%', height: '100%', minHeight: 0 }}
     >
       <svg
-        viewBox={showAllFingerColors ? '0 0 330 232' : '0 0 330 172'}
+        // viewBox serré verticalement au contenu réel (les touches
+        // commencent à y=36 : la rangée des chiffres est omise en
+        // apprentissage) plutôt qu'un cadre 0 0 qui réservait ~20% de vide
+        // en haut, ce qui bridait la taille utile du clavier et l'éloignait
+        // du texte au-dessus. Largeur laissée à 330 (pleine) : en AZERTY la
+        // touche M occupe la position QWERTY du ';' (x 296-324), la rogner
+        // coupait la dernière touche à droite.
+        viewBox={showAllFingerColors ? '0 32 330 194' : '0 32 330 136'}
         aria-label={t('ariaKeyboardDiagram')}
         // Remplit l'espace que son conteneur lui donne réellement (flex:1
         // côté appelant) plutôt que de deviner une taille en vh : un
@@ -139,7 +151,7 @@ export function KeyboardDiagram({
           flex: '1 1 0%',
           minHeight: 0,
           width: '100%',
-          maxWidth: showAllFingerColors ? 620 : 900,
+          maxWidth: showAllFingerColors ? 820 : 1000,
           objectFit: 'contain',
         }}
       >

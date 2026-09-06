@@ -35,3 +35,19 @@ export async function markLearningFingerIntroSeen(): Promise<void> {
 export async function resetLearningFingerIntroSeen(): Promise<void> {
   await setPreference(LEARNING_FINGER_INTRO_KEY, false);
 }
+
+// Moment "Niveau N validé" du mode Apprentissage : joué une seule fois par
+// niveau franchi (jamais rejoué à un reload ou en revenant sur le rail).
+// Une liste d'ids plutôt qu'un flag par niveau : une seule clé à lire/écrire.
+const LEARNING_CELEBRATED_LEVELS_KEY = 'learning_celebrated_levels';
+
+export async function getCelebratedLearningLevels(): Promise<number[]> {
+  const value = await getPreference<number[]>(LEARNING_CELEBRATED_LEVELS_KEY);
+  return Array.isArray(value) ? value : [];
+}
+
+export async function markLearningLevelCelebrated(id: number): Promise<void> {
+  const seen = await getCelebratedLearningLevels();
+  if (seen.includes(id)) return;
+  await setPreference(LEARNING_CELEBRATED_LEVELS_KEY, [...seen, id]);
+}
