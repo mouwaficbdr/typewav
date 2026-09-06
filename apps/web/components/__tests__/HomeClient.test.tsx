@@ -880,6 +880,61 @@ describe('HomeClient : réouverture de la config bar au survol pendant la frappe
   });
 });
 
+describe('HomeClient : recommencer / changer de texte en focus mode (retour Mouwafic)', () => {
+  async function renderInMode(mode: string) {
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+    act(() => {
+      useConfigStore.setState({ activeMode: mode as never });
+    });
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+    await waitFor(() => expect(typingAreaPropsRef.current).not.toBeNull());
+  }
+
+  function startTyping() {
+    act(() => {
+      typingAreaPropsRef.current?.onNoteChange?.('C4', false, false);
+    });
+  }
+
+  const shuffle = () => screen.getByTitle('nextTest');
+  const restart = () => screen.getByRole('button', { name: 'restart' });
+
+  it('Temps : le bouton changer de texte ET le raccourci recommencer restent visibles pendant la frappe', async () => {
+    await renderInMode('classic');
+    startTyping();
+    expect(shuffle().closest('[inert]')).toBeNull();
+    expect(restart().closest('[inert]')).toBeNull();
+  });
+
+  it('Mots : les deux restent visibles pendant la frappe', async () => {
+    await renderInMode('sprint');
+    startTyping();
+    expect(shuffle().closest('[inert]')).toBeNull();
+    expect(restart().closest('[inert]')).toBeNull();
+  });
+
+  it('Zen : aucun des deux ne reste visible pendant la frappe', async () => {
+    await renderInMode('zen');
+    startTyping();
+    expect(shuffle().closest('[inert]')).not.toBeNull();
+    expect(restart().closest('[inert]')).not.toBeNull();
+  });
+
+  it('Libre : seul le raccourci recommencer reste visible pendant la frappe', async () => {
+    await renderInMode('custom');
+    startTyping();
+    expect(shuffle().closest('[inert]')).not.toBeNull();
+    expect(restart().closest('[inert]')).toBeNull();
+  });
+
+  it('avant la frappe, les deux sont visibles quel que soit le mode', async () => {
+    await renderInMode('zen');
+    expect(shuffle().closest('[inert]')).toBeNull();
+    expect(restart().closest('[inert]')).toBeNull();
+  });
+});
+
 describe('HomeClient : bascule automatique de collection', () => {
   it("bascule la collection sur 'code' en passant en mode Code", async () => {
     mockFetchCollection.mockResolvedValueOnce(mockLitterature);
