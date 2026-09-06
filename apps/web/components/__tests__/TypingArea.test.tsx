@@ -1,5 +1,11 @@
 import type { KeystrokeEntry } from '@typewav/types';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -237,6 +243,78 @@ describe('TypingArea : compte à rebours (audit configbar, décision 1)', () => 
     render(<TypingArea text="hello world" mode="sprint" />);
     expect(screen.queryByTestId('time-remaining')).not.toBeInTheDocument();
   });
+
+  it('est visible dès la sélection du mode, avant la première frappe (position 0)', () => {
+    Object.assign(mockSessionState, { secondsRemaining: 60, position: 0 });
+    render(<TypingArea text="hello world" mode="classic" />);
+    const countdown = screen.getByTestId('time-remaining');
+    expect(countdown).toHaveTextContent('60');
+    // Contrairement à la ligne wpm/précision (opacity 0 avant la 1re frappe),
+    // le compte à rebours reste lisible (légèrement atténué en attente).
+    expect(countdown).toHaveStyle({ opacity: '0.55' });
+  });
+
+  it('est distinct de la ligne wpm/précision (plus de segment « Xs · » dans celle-ci)', () => {
+    Object.assign(mockSessionState, { secondsRemaining: 42, position: 3 });
+    render(<TypingArea text="hello world" mode="classic" />);
+    const overlay = screen.getByTestId('live-stats-overlay');
+    expect(overlay).toHaveTextContent(/wpm/);
+    // La ligne de stats ne préfixe plus le compte à rebours + « s · ».
+    expect(overlay.textContent).not.toMatch(/\d+s ·/);
+  });
+
+  it('passe en couleur d’erreur sous 5 secondes, accent au-dessus', () => {
+    Object.assign(mockSessionState, { secondsRemaining: 3, position: 4 });
+    const { rerender } = render(
+      <TypingArea text="hello world" mode="classic" />,
+    );
+    expect(screen.getByTestId('time-remaining')).toHaveStyle({
+      color: 'var(--color-error)',
+    });
+
+    Object.assign(mockSessionState, { secondsRemaining: 20 });
+    rerender(<TypingArea text="hello world" mode="classic" />);
+    expect(screen.getByTestId('time-remaining')).toHaveStyle({
+      color: 'var(--color-accent)',
+    });
+  });
+});
+
+describe('TypingArea : compteur de mots (mode Mots, ticket #93)', () => {
+  const compact = (el: HTMLElement) => (el.textContent ?? '').replace(/\s/g, '');
+
+  it('affiche 0 / N dès la sélection du mode, avant la première frappe', () => {
+    Object.assign(mockSessionState, { position: 0 });
+    render(<TypingArea text="alpha beta gamma delta" mode="sprint" />);
+    const wp = screen.getByTestId('word-progress');
+    expect(compact(wp)).toBe('0/4');
+    expect(wp).toHaveStyle({ opacity: '0.55' });
+  });
+
+  it('incrémente le nombre de mots complétés au fil de la frappe', () => {
+    Object.assign(mockSessionState, { position: 'alpha beta '.length });
+    render(<TypingArea text="alpha beta gamma delta" mode="sprint" />);
+    expect(compact(screen.getByTestId('word-progress'))).toBe('2/4');
+  });
+
+  it('affiche N / N une fois la séance terminée', () => {
+    Object.assign(mockSessionState, {
+      position: 'alpha beta gamma delta'.length,
+      isComplete: true,
+    });
+    render(<TypingArea text="alpha beta gamma delta" mode="sprint" />);
+    expect(compact(screen.getByTestId('word-progress'))).toBe('4/4');
+  });
+
+  it('ne s’affiche pas hors du mode Mots', () => {
+    for (const mode of ['classic', 'quote', 'zen'] as const) {
+      const { unmount } = render(
+        <TypingArea text="alpha beta gamma" mode={mode} />,
+      );
+      expect(screen.queryByTestId('word-progress')).not.toBeInTheDocument();
+      unmount();
+    }
+  });
 });
 
 describe('TypingArea : redémarrer à tout moment (Tab + Entrée, ticket #61)', () => {
@@ -386,7 +464,7 @@ describe("TypingArea : accessibilité lecteur d'écran (WS-1)", () => {
     expect(live).toBeEmptyDOMElement();
   });
 
-  it('annonce la progression quand un palier de 25 % est franchi', () => {
+  it('annonce la progression quand un palier de 25 % est franchi', async () => {
     const { rerender } = render(<TypingArea text="aaaa bbbb" />);
     expect(screen.getByTestId('typing-live-region')).toBeEmptyDOMElement();
 
@@ -396,20 +474,25 @@ describe("TypingArea : accessibilité lecteur d'écran (WS-1)", () => {
     });
     rerender(<TypingArea text="aaaa bbbb" />);
 
-    expect(screen.getByTestId('typing-live-region')).toHaveTextContent(
-      'srProgress',
+    // Le message est posé via queueMicrotask (react-hooks/set-state-in-effect).
+    await waitFor(() =>
+      expect(screen.getByTestId('typing-live-region')).toHaveTextContent(
+        'srProgress',
+      ),
     );
   });
 
-  it('annonce la fin du texte via la région live', () => {
+  it('annonce la fin du texte via la région live', async () => {
     Object.assign(mockSessionState, {
       position: 'hello world'.length,
       isComplete: true,
       finalStats: { wpm: 50, wpmNet: 48, accuracy: 99, consistency: 90 },
     });
     render(<TypingArea text="hello world" />);
-    expect(screen.getByTestId('typing-live-region')).toHaveTextContent(
-      'srComplete',
+    await waitFor(() =>
+      expect(screen.getByTestId('typing-live-region')).toHaveTextContent(
+        'srComplete',
+      ),
     );
   });
 

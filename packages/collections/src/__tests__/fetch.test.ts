@@ -6,7 +6,12 @@
 import { describe, expect, it } from 'vitest';
 import type { TextEntry } from '@typewav/types';
 import { litteratureCollection } from '../litterature/collection.config';
-import { fetchCollection, selectFromTexts } from '../fetch';
+import {
+  TIMED_BUFFER_MIN_CHARS,
+  buildContinuousText,
+  fetchCollection,
+  selectFromTexts,
+} from '../fetch';
 
 describe('fetchCollection', () => {
   it('retourne un texte de la collection sans options', () => {
@@ -235,5 +240,83 @@ describe('selectFromTexts : numbersEnabled', () => {
       });
       expect(t?.id).toBe('c');
     }
+  });
+});
+
+describe('buildContinuousText (mode Temps : flux continu)', () => {
+  function pool(count: number, charsEach: number, lang: 'fr' | 'en' = 'fr'): TextEntry[] {
+    return Array.from({ length: count }, (_, i) => {
+      const content = `Extrait ${lang} numero ${i} `
+        .padEnd(charsEach, 'x')
+        .slice(0, charsEach);
+      return {
+        id: `e${i}-${lang}`,
+        content,
+        source: 'x',
+        language: lang,
+        difficulty: 1 as const,
+        wordCount: content.split(' ').length,
+        charCount: content.length,
+      };
+    });
+  }
+
+  it('atteint au moins le seuil de longueur cible', () => {
+    const text = buildContinuousText(litteratureCollection.texts);
+    expect(text.length).toBeGreaterThanOrEqual(TIMED_BUFFER_MIN_CHARS);
+  });
+
+  it('le seuil dépasse largement l’ancien plafond dimensionné à la durée (120s ≈ 588 caractères)', () => {
+    expect(TIMED_BUFFER_MIN_CHARS).toBeGreaterThan(120 * 3.5 * 1.4);
+  });
+
+  it('ne répète pas un extrait dans le même buffer tant que le pool n’est pas épuisé', () => {
+    const p = pool(30, 200); // 30 extraits de 200 car. -> assez pour 3500 sans repasser
+    const text = buildContinuousText(p);
+    for (const entry of p) {
+      const occurrences = text.split(entry.content).length - 1;
+      expect(occurrences).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('respecte le filtre de langue', () => {
+    const p = [...pool(20, 250, 'fr'), ...pool(20, 250, 'en')];
+    const text = buildContinuousText(p, { language: 'en' });
+    for (const entry of p.filter((e) => e.language === 'fr')) {
+      expect(text).not.toContain(entry.content);
+    }
+    expect(text.length).toBeGreaterThanOrEqual(TIMED_BUFFER_MIN_CHARS);
+  });
+
+  it('n’accepte pas de cible de durée : ne prend que langue / chiffres / exclusions', () => {
+    // Signature volontairement sans durationSeconds : le mode Temps ne
+    // dimensionne plus son texte sur la durée.
+    const text = buildContinuousText(litteratureCollection.texts, {
+      language: 'fr',
+    });
+    expect(text.length).toBeGreaterThan(120 * 3.5 * 1.4);
+  });
+
+  it('retourne une chaîne vide sur un pool vide', () => {
+    expect(buildContinuousText([])).toBe('');
+  });
+
+  it('sur un pool étroit, répète les extraits pour atteindre la cible, sans boucler à l’infini', () => {
+    const p = pool(3, 100); // 3 x 100 = 300 car. : il faut répéter pour remplir
+    const text = buildContinuousText(p);
+    expect(text.length).toBeGreaterThanOrEqual(TIMED_BUFFER_MIN_CHARS);
+    for (const entry of p) {
+      expect(text).toContain(entry.content.trim());
+    }
+  });
+
+  it('ne pose jamais deux fois le même extrait d’affilée, même pool épuisé', () => {
+    const p = pool(2, 400); // 2 extraits seulement : forcément des répétitions
+    const text = buildContinuousText(p);
+    // Les deux contenus alternent : aucune paire identique consécutive.
+    const a = p[0]!.content.trim();
+    const b = p[1]!.content.trim();
+    expect(text).not.toContain(`${a} ${a}`);
+    expect(text).not.toContain(`${b} ${b}`);
   });
 });

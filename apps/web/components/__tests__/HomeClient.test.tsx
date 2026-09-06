@@ -47,6 +47,7 @@ vi.mock('@/lib/db', () => ({
 
 const typingAreaPropsRef: {
   current: null | {
+    text?: string;
     onNoteChange?: (
       note: string | null,
       isError: boolean,
@@ -321,6 +322,7 @@ beforeEach(async () => {
   });
   localStorage.clear();
   mockFetchCollection.mockClear();
+  typingAreaPropsRef.current = null;
   learningModePropsRef.current = null;
   mockHasCompletedOnboarding.mockClear().mockResolvedValue(true);
   mockMarkOnboardingComplete.mockClear().mockResolvedValue(undefined);
@@ -568,6 +570,59 @@ describe('HomeClient : application des filtres config', () => {
   });
 });
 
+describe('HomeClient : mode Temps en flux continu (ticket #93)', () => {
+  const timedFlowCollection = {
+    id: 'litterature',
+    name: 'Littérature',
+    texts: Array.from({ length: 12 }, (_, i) => ({
+      id: `flow-${i}`,
+      content: `Fragment ${i} : une phrase de littérature assez longue pour peupler le flux continu du mode Temps sans jamais le finir. `,
+      source: 'Auteur',
+      language: 'fr' as const,
+      difficulty: 2 as const,
+      wordCount: 20,
+      charCount: 116,
+    })),
+  };
+
+  it('utilise buildContinuousText, jamais selectFromTexts avec durationSeconds', async () => {
+    const collectionsModule = await import('@typewav/collections');
+    const buildSpy = vi.spyOn(collectionsModule, 'buildContinuousText');
+    const selectSpy = vi.spyOn(collectionsModule, 'selectFromTexts');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'classic', durationSeconds: 120 });
+    });
+
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={timedFlowCollection as never} />);
+
+    await waitFor(() => expect(buildSpy).toHaveBeenCalled());
+
+    for (const call of selectSpy.mock.calls) {
+      expect(call[1]).not.toHaveProperty('durationSeconds');
+    }
+  });
+
+  it('produit un texte nettement plus long que l’ancien plafond dimensionné à la durée', async () => {
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+    act(() => {
+      useConfigStore.setState({ activeMode: 'classic', durationSeconds: 15 });
+    });
+
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={timedFlowCollection as never} />);
+
+    await waitFor(() => {
+      const rendered =
+        screen.getByTestId('typing-area').textContent ?? '';
+      // Ancien plafond « Temps 15 » ≈ 15 x 3.5 x 1.4 ≈ 74 caractères.
+      expect(rendered.length).toBeGreaterThan(300);
+    });
+  });
+});
+
 describe('HomeClient : anti-répétition sur plusieurs essais (audit C3)', () => {
   const manyTextsCollection = {
     id: 'litterature',
@@ -587,6 +642,13 @@ describe('HomeClient : anti-répétition sur plusieurs essais (audit C3)', () =>
     mockFetchCollection.mockResolvedValueOnce(manyTextsCollection);
     const collectionsModule = await import('@typewav/collections');
     const selectSpy = vi.spyOn(collectionsModule, 'selectFromTexts');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    // Mode Citation : sélection d'un extrait unique via selectFromTexts (le
+    // mode Temps est passé à un flux continu et ne suit plus ce chemin).
+    act(() => {
+      useConfigStore.setState({ activeMode: 'quote' });
+    });
 
     const { HomeClient } = await import('../typing/HomeClient');
     render(<HomeClient initialCollection={manyTextsCollection as never} />);
@@ -663,35 +725,76 @@ describe('HomeClient : mode Zen sans notation (audit configbar, décision 3 / B1
   });
 
   it('enchaîne un nouvel extrait après un court délai, sans action de l’utilisateur', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
-    mockFetchCollection.mockResolvedValueOnce(mockLitterature);
-    const collectionsModule = await import('@typewav/collections');
-    const selectSpy = vi.spyOn(collectionsModule, 'selectFromTexts');
+    // Fixture multi-textes locale : une nouvelle sélection produit un `text`
+    // observablement différent (le mock TypingArea rend `props.text`). On
+    // asserte sur cette issue visible plutôt que sur un spy de
+    // selectFromTexts mêlé à des fake timers et à waitFor : c'est ce
+    // mélange qui rendait le test flaky en CI (« expected N to be greater
+    // than N »), le polling interne de waitFor dépendant de vrais setTimeout.
+    // 8 textes pour une fenêtre anti-répétition de 5 : le rebond tombe
+    // toujours sur un extrait différent de celui affiché. Chaque extrait se
+    // distingue par un mot (jamais un chiffre ni de la ponctuation : les
+    // filtres par défaut les retireraient et fondraient les 8 en un seul).
+    const markers = [
+      'alpha',
+      'bravo',
+      'charlie',
+      'delta',
+      'echo',
+      'foxtrot',
+      'golf',
+      'hotel',
+    ];
+    const zenCollection = {
+      id: 'litterature',
+      name: 'Littérature',
+      texts: markers.map((marker, i) => ({
+        id: `zen-${i}`,
+        content: `Extrait zen ${marker} une phrase de longueur raisonnable pour la frappe en continu`,
+        source: 'Auteur',
+        language: 'fr' as const,
+        difficulty: 2 as const,
+        wordCount: 13,
+        charCount: 82,
+      })),
+    };
+    mockFetchCollection.mockResolvedValueOnce(zenCollection);
     const { HomeClient } = await import('../typing/HomeClient');
     const { useConfigStore } = await import('@/stores/useConfigStore');
 
     act(() => {
       useConfigStore.setState({ activeMode: 'zen' });
     });
-    render(<HomeClient initialCollection={mockLitterature as never} />);
+    render(<HomeClient initialCollection={zenCollection as never} />);
 
-    await waitFor(() => expect(typingAreaPropsRef.current).not.toBeNull());
-    const callsBeforeCompletion = selectSpy.mock.calls.length;
+    // typingAreaPropsRef est remis à null par le beforeEach : ce waitFor
+    // attend donc vraiment le montage de CE HomeClient, jamais un `text`
+    // périmé du test précédent.
+    await waitFor(() =>
+      expect(typingAreaPropsRef.current?.text).toBeTruthy(),
+    );
+    // Laisse la sélection de montage se stabiliser (l'effet peut se
+    // redéclencher quelques microtâches après le premier rendu).
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    const firstText = typingAreaPropsRef.current?.text;
 
     act(() => {
       typingAreaPropsRef.current?.onComplete?.(60);
     });
-    // Rien ne se passe tant que le court délai n'est pas écoulé (pas de
-    // rebond instantané, le temps de "voir" que l'extrait est terminé).
-    expect(selectSpy.mock.calls.length).toBe(callsBeforeCompletion);
+    // Pas de rebond instantané : l'extrait terminé reste affiché le temps
+    // du court délai avant d'enchaîner.
+    expect(typingAreaPropsRef.current?.text).toBe(firstText);
 
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(1300);
-    });
-
-    expect(selectSpy.mock.calls.length).toBeGreaterThan(callsBeforeCompletion);
-
-    vi.useRealTimers();
+    // Sans aucune action de l'utilisateur, un nouvel extrait finit par
+    // s'afficher. Timers réels : le délai interne est court (largement sous
+    // ce plafond), et s'appuyer sur de vrais setTimeout plutôt que sur des
+    // fake timers est ce qui rend l'attente fiable en CI.
+    await waitFor(
+      () => expect(typingAreaPropsRef.current?.text).not.toBe(firstText),
+      { timeout: 5000 },
+    );
   });
 });
 
@@ -806,6 +909,61 @@ describe('HomeClient : réouverture de la config bar au survol pendant la frappe
     });
 
     expect(configBar.closest('[inert]')).toBeNull();
+  });
+});
+
+describe('HomeClient : recommencer / changer de texte en focus mode (retour Mouwafic)', () => {
+  async function renderInMode(mode: string) {
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+    act(() => {
+      useConfigStore.setState({ activeMode: mode as never });
+    });
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+    await waitFor(() => expect(typingAreaPropsRef.current).not.toBeNull());
+  }
+
+  function startTyping() {
+    act(() => {
+      typingAreaPropsRef.current?.onNoteChange?.('C4', false, false);
+    });
+  }
+
+  const shuffle = () => screen.getByTitle('nextTest');
+  const restart = () => screen.getByRole('button', { name: 'restart' });
+
+  it('Temps : le bouton changer de texte ET le raccourci recommencer restent visibles pendant la frappe', async () => {
+    await renderInMode('classic');
+    startTyping();
+    expect(shuffle().closest('[inert]')).toBeNull();
+    expect(restart().closest('[inert]')).toBeNull();
+  });
+
+  it('Mots : les deux restent visibles pendant la frappe', async () => {
+    await renderInMode('sprint');
+    startTyping();
+    expect(shuffle().closest('[inert]')).toBeNull();
+    expect(restart().closest('[inert]')).toBeNull();
+  });
+
+  it('Zen : aucun des deux ne reste visible pendant la frappe', async () => {
+    await renderInMode('zen');
+    startTyping();
+    expect(shuffle().closest('[inert]')).not.toBeNull();
+    expect(restart().closest('[inert]')).not.toBeNull();
+  });
+
+  it('Libre : seul le raccourci recommencer reste visible pendant la frappe', async () => {
+    await renderInMode('custom');
+    startTyping();
+    expect(shuffle().closest('[inert]')).not.toBeNull();
+    expect(restart().closest('[inert]')).toBeNull();
+  });
+
+  it('avant la frappe, les deux sont visibles quel que soit le mode', async () => {
+    await renderInMode('zen');
+    expect(shuffle().closest('[inert]')).toBeNull();
+    expect(restart().closest('[inert]')).toBeNull();
   });
 });
 

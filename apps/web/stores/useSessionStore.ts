@@ -98,9 +98,12 @@ export const useSessionStore = create<SessionState & SessionActions>(
         startedAt: state.startedAt ?? entry.timestamp,
       }));
 
-      // Session terminée quand tout le texte est tapé
-      const { position, text, endedAt } = get();
-      if (position >= text.length && endedAt === null) {
+      // Session terminée quand tout le texte est tapé, SAUF en mode Temps
+      // (classic) : là, le texte est un flux continu volontairement plus long
+      // que ce qu'on tape sur la durée, et seule l'expiration du chrono
+      // (useSession, effet de timeout) termine la séance.
+      const { position, text, endedAt, mode } = get();
+      if (mode !== 'classic' && position >= text.length && endedAt === null) {
         set({ endedAt: entry.timestamp });
       }
     },

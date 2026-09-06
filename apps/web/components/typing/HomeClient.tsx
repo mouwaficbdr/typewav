@@ -58,7 +58,7 @@ import { useCustomTextStore } from '@/stores/useCustomTextStore';
 import { useProgressionStore } from '@/stores/useProgressionStore';
 import { useSessionStore } from '@/stores/useSessionStore';
 import { type MidiPieceId } from '@typewav/audio-engine';
-import { selectFromTexts } from '@typewav/collections';
+import { buildContinuousText, selectFromTexts } from '@typewav/collections';
 import type { CollectionConfig, TypingMode } from '@typewav/types';
 import { useReducedMotion } from 'motion/react';
 import { useTranslations } from 'next-intl';
@@ -221,6 +221,21 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const effectiveMode: TypingMode =
     activeMode === 'ghost' && !ghostEnabled ? 'classic' : activeMode;
 
+  // Focus mode (pendant la frappe) : le raccourci « recommencer » et le
+  // bouton « changer de texte » restent visibles et cliquables pour les
+  // modes où il est pertinent d'agir en plein milieu, plutôt que de tout
+  // masquer.
+  // - Recommencer : partout SAUF Zen (pas de verdict, pas de reprise).
+  // - Changer de texte : partout SAUF Zen (même raison), Libre (texte
+  //   personnel, rien vers quoi basculer) et Fantôme quand on court contre
+  //   un fantôme réel (le texte EST la séance enregistrée, le changer
+  //   casserait la course ; sans donnée, effectiveMode vaut 'classic').
+  const showRestartInFocus = effectiveMode !== 'zen';
+  const showShuffleInFocus =
+    effectiveMode !== 'zen' &&
+    effectiveMode !== 'custom' &&
+    effectiveMode !== 'ghost';
+
   // `initialized` volontairement absent de cet abonnement : le sampler est
   // préchargé au montage (indépendant du geste utilisateur), et s'abonner
   // ici forcerait un re-render de tout HomeClient au moment précis où
@@ -335,10 +350,26 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
       // le texte reste figé jusqu'au prochain essai (restart/shuffle).
       if (useSessionStore.getState().keystrokes.length > 0) return;
 
+      // Mode Temps : flux continu (concaténation d'extraits), jamais
+      // dimensionné sur la durée choisie. Le buffer est volontairement plus
+      // long qu'aucun typiste ne peut le taper sur la durée max, et seul le
+      // chrono termine la séance (voir useSessionStore.recordKeystroke).
+      if (effectiveMode === 'classic') {
+        const flow = buildContinuousText(collection.texts, {
+          ...(textLanguage !== 'both' ? { language: textLanguage } : {}),
+          ...(numbersEnabled ? { numbersEnabled: true } : {}),
+          ...(recentEntryIdsRef.current.length > 0
+            ? { excludeIds: recentEntryIdsRef.current }
+            : {}),
+        });
+        if (!flow) return;
+        setSelectedEntry({ content: flow, source: '' });
+        return;
+      }
+
       const entry = selectFromTexts(collection.texts, {
         ...(textLanguage !== 'both' ? { language: textLanguage } : {}),
         ...(effectiveMode === 'sprint' ? { wordCount } : {}),
-        ...(effectiveMode === 'classic' ? { durationSeconds } : {}),
         ...(numbersEnabled ? { numbersEnabled: true } : {}),
         ...(recentEntryIdsRef.current.length > 0
           ? { excludeIds: recentEntryIdsRef.current }
@@ -359,7 +390,6 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     collectionsCache,
     textLanguage,
     wordCount,
-    durationSeconds,
     numbersEnabled,
   ]);
 
@@ -1018,19 +1048,23 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             />
           </div>
 
-          {/* Contrôles et indices de redémarrage : Disparaissent pendant la frappe */}
+          {/* Contrôles et indices de redémarrage. Chaque contrôle décide
+              seul s'il reste visible pendant la frappe (focus mode), selon
+              le mode : voir showRestartInFocus / showShuffleInFocus. */}
           <div
-            inert={hasStarted}
             style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               gap: 12,
               color: 'var(--color-text-muted)',
-              ...fadeOnStart(10),
             }}
           >
             {/* Shuffle / Next Test (MonkeyType style, centered below text) */}
+            <div
+              inert={hasStarted && !showShuffleInFocus}
+              style={fadeOnStart(10, hasStarted && !showShuffleInFocus)}
+            >
             <button
               onClick={handleShuffle}
               style={{
@@ -1049,6 +1083,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             >
               <RepeatIcon size={20} />
             </button>
+            </div>
 
             {/* Restart Hint : un combo de DEUX touches distinctes façon
                 clavier ([Tab] + [Entrée]), pas un badge unique portant tout
@@ -1056,6 +1091,10 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
                 une touche). Les touches restent a pleine opacité (comme sur
                 monkeytype.com) ; seul le libellé de fin s'atténue au repos
                 et remonte au survol. */}
+            <div
+              inert={hasStarted && !showRestartInFocus}
+              style={fadeOnStart(10, hasStarted && !showRestartInFocus)}
+            >
             <button
               onClick={handleRestart}
               aria-label={tHint('restart')}
@@ -1094,6 +1133,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
                 {tHint('restartHintSuffix')}
               </span>
             </button>
+            </div>
           </div>
         </div>
       )}

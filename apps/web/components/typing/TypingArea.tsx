@@ -22,6 +22,7 @@ import { resetSequence } from '@typewav/audio-engine';
 import type { TypingMode } from '@typewav/types';
 import { useTranslations } from 'next-intl';
 import {
+  memo,
   useCallback,
   useEffect,
   useId,
@@ -40,6 +41,97 @@ const LINE_HEIGHT_PX = 56;
  * blur tombe dans cette zone, hors du cadre `overflow: hidden` du parent.
  */
 const BLUR_BLEED_PX = 48;
+
+// ─── Mot mémoïsé ──────────────────────────────────────────────────────────────
+//
+// Le mode Temps rend maintenant un flux continu de plusieurs milliers de
+// caractères (voir buildContinuousText). Rendre tout le texte en <span> par
+// caractère à chaque frappe (~5000 nœuds réconciliés par frappe) saturait le
+// thread principal : curseur saccadé, audio Tone.js au ralenti, jusqu'au gel.
+//
+// Chaque mot est isolé dans un composant mémoïsé qui ne se re-rend que si sa
+// propre tranche d'états de caractères change (ou s'il gagne/perd le curseur
+// sur son espace final) : une frappe ne touche plus que 1 ou 2 mots.
+
+type WordProps = {
+  word: string;
+  /** Index global du 1er caractère du mot dans le texte complet */
+  startIndex: number;
+  isLastWord: boolean;
+  /** États visuels de TOUS les caractères du texte (lu par tranche) */
+  charStates: string[];
+  /** Le curseur est-il posé sur l'espace final de ce mot ? */
+  spaceIsCursor: boolean;
+};
+
+function WordImpl({
+  word,
+  startIndex,
+  isLastWord,
+  charStates,
+  spaceIsCursor,
+}: WordProps) {
+  const chars = word.split('');
+  const spaceIndex = startIndex + word.length;
+
+  return (
+    <div className="word" style={{ display: 'flex' }}>
+      {chars.map((char, i) => {
+        const index = startIndex + i;
+        const state = charStates[index] ?? 'char-pending';
+        return (
+          <span
+            key={`char-${index}`}
+            data-testid={`char-${index}`}
+            className={state}
+          >
+            {char}
+          </span>
+        );
+      })}
+
+      {/* Espace en fin de mot */}
+      {!isLastWord && (
+        <span
+          key={`char-${spaceIndex}`}
+          data-testid={`char-${spaceIndex}`}
+          className={`${charStates[spaceIndex] ?? 'char-pending'} char-space`}
+          style={{
+            width: spaceIsCursor ? '0.4em' : '0px',
+            display: 'inline-block',
+            color: 'transparent',
+          }}
+        >
+          {spaceIsCursor ? '_' : ''}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function areWordPropsEqual(prev: WordProps, next: WordProps): boolean {
+  if (
+    prev.word !== next.word ||
+    prev.startIndex !== next.startIndex ||
+    prev.isLastWord !== next.isLastWord ||
+    prev.spaceIsCursor !== next.spaceIsCursor
+  ) {
+    return false;
+  }
+  // Compare seulement la tranche d'états de CE mot (+ son espace).
+  const len = next.word.length + (next.isLastWord ? 0 : 1);
+  for (let i = 0; i < len; i++) {
+    if (
+      prev.charStates[prev.startIndex + i] !==
+      next.charStates[next.startIndex + i]
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+const Word = memo(WordImpl, areWordPropsEqual);
 
 interface TypingAreaProps {
   text: string;
@@ -163,26 +255,27 @@ export function TypingArea({
             : 0;
 
   useEffect(() => {
+    // setState différé par microtâche (react-hooks/set-state-in-effect) :
+    // même patron que HomeClient / useSession.secondsRemaining. Le garde par
+    // ref reste synchrone pour ne jamais annoncer deux fois le même palier.
     if (isComplete) {
       if (announcedBucketRef.current === 100) return;
       announcedBucketRef.current = 100;
-      setLiveMessage(
-        t('srComplete', {
-          wpm: Math.round(finalStats?.wpm ?? liveStats.wpm),
-          accuracy: Math.round(finalStats?.accuracy ?? liveStats.accuracy),
-        }),
-      );
+      const msg = t('srComplete', {
+        wpm: Math.round(finalStats?.wpm ?? liveStats.wpm),
+        accuracy: Math.round(finalStats?.accuracy ?? liveStats.accuracy),
+      });
+      queueMicrotask(() => setLiveMessage(msg));
       return;
     }
     if (srBucket >= 25 && srBucket > announcedBucketRef.current) {
       announcedBucketRef.current = srBucket;
-      setLiveMessage(
-        t('srProgress', {
-          percent: srPercent,
-          wpm: Math.round(liveStats.wpm),
-          accuracy: Math.round(liveStats.accuracy),
-        }),
-      );
+      const msg = t('srProgress', {
+        percent: srPercent,
+        wpm: Math.round(liveStats.wpm),
+        accuracy: Math.round(liveStats.accuracy),
+      });
+      queueMicrotask(() => setLiveMessage(msg));
     }
   }, [srBucket, srPercent, isComplete, finalStats, liveStats, t]);
 
@@ -266,6 +359,19 @@ export function TypingArea({
 
     return states;
   }, [keystrokes, text]);
+
+  // Découpage en mots + index global du 1er caractère de chaque mot,
+  // mémoïsés sur `text` seul : ne change pas d'une frappe à l'autre.
+  const words = useMemo(() => text.split(' '), [text]);
+  const wordStartIndices = useMemo(() => {
+    const starts: number[] = [];
+    let cursor = 0;
+    for (const w of words) {
+      starts.push(cursor);
+      cursor += w.length + 1; // +1 pour l'espace qui suit
+    }
+    return starts;
+  }, [words]);
 
   // Calcul du mot courant (pour l'accord musical)
   const wordIndex = text.slice(0, position).split(' ').length - 1;
@@ -423,6 +529,75 @@ export function TypingArea({
         {liveMessage}
       </div>
 
+      {/* Compte à rebours du mode Temps (ticket #93) : repère de fin lisible,
+          visible dès la sélection du mode (affiche la durée avant la 1re
+          frappe), sur sa propre ligne, distinct de la ligne wpm/précision.
+          Passe en couleur d'erreur sous 5 s. aria-hidden : non annoncé
+          chaque seconde, comme la ligne de stats. */}
+      {mode === 'classic' && secondsRemaining !== null && (
+        <span
+          data-testid="time-remaining"
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: '-3.6rem',
+            left: 0,
+            right: 0,
+            textAlign: 'center',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '1.5rem',
+            fontWeight: 600,
+            lineHeight: 1,
+            fontVariantNumeric: 'tabular-nums',
+            color:
+              secondsRemaining <= 5
+                ? 'var(--color-error)'
+                : 'var(--color-accent)',
+            opacity: position === 0 ? 0.55 : 1,
+            transition: 'opacity 0.3s, color 0.3s',
+            userSelect: 'none',
+            zIndex: 2,
+            pointerEvents: 'none',
+          }}
+        >
+          {secondsRemaining}
+        </span>
+      )}
+
+      {/* Compteur de mots du mode Mots (ticket #93) : même emplacement et
+          même traitement que le compte à rebours du mode Temps, sans
+          libellé (comme le compte à rebours affiche « 60 » et non « 60 s »).
+          Visible dès la sélection du mode (affiche 0 / N avant la 1re
+          frappe). */}
+      {mode === 'sprint' && words.length > 0 && (
+        <span
+          data-testid="word-progress"
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: '-3.6rem',
+            left: 0,
+            right: 0,
+            textAlign: 'center',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '1.5rem',
+            fontWeight: 600,
+            lineHeight: 1,
+            fontVariantNumeric: 'tabular-nums',
+            color: 'var(--color-accent)',
+            opacity: position === 0 ? 0.55 : 1,
+            transition: 'opacity 0.3s',
+            userSelect: 'none',
+            zIndex: 2,
+            pointerEvents: 'none',
+          }}
+        >
+          {isComplete ? words.length : Math.max(0, wordIndex)}
+          <span style={{ opacity: 0.45, margin: '0 0.4em' }}>/</span>
+          {words.length}
+        </span>
+      )}
+
       {/* Live stats overlay : Option A : au-dessus, opacity 0 avant la première frappe.
           Masqué en mode zen : « sans pression, sans timer » veut dire sans métrique
           affichée en direct non plus, sinon zen == quote avec juste un timer en moins.
@@ -449,23 +624,6 @@ export function TypingArea({
             pointerEvents: 'none',
           }}
         >
-          {/* Compte à rebours : mode Temps uniquement (audit configbar,
-              décision 1) : seul repère de fin d'un test chronométré, sinon
-              absent de l'écran. */}
-          {mode === 'classic' && secondsRemaining !== null && (
-            <>
-              <span
-                data-testid="time-remaining"
-                style={{
-                  color: 'var(--color-accent)',
-                  fontVariantNumeric: 'tabular-nums',
-                }}
-              >
-                {secondsRemaining}
-              </span>
-              {'s · '}
-            </>
-          )}
           <span
             style={{
               color: 'var(--color-accent)',
@@ -593,63 +751,22 @@ export function TypingArea({
               rowGap: '0',
             }}
           >
-          {(() => {
-            let globalIndex = 0;
-            return text.split(' ').map((wordStr, wIndex, arr) => {
-              const isLastWord = wIndex === arr.length - 1;
-              const chars = wordStr.split('');
-
-              const wordNode = (
-                <div
-                  key={`word-${wIndex}`}
-                  className="word"
-                  style={{ display: 'flex' }}
-                >
-                  {chars.map((char) => {
-                    const index = globalIndex++;
-                    const state = charStates[index] ?? 'char-pending';
-
-                    return (
-                      <span
-                        key={`char-${index}`}
-                        data-testid={`char-${index}`}
-                        className={state}
-                      >
-                        {char}
-                      </span>
-                    );
-                  })}
-
-                  {/* Space element at the end of the word */}
-                  {!isLastWord &&
-                    (() => {
-                      const spaceIndex = globalIndex++;
-                      const spaceState =
-                        charStates[spaceIndex] ?? 'char-pending';
-
-                      return (
-                        <span
-                          key={`char-${spaceIndex}`}
-                          data-testid={`char-${spaceIndex}`}
-                          className={`${spaceState} char-space`}
-                          style={{
-                            /* Render an actual space if needed for current focus, but we let columnGap do the spacing. 
-                             Setting width:0 ensures it doesn't add double spacing, but it exists in DOM for bounding rect. */
-                            width: spaceIndex === position ? '0.4em' : '0px',
-                            display: 'inline-block',
-                            color: 'transparent',
-                          }}
-                        >
-                          {spaceIndex === position ? '_' : ''}
-                        </span>
-                      );
-                    })()}
-                </div>
-              );
-
-              return wordNode;
-            });
-          })()}
+          {words.map((wordStr, wIndex) => {
+            const startIndex = wordStartIndices[wIndex]!;
+            const isLastWord = wIndex === words.length - 1;
+            return (
+              <Word
+                key={`word-${wIndex}`}
+                word={wordStr}
+                startIndex={startIndex}
+                isLastWord={isLastWord}
+                charStates={charStates}
+                spaceIsCursor={
+                  !isLastWord && position === startIndex + wordStr.length
+                }
+              />
+            );
+          })}
           </div>
         </div>
       </div>
