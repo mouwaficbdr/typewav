@@ -216,6 +216,15 @@ export function TypingArea({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const wordsRef = useRef<HTMLParagraphElement>(null);
+  // Puits de capture clavier réel : un champ éditable hors écran. Les touches
+  // mortes (accent circonflexe, tréma sur AZERTY) ne sont composées par le
+  // navigateur QUE sur un élément éditable ; sur un <div> non éditable,
+  // Chromium/Linux livre « Dead » puis la lettre brute (« e » au lieu de
+  // « ê »), sans jamais d'évènement de composition. Le focus est délégué à ce
+  // champ ; le texte validé est lu depuis ses évènements `compositionend` /
+  // `input`. Le <div role="application"> reste la façade a11y (rôle, tabindex,
+  // instructions), il ne reçoit jamais le focus réel.
+  const captureRef = useRef<HTMLInputElement>(null);
   const completionNotifiedRef = useRef(false);
   const correctionEchoRef = useRef<CorrectionEchoTracker>(
     new CorrectionEchoTracker(),
@@ -229,6 +238,10 @@ export function TypingArea({
   // et retombe dans le traitement normal ci-dessous (ne bloque pas la frappe
   // réelle qui suit un Tab accidentel).
   const restartArmedRef = useRef(false);
+  // Garde anti-double comptage : certains navigateurs émettent un `input`
+  // résiduel juste après `compositionend`. Armé le temps d'une microtâche
+  // après chaque composition validée.
+  const composedRecentlyRef = useRef(false);
 
   // Accessibilité : la zone de frappe est un widget d'interaction custom
   // (role="application"), pas un champ de texte. Un lecteur d'écran ne
@@ -376,6 +389,62 @@ export function TypingArea({
   // Calcul du mot courant (pour l'accord musical)
   const wordIndex = text.slice(0, position).split(' ').length - 1;
 
+  // Traitement d'UN caractère validé (frappe simple ou résultat d'une touche
+  // morte composée). Source unique : appelé soit par le repli clavier de
+  // handleKeyDown quand le focus est sur le conteneur lui-même, soit par les
+  // évènements `input` / `compositionend` du champ de capture.
+  const commitChar = useCallback(
+    async (rawChar: string) => {
+      if (isComplete) return;
+      // NFC : une touche morte peut livrer un caractère décomposé (« e » +
+      // U+0302) selon l'IME ; le texte cible, lui, est en NFC.
+      const char = rawChar.normalize('NFC');
+
+      // Tone.start() doit partir d'un geste utilisateur ; `input` et
+      // `compositionend` en sont. Lancé sans bloquer : le curseur avance sur
+      // CHAQUE frappe (invariant produit, voir useSessionStore), quel que
+      // soit le temps de chargement du sampler.
+      const initPromise = initialize();
+
+      const expected = text[position];
+      const isCorrect = char === expected;
+
+      handleKeystroke(char);
+
+      await initPromise;
+
+      if (isCorrect) {
+        const played = await playNote(char, wordIndex);
+        onNoteChange?.(
+          played?.note ?? null,
+          false,
+          played?.isPhraseBoundary ?? false,
+        );
+      } else {
+        triggerSilence();
+        onNoteChange?.(null, true, false);
+      }
+
+      // Micro-reverb uniquement si cette frappe correcte complète une
+      // correction amorcée par Backspace (pas juste "la frappe d'avant était fausse").
+      if (correctionEchoRef.current.onKeystroke(isCorrect)) {
+        await triggerResume();
+      }
+    },
+    [
+      position,
+      text,
+      isComplete,
+      wordIndex,
+      initialize,
+      handleKeystroke,
+      playNote,
+      triggerSilence,
+      triggerResume,
+      onNoteChange,
+    ],
+  );
+
   const handleKeyDown = useCallback(
     async (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -398,12 +467,8 @@ export function TypingArea({
 
       if (isComplete) return;
 
-      // Démarre l'initialisation audio (Tone.start() doit être appelé de
-      // façon synchrone dans le keydown pour la contrainte navigateur) sans
-      // jamais bloquer dessus : le curseur doit avancer sur CHAQUE frappe,
-      // correcte ou incorrecte (invariant du produit, voir useSessionStore),
-      // indépendamment du temps que prend le chargement du sampler
-      // (plusieurs secondes à froid).
+      // Geste utilisateur pour amorcer l'audio même si la frappe qui suit est
+      // une touche morte (aucun keydown de commit dans ce cas, voir commitChar).
       const initPromise = initialize();
 
       if (e.key === 'Backspace') {
@@ -413,53 +478,75 @@ export function TypingArea({
         return;
       }
 
-      if (e.key.length !== 1) return;
-
-      const expected = text[position];
-      const isCorrect = e.key === expected;
-
-      handleKeystroke(e.key);
-
-      await initPromise;
-
-      if (isCorrect) {
-        const played = await playNote(e.key, wordIndex);
-        onNoteChange?.(played?.note ?? null, false, played?.isPhraseBoundary ?? false);
-      } else {
-        triggerSilence();
-        onNoteChange?.(null, true, false);
-      }
-
-      // Micro-reverb uniquement si cette frappe correcte complète une
-      // correction amorcée par Backspace (pas juste "la frappe d'avant était fausse").
-      if (correctionEchoRef.current.onKeystroke(isCorrect)) {
-        await triggerResume();
+      // Le texte est normalement capté par les évènements `input` /
+      // `compositionend` du champ de capture (obligatoire pour composer les
+      // touches mortes). Repli direct au clavier UNIQUEMENT si l'évènement
+      // vient du conteneur lui-même : focus programmatique, lecteur d'écran,
+      // tests. Sinon, ne rien faire ici pour ne pas compter deux fois.
+      if (
+        e.target === containerRef.current &&
+        e.key.length === 1 &&
+        !e.isComposing
+      ) {
+        await commitChar(e.key);
       }
     },
     [
-      position,
-      text,
       keystrokes,
       isComplete,
-      wordIndex,
       initialize,
-      handleKeystroke,
       onRestart,
       handleBackspace,
-      playNote,
-      triggerSilence,
-      triggerResume,
-      onNoteChange,
+      commitChar,
     ],
   );
 
-  // handleKeyDown change de référence à chaque frappe (deps de son
-  // useCallback) : passer par un ref permet au listener natif ci-dessous de
-  // toujours appeler la version courante sans avoir à se détacher/rattacher
-  // à chaque frappe.
-  const handleKeyDownRef = useRef(handleKeyDown);
+  const handleCompositionEnd = useCallback(
+    (e: CompositionEvent) => {
+      const data = e.data || '';
+      if (captureRef.current) captureRef.current.value = '';
+      if (!data) return;
+      composedRecentlyRef.current = true;
+      queueMicrotask(() => {
+        composedRecentlyRef.current = false;
+      });
+      for (const ch of data) void commitChar(ch);
+    },
+    [commitChar],
+  );
+
+  const handleInput = useCallback(
+    (e: Event) => {
+      const ie = e as InputEvent;
+      // Intermédiaire de composition : on attend `compositionend`.
+      if (ie.isComposing) return;
+      // `input` résiduel juste après une composition validée : déjà compté.
+      if (composedRecentlyRef.current) {
+        composedRecentlyRef.current = false;
+        if (captureRef.current) captureRef.current.value = '';
+        return;
+      }
+      // Ne traiter QUE l'insertion de texte tapé : ni suppression (Backspace,
+      // géré au keydown), ni collage / glisser (pas de triche par injection).
+      if (ie.inputType && ie.inputType !== 'insertText') {
+        if (captureRef.current) captureRef.current.value = '';
+        return;
+      }
+      const value = ie.data ?? captureRef.current?.value ?? '';
+      if (captureRef.current) captureRef.current.value = '';
+      if (!value) return;
+      for (const ch of value) void commitChar(ch);
+    },
+    [commitChar],
+  );
+
+  // Les handlers changent de référence à chaque frappe (deps de leurs
+  // useCallback) : passer par un ref permet aux listeners natifs ci-dessous
+  // de toujours appeler la version courante sans se détacher/rattacher à
+  // chaque frappe.
+  const handlersRef = useRef({ handleKeyDown, handleCompositionEnd, handleInput });
   useEffect(() => {
-    handleKeyDownRef.current = handleKeyDown;
+    handlersRef.current = { handleKeyDown, handleCompositionEnd, handleInput };
   });
 
   // Écoute native (addEventListener) plutôt que les props React
@@ -473,30 +560,64 @@ export function TypingArea({
   // son système d'événements synthétique pour ce chemin critique plutôt que
   // de dépendre de lui.
   //
-  // useLayoutEffect (pas useEffect), et les listeners posés AVANT
-  // container.focus() : sinon le focus automatique au montage émet son
-  // événement 'focus' natif avant que le listener ne soit attaché, et cet
-  // évènement (non rejouable, un élément déjà focus ne réémet rien) est
-  // perdu pour de bon (overlay "Cliquez pour activer" resté affiché à tort).
+  // useLayoutEffect (pas useEffect), et les listeners posés AVANT le focus
+  // initial : sinon le focus automatique au montage émet son évènement
+  // 'focusin' natif avant que le listener ne soit attaché, et cet évènement
+  // (non rejouable) est perdu pour de bon (overlay "Cliquez pour activer"
+  // resté affiché à tort).
+  //
+  // `keydown` / `compositionend` / `input` sont posés sur le conteneur mais
+  // remontent (bubble) du champ de capture enfant : une seule paire de
+  // listeners suffit pour les deux. Le focus réel va au champ de capture (les
+  // touches mortes ne se composent que sur un élément éditable) ; un
+  // `mousedown` ou un `focus` sur le conteneur y est redirigé.
   useLayoutEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const onKeyDown = (e: KeyboardEvent) => {
-      void handleKeyDownRef.current(e);
+    const focusCapture = () => {
+      const el = captureRef.current;
+      if (el && document.activeElement !== el) el.focus();
     };
-    const onFocus = () => setIsFocused(true);
-    const onBlur = () => setIsFocused(false);
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      void handlersRef.current.handleKeyDown(e);
+    };
+    const onCompositionEnd = (e: Event) => {
+      handlersRef.current.handleCompositionEnd(e as CompositionEvent);
+    };
+    const onInput = (e: Event) => {
+      handlersRef.current.handleInput(e);
+    };
+    const onMouseDown = (e: MouseEvent) => {
+      if (e.target !== captureRef.current) {
+        e.preventDefault(); // empêche le <div> de prendre le focus
+        focusCapture();
+      }
+    };
+    const onFocusIn = () => setIsFocused(true);
+    const onFocusOut = () => setIsFocused(false);
 
     container.addEventListener('keydown', onKeyDown);
-    container.addEventListener('focus', onFocus);
-    container.addEventListener('blur', onBlur);
-    container.focus();
+    container.addEventListener('compositionend', onCompositionEnd);
+    container.addEventListener('input', onInput);
+    container.addEventListener('mousedown', onMouseDown);
+    container.addEventListener('focusin', onFocusIn);
+    container.addEventListener('focusout', onFocusOut);
+    // Compat tests : fireEvent.focus/blur visent le conteneur et ne bubblent pas.
+    container.addEventListener('focus', onFocusIn);
+    container.addEventListener('blur', onFocusOut);
+    focusCapture();
 
     return () => {
       container.removeEventListener('keydown', onKeyDown);
-      container.removeEventListener('focus', onFocus);
-      container.removeEventListener('blur', onBlur);
+      container.removeEventListener('compositionend', onCompositionEnd);
+      container.removeEventListener('input', onInput);
+      container.removeEventListener('mousedown', onMouseDown);
+      container.removeEventListener('focusin', onFocusIn);
+      container.removeEventListener('focusout', onFocusOut);
+      container.removeEventListener('focus', onFocusIn);
+      container.removeEventListener('blur', onFocusOut);
     };
   }, []);
 
@@ -670,6 +791,36 @@ export function TypingArea({
           letterSpacing: '0',
         }}
       >
+        {/* Puits de capture clavier hors écran (voir captureRef). aria-hidden
+            + tabIndex=-1 : invisible pour les technologies d'assistance et
+            hors de l'ordre de tabulation ; c'est le <div role="application">
+            qui porte le rôle et le libellé. Il reçoit le focus réel pour que
+            le navigateur compose les touches mortes (accents circonflexes). */}
+        <input
+          ref={captureRef}
+          data-testid="typing-capture"
+          aria-hidden="true"
+          tabIndex={-1}
+          type="text"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          style={{
+            position: 'absolute',
+            width: 1,
+            height: 1,
+            padding: 0,
+            border: 0,
+            opacity: 0,
+            pointerEvents: 'none',
+            left: 0,
+            top: 0,
+            color: 'transparent',
+            caretColor: 'transparent',
+          }}
+        />
+
         {ghostTimings && ghostTimings.length > 0 && (
           <GhostCursor
             ghostTimings={ghostTimings}
