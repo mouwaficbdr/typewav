@@ -495,6 +495,10 @@
       "readme": "README",
       "profile": "L'auteur"
     },
+    "credits": {
+      "heading": "Crédits",
+      "body": "TypeWav doit beaucoup à <mt>Monkeytype</mt> : sa clarté, sa sobriété et sa rigueur ont servi de référence et de cas d'étude tout du long. Merci à son équipe et à ses contributeurs."
+    },
     "closing": "Assez lu. Retour au clavier."
   }
 }

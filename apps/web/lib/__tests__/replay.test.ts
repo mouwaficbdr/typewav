@@ -61,7 +61,7 @@ describe('generateReplayLink', () => {
   });
 
   it('préfixe avec baseUrl si fourni', () => {
-    const url = generateReplayLink(SAMPLE_REPLAY, 'https://typewav.app');
-    expect(url).toMatch(/^https:\/\/typewav\.app\/replay\?d=/);
+    const url = generateReplayLink(SAMPLE_REPLAY, 'https://typewav.mouwaficbdr.me');
+    expect(url).toMatch(/^https:\/\/typewav\.mouwaficbdr\.me\/replay\?d=/);
   });
 });

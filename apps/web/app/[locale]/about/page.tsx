@@ -290,6 +290,32 @@ export default async function AboutPage({ params }: Props) {
         </div>
       </AboutSection>
 
+      <AboutSection index="09" label={t('credits.heading')}>
+        <p
+          style={{
+            margin: 0,
+            fontFamily: 'var(--font-ui)',
+            fontSize: '0.95rem',
+            lineHeight: 1.75,
+            color: 'var(--color-text-muted)',
+          }}
+        >
+          {t.rich('credits.body', {
+            mt: (chunks) => (
+              <a
+                href="https://github.com/monkeytypegame/monkeytype"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: 'var(--color-text-primary)' }}
+                className="hover:text-[var(--color-accent)] transition-colors"
+              >
+                {chunks}
+              </a>
+            ),
+          })}
+        </p>
+      </AboutSection>
+
       <div
         style={{
           width: '100%',

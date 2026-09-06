@@ -22,14 +22,11 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
-  if (locale === 'en') {
-    return buildMetadata({ locale: 'en' });
-  }
+  // Onglet de l'accueil : la marque nue, comme Monkeytype. L'accroche vit
+  // dans la meta description (choisie par langue dans buildMetadata).
   return buildMetadata({
-    locale: 'fr',
-    title: 'Musicothérapie du clavier',
-    description:
-      'Tapez en musique. Chaque frappe correcte produit une note. Entraînement au typing avec une expérience audio immersive.',
+    locale: locale === 'en' ? 'en' : 'fr',
+    title: 'typewav',
   });
 }
 

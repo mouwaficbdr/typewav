@@ -5,11 +5,18 @@ import { routing } from '@/i18n/routing';
 const BRAND = 'typewav';
 
 /** Titre de marque complet : repli du layout racine et titre des cartes de partage. */
-export const DEFAULT_TITLE = `${BRAND} | Musical Typing Trainer`;
-export const DEFAULT_DESCRIPTION =
-  'Type in rhythm. Every correct keystroke plays a musical note. ' +
-  'Improve your typing speed with an immersive audio experience. Free, open source.';
-export const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://typewav.app';
+export const DEFAULT_TITLE = `${BRAND} | Musical typing test`;
+/**
+ * Accroche courte, façon Monkeytype (« A minimalistic, customizable typing
+ * test ») : mène par la fonction (un test de frappe), la musique est
+ * l'adjectif. Sert de meta description par défaut sur les pages en anglais.
+ */
+export const DEFAULT_DESCRIPTION = 'A musical, customizable typing test.';
+/** Même accroche, pour les pages en français. */
+export const DEFAULT_DESCRIPTION_FR =
+  'Un test de frappe musical et personnalisable.';
+export const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL ?? 'https://typewav.mouwaficbdr.me';
 
 type Locale = (typeof routing.locales)[number];
 
@@ -27,8 +34,8 @@ type BuildMetadataOptions = {
  * ajoute « typewav | » ; le mettre ici aussi donnerait « typewav | typewav | ... ».
  */
 const DEFAULT_PAGE_TITLE: Record<Locale, string> = {
-  fr: 'Musicothérapie du clavier',
-  en: 'Musical Typing Trainer',
+  fr: 'Test de frappe musical',
+  en: 'Musical typing test',
 };
 
 const TITLE_TEMPLATE = `${BRAND} | %s`;
@@ -60,14 +67,19 @@ export function buildMetadata(options: BuildMetadataOptions = {}): Metadata {
     options.title ??
     (options.locale ? DEFAULT_PAGE_TITLE[locale] : DEFAULT_TITLE);
   const shareTitle = brand(pageTitle);
-  const description = options.description ?? DEFAULT_DESCRIPTION;
+  const description =
+    options.description ??
+    (locale === 'fr' ? DEFAULT_DESCRIPTION_FR : DEFAULT_DESCRIPTION);
   const localeUrl = `${APP_URL}/${locale}`;
 
   return {
-    title: {
-      default: pageTitle,
-      template: TITLE_TEMPLATE,
-    },
+    // `absolute` quand le titre est la marque nue (accueil) : sinon le gabarit
+    // du layout la préfixe une seconde fois (« typewav | typewav »). Le
+    // gabarit reste déclaré pour les sous-pages qui, elles, portent un titre.
+    title:
+      pageTitle === BRAND
+        ? { absolute: pageTitle, template: TITLE_TEMPLATE }
+        : { default: pageTitle, template: TITLE_TEMPLATE },
     description,
     keywords: [
       'typing trainer',

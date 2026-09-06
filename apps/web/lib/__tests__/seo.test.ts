@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { APP_URL, buildMetadata } from '../seo';
+import {
+  APP_URL,
+  DEFAULT_DESCRIPTION,
+  DEFAULT_DESCRIPTION_FR,
+  buildMetadata,
+} from '../seo';
 
 describe('buildMetadata', () => {
   it('canonical FR pointe vers /fr, jamais la racine nue', () => {
@@ -57,17 +62,49 @@ describe('buildMetadata', () => {
 
   it('le titre par défaut par locale est court et sans marque : le gabarit ajoute « typewav | »', () => {
     // Sinon le gabarit du layout racine double la marque :
-    // « typewav | typewav | Musical Typing Trainer ».
+    // « typewav | typewav | Musical typing test ».
     const en = buildMetadata({ locale: 'en' }).title;
     const fr = buildMetadata({ locale: 'fr' }).title;
-    expect(en).toMatchObject({ default: 'Musical Typing Trainer' });
-    expect(fr).toMatchObject({ default: 'Musicothérapie du clavier' });
+    expect(en).toMatchObject({ default: 'Musical typing test' });
+    expect(fr).toMatchObject({ default: 'Test de frappe musical' });
     expect(JSON.stringify(en)).not.toContain('typewav | typewav');
   });
 
   it('sans locale ni titre, garde le titre de marque complet comme repli racine', () => {
     expect(buildMetadata().title).toMatchObject({
-      default: 'typewav | Musical Typing Trainer',
+      default: 'typewav | Musical typing test',
     });
+  });
+
+  it("titre = marque nue : `absolute`, pour que le gabarit ne double pas « typewav | typewav »", () => {
+    expect(buildMetadata({ locale: 'fr', title: 'typewav' }).title).toMatchObject(
+      { absolute: 'typewav' },
+    );
+  });
+
+  it("la description par défaut suit la langue de la page : accroche FR sur /fr, EN sur /en", () => {
+    expect(buildMetadata({ locale: 'fr' }).description).toBe(
+      DEFAULT_DESCRIPTION_FR,
+    );
+    expect(buildMetadata({ locale: 'en' }).description).toBe(DEFAULT_DESCRIPTION);
+    // Accroche courte façon Monkeytype, pas un paragraphe.
+    expect(DEFAULT_DESCRIPTION).toBe('A musical, customizable typing test.');
+    expect(DEFAULT_DESCRIPTION_FR).toBe(
+      'Un test de frappe musical et personnalisable.',
+    );
+  });
+
+  it("ne positionne plus TypeWav comme de la « musicothérapie » nulle part dans les métadonnées", () => {
+    const dump = JSON.stringify([
+      buildMetadata({ locale: 'fr' }),
+      buildMetadata({ locale: 'en' }),
+      buildMetadata(),
+    ]).toLowerCase();
+    expect(dump).not.toContain('musicoth');
+    expect(dump).not.toContain('therap');
+  });
+
+  it("APP_URL n'est plus le placeholder mort typewav.app", () => {
+    expect(APP_URL).not.toContain('typewav.app');
   });
 });
