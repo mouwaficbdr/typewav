@@ -375,6 +375,43 @@ describe('TypingArea : redémarrer à tout moment (Tab + Entrée, ticket #61)', 
   });
 });
 
+describe('TypingArea : touches mortes AZERTY (accents circonflexes)', () => {
+  beforeEach(() => {
+    mockHandleKeystroke.mockClear();
+    Object.assign(mockSessionState, defaultMockSessionState, { position: 0 });
+  });
+
+  it('enregistre le caractère composé « ê » (touche morte ^ puis e), jamais la lettre brute', async () => {
+    const user = userEvent.setup();
+    render(<TypingArea text="être" />);
+
+    const area = screen.getByRole('application');
+    await user.click(area);
+
+    // Séquence réelle observée sur Chromium/Linux pour « ^ » puis « e » dans un
+    // champ éditable : compositionstart -> update "^" -> update "ê" -> end "ê".
+    fireEvent.compositionStart(area, { data: '' });
+    fireEvent.compositionUpdate(area, { data: '^' });
+    fireEvent.compositionUpdate(area, { data: 'ê' });
+    fireEvent.compositionEnd(area, { data: 'ê' });
+
+    expect(mockHandleKeystroke).toHaveBeenCalledWith('ê');
+    expect(mockHandleKeystroke).not.toHaveBeenCalledWith('e');
+    expect(mockHandleKeystroke).not.toHaveBeenCalledWith('^');
+  });
+
+  it('n’enregistre rien pour un keydown de touche morte seule (key="Dead")', async () => {
+    const user = userEvent.setup();
+    render(<TypingArea text="être" />);
+
+    const area = screen.getByRole('application');
+    await user.click(area);
+    fireEvent.keyDown(area, { key: 'Dead', code: 'BracketLeft', keyCode: 219 });
+
+    expect(mockHandleKeystroke).not.toHaveBeenCalled();
+  });
+});
+
 describe('TypingArea : fin de session', () => {
   it('reporte finalStats.wpm, pas liveStats.wpm (qui peut être resté à 0)', () => {
     mockSessionState.isComplete = true;
