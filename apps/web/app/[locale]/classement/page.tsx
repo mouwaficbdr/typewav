@@ -1,11 +1,21 @@
+import { buildMetadata } from '@/lib/seo';
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
 import { ClassementClient } from './ClassementClient';
 
-export const metadata: Metadata = {
-  title: 'Classement',
-  description: 'Leaderboard hebdomadaire TypeWav.',
-};
+type Props = { params: Promise<{ locale: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const loc = locale === 'en' ? 'en' : 'fr';
+  const t = await getTranslations({ locale: loc, namespace: 'leaderboard' });
+  return buildMetadata({
+    locale: loc,
+    title: t('metaTitle'),
+    description: t('metaDescription'),
+  });
+}
 
 export default function ClassementPage() {
   return (

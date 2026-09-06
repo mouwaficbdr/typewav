@@ -171,7 +171,12 @@
     "backHome": "← Retour à l'accueil",
     "wonWithWpm": "✓ Gagné : {wpm} WPM !",
     "remainingToBeat": "{wpm} WPM, encore {remaining} WPM à gagner",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "metaTitle": "Défi",
+    "metaDescription": "Un défi de frappe TypeWav, tout dans le lien : même texte, même durée.",
+    "ogTitleScore": "Bats mon score de {wpm} WPM",
+    "ogTitleNoScore": "Relève ce défi de frappe",
+    "ogDescription": "Un défi TypeWav sur {seconds} secondes. Même texte, à toi de jouer."
   },
   "replay": {
     "title": "Replay TypeWav",
@@ -184,7 +189,11 @@
     "linkErrorTitle": "Ce replay n'a pas pu se charger",
     "banner": "Replay · {wpm} WPM · {accuracy}% · {theme}",
     "preLaunchDescription": "Appuyez sur la première touche pour démarrer votre session. Le curseur fantôme rejoue le record partagé en temps réel.",
-    "backHome": "← Retour à l'accueil"
+    "backHome": "← Retour à l'accueil",
+    "metaTitle": "Replay",
+    "metaDescription": "Une séance TypeWav rejouée note par note.",
+    "ogTitle": "Ma séance : {wpm} WPM à {accuracy} %",
+    "ogDescription": "Une séance TypeWav rejouée touche après touche, en musique."
   },
   "leaderboard": {
     "title": "Vos meilleures séances",
@@ -206,10 +215,14 @@
       "endurance": "Endurance",
       "code": "Code"
     },
-    "subtitle": "Vos sessions les plus rapides, sur cet appareil."
+    "subtitle": "Vos sessions les plus rapides, sur cet appareil.",
+    "metaTitle": "Classement",
+    "metaDescription": "Le classement hebdomadaire de vos séances TypeWav, sur cet appareil."
   },
   "profile": {
     "title": "Profil",
+    "metaTitle": "Profil",
+    "metaDescription": "Votre progression, vos records et vos statistiques TypeWav.",
     "sessions": "Sessions",
     "avgWpm": "WPM moyen",
     "bestWpm": "Meilleur MPM",
