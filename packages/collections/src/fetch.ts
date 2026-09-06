@@ -50,6 +50,15 @@ export interface FetchOptions {
 const CHARS_PER_SECOND = 3.5;
 const DURATION_TOLERANCE = 0.4; // ±40%
 
+/**
+ * Longueur cible du buffer du mode Temps, en caractères, AVANT filtres de
+ * ponctuation/chiffres (qui peuvent raboter ~10 %). Dimensionné pour
+ * qu'aucun typiste ne le termine avant l'expiration du chrono : ~200 MPM
+ * soutenu sur la durée max (120 s) produit ~2000 caractères, on garde une
+ * marge large au-dessus même après filtrage.
+ */
+export const TIMED_BUFFER_MIN_CHARS = 4800;
+
 const COLLECTION_MAP: Record<CollectionId, { texts: TextEntry[] }> = {
   litterature: litteratureCollection,
   poesie: poesieCollection,
@@ -117,6 +126,93 @@ export function selectFromTexts(
   }
 
   return pool[Math.floor(Math.random() * pool.length)]!;
+}
+
+export interface ContinuousTextOptions {
+  /** Filtre sur la langue. undefined = pas de filtre (FR+EN) */
+  language?: 'fr' | 'en';
+  /** Préférer les extraits contenant un chiffre (jamais injecté) */
+  numbersEnabled?: boolean;
+  /** IDs à exclure du tout premier tirage (doublons récents entre séances) */
+  excludeIds?: string[];
+  /** Longueur cible du buffer, en caractères. Défaut : TIMED_BUFFER_MIN_CHARS */
+  minChars?: number;
+}
+
+/**
+ * Construit un flux de texte continu pour le mode Temps : concatène des
+ * extraits tirés au hasard (via selectFromTexts, SANS filtre de durée)
+ * jusqu'à atteindre `minChars`. Pas de répétition tant que le pool éligible
+ * n'est pas épuisé ; une fois épuisé (pool étroit, ou préférence chiffres
+ * qui restreint fortement), les répétitions sont autorisées pour toujours
+ * garantir la longueur cible, jamais deux fois le même extrait d'affilée.
+ *
+ * Le mode Temps ne dimensionne plus son texte sur la durée choisie : le
+ * buffer est volontairement plus long qu'aucun typiste ne peut le taper sur
+ * la durée max, et seule l'expiration du chrono termine la séance.
+ *
+ * Pure, comme selectFromTexts : opère sur un tableau déjà en mémoire.
+ */
+export function buildContinuousText(
+  texts: TextEntry[],
+  options: ContinuousTextOptions = {},
+): string {
+  if (texts.length === 0) return '';
+
+  const minChars = options.minChars ?? TIMED_BUFFER_MIN_CHARS;
+  // Ne trace que ce qui est déjà dans CE buffer (pas de répétition interne).
+  const usedIds = new Set<string>();
+  const parts: string[] = [];
+  let total = 0;
+  let poolExhausted = false;
+  let lastId: string | null = null;
+
+  const pick = (excludeIds: string[]): TextEntry | null =>
+    selectFromTexts(texts, {
+      ...(options.language ? { language: options.language } : {}),
+      ...(options.numbersEnabled ? { numbersEnabled: true } : {}),
+      excludeIds,
+    });
+
+  // Borne dure contre une boucle sans fin sur un pool minuscule : largement
+  // au-dessus de ce qu'il faut pour atteindre minChars avec des répétitions.
+  const maxIterations = Math.max(texts.length * 4, 200);
+
+  for (let i = 0; i < maxIterations && total < minChars; i++) {
+    // `excludeIds` : le tout premier extrait évite ceux de la séance
+    // précédente ; ensuite on écarte ce qui est déjà dans ce buffer (ou, une
+    // fois le pool épuisé, seulement l'extrait qui vient d'être posé).
+    let excludeIds: string[];
+    if (poolExhausted) {
+      excludeIds = lastId !== null ? [lastId] : [];
+    } else if (i === 0) {
+      excludeIds = [...usedIds, ...(options.excludeIds ?? [])];
+    } else {
+      excludeIds = [...usedIds];
+    }
+
+    let entry = pick(excludeIds);
+    if (!entry) break;
+
+    if (usedIds.has(entry.id)) {
+      // selectFromTexts n'a plus rien de neuf : le pool éligible est épuisé,
+      // on bascule en mode répétitions autorisées.
+      poolExhausted = true;
+    }
+    // Ne jamais poser deux fois le même extrait d'affilée : sur le tirage de
+    // bascule, selectFromTexts a pu relâcher excludeIds et renvoyer lastId.
+    if (entry.id === lastId && texts.length > 1) {
+      const alt = pick(lastId !== null ? [lastId] : []);
+      if (alt && alt.id !== lastId) entry = alt;
+    }
+
+    usedIds.add(entry.id);
+    lastId = entry.id;
+    parts.push(entry.content.trim());
+    total += entry.content.length + 1;
+  }
+
+  return parts.join(' ').trim();
 }
 
 /**

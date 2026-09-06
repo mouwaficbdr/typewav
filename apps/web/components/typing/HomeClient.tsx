@@ -58,7 +58,7 @@ import { useCustomTextStore } from '@/stores/useCustomTextStore';
 import { useProgressionStore } from '@/stores/useProgressionStore';
 import { useSessionStore } from '@/stores/useSessionStore';
 import { type MidiPieceId } from '@typewav/audio-engine';
-import { selectFromTexts } from '@typewav/collections';
+import { buildContinuousText, selectFromTexts } from '@typewav/collections';
 import type { CollectionConfig, TypingMode } from '@typewav/types';
 import { useReducedMotion } from 'motion/react';
 import { useTranslations } from 'next-intl';
@@ -335,10 +335,26 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
       // le texte reste figé jusqu'au prochain essai (restart/shuffle).
       if (useSessionStore.getState().keystrokes.length > 0) return;
 
+      // Mode Temps : flux continu (concaténation d'extraits), jamais
+      // dimensionné sur la durée choisie. Le buffer est volontairement plus
+      // long qu'aucun typiste ne peut le taper sur la durée max, et seul le
+      // chrono termine la séance (voir useSessionStore.recordKeystroke).
+      if (effectiveMode === 'classic') {
+        const flow = buildContinuousText(collection.texts, {
+          ...(textLanguage !== 'both' ? { language: textLanguage } : {}),
+          ...(numbersEnabled ? { numbersEnabled: true } : {}),
+          ...(recentEntryIdsRef.current.length > 0
+            ? { excludeIds: recentEntryIdsRef.current }
+            : {}),
+        });
+        if (!flow) return;
+        setSelectedEntry({ content: flow, source: '' });
+        return;
+      }
+
       const entry = selectFromTexts(collection.texts, {
         ...(textLanguage !== 'both' ? { language: textLanguage } : {}),
         ...(effectiveMode === 'sprint' ? { wordCount } : {}),
-        ...(effectiveMode === 'classic' ? { durationSeconds } : {}),
         ...(numbersEnabled ? { numbersEnabled: true } : {}),
         ...(recentEntryIdsRef.current.length > 0
           ? { excludeIds: recentEntryIdsRef.current }
@@ -359,7 +375,6 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     collectionsCache,
     textLanguage,
     wordCount,
-    durationSeconds,
     numbersEnabled,
   ]);
 

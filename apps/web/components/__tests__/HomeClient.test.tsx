@@ -568,6 +568,59 @@ describe('HomeClient : application des filtres config', () => {
   });
 });
 
+describe('HomeClient : mode Temps en flux continu (ticket #93)', () => {
+  const timedFlowCollection = {
+    id: 'litterature',
+    name: 'Littérature',
+    texts: Array.from({ length: 12 }, (_, i) => ({
+      id: `flow-${i}`,
+      content: `Fragment ${i} : une phrase de littérature assez longue pour peupler le flux continu du mode Temps sans jamais le finir. `,
+      source: 'Auteur',
+      language: 'fr' as const,
+      difficulty: 2 as const,
+      wordCount: 20,
+      charCount: 116,
+    })),
+  };
+
+  it('utilise buildContinuousText, jamais selectFromTexts avec durationSeconds', async () => {
+    const collectionsModule = await import('@typewav/collections');
+    const buildSpy = vi.spyOn(collectionsModule, 'buildContinuousText');
+    const selectSpy = vi.spyOn(collectionsModule, 'selectFromTexts');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    act(() => {
+      useConfigStore.setState({ activeMode: 'classic', durationSeconds: 120 });
+    });
+
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={timedFlowCollection as never} />);
+
+    await waitFor(() => expect(buildSpy).toHaveBeenCalled());
+
+    for (const call of selectSpy.mock.calls) {
+      expect(call[1]).not.toHaveProperty('durationSeconds');
+    }
+  });
+
+  it('produit un texte nettement plus long que l’ancien plafond dimensionné à la durée', async () => {
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+    act(() => {
+      useConfigStore.setState({ activeMode: 'classic', durationSeconds: 15 });
+    });
+
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={timedFlowCollection as never} />);
+
+    await waitFor(() => {
+      const rendered =
+        screen.getByTestId('typing-area').textContent ?? '';
+      // Ancien plafond « Temps 15 » ≈ 15 x 3.5 x 1.4 ≈ 74 caractères.
+      expect(rendered.length).toBeGreaterThan(300);
+    });
+  });
+});
+
 describe('HomeClient : anti-répétition sur plusieurs essais (audit C3)', () => {
   const manyTextsCollection = {
     id: 'litterature',
@@ -587,6 +640,13 @@ describe('HomeClient : anti-répétition sur plusieurs essais (audit C3)', () =>
     mockFetchCollection.mockResolvedValueOnce(manyTextsCollection);
     const collectionsModule = await import('@typewav/collections');
     const selectSpy = vi.spyOn(collectionsModule, 'selectFromTexts');
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+
+    // Mode Citation : sélection d'un extrait unique via selectFromTexts (le
+    // mode Temps est passé à un flux continu et ne suit plus ce chemin).
+    act(() => {
+      useConfigStore.setState({ activeMode: 'quote' });
+    });
 
     const { HomeClient } = await import('../typing/HomeClient');
     render(<HomeClient initialCollection={manyTextsCollection as never} />);

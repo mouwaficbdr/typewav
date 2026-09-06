@@ -237,6 +237,41 @@ describe('TypingArea : compte à rebours (audit configbar, décision 1)', () => 
     render(<TypingArea text="hello world" mode="sprint" />);
     expect(screen.queryByTestId('time-remaining')).not.toBeInTheDocument();
   });
+
+  it('est visible dès la sélection du mode, avant la première frappe (position 0)', () => {
+    Object.assign(mockSessionState, { secondsRemaining: 60, position: 0 });
+    render(<TypingArea text="hello world" mode="classic" />);
+    const countdown = screen.getByTestId('time-remaining');
+    expect(countdown).toHaveTextContent('60');
+    // Contrairement à la ligne wpm/précision (opacity 0 avant la 1re frappe),
+    // le compte à rebours reste lisible (légèrement atténué en attente).
+    expect(countdown).toHaveStyle({ opacity: '0.55' });
+  });
+
+  it('est distinct de la ligne wpm/précision (plus de segment « Xs · » dans celle-ci)', () => {
+    Object.assign(mockSessionState, { secondsRemaining: 42, position: 3 });
+    render(<TypingArea text="hello world" mode="classic" />);
+    const overlay = screen.getByTestId('live-stats-overlay');
+    expect(overlay).toHaveTextContent(/wpm/);
+    // La ligne de stats ne préfixe plus le compte à rebours + « s · ».
+    expect(overlay.textContent).not.toMatch(/\d+s ·/);
+  });
+
+  it('passe en couleur d’erreur sous 5 secondes, accent au-dessus', () => {
+    Object.assign(mockSessionState, { secondsRemaining: 3, position: 4 });
+    const { rerender } = render(
+      <TypingArea text="hello world" mode="classic" />,
+    );
+    expect(screen.getByTestId('time-remaining')).toHaveStyle({
+      color: 'var(--color-error)',
+    });
+
+    Object.assign(mockSessionState, { secondsRemaining: 20 });
+    rerender(<TypingArea text="hello world" mode="classic" />);
+    expect(screen.getByTestId('time-remaining')).toHaveStyle({
+      color: 'var(--color-accent)',
+    });
+  });
 });
 
 describe('TypingArea : redémarrer à tout moment (Tab + Entrée, ticket #61)', () => {

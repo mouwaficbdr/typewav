@@ -17,5 +17,11 @@ export const ALL_COLLECTIONS = [
 ] as const;
 export type CollectionId = (typeof ALL_COLLECTIONS)[number];
 
-export type { FetchOptions } from './fetch';
-export { fetchCollection, fetchPool, selectFromTexts } from './fetch';
+export type { ContinuousTextOptions, FetchOptions } from './fetch';
+export {
+  buildContinuousText,
+  fetchCollection,
+  fetchPool,
+  selectFromTexts,
+  TIMED_BUFFER_MIN_CHARS,
+} from './fetch';

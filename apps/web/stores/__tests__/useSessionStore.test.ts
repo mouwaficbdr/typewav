@@ -45,6 +45,42 @@ describe('useSessionStore : recordKeystroke', () => {
     });
     expect(useSessionStore.getState().position).toBe(1);
   });
+
+  it('termine la séance quand tout le texte est tapé (mode sur complétion)', () => {
+    useSessionStore.getState().startSession('ab', { mode: 'sprint' });
+    useSessionStore.getState().recordKeystroke({
+      char: 'a',
+      timestamp: 1000,
+      correct: true,
+      deltaMs: 0,
+    });
+    expect(useSessionStore.getState().endedAt).toBeNull();
+    useSessionStore.getState().recordKeystroke({
+      char: 'b',
+      timestamp: 1100,
+      correct: true,
+      deltaMs: 100,
+    });
+    expect(useSessionStore.getState().endedAt).not.toBeNull();
+  });
+
+  it('en mode Temps (classic), atteindre la fin du texte ne termine PAS la séance : seul le chrono le fait', () => {
+    useSessionStore.getState().startSession('ab', { mode: 'classic' });
+    useSessionStore.getState().recordKeystroke({
+      char: 'a',
+      timestamp: 1000,
+      correct: true,
+      deltaMs: 0,
+    });
+    useSessionStore.getState().recordKeystroke({
+      char: 'b',
+      timestamp: 1100,
+      correct: true,
+      deltaMs: 100,
+    });
+    expect(useSessionStore.getState().position).toBe(2);
+    expect(useSessionStore.getState().endedAt).toBeNull();
+  });
 });
 
 describe('useSessionStore : moveBack', () => {
@@ -111,7 +147,8 @@ describe('useSessionStore : moveBack', () => {
   });
 
   it('ne fait rien si la session est terminée (endedAt !== null)', () => {
-    useSessionStore.getState().startSession('a');
+    // mode sur complétion : la fin de texte termine la séance.
+    useSessionStore.getState().startSession('a', { mode: 'sprint' });
     useSessionStore.getState().recordKeystroke({
       char: 'a',
       timestamp: 1000,

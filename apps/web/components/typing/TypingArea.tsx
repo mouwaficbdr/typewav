@@ -423,6 +423,41 @@ export function TypingArea({
         {liveMessage}
       </div>
 
+      {/* Compte à rebours du mode Temps (ticket #93) : repère de fin lisible,
+          visible dès la sélection du mode (affiche la durée avant la 1re
+          frappe), sur sa propre ligne, distinct de la ligne wpm/précision.
+          Passe en couleur d'erreur sous 5 s. aria-hidden : non annoncé
+          chaque seconde, comme la ligne de stats. */}
+      {mode === 'classic' && secondsRemaining !== null && (
+        <span
+          data-testid="time-remaining"
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: '-3.6rem',
+            left: 0,
+            right: 0,
+            textAlign: 'center',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '1.5rem',
+            fontWeight: 600,
+            lineHeight: 1,
+            fontVariantNumeric: 'tabular-nums',
+            color:
+              secondsRemaining <= 5
+                ? 'var(--color-error)'
+                : 'var(--color-accent)',
+            opacity: position === 0 ? 0.55 : 1,
+            transition: 'opacity 0.3s, color 0.3s',
+            userSelect: 'none',
+            zIndex: 2,
+            pointerEvents: 'none',
+          }}
+        >
+          {secondsRemaining}
+        </span>
+      )}
+
       {/* Live stats overlay : Option A : au-dessus, opacity 0 avant la première frappe.
           Masqué en mode zen : « sans pression, sans timer » veut dire sans métrique
           affichée en direct non plus, sinon zen == quote avec juste un timer en moins.
@@ -449,23 +484,6 @@ export function TypingArea({
             pointerEvents: 'none',
           }}
         >
-          {/* Compte à rebours : mode Temps uniquement (audit configbar,
-              décision 1) : seul repère de fin d'un test chronométré, sinon
-              absent de l'écran. */}
-          {mode === 'classic' && secondsRemaining !== null && (
-            <>
-              <span
-                data-testid="time-remaining"
-                style={{
-                  color: 'var(--color-accent)',
-                  fontVariantNumeric: 'tabular-nums',
-                }}
-              >
-                {secondsRemaining}
-              </span>
-              {'s · '}
-            </>
-          )}
           <span
             style={{
               color: 'var(--color-accent)',
