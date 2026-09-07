@@ -49,6 +49,7 @@ import {
   getUserProfile,
   type PersonalText,
 } from '@/lib/db';
+import { isNonDesktopDevice } from '@/lib/device';
 import { IS_DEV_MODE } from '@/lib/featureFlags';
 import { noteNameToMidi } from '@/lib/note-visualization';
 import {
@@ -473,7 +474,18 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   useEffect(() => {
     if (IS_DEV_MODE) return;
     let cancelled = false;
-    hasCompletedOnboarding()
+    // Onboarding coupé sur tout appareil non desktop (téléphone, tablette) :
+    // le tutoriel force le mode Apprentissage, or l'écran de frappe est
+    // desktop-first (voir passe responsive #71). Le primo-visiteur tactile
+    // arrive directement sur la frappe, en mode classique. On court-circuite
+    // la lecture du flag par `Promise.resolve(true)` ("comme si c'était fait")
+    // : rien n'est lu, rien n'est écrit, has_completed_onboarding reste
+    // vierge, donc le vrai tutoriel apparaîtra si cette personne ouvre
+    // TypeWav sur un desktop plus tard.
+    const resolveOnboarding = isNonDesktopDevice()
+      ? Promise.resolve(true)
+      : hasCompletedOnboarding();
+    resolveOnboarding
       .then((done) => {
         if (cancelled) return;
         if (!done) {
