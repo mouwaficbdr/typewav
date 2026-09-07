@@ -228,6 +228,26 @@ largeurs**. Les défauts restants sont cosmétiques.
 | C4 | `classement` / `profil` — empty states | toutes | OK | Propres. | RAS. |
 | C5 | Charts profil (`WpmProgressChart`, `ContributionHeatmap`, `ConsistencyChart`) | à re-vérifier | — | Peu de données seedées (4 séances, 1 jour) : heatmap / plots pas stressés. | Vérifier avec un historique plus large en implé PR C. |
 
+#### PR C — état d'implémentation (branche `fix/responsive-profil-classement`, stack sur A)
+
+- **C1 fait.** `PROFILE_GRID` (inline `flex-wrap` + `flex 1 1 560 / 1 1 320 maxWidth
+  440`) → classe `.profile-grid` (globals.css). Sous 1080px : colonne unique,
+  graphe **et** sections texte partagent `max-width: 600px` → largeurs
+  cohérentes (avant : graphe ~680px pleine largeur au-dessus d'une colonne texte
+  ~440px). Au-dessus de 1080px : deux vraies colonnes, graphe large + texte
+  étroit comme prévu (`:first-child flex 1 1 560`, `:last-child flex 0 1 380
+  maxWidth 440`). Skeleton de chargement recâblé sur la même classe.
+- **C2 fait.** `PracticeRoll` : `left: m.x - hitW/2` de la zone de clic
+  invisible borné à `[0, width - hitW]` — plus de débordement de quelques px sur
+  le 1er / dernier point.
+- **C3 / C4 confirmés OK.** `LeaderboardTable` (bascule carte ↔ ligne) et les
+  empty states : propres 360→2560, aucune retouche.
+- **C5** : historique seedé mince (4 séances, 1 jour) ; heatmap / plots pas
+  stressés mais aucun débordement observé aux largeurs testées.
+- Gate : `pnpm typecheck` + `pnpm lint` verts ; `PracticeRoll` (8) + `RankLadder`
+  (7) verts ; vérif navigateur profil 390 / 768 / 900 / 1024 / 1100 / 1440 /
+  2560 et classement idem, `overflowX = 0` partout.
+
 ### PR D — Apprentissage + paramètres + about + challenge
 
 | # | Fichier / zone | Largeurs | Sév | Défaut | Correctif |

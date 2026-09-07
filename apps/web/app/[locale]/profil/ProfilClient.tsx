@@ -83,13 +83,6 @@ const EYEBROW: React.CSSProperties = {
 // Grille asymétrique en flex : le rouleau (base 560) et la colonne
 // records/rang (base 320, plafonnée) passent en une seule colonne sous
 // ~940px sans média-query.
-const PROFILE_GRID: React.CSSProperties = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: 64,
-  alignItems: 'flex-start',
-};
-
 export function ProfilClient() {
   const { setProfile, setPersonalRecords, setRank } = useProgressionStore();
   const tProfile = useTranslations('profile');
@@ -169,16 +162,10 @@ export function ProfilClient() {
             className="skeleton"
             style={{ width: '100%', height: 1, marginBottom: 56, opacity: 0.4 }}
           />
-          <div style={PROFILE_GRID}>
-            <div
-              className="skeleton"
-              style={{ flex: '1 1 560px', minWidth: 0, height: 340 }}
-            />
+          <div className="profile-grid">
+            <div className="skeleton" style={{ height: 340 }} />
             <div
               style={{
-                flex: '1 1 320px',
-                minWidth: 0,
-                maxWidth: 440,
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 40,
@@ -370,12 +357,9 @@ export function ProfilClient() {
           </div>
         </motion.header>
 
-        <div style={PROFILE_GRID}>
+        <div className="profile-grid">
           {/* Colonne large : Le Rouleau */}
-          <motion.section
-            variants={itemVariants}
-            style={{ flex: '1 1 560px', minWidth: 0 }}
-          >
+          <motion.section variants={itemVariants}>
             <h2 style={{ ...EYEBROW, margin: '0 0 24px' }}>
               {tProfile('rollHeading')}
             </h2>
@@ -417,9 +401,6 @@ export function ProfilClient() {
           {/* Colonne étroite : Records + Rang */}
           <div
             style={{
-              flex: '1 1 320px',
-              minWidth: 0,
-              maxWidth: 440,
               display: 'flex',
               flexDirection: 'column',
               gap: 48,
