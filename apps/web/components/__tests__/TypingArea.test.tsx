@@ -458,6 +458,29 @@ describe('TypingArea : fin de session', () => {
     expect(onComplete).not.toHaveBeenCalled();
     expect(onSessionComplete).not.toHaveBeenCalled();
   });
+
+  it('inclut keystrokeData (les frappes alignées sur le texte) dans le payload', () => {
+    const keystrokes: KeystrokeEntry[] = [
+      { char: 'f', timestamp: 1000, correct: true, deltaMs: 0 },
+      { char: 'j', timestamp: 1120, correct: true, deltaMs: 120 },
+    ];
+    mockSessionState.isComplete = true;
+    mockSessionState.keystrokes = keystrokes;
+    mockSessionState.finalStats = {
+      wpm: 30,
+      wpmRaw: 30,
+      accuracy: 100,
+      consistency: 100,
+    };
+
+    const onSessionComplete = vi.fn();
+
+    render(<TypingArea text="fj" onSessionComplete={onSessionComplete} />);
+
+    expect(onSessionComplete).toHaveBeenCalledWith(
+      expect.objectContaining({ keystrokeData: keystrokes }),
+    );
+  });
 });
 
 describe("TypingArea : accessibilité lecteur d'écran (WS-1)", () => {
