@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { NON_DESKTOP_MEDIA_QUERY } from '@/lib/device';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -1343,6 +1344,36 @@ describe('HomeClient : mode Libre (textes personnels)', () => {
 });
 
 describe('HomeClient : onboarding première visite', () => {
+  const realMatchMedia = window.matchMedia;
+  afterEach(() => {
+    window.matchMedia = realMatchMedia;
+  });
+
+  it("coupe l'onboarding sur appareil non desktop : frappe directe, aucun tutoriel, flag jamais touché", async () => {
+    // Primo-visiteur (hasCompletedOnboarding=false) sur un appareil tactile :
+    // le tutoriel ne doit pas se déclencher, et le flag doit rester vierge
+    // (le vrai tutoriel apparaîtra si la personne revient sur desktop).
+    mockHasCompletedOnboarding.mockResolvedValue(false);
+    window.matchMedia = ((query: string) => ({
+      matches: query === NON_DESKTOP_MEDIA_QUERY,
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      onchange: null,
+      dispatchEvent: () => false,
+    })) as unknown as typeof window.matchMedia;
+
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    expect(await screen.findByTestId('typing-area')).toBeInTheDocument();
+    expect(screen.queryByTestId('learning-mode')).not.toBeInTheDocument();
+    expect(mockHasCompletedOnboarding).not.toHaveBeenCalled();
+    expect(mockMarkOnboardingComplete).not.toHaveBeenCalled();
+  });
+
   it("ne montre ni frappe ni apprentissage tant que l'onboarding n'est pas tranché (pas de flash)", async () => {
     // hasCompletedOnboarding ne répond jamais : on est dans la fenêtre juste
     // après le montage, avant que la lecture IndexedDB ait abouti.
