@@ -150,7 +150,8 @@
       "clean": "Séance propre.",
       "brief": "Séance courte. Joue-en une vraie."
     },
-    "copied": "Lien copié"
+    "copied": "Lien copié",
+    "copyFailed": "Copie impossible. Réessaie."
   },
   "challenge": {
     "title": "Défi TypeWav",

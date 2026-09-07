@@ -150,7 +150,8 @@
       "clean": "Clean run.",
       "brief": "Short run. Go for a real one."
     },
-    "copied": "Link copied"
+    "copied": "Link copied",
+    "copyFailed": "Couldn't copy. Try again."
   },
   "challenge": {
     "title": "TypeWav Challenge",
