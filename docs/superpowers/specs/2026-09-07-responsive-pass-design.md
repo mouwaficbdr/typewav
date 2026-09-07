@@ -191,6 +191,33 @@ investiguer hors ce ticket.
 | B4 | `SessionWaveform` / `WpmChart` sur résultats | — | OK | Rendu propre 360→2560 avec vraies données. | RAS a priori. |
 | B5 | Replay landing (`ReplayClient`) | — | OK | Centré, propre, pas de débordement. | RAS. Le replay en cours hérite des fixes TypingArea (PR A). |
 
+#### PR B — état d'implémentation (branche `fix/responsive-results-replay`, stack sur A)
+
+Vérif navigateur post-PR-A avec vraies données (séance jouée) : `/results` et
+`/replay` = **0 débordement horizontal, rien de tronqué ni superposé à toutes les
+largeurs**. Les défauts restants sont cosmétiques.
+
+- **B0 (padding, nouveau) fait.** `ResultsPage` `<main>` : `padding: '... 24px'`
+  fixe → `paddingLeft/Right: max(clamp(16px,4vw,24px), env(safe-area-inset-*))`.
+  `ReplayClient` `<main>` : `p-8` → `py-8` + `pl/pr` fluides safe-area (`sm:px-8`
+  restaure 2rem ≥ 640px) ; `min-h-dvh` → `min-h-[calc(100dvh-var(--nav-height))]`
+  (ne force plus ~114px de scroll body).
+- **B1 non retenu.** Les 3 stats tiennent en une rangée à 360px, `align-items:
+  flex-end`, ~15px entre « X WPM brut » (muté, petit) et « 100% » (gras, grand) :
+  poids visuels distincts, rien de confus. Densité acceptable pour un relevé de
+  stats. Le parent a déjà `flex-wrap` (il wrappe si vraiment à l'étroit).
+- **B2 fait.** `Partager` + `Défier` groupés dans un flex `flex-wrap` : quand la
+  rangée d'actions wrappe (viewport étroit), ils passent à la ligne **ensemble**
+  sous « Encore » au lieu de « Défier » seul orphelin.
+- **B3 : confirmé.** L'`AmbientAura` déborde par conception (`z-index` négatif,
+  radial-gradient volontairement plus large que le cadre, clippé par
+  `overflow:hidden`). Aucun impact visuel, pré-existant. Rien à faire.
+- **B4 / B5 : confirmés OK.** `SessionWaveform` et `WpmChart` sur résultats
+  rendus proprement 360→2560 avec vraies données. Replay landing centré, propre.
+  Replay en cours = `TypingArea` (hérite des fixes PR A).
+- Gate : `pnpm typecheck` + `pnpm lint` verts ; `ResultsPage` (17 + 5 peak-end)
+  verts.
+
 ### PR C — Profil + classement
 
 | # | Fichier / zone | Largeurs | Sév | Défaut | Correctif |

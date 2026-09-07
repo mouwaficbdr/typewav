@@ -61,7 +61,7 @@ export function ReplayClient() {
   const { data } = result;
 
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center gap-8 p-8">
+    <main className="flex min-h-[calc(100dvh-var(--nav-height))] flex-col items-center justify-center gap-8 py-8 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] sm:px-8">
       {/* Banner slim */}
       <div
         style={{
