@@ -269,6 +269,31 @@ body {
   scrollbar-width: none;
 }
 
+/* Bandeau « meilleure expérience sur ordinateur » de l'écran de frappe : la
+   visibilité selon la largeur est portée par le CSS (pas de listener JS de
+   resize) ; le composant MobileTypingHint ne gère que le rejet persistant. */
+@media (min-width: 601px) {
+  /* !important : le composant porte `display:flex` en inline (disposition
+     texte + bouton) ; seule cette règle de largeur doit pouvoir le masquer. */
+  .mobile-typing-hint {
+    display: none !important;
+  }
+}
+
+/* Écran de frappe : sur desktop il tient dans `calc(100dvh - nav)` sans jamais
+   scroller (choix produit type Monkeytype). Sous ~600px, la ConfigBar wrappée,
+   le sélecteur de morceau, le bandeau mobile et la zone de frappe ne tiennent
+   plus ensemble : plutôt que de rogner du contenu via `overflow:hidden`, on
+   autorise le défilement vertical dans `<main>` (le body reste verrouillé).
+   `!important` pour battre le style inline du composant, borné à ce média. */
+@media (max-width: 600px) {
+  .home-main {
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 .results-encore {
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
 }

@@ -75,7 +75,12 @@ function WordImpl({
   const spaceIndex = startIndex + word.length;
 
   return (
-    <div className="word" style={{ display: 'flex' }}>
+    // flexWrap: sur un viewport très étroit, un mot plus large que la fenêtre
+    // (token composé long, « Neuve-Sainte-Geneviève ») serait sinon rogné net
+    // par l'`overflow:hidden` de la zone. Le retour à la ligne intra-mot est
+    // moche mais préférable à du texte invisible ; en pratique il ne se
+    // déclenche qu'en dessous de ~380px sur des mots rares.
+    <div className="word" style={{ display: 'flex', flexWrap: 'wrap' }}>
       {chars.map((char, i) => {
         const index = startIndex + i;
         const state = charStates[index] ?? 'char-pending';

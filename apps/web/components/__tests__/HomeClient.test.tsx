@@ -43,6 +43,8 @@ vi.mock('@/lib/db', () => ({
     unlockedThemes: [],
     unlockedCollections: [],
   }),
+  getPreference: vi.fn().mockResolvedValue(undefined),
+  setPreference: vi.fn().mockResolvedValue(undefined),
 }));
 
 const typingAreaPropsRef: {
