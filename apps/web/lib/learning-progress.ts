@@ -82,6 +82,24 @@ export function unlockLevel(
   );
 }
 
+export type KeyMastery = Record<string, { correct: number; total: number }>;
+
+export function applyLearningKeystrokes(
+  mastery: KeyMastery,
+  entries: { gestureId: string; correct: boolean }[],
+): KeyMastery {
+  const next: KeyMastery = {};
+  for (const [id, v] of Object.entries(mastery)) next[id] = { ...v };
+  for (const e of entries) {
+    const cur = next[e.gestureId] ?? { correct: 0, total: 0 };
+    next[e.gestureId] = {
+      correct: cur.correct + (e.correct ? 1 : 0),
+      total: cur.total + 1,
+    };
+  }
+  return next;
+}
+
 /**
  * Charge la progression sauvegardée : undefined si jamais sauvegardée
  * (première visite). Sans ça, un simple rechargement de page remet tous
