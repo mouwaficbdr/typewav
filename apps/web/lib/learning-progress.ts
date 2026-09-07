@@ -5,9 +5,13 @@
  */
 
 import type { CurriculumLevel, LearningLevel } from '@typewav/types';
+import { CURRICULUM_VERSION, LEARNING_CURRICULUM_AZERTY } from '@typewav/types';
 import { getPreference, setPreference } from './db';
 
 const LEARNING_PROGRESS_KEY = 'learning_level_progress';
+const KEY_MASTERY_KEY = 'learning_key_mastery';
+const TAUGHT_LEVELS_KEY = 'learning_taught_levels';
+const CURRICULUM_VERSION_KEY = 'learning_curriculum_version';
 
 export interface LevelProgress {
   levelId: number;
@@ -17,7 +21,7 @@ export interface LevelProgress {
 }
 
 export function createInitialLevelProgress(
-  levels: LearningLevel[],
+  levels: { id: number }[],
 ): LevelProgress[] {
   return levels.map((l) => ({
     levelId: l.id,
@@ -116,6 +120,32 @@ export async function saveLearningProgress(
   progress: LevelProgress[],
 ): Promise<void> {
   await setPreference(LEARNING_PROGRESS_KEY, progress);
+}
+
+export async function loadKeyMastery(): Promise<KeyMastery> {
+  return (await getPreference<KeyMastery>(KEY_MASTERY_KEY)) ?? {};
+}
+
+export async function saveKeyMastery(m: KeyMastery): Promise<void> {
+  await setPreference(KEY_MASTERY_KEY, m);
+}
+
+export async function loadTaughtLevels(): Promise<number[]> {
+  const v = await getPreference<number[]>(TAUGHT_LEVELS_KEY);
+  return Array.isArray(v) ? v : [];
+}
+
+export async function saveTaughtLevels(ids: number[]): Promise<void> {
+  await setPreference(TAUGHT_LEVELS_KEY, ids);
+}
+
+export async function ensureCurriculumVersion(): Promise<void> {
+  const stored = await getPreference<number>(CURRICULUM_VERSION_KEY);
+  if (stored === CURRICULUM_VERSION) return;
+  await setPreference(LEARNING_PROGRESS_KEY, createInitialLevelProgress(LEARNING_CURRICULUM_AZERTY));
+  await setPreference(KEY_MASTERY_KEY, {});
+  await setPreference(TAUGHT_LEVELS_KEY, []);
+  await setPreference(CURRICULUM_VERSION_KEY, CURRICULUM_VERSION);
 }
 
 function keyReachedBar(
