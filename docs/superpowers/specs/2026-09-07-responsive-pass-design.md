@@ -72,6 +72,7 @@ volume de défauts par zone.
 | **B** | Résultats + replay | `ResultsPage`, `ResultsPageClient`, `ReplayClient`, `WpmChart`, `SessionWaveform`, `WaveformBars` |
 | **C** | Profil + classement | `ProfilClient`, `ProfileSpotlight`, `RankLadder`, `PracticeRoll`, `RankBadge`, `ClassementClient`, `LeaderboardTable`, `WpmProgressChart`, `ConsistencyChart`, `ContributionHeatmap`, `KeyboardHeatmap` |
 | **D** | Apprentissage + paramètres + about + challenge | `LearningMode` (+ repli du rail de niveaux vertical, dû à #71), `KeyboardDiagram`, `LevelClearedMoment`, `LevelRailSpotlight`, `ParametresClient`, `DataManagement`, `AboutSection`, `DefinitionList`, `ShortcutRow`, `ChallengeClient`, `SharedLinkFallback` |
+| **E** | Écran de frappe mobile, fait pour de vrai (demande Mouwafic 2026-09-07, stack sur A) | nouveau : `PieceDeckBar` + `PieceLibrarySheet` + `TextContextSheet` + `BottomSheet` + `useIsMobile` ; modifié : `HomeClient` (branche mobile, pas de focus mode, boutons tapables), `ThemeQuickSwitcher` (compact + centré mobile) |
 
 ## Suivi
 
@@ -312,3 +313,54 @@ correct grâce à son conteneur `width:100%`).
   `LeaderboardTable` déjà bon.
 - **PR D** : moyenne-lourde. Le repli du rail (D1) et `KeyboardDiagram` (D2)
   sont le vrai travail ; le reste est petit.
+
+### PR E — Écran de frappe mobile, fait pour de vrai
+
+Demande explicite de Mouwafic (2026-09-07), au-delà du « pas de refonte » du
+périmètre de base : la barre platine sous ~600px est un **composant repensé**,
+pas une media query sur le cluster desktop. Brainstorm passé par
+`obsession-architect` (le morceau = la promesse de marque, il mérite le
+traitement d'un sélecteur de piste ; langue + collection sont des réglages de
+*texte*, mental model distinct) et `elite-ui-designer` (Étape 0 : code réel
+Next.js ; Étape 1 : fonctionnel-avec-caractère, bottom sheet). Décisions
+Mouwafic : séparer musique / texte ; motif = bottom sheet.
+
+- **`PieceDeckBar`** (nouveau) : sous ~600px, remplace tout le cluster
+  (`ActiveSessionHeader` + `ContextSelectors` + `CollectionSelector`). Barre
+  pleine largeur : glyphe waveform + titre du morceau (tronqué) + point
+  jouable/bientôt + chevron → ouvre `PieceLibrarySheet`. Puce secondaire
+  « collection · langue » → ouvre `TextContextSheet`. Masquée hors des modes à
+  config de texte.
+- **`PieceLibrarySheet`** (nouveau) : bottom sheet. « Surprends-moi » en tête
+  (le *delighter*, remplace le label cryptique « Recommandation: X » par une
+  action mood-based), recherche, puces d'ambiance défilables, liste pleine
+  largeur avec état jouable / bientôt, coche sur l'actif. Même source de données
+  que le menu desktop (`useMusicRecommendation` + `filterMusicPieces`).
+- **`TextContextSheet`** (nouveau) : mini bottom sheet, collection + langue,
+  mêmes règles de disponibilité que les sélecteurs desktop.
+- **`BottomSheet`** (nouveau, primitive UI) : portail body, fond assombri,
+  poignée, glisse-pour-fermer, Échap, verrou scroll, piège focus, safe-area,
+  `overscroll-behavior: contain`, `prefers-reduced-motion`.
+- **`useIsMobile`** (nouveau) : `matchMedia('(max-width: 600px)')`, SSR-safe,
+  défensif si `matchMedia` absent (jsdom). Un seuil « mobile » unique pour
+  l'écran de frappe (même 600px que `.home-main` / `.mobile-typing-hint`).
+- **HomeClient — pas de focus mode sur mobile** : `focusModeActive = hasStarted
+  && !isMobile`. `fadeOnStart` ne masque rien sur mobile, `configBarInert` et
+  tous les `inert` de démarrage passent par `focusModeActive`. Commencer à taper
+  ne fait plus apparaître un vide soudain en haut/bas (plus visible sur petit
+  écran). Desktop strictement inchangé (vérifié : opacité 0 pendant la frappe).
+- **HomeClient — raccourcis → boutons sur mobile** : le combo keycaps
+  `[Tab] + [Entrée] pour recommencer` devient deux vrais boutons tapables côte à
+  côte, « Changer de texte » (le shuffle, conservé) + « Recommencer », toujours
+  visibles. Desktop garde les keycaps.
+- **`ThemeQuickSwitcher`** : sous ~600px, panneau resserré (`maxWidth 340`,
+  polices et rangées plus petites, `maxHeight 50svh`) et centré verticalement
+  (`align-items: center`) au lieu d'ancré à 6rem du haut.
+- Chaînes fr/en : `typing.libraryTitle` / `surpriseMe` / `textContextTitle` /
+  `sheetCollectionLabel` / `sheetLanguageLabel` / `restartMobile` /
+  `newTextMobile`. Icônes : `SparklesIcon`, `ChevronRightIcon`.
+- Tests : `useIsMobile` (3), `BottomSheet` (6), `PieceLibrarySheet` (5),
+  `TextContextSheet` (4), `PieceDeckBar` (5). `vitest.setup.ts` gagne un stub
+  `matchMedia` pour jsdom. Vérif navigateur 360/390 : barre platine, feuilles,
+  frappe sans focus mode, boutons, switcher thème — tout OK, 0 débordement ;
+  desktop 768/1440 inchangé.

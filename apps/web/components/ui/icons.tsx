@@ -41,6 +41,8 @@ import {
   Search,
   Check,
   MousePointer2,
+  Sparkles,
+  ChevronRight,
 } from 'lucide-react';
 
 type IconProps = {
@@ -100,3 +102,5 @@ export const PaletteIcon = withProps(Palette);
 export const SearchIcon = withProps(Search);
 export const CheckIcon = withProps(Check);
 export const CursorIcon = withProps(MousePointer2);
+export const SparklesIcon = withProps(Sparkles);
+export const ChevronRightIcon = withProps(ChevronRight);

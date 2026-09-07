@@ -24,6 +24,7 @@
  */
 
 import { getUserProfile } from '@/lib/db';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { useThemeStore } from '@/stores/useThemeStore';
 import type { ThemeConfig } from '@typewav/types';
 import { useTranslations } from 'next-intl';
@@ -52,6 +53,7 @@ function ThemeDot({ color }: { color: string }) {
 export function ThemeQuickSwitcher() {
   const t = useTranslations('themeSwitcher');
   const baseId = useId();
+  const isMobile = useIsMobile();
   const themeId = useThemeStore((s) => s.themeId);
   const setTheme = useThemeStore((s) => s.setTheme);
 
@@ -227,9 +229,11 @@ export function ThemeQuickSwitcher() {
               position: 'fixed',
               inset: 0,
               display: 'flex',
-              alignItems: 'flex-start',
+              // Mobile : centré verticalement et resserré (demande Mouwafic).
+              // Desktop : ancré en haut, fidélité MonkeyType.
+              alignItems: isMobile ? 'center' : 'flex-start',
               justifyContent: 'center',
-              padding: '6rem 2rem',
+              padding: isMobile ? '1.5rem 1rem' : '6rem 2rem',
               zIndex: 100,
             }}
           >
@@ -240,7 +244,7 @@ export function ThemeQuickSwitcher() {
               onClick={(e) => e.stopPropagation()}
               style={{
                 width: '100%',
-                maxWidth: 600,
+                maxWidth: isMobile ? 340 : 600,
                 display: 'flex',
                 flexDirection: 'column',
                 background: 'var(--color-surface)',
@@ -272,9 +276,9 @@ export function ThemeQuickSwitcher() {
                     background: 'transparent',
                     border: 'none',
                     outline: 'none',
-                    padding: '16px 0',
+                    padding: isMobile ? '12px 0' : '16px 0',
                     fontFamily: 'var(--font-mono)',
-                    fontSize: '1rem',
+                    fontSize: isMobile ? '0.9rem' : '1rem',
                     color: 'var(--color-text-primary)',
                   }}
                 />
@@ -288,7 +292,7 @@ export function ThemeQuickSwitcher() {
                   display: 'flex',
                   flexDirection: 'column',
                   overflowY: 'auto',
-                  maxHeight: 'calc(100vh - 12rem - 3rem)',
+                  maxHeight: isMobile ? '50svh' : 'calc(100vh - 12rem - 3rem)',
                 }}
               >
                 {filteredThemes.length === 0 ? (
@@ -319,9 +323,9 @@ export function ThemeQuickSwitcher() {
                           display: 'flex',
                           alignItems: 'center',
                           gap: 8,
-                          padding: '8px 16px',
+                          padding: isMobile ? '7px 14px' : '8px 16px',
                           fontFamily: 'var(--font-mono)',
-                          fontSize: '0.75rem',
+                          fontSize: isMobile ? '0.72rem' : '0.75rem',
                           cursor: 'pointer',
                           background: isHighlighted
                             ? 'var(--color-text-primary)'
