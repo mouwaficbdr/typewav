@@ -102,8 +102,11 @@ export function ChallengeClient() {
       : null;
 
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center gap-8 p-8">
-      {/* Banner slim contextuel */}
+    <main className="flex min-h-[calc(100dvh-var(--nav-height))] flex-col items-center justify-center gap-8 py-8 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] sm:px-8">
+      {/* Banner slim contextuel. Le grand marginBottom réserve la place des
+          calques `position:absolute` de TypingArea (compteur à `top:-3.6rem`,
+          stats à `top:-1.75rem`) : sans lui, « Objectif : battre X WPM »
+          chevauchait le « 0 / N » sur viewport étroit. */}
       <div
         style={{
           borderRadius: 'var(--radius-sm)',
@@ -111,7 +114,7 @@ export function ChallengeClient() {
           fontFamily: 'var(--font-ui)',
           fontSize: '0.8125rem',
           letterSpacing: '0.05em',
-          marginBottom: 8,
+          marginBottom: '3.5rem',
           textAlign: 'center',
         }}
       >

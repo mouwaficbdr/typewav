@@ -390,6 +390,9 @@
     "exitToClassic": "Passer en mode classique →",
     "readyToUnlock": "Niveau {id} prêt : {name}. Cliquer pour continuer.",
     "unlockedAnnouncement": "Niveau {id} débloqué : {name}.",
+    "nextLevelCta": "Niveau suivant",
+    "prevLevelCta": "Niveau précédent",
+    "levelCounter": "Niveau {id} / {total}",
     "fingerIntro": {
       "title": "Où poser tes doigts",
       "caption": "F et J ont une petite bosse que tu peux sentir sans regarder : ce n'est pas un hasard, ce sont tes deux repères. Pose tes index dessus, les 6 autres doigts se posent juste à côté, chacun sur sa propre touche.",

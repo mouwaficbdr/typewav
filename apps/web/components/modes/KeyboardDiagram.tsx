@@ -149,7 +149,15 @@ export function KeyboardDiagram({
         // bon goût sur un très grand écran, pas un calcul de taille.
         style={{
           flex: '1 1 0%',
-          minHeight: 0,
+          // Plancher lisible : sur un écran court / mobile, `flex: 1 1 0%` dans
+          // un conteneur à hauteur contrainte réduisait le SVG (ratio conservé)
+          // à ~55-190px, illisible. Le plancher garantit un clavier utilisable ;
+          // le trop-plein éventuel est absorbé par le scroll de `<main>` sur
+          // mobile (voir `.home-main` dans globals.css). Sur desktop avec de la
+          // place, `flex` le fait grandir bien au-delà, le plancher est inerte.
+          minHeight: showAllFingerColors
+            ? 'clamp(150px, 46vw, 280px)'
+            : 'clamp(120px, 34vw, 220px)',
           width: '100%',
           maxWidth: showAllFingerColors ? 820 : 1000,
           objectFit: 'contain',
