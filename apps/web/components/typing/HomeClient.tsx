@@ -25,6 +25,7 @@ import { AmbientAura } from '@/components/typing/AmbientAura';
 import { ConfigBar } from '@/components/typing/ConfigBar';
 import { CollectionSelector } from '@/components/typing/CollectionSelector';
 import { ContextSelectors } from '@/components/typing/ContextSelectors';
+import { MobileTypingHint } from '@/components/typing/MobileTypingHint';
 import { PersonalTextsPanel } from '@/components/typing/PersonalTextsPanel';
 import { TypingArea } from '@/components/typing/TypingArea';
 import { WaveformBars } from '@/components/typing/WaveformBars';
@@ -634,6 +635,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
 
   return (
     <main
+      className="home-main"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -648,8 +650,23 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         // le bandeau de niveau est parti dans le rail lateral, la zone de
         // frappe est le premier element sous la ConfigBar : cet ecart doit
         // rester > ~30px pour que le compteur ne chevauche pas la ConfigBar.
-        gap: isLearningMode ? 40 : 36,
-        padding: isLearningMode ? '16px 32px 12px' : '32px 32px 16px',
+        // Gaps et paddings fluides : sur viewport court (laptop 13", mobile
+        // paysage) les valeurs fixes poussaient le pied de page ou le
+        // sélecteur de morceau hors du cadre `overflow:hidden`. Le plancher
+        // du gap en mode Apprentissage reste > 30px : le compteur
+        // wpm/précision de TypingArea flotte en `position:absolute`
+        // `top:-1.75rem` au-dessus de sa boîte, sous cet écart il
+        // chevaucherait la ConfigBar.
+        gap: isLearningMode
+          ? 'clamp(32px, 3.5vh, 40px)'
+          : 'clamp(16px, 3vh, 36px)',
+        paddingBlock: isLearningMode
+          ? 'clamp(12px, 2vh, 16px) clamp(10px, 1.5vh, 12px)'
+          : 'clamp(20px, 3.5vh, 32px) clamp(12px, 2vh, 16px)',
+        // Padding latéral fluide + respect des encoches (écran de frappe
+        // plein cadre `100dvh`).
+        paddingLeft: 'max(clamp(16px, 4vw, 32px), env(safe-area-inset-left))',
+        paddingRight: 'max(clamp(16px, 4vw, 32px), env(safe-area-inset-right))',
         height: 'calc(100dvh - var(--nav-height))',
         overflow: 'hidden', // Account for nav height
         // Mode Apprentissage : pas de plafond de largeur. Le rail de niveaux
@@ -673,6 +690,11 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         isPhraseBoundary={lastNote.isPhraseBoundary}
       />
 
+      {/* Bandeau « meilleure expérience sur ordinateur » : visible seulement
+          sous ~600px (CSS), non bloquant, rejet mémorisé. La frappe reste
+          possible ; TypeWav vise le clavier physique. */}
+      <MobileTypingHint />
+
       {/* En-tête de Configuration */}
       {!isLearningMode ? (
         // Enveloppe extérieure jamais inert (sinon elle ne recevrait plus
@@ -691,6 +713,15 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             width: '100%',
             position: 'relative',
             zIndex: 10,
+            // flexShrink: 0 : sur viewport étroit/court la ConfigBar + le
+            // sélecteur de morceau wrappent sur plusieurs rangées. Sans ça, ce
+            // conteneur (flex-item d'une colonne à hauteur fixe `overflow:
+            // hidden`) se comprimait vers `minHeight` et son contenu débordait
+            // visuellement PAR-DESSUS la zone de frappe (le `zIndex:10` le
+            // peignait au premier plan, masquant les 2 premières lignes du
+            // texte). On garde plutôt sa hauteur réelle ; le surplus est
+            // absorbé en bas (pied de page).
+            flexShrink: 0,
           }}
         >
           <div
@@ -1101,7 +1132,13 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
+                // wrap + center : à 360px le combo touches + « pour recommencer »
+                // ne tient pas sur une ligne ; sans wrap le libellé se coupait
+                // et se désalignait des keycaps. Il passe proprement dessous.
+                flexWrap: 'wrap',
+                justifyContent: 'center',
                 gap: '8px',
+                rowGap: '4px',
                 background: 'transparent',
                 border: 'none',
                 color: 'inherit',

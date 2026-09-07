@@ -120,6 +120,67 @@ Hors #71, repéré au passage : **erreur console d'hydratation sur `/`** (« som
 attributes of the server rendered HTML didn't match the client properties »). À
 investiguer hors ce ticket.
 
+#### PR A — état d'implémentation (branche `fix/responsive-typing-screen`)
+
+- **A1 fait.** `ConfigBar` : toolbar `flex-wrap: wrap` + `width:100%` + `minHeight`
+  (plus `height` figé). Le groupe « modes » (7 chips, ~630px) wrappe aussi en
+  interne (`flexShrink: 1` + `maxWidth: 100%` + `flex-wrap`). Vérifié 360→2560 :
+  0 débordement réel, tout atteignable, aucun scroll horizontal.
+- **A2 fait.** `<main>` : `paddingLeft/Right: max(clamp(16px,4vw,32px),
+  env(safe-area-inset-*))` (couvre aussi A11), `paddingBlock` fluide.
+- **A3 non retenu.** A4 traite la casse (rognage). La densité à 360px reste
+  acceptable (parité Monkeytype) et toucher `fontSize` sans toucher
+  `LINE_HEIGHT_PX` (constante du scroll ligne-à-ligne) déséquilibrerait
+  l'interligne ; risque > bénéfice, d'autant que la frappe mobile est en retrait
+  assumé (A12).
+- **A4 fait.** `<Word>` : `flexWrap: 'wrap'` — un mot plus large que le viewport
+  wrappe au lieu d'être rogné.
+- **A5 : faux positif.** Le « bloc de mots 16-48px hors viewport » = le calque de
+  bleed du flou (`margin: -48 / padding: 48`, intentionnel, rogné par
+  l'`overflow:hidden` de la zone, commenté dans le code). Le caret du 1er
+  caractère n'est plus au ras du viewport grâce au padding de `<main>` (A2). Rien
+  à faire.
+- **A6 fait.** Le conteneur `config-header-hover-zone` gagne `flexShrink: 0` :
+  il gardait sa hauteur réelle au lieu de se comprimer vers `minHeight:130px` et
+  de laisser son contenu (ConfigBar + sélecteur wrappés) déborder **par-dessus**
+  la zone de frappe (`zIndex:10`). Plus de chevauchement 360→768.
+- **A7 : résolu par effet de bord.** Les icônes nav plus grandes (A8) + `gap`
+  resserré font wrapper la nav proprement sur 2 rangées sous ~400px (déjà prévu
+  par `--nav-height:104px`). Logo non touché (maths de baseline délicates).
+- **A8 fait.** Liens `GlobalNav` : `padding:12` + `minWidth/minHeight:44` +
+  `touch-action: manipulation` + `-webkit-tap-highlight-color: transparent`.
+  `transition:'all'` → propriétés explicites (anti-pattern WIG au passage).
+- **A9 fait.** Bouton hint restart : `flexWrap:'wrap'` + `justify-content:center`
+  + `rowGap`.
+- **A10 fait.** `<main>` : `gap` fluide (`clamp`, plancher 32px en
+  Apprentissage pour le compteur en `position:absolute`). Sous 600px,
+  `.home-main { overflow-y: auto !important }` (media query, borné) : l'écran de
+  frappe **défile** dans `<main>` au lieu de rogner du contenu (le body reste
+  verrouillé). Desktop inchangé (ne scrolle jamais).
+- **A11 fait.** Voir A2 (`env(safe-area-inset-*)` dans le `max()` du padding
+  latéral).
+- **A12 fait.** Nouveau composant `MobileTypingHint.tsx` : bandeau `role="note"`
+  au-dessus de la ConfigBar, visible < 601px (classe `.mobile-typing-hint` +
+  media query, pas de listener JS), rejetable, rejet persisté IndexedDB
+  (`user_preferences` clé `mobile_typing_hint_dismissed`). Chaînes fr/en
+  (`typing.desktopHint` / `typing.desktopHintDismiss`). Tests unitaires (5) sur
+  la logique de rejet + persistance.
+- **A13 non retenu** dans cette PR : le rythme vertical type Monkeytype est
+  conservé (inconfort-bas, pas de casse).
+- **Cibles tactiles secondaires** (chips ConfigBar 32px, chips
+  `CollectionSelector` / `ContextSelectors` ~20px de haut, bouton shuffle
+  ~20px) : laissées telles quelles. Chrome de config dense, desktop-first
+  (A12). La nav primaire, elle, est passée à 44px. À revoir si besoin en
+  follow-up ; hors casse.
+- **AmbientAura** (`<div>` décoratif `z-index` négatif qui déborde largement,
+  clippé par l'`overflow:hidden`) : inchangé, pré-existant, sans impact visuel.
+  Confirmation « clip voulu » reversée à la PR B (point B3).
+- Gate : `pnpm typecheck` + `pnpm lint` (racine + `@typewav/web`) verts ; suite
+  complète `pnpm vitest run` verte (1278 tests, 98 fichiers) dont 5 nouveaux
+  `MobileTypingHint`. Vérif navigateur : `home` et `learn-intro` = 0 débordement
+  réel de 360 à 2560 + hauteurs courtes (620-680) ; les autres routes
+  re-vérifiées, aucune régression de la nav globalisée.
+
 ### PR B — Résultats + replay
 
 | # | Fichier / zone | Largeurs | Sév | Défaut | Correctif |

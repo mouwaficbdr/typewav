@@ -120,10 +120,19 @@ export function ConfigBar({ controlsMode }: ConfigBarProps = {}) {
   const groupStyle: React.CSSProperties = {
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'center',
+    // Le groupe « modes » compte 7 chips (~630px) : sur mobile il dépasse le
+    // viewport à lui seul. `flexShrink: 1` + `maxWidth: 100%` le laissent
+    // rétrécir à la largeur dispo, ce qui déclenche son propre `flex-wrap`
+    // (chips sur 2-3 rangées) au lieu d'un rognage. `minHeight` au lieu de
+    // `height` pour qu'il grandisse quand il wrappe.
+    flexWrap: 'wrap',
     gap: 4,
-    flexShrink: 0,
-    height: '40px',
-    padding: '0 8px',
+    rowGap: 2,
+    flexShrink: 1,
+    maxWidth: '100%',
+    minHeight: '40px',
+    padding: '4px 8px',
     background: 'var(--color-surface)',
     borderRadius: 'var(--radius-md)',
   };
@@ -145,23 +154,27 @@ export function ConfigBar({ controlsMode }: ConfigBarProps = {}) {
       aria-label={t('label')}
       style={{
         display: 'flex',
-        flexWrap: 'nowrap' /* Force la ligne unique */,
-        overflowX:
-          'auto' /* Permet le scroll horizontal si l'écran est trop petit */,
+        // Sous ~1300px la barre était plus large que le viewport : `nowrap` +
+        // `overflow-x:auto` la faisait scroller horizontalement et cachait les
+        // chips de droite (modes Fantôme/Libre, durées) hors champ, sur
+        // tablette comme sur mobile. Elle wrappe désormais sur 2-3 rangées :
+        // tout reste atteignable, aucun scroll horizontal.
+        flexWrap: 'wrap',
         alignItems: 'center',
         justifyContent: 'center',
-        width: 'fit-content',
+        width: '100%',
         maxWidth: '1200px',
-        // Élément de chrome permanent : hauteur stricte + flexShrink: 0 pour
-        // qu'il ne soit jamais écrasé par du contenu voisin trop haut (ex.
-        // mode Apprentissage). Sans ça, le parent flex-column à hauteur fixe
-        // (overflow: hidden) le réduit à 0px : la barre reste dans le DOM
-        // mais devient invisible, donc impossible de changer de mode.
-        height: '46px',
+        // Élément de chrome permanent : `flexShrink: 0` + `minHeight` pour
+        // qu'il ne soit jamais écrasé à 0px par le parent flex-column à
+        // hauteur fixe (`overflow:hidden`) — sinon la barre reste dans le DOM
+        // mais devient invisible, impossible de changer de mode. `height`
+        // n'est plus figé à 46px : la barre grandit quand elle wrappe.
+        minHeight: '46px',
         flexShrink: 0,
         margin: '0 auto',
         padding: '0 4px',
-        gap: '14px',
+        columnGap: '14px',
+        rowGap: '8px',
       }}
       className="hide-scrollbar"
     >

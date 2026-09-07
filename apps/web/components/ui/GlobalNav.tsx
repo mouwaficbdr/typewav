@@ -63,12 +63,16 @@ export function GlobalNav() {
       {/* Logo at extreme left */}
       <NavLogo locale={locale} />
 
-      {/* Nav Items groupés à droite */}
+      {/* Nav Items groupés à droite. Le gap est resserré parce que chaque lien
+          porte maintenant son propre padding (zone tactile) : l'écart visuel
+          entre icônes = gap + 2 × padding. Sur mobile étroit, l'ensemble
+          nav passe proprement sur deux lignes (flexWrap sur le <nav>,
+          --nav-height 104px sous 640px le prévoit déjà). */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 'clamp(12px, 2.5vw, 28px)',
+          gap: 'clamp(0px, 1.5vw, 14px)',
         }}
       >
         {NAV_ITEMS.map(({ key, label, Icon, path }) => {
@@ -87,7 +91,17 @@ export function GlobalNav() {
               style={{
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: 10,
+                // Zone tactile : l'icône fait 20px, le padding porte la cible
+                // à ~44px sans changer le visuel. touch-action pour couper le
+                // délai de double-tap sur mobile.
+                padding: 12,
+                minWidth: 44,
+                minHeight: 44,
+                boxSizing: 'border-box',
+                touchAction: 'manipulation',
+                WebkitTapHighlightColor: 'transparent',
                 fontSize: '1.05rem',
                 fontFamily: 'var(--font-ui)',
                 fontWeight: 500,
@@ -96,7 +110,8 @@ export function GlobalNav() {
                   : 'var(--color-text-muted)',
                 textDecoration: 'none',
                 position: 'relative',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                transition:
+                  'color 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
               className={`group hover:text-[var(--color-text-primary)] hover:-translate-y-0.5`}
             >

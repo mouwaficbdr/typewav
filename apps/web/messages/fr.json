@@ -81,6 +81,8 @@
     "ariaKeyboardDiagram": "Clavier QWERTY interactif",
     "ariaLoadingCollection": "Chargement de la collection",
     "myTexts": "Mes textes",
+    "desktopHint": "TypeWav se pratique au clavier physique : l'expérience est meilleure sur ordinateur.",
+    "desktopHintDismiss": "Masquer ce message",
     "noPersonalTextSelected": "Aucun texte personnel sélectionné. Ouvrez « Mes textes » pour en ajouter ou en choisir un.",
     "personalTexts": {
       "title": "Mes textes",

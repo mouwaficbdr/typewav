@@ -81,6 +81,8 @@
     "ariaKeyboardDiagram": "Interactive QWERTY keyboard",
     "ariaLoadingCollection": "Loading collection",
     "myTexts": "My texts",
+    "desktopHint": "TypeWav is built for a physical keyboard: the experience is better on a computer.",
+    "desktopHintDismiss": "Dismiss this message",
     "noPersonalTextSelected": "No personal text selected. Open \"My texts\" to add or pick one.",
     "personalTexts": {
       "title": "My texts",
