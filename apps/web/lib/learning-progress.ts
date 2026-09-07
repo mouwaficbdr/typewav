@@ -4,7 +4,7 @@
  * loadLearningProgress/saveLearningProgress plus bas pour la persistance).
  */
 
-import type { LearningLevel } from '@typewav/types';
+import type { CurriculumLevel, LearningLevel } from '@typewav/types';
 import { getPreference, setPreference } from './db';
 
 const LEARNING_PROGRESS_KEY = 'learning_level_progress';
@@ -116,4 +116,60 @@ export async function saveLearningProgress(
   progress: LevelProgress[],
 ): Promise<void> {
   await setPreference(LEARNING_PROGRESS_KEY, progress);
+}
+
+function keyReachedBar(
+  m: { correct: number; total: number } | undefined,
+  level: CurriculumLevel,
+): boolean {
+  if (!m || m.total < level.minSamplesPerKey) return false;
+  return (m.correct / m.total) * 100 >= level.minAccuracyPerKey;
+}
+
+export function canUnlockCurriculumLevel(
+  level: CurriculumLevel,
+  mastery: KeyMastery,
+  levelProgress: { samples: number; accuracy: number },
+): boolean {
+  const everyKeyOk = level.newKeys.every((k) => keyReachedBar(mastery[k.id], level));
+  if (!everyKeyOk) return false;
+  if (level.kind === 'text') {
+    if (levelProgress.samples < (level.minSamplesTotal ?? 0)) return false;
+    if (levelProgress.accuracy < (level.minOverallAccuracy ?? 0)) return false;
+  }
+  return true;
+}
+
+export function calculateCurriculumProgress(
+  level: CurriculumLevel,
+  mastery: KeyMastery,
+): { percent: number; weakestKeyId: string | null; weakestKeyAccuracy: number | null } {
+  if (level.newKeys.length === 0) {
+    return { percent: 100, weakestKeyId: null, weakestKeyAccuracy: null };
+  }
+  let reached = 0;
+  let weakestKeyId: string | null = null;
+  let weakestScore = Infinity;
+  let weakestKeyAccuracy: number | null = null;
+  for (const k of level.newKeys) {
+    const m = mastery[k.id];
+    if (keyReachedBar(m, level)) {
+      reached += 1;
+      continue;
+    }
+    const samplesRatio = (m?.total ?? 0) / level.minSamplesPerKey;
+    const acc = m && m.total > 0 ? (m.correct / m.total) * 100 : 0;
+    const accuracyRatio = acc / level.minAccuracyPerKey;
+    const score = Math.min(samplesRatio, accuracyRatio);
+    if (score < weakestScore) {
+      weakestScore = score;
+      weakestKeyId = k.id;
+      weakestKeyAccuracy = Math.round(acc);
+    }
+  }
+  return {
+    percent: Math.round((100 * reached) / level.newKeys.length),
+    weakestKeyId,
+    weakestKeyAccuracy,
+  };
 }
