@@ -332,6 +332,38 @@ body {
   }
 }
 
+/* Grille du profil. En colonne unique (sous ~1080px), le graphe « Le Rouleau »
+   et les sections texte (Records, Rang) partagent la même largeur plafonnée :
+   avant, le graphe partait pleine largeur au-dessus d'une colonne texte deux
+   fois plus étroite, largeurs incohérentes. Au-dessus, deux vraies colonnes
+   (graphe large, texte étroit) comme prévu. */
+.profile-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  align-items: stretch;
+}
+.profile-grid > * {
+  width: 100%;
+  max-width: 600px;
+  min-width: 0;
+}
+@media (min-width: 1080px) {
+  .profile-grid {
+    flex-direction: row;
+    gap: 64px;
+    align-items: flex-start;
+  }
+  .profile-grid > :first-child {
+    max-width: none;
+    flex: 1 1 560px;
+  }
+  .profile-grid > :last-child {
+    max-width: 440px;
+    flex: 0 1 380px;
+  }
+}
+
 /* Panneau verre : couleurs en tokens de thème (pas de rgba figé, sinon gris
    sale sur les thèmes colorés / clairs). */
 .glass-panel {

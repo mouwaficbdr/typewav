@@ -288,7 +288,10 @@ export function PracticeRoll({
             onBlur={() => setActiveIdx(null)}
             style={{
               position: 'absolute',
-              left: m.x - hitW / 2,
+              // Bornée dans [0, width - hitW] : sur le 1er / dernier point,
+              // `m.x - hitW/2` sortait de quelques px hors du graphe (zone de
+              // clic invisible, mais elle comptait dans le débordement).
+              left: Math.max(0, Math.min(m.x - hitW / 2, width - hitW)),
               top: 0,
               width: hitW,
               height: '100%',
