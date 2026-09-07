@@ -26,6 +26,7 @@ import { ConfigBar } from '@/components/typing/ConfigBar';
 import { CollectionSelector } from '@/components/typing/CollectionSelector';
 import { ContextSelectors } from '@/components/typing/ContextSelectors';
 import { MobileTypingHint } from '@/components/typing/MobileTypingHint';
+import { PieceDeckBar } from '@/components/typing/mobile/PieceDeckBar';
 import { PersonalTextsPanel } from '@/components/typing/PersonalTextsPanel';
 import { TypingArea } from '@/components/typing/TypingArea';
 import { WaveformBars } from '@/components/typing/WaveformBars';
@@ -36,8 +37,10 @@ import {
   MusicNoteIcon,
   PenIcon,
   RepeatIcon,
+  RotateCwIcon,
 } from '@/components/ui/icons';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { NON_CITABLE_COLLECTIONS } from '@/lib/collection-support';
 import {
   getPersonalRecords,
@@ -143,7 +146,13 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
       }
     };
   }, []);
-  const configBarInert = hasStarted && !configBarRevealed;
+  // Sur mobile, pas de focus mode : commencer à taper ne fait rien disparaître
+  // (le vide soudain en haut et en bas se remarque bien plus vite sur petit
+  // écran). La ConfigBar, la platine et les boutons restent en place. Desktop
+  // strictement inchangé.
+  const isMobile = useIsMobile();
+  const focusModeActive = hasStarted && !isMobile;
+  const configBarInert = focusModeActive && !configBarRevealed;
   const [lastNote, setLastNote] = useState<{
     pitch: number | null;
     isError: boolean;
@@ -579,13 +588,19 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   // `hidden` par défaut = hasStarted ; la config bar passe explicitement
   // `configBarInert` à la place (ticket #61 : reste révélée au survol même
   // pendant la frappe, indépendamment des autres blocs qui s'effacent).
-  const fadeOnStart = (translateYpx: number, hidden: boolean = hasStarted) => ({
-    opacity: hidden ? 0 : 1,
-    transform: hidden ? `translateY(${translateYpx}px)` : 'translateY(0)',
-    transition: shouldReduceMotion
-      ? 'none'
-      : 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
-  });
+  const fadeOnStart = (translateYpx: number, hidden: boolean = hasStarted) => {
+    // Sur mobile, rien ne s'efface au démarrage de la frappe (voir isMobile).
+    const effHidden = isMobile ? false : hidden;
+    return {
+      opacity: effHidden ? 0 : 1,
+      transform: effHidden
+        ? `translateY(${translateYpx}px)`
+        : 'translateY(0)',
+      transition: shouldReduceMotion
+        ? 'none'
+        : 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+    };
+  };
 
   const { text, source, collectionId } = useMemo(() => {
     // Mode Libre : texte personnel affiché tel quel, jamais filtré (A3) :
@@ -738,32 +753,52 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             {/* Zone 2 : ConfigBar */}
             <ConfigBar controlsMode={effectiveMode} />
 
-            <div
-              className="glass-panel"
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 12,
-                padding: '6px 16px',
-                borderRadius: '9999px',
-              }}
-            >
-              {/* Zone 3 : Active Session Header */}
-              <ActiveSessionHeader
+            {/* Zone 3 : sélection du morceau + contexte texte. Sur mobile, une
+                platine dédiée (barre pleine largeur + feuilles) au lieu du
+                cluster desktop qui wrappait en vrac : la musique d'un côté, le
+                texte de l'autre. */}
+            {isMobile ? (
+              <PieceDeckBar
                 selectedPieceId={selectedPieceId}
                 onPieceChange={handlePieceChange}
+                effectiveMode={effectiveMode}
               />
+            ) : (
+              <div
+                className="glass-panel"
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 12,
+                  padding: '6px 16px',
+                  borderRadius: '9999px',
+                }}
+              >
+                {/* Zone 3 : Active Session Header */}
+                <ActiveSessionHeader
+                  selectedPieceId={selectedPieceId}
+                  onPieceChange={handlePieceChange}
+                />
 
-              <div style={{ width: '1px', height: '16px', background: 'var(--color-border)' }} />
+                <div
+                  style={{
+                    width: '1px',
+                    height: '16px',
+                    background: 'var(--color-border)',
+                  }}
+                />
 
-              {/* Zone 3.5 : Context Selectors (Language + Collection) */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <ContextSelectors controlsMode={effectiveMode} />
-                <CollectionSelector controlsMode={effectiveMode} />
+                {/* Zone 3.5 : Context Selectors (Language + Collection) */}
+                <div
+                  style={{ display: 'flex', alignItems: 'center', gap: 12 }}
+                >
+                  <ContextSelectors controlsMode={effectiveMode} />
+                  <CollectionSelector controlsMode={effectiveMode} />
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Boutons/bannières secondaires (mode Libre, erreurs, Fantôme) :
@@ -771,7 +806,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               sans réagir au survol : seule la config bar proprement dite se
               rouvre au survol ci-dessus. */}
           <div
-            inert={hasStarted}
+            inert={focusModeActive}
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -1091,9 +1126,69 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               color: 'var(--color-text-muted)',
             }}
           >
+            {isMobile ? (
+              // Mobile : pas de raccourcis clavier, deux vrais boutons tapables
+              // côte à côte, toujours visibles (pas de focus mode).
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  justifyContent: 'center',
+                  gap: 10,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={handleShuffle}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    minHeight: 44,
+                    padding: '8px 16px',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-md)',
+                    background: 'transparent',
+                    color: 'var(--color-text-muted)',
+                    fontFamily: 'var(--font-ui)',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    touchAction: 'manipulation',
+                    WebkitTapHighlightColor: 'transparent',
+                  }}
+                >
+                  <RepeatIcon size={16} />
+                  {tHint('newTextMobile')}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRestart}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    minHeight: 44,
+                    padding: '8px 16px',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-md)',
+                    background: 'transparent',
+                    color: 'var(--color-text-muted)',
+                    fontFamily: 'var(--font-ui)',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    touchAction: 'manipulation',
+                    WebkitTapHighlightColor: 'transparent',
+                  }}
+                >
+                  <RotateCwIcon size={16} />
+                  {tHint('restartMobile')}
+                </button>
+              </div>
+            ) : (
+              <>
             {/* Shuffle / Next Test (MonkeyType style, centered below text) */}
             <div
-              inert={hasStarted && !showShuffleInFocus}
+              inert={focusModeActive && !showShuffleInFocus}
               style={fadeOnStart(10, hasStarted && !showShuffleInFocus)}
             >
             <button
@@ -1123,7 +1218,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
                 monkeytype.com) ; seul le libellé de fin s'atténue au repos
                 et remonte au survol. */}
             <div
-              inert={hasStarted && !showRestartInFocus}
+              inert={focusModeActive && !showRestartInFocus}
               style={fadeOnStart(10, hasStarted && !showRestartInFocus)}
             >
             <button
@@ -1171,13 +1266,15 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               </span>
             </button>
             </div>
+              </>
+            )}
           </div>
         </div>
       )}
 
       {/* Zone 6 : Footer minimal avec les contrôles secondaires éparpillés */}
       <footer
-        inert={hasStarted}
+        inert={focusModeActive}
         style={{
           display: 'flex',
           alignItems: 'center',
