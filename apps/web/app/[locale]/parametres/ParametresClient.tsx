@@ -89,7 +89,7 @@ export function ParametresClient() {
                     onClick={() => setTheme(theme.id)}
                     aria-pressed={isActive}
                     aria-label={t('selectTheme', { name: theme.name })}
-                    className="relative group flex items-center justify-between gap-2 px-3 py-2 rounded font-mono text-xs transition-transform hover:scale-[1.02] focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--color-accent)]"
+                    className="relative group flex min-h-[46px] items-center justify-between gap-2 px-3 py-2 rounded font-mono text-xs transition-transform hover:scale-[1.02] focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--color-accent)]"
                     style={{
                       backgroundColor: theme.colors.bg,
                       color: theme.colors.textPrimary,

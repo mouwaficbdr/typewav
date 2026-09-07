@@ -15,6 +15,7 @@ import {
 import { LevelRailSpotlight } from '@/components/modes/LevelRailSpotlight';
 import { TypingArea } from '@/components/typing/TypingArea';
 import { useKeyboardLayoutPreference } from '@/hooks/useKeyboardLayoutPreference';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { resolvePhysicalKey } from '@/lib/keyboardLayouts';
 import {
   applySessionStats,
@@ -245,6 +246,15 @@ export function LearningMode({
     [currentProgress, currentLevel],
   );
 
+  // Sous ~900px, la 1re colonne élastique de la grille ne peut plus tenir le
+  // rail vertical de 264px : il débordait sur la gauche et écrasait la colonne
+  // de contenu (texte de frappe rogné, notes latérales illisibles). Repli : le
+  // rail devient une ligne d'état compacte au-dessus du contenu (compteur de
+  // niveau + progression + « niveau précédent / suivant »). Le stepper à points
+  // cliquables reste réservé au desktop où il a la place de vivre. Hook appelé
+  // ici, avant tout `return` anticipé (règle des hooks).
+  const isRailCompact = useMediaQuery('(max-width: 900px)');
+
   const isLastLevel = currentLevelId === LEARNING_LEVELS.length;
   const tutorialComplete = isLastLevel && canUnlockNext;
 
@@ -391,16 +401,28 @@ export function LearningMode({
     return (
       <div
         className="flex flex-col items-center gap-5 w-full max-w-4xl"
-        style={{
-          // HomeClient donne maintenant une vraie hauteur à ce mode (flex:1
-          // dans la colonne fixe de <main>) : le clavier ci-dessous
-          // (flex:1 également) remplit ce qui reste après le texte et le
-          // bouton, sans jamais deviner une taille et sans jamais déborder
-          // (contrairement à un minHeight calé sur une mesure ponctuelle).
-          height: '100%',
-          minHeight: 0,
-          justifyContent: 'center',
-        }}
+        style={
+          isRailCompact
+            ? {
+                // Sous 900px, l'intro (titre + long paragraphe + clavier
+                // complet + légende 8 doigts + bouton) ne tient pas dans
+                // `calc(100dvh - nav)` : hauteur naturelle + flux vertical, le
+                // scroll de `<main>` (`.home-main` sur mobile) absorbe le reste
+                // plutôt que `flex:1 1 0%` + `justify-content:center` qui
+                // empilait le clavier et le texte l'un sur l'autre.
+                minHeight: '100%',
+                justifyContent: 'flex-start',
+                paddingBottom: 24,
+              }
+            : {
+                // Desktop : HomeClient donne une vraie hauteur à ce mode, le
+                // clavier (flex:1 également) remplit ce qui reste sans jamais
+                // deviner une taille ni déborder.
+                height: '100%',
+                minHeight: 0,
+                justifyContent: 'center',
+              }
+        }
       >
         <div
           className="flex flex-col items-center gap-2"
@@ -437,7 +459,7 @@ export function LearningMode({
 
         <div
           style={{
-            flex: '1 1 0%',
+            flex: isRailCompact ? '0 0 auto' : '1 1 0%',
             minHeight: 0,
             width: '100%',
             display: 'flex',
@@ -530,6 +552,7 @@ export function LearningMode({
   }
 
   const isReadyToAdvance = canUnlockNext && !isLastLevel;
+  const currentLevelName = t(`level.${currentLevelId}.name`);
 
   // Le trait de liaison du stepper doit finir au centre du dernier point.
   // Un grand point numéroté (niveau débloqué, actif, ou tout juste
@@ -553,13 +576,24 @@ export function LearningMode({
       // rail se cale contre le bord gauche de la 1ʳᵉ colonne élastique,
       // quelle que soit la largeur de l'écran.
       className="w-full"
-      style={{
-        height: '100%',
-        minHeight: 0,
-        display: 'grid',
-        gridTemplateColumns: '1fr minmax(0, 920px) 1fr',
-        columnGap: 28,
-      }}
+      style={
+        isRailCompact
+          ? {
+              height: '100%',
+              minHeight: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              rowGap: 12,
+            }
+          : {
+              height: '100%',
+              minHeight: 0,
+              display: 'grid',
+              gridTemplateColumns: '1fr minmax(0, 920px) 1fr',
+              columnGap: 28,
+            }
+      }
     >
       <style>{`
         @keyframes level-next-ping {
@@ -580,18 +614,144 @@ export function LearningMode({
         }
       `}</style>
 
-      {/* Rail de niveaux, en marge plutôt qu'empilé au-dessus de la leçon.
-          Coûtait auparavant une rangée horizontale complète (stepper + nom +
-          barre de progression), donc sa propre hauteur ET son propre gap-11 ;
-          en colonne latérale, il ne coûte plus aucune hauteur au flux
-          vertical principal, la vraie cause de l'ancien clavier réduit à
-          zéro pixel pendant l'onboarding (mesuré en navigateur réel). Sert
-          à revenir sur un niveau déjà débloqué ; pour avancer, une fois
-          l'objectif atteint, le point suivant pulse et une main animée
-          pointe vers lui (cliquer dessus passe au niveau suivant). N'a pas
-          encore de repli dédié sous une largeur de fenêtre réduite : la
-          vraie passe responsive est le ticket #71, volontairement après
-          coup pour ne pas refaire ce travail plusieurs fois. */}
+      {/* Rail de niveaux. Desktop (≥ 900px) : stepper vertical à points
+          cliquables dans la marge gauche, il ne coûte aucune hauteur au flux
+          vertical (la colonne de contenu garde toute sa place pour le clavier).
+          Sous 900px : repli en ligne d'état compacte au-dessus du contenu
+          (compteur + progression + précédent/suivant), le stepper à points
+          n'ayant plus la place de vivre latéralement. */}
+      {isRailCompact ? (
+        <div
+          role="group"
+          aria-label={t('levelHeading', {
+            id: currentLevelId,
+            name: currentLevelName,
+          })}
+          style={{
+            flexShrink: 0,
+            width: '100%',
+            maxWidth: 520,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 6,
+            paddingTop: 8,
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 12,
+            }}
+          >
+            <span style={{ color: 'var(--color-accent)', fontWeight: 700 }}>
+              {t('levelCounter', {
+                id: currentLevelId,
+                total: LEARNING_LEVELS.length,
+              })}
+            </span>
+            <span
+              style={{
+                color: 'var(--color-text-primary)',
+                fontFamily: 'var(--font-display)',
+                fontSize: '1rem',
+              }}
+            >
+              {currentLevelName}
+            </span>
+          </div>
+          <div
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 11,
+              color: 'var(--color-text-muted)',
+              textAlign: 'center',
+            }}
+          >
+            {t('progressStats', {
+              samples: currentProgress.samples,
+              minSamples: currentLevel.minSamples,
+              accuracy: currentProgress.accuracy.toFixed(0),
+              targetAccuracy: currentLevel.minAccuracy,
+            })}
+          </div>
+          {/* Piste de progression, non portée par la seule couleur : le libellé
+              chiffré ci-dessus dit déjà l'état. */}
+          <div
+            aria-hidden="true"
+            style={{
+              width: 'min(100%, 260px)',
+              height: 3,
+              borderRadius: 999,
+              background: 'var(--color-border)',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                width: `${Math.min(100, Math.max(0, isReadyToAdvance ? 100 : progressPercent))}%`,
+                height: '100%',
+                background: 'var(--color-accent)',
+              }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
+            {currentLevelId > 1 && (
+              <button
+                type="button"
+                onClick={() => handleLevelSelect(currentLevelId - 1)}
+                style={{
+                  minHeight: 36,
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--color-border)',
+                  background: 'transparent',
+                  color: 'var(--color-text-muted)',
+                  fontFamily: 'var(--font-ui)',
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  touchAction: 'manipulation',
+                }}
+              >
+                ‹ {t('prevLevelCta')}
+              </button>
+            )}
+            {isReadyToAdvance && (
+              <button
+                type="button"
+                id="level-rail-next-dot"
+                onClick={() => handleNextLevel()}
+                aria-label={t('readyToUnlock', {
+                  id: currentLevelId + 1,
+                  name: t(`level.${currentLevelId + 1}.name`),
+                })}
+                className="level-next-cta"
+                style={{
+                  minHeight: 36,
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--color-accent)',
+                  background:
+                    'color-mix(in srgb, var(--color-accent) 14%, transparent)',
+                  color: 'var(--color-text-primary)',
+                  fontFamily: 'var(--font-ui)',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  touchAction: 'manipulation',
+                }}
+              >
+                {t('nextLevelCta')} ›
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
       <div
         style={{
           justifySelf: 'start',
@@ -874,6 +1034,7 @@ export function LearningMode({
           })}
         </div>
       </div>
+      )}
 
       <div
         // gap-8 (32px) entre les sections majeures : le compteur
@@ -883,7 +1044,11 @@ export function LearningMode({
         // collé à ce qui précède ; en dessous de ça on redonne au clavier la
         // hauteur verticale que 3 gap-11 lui prenaient.
         className="flex flex-col items-center gap-8 w-full"
-        style={{ height: '100%', minHeight: 0, maxWidth: 920 }}
+        style={
+          isRailCompact
+            ? { flex: '1 1 0%', minHeight: 0, maxWidth: 920 }
+            : { height: '100%', minHeight: 0, maxWidth: 920 }
+        }
       >
         {/* Annonce lecteur d'écran du déblocage : le moment "Niveau N validé"
             et le pulse du point suivant sont visuels, ce changement d'état

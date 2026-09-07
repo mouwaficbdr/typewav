@@ -216,6 +216,46 @@ investiguer hors ce ticket.
 Hors #71 : `/dev-onboarding` vérifié 360→2560, ne casse pas (diagramme même
 correct grâce à son conteneur `width:100%`).
 
+#### PR D — état d'implémentation (branche `fix/responsive-learning-challenge`, stack sur A)
+
+- **D1 fait.** `LearningMode` : nouveau hook `useMediaQuery` ; `isRailCompact =
+  useMediaQuery('(max-width: 900px)')`. Sous 900px, la grille 3 colonnes
+  (`1fr minmax(0,920) 1fr`) devient un `flex column` et le rail vertical de
+  264px (qui débordait à gauche et écrasait la colonne de contenu) est remplacé
+  par une **ligne d'état compacte** au-dessus du contenu : « Niveau N / total —
+  nom », stats de progression, piste de progression, boutons « ‹ Niveau
+  précédent » / « Niveau suivant › ». Le stepper à points cliquables reste
+  desktop (≥ 900px), strictement inchangé (vérifié à 1024 / 1440). Le
+  `#level-rail-next-dot` (cible du spotlight de relais) est porté par le bouton
+  « Niveau suivant » compact, donc le spotlight marche aussi sur mobile.
+- **D2 fait.** `KeyboardDiagram` : `minHeight: 0` de la `<svg>` →
+  `clamp(150px, 46vw, 280px)` (intro doigts) / `clamp(120px, 34vw, 220px)`
+  (leçon). `flex: 1 1 0%` le fait toujours grandir sur desktop ; le plancher
+  garantit un clavier lisible sur écran court / mobile (avant : réduit à
+  ~55-190px). Le trop-plein éventuel est absorbé par le scroll de `.home-main`
+  (mobile, PR A).
+- **D3 fait.** Écran intro « Où poser tes doigts » : sous 900px, racine en
+  hauteur naturelle (`minHeight: 100%` + `justify-content: flex-start`) et
+  wrapper du diagramme en `flex: 0 0 auto` au lieu de `1 1 0%` +
+  `justify-content: center` qui empilait le clavier et le texte l'un sur
+  l'autre. Le contenu (titre + long paragraphe + clavier + légende 8 doigts +
+  bouton) défile via `.home-main`. Desktop inchangé.
+- **D4 fait.** `ChallengeClient` : bandeau « Objectif : battre X WPM »
+  `marginBottom: 8` → `3.5rem` — réserve la place des calques `position:absolute`
+  de TypingArea (`top:-3.6rem`), plus de chevauchement avec « 0 / N ». `<main>` :
+  `p-8` → padding fluide + safe-area (`sm:px-8`) ; `min-h-dvh` →
+  `min-h-[calc(100dvh-var(--nav-height))]`.
+- **D5 fait.** `ParametresClient` : `min-h-[46px]` sur les pills de thème →
+  rangées de grille uniformes même quand un nom wrappe sur 2 lignes.
+- **D6 / D7 confirmés OK.** `about` (cap + centre correct 360→2560),
+  `SharedLinkFallback` (centré, propre, aucun débordement à 360) : aucune
+  retouche.
+- Chaînes fr/en : `learning.nextLevelCta` / `prevLevelCta` / `levelCounter`.
+- Tests : `useMediaQuery` (2) ; `modes` (46), `about`, `social`, `settings`,
+  `challenge` verts. Vérif navigateur : rail compact 360/390/768/900,
+  desktop 1024/1440 inchangé ; intro doigts 360/390 ; challenge 360→2560 ;
+  parametres 360→2560 ; `overflowX = 0` partout.
+
 ### Bilan par PR
 
 - **PR A** : lourde. 12 corrections + 1 décision (A12). Cœur = ConfigBar (A1),

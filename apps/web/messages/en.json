@@ -390,6 +390,9 @@
     "exitToClassic": "Switch to Classic mode →",
     "readyToUnlock": "Level {id} ready: {name}. Click to continue.",
     "unlockedAnnouncement": "Level {id} unlocked: {name}.",
+    "nextLevelCta": "Next level",
+    "prevLevelCta": "Previous level",
+    "levelCounter": "Level {id} / {total}",
     "fingerIntro": {
       "title": "Where to rest your fingers",
       "caption": "F and J have a small bump you can feel without looking: that's not an accident, those are your two anchors. Rest your index fingers there, the other 6 fingers land right next to them, each on its own key.",
