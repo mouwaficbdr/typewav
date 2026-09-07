@@ -348,7 +348,10 @@ export function ResultsPage({
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: 'calc(100dvh - var(--nav-height))',
-        padding: 'clamp(20px, 3vh, 44px) 24px',
+        // Padding latéral fluide + insets d'encoche (page pleine hauteur).
+        paddingBlock: 'clamp(20px, 3vh, 44px)',
+        paddingLeft: 'max(clamp(16px, 4vw, 24px), env(safe-area-inset-left))',
+        paddingRight: 'max(clamp(16px, 4vw, 24px), env(safe-area-inset-right))',
         // Transparent : l'aura ambiante vit en z-index négatif derrière.
         backgroundColor: 'transparent',
         overflow: 'hidden',
@@ -608,22 +611,34 @@ export function ResultsPage({
             </span>
           </Link>
 
-          <IconTextButton
-            icon={<Share2 size={15} />}
-            label={t('share')}
-            ariaLabel={t('shareReplay')}
-            onClick={() => void handleShare()}
-            disabled={!session?.text}
-            active={copied === 'share'}
-          />
-          <IconTextButton
-            icon={<Swords size={15} />}
-            label={t('defy')}
-            ariaLabel={t('challenge')}
-            onClick={() => void handleDefy()}
-            disabled={!session?.text}
-            active={copied === 'defy'}
-          />
+          {/* Partager + Défier groupés : quand la rangée d'actions wrappe
+              (viewport étroit), ils passent à la ligne ensemble sous Encore
+              plutôt que Défier seul, orphelin. */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'clamp(12px, 3vw, 24px)',
+              flexWrap: 'wrap',
+            }}
+          >
+            <IconTextButton
+              icon={<Share2 size={15} />}
+              label={t('share')}
+              ariaLabel={t('shareReplay')}
+              onClick={() => void handleShare()}
+              disabled={!session?.text}
+              active={copied === 'share'}
+            />
+            <IconTextButton
+              icon={<Swords size={15} />}
+              label={t('defy')}
+              ariaLabel={t('challenge')}
+              onClick={() => void handleDefy()}
+              disabled={!session?.text}
+              active={copied === 'defy'}
+            />
+          </div>
 
           {copyFailed && (
             <span
