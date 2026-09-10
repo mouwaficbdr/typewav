@@ -49,7 +49,10 @@ import {
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { TypingArea } from '@/components/typing/TypingArea';
-import { LevelClearedMoment } from './LevelClearedMoment';
+import {
+  LevelClearedMoment,
+  getLevelsWithClearedMoment,
+} from './LevelClearedMoment';
 import { LevelRailSpotlight } from './LevelRailSpotlight';
 import { LevelTeachStep } from './LevelTeachStep';
 import type { LearningModeProps } from './LegacyLearningMode';
@@ -57,6 +60,7 @@ import type { LearningModeProps } from './LegacyLearningMode';
 const CURRICULUM = LEARNING_CURRICULUM_AZERTY;
 const RAIL_COMPACT_QUERY = '(max-width: 900px)';
 const DRILL_WORD_COUNT = 18;
+const CELEBRATED_LEVELS = getLevelsWithClearedMoment(CURRICULUM.length);
 
 /** Morceau par défaut pour les niveaux `audio: 'piece'` (aucune sélection de
  *  morceau dans le parcours). `TypingArea` le joue note à note. */
@@ -206,7 +210,7 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
 
   const maybeCelebrate = useCallback(
     (levelId: number, samples: number, accuracy: number) => {
-      if (levelId >= CURRICULUM.length) return; // le dernier enchaîne sur la fin
+      if (!CELEBRATED_LEVELS.includes(levelId)) return; // le dernier enchaîne sur la fin
       if (celebratedLevelsRef.current.has(levelId)) return;
       celebratedLevelsRef.current.add(levelId);
       void markLearningLevelCelebrated(levelId);
@@ -496,6 +500,12 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
           samples={celebration.samples}
           accuracy={celebration.accuracy}
           onDismiss={handleCelebrationDismiss}
+          levelName={t(
+            `level.${CURRICULUM[celebration.levelId - 1]?.slug ?? ''}.name`,
+          )}
+          levelTagline={t(
+            `level.${CURRICULUM[celebration.levelId - 1]?.slug ?? ''}.tagline`,
+          )}
         />
       )}
       {spotlight && (

@@ -111,8 +111,18 @@ vi.mock('@/components/typing/TypingArea', () => ({
 }));
 
 vi.mock('../LevelClearedMoment', () => ({
-  LevelClearedMoment: (props: { levelId: number; onDismiss: () => void }) => (
-    <div data-testid="level-cleared" data-level={props.levelId}>
+  getLevelsWithClearedMoment: (total: number) =>
+    Array.from({ length: Math.max(0, total - 1) }, (_, i) => i + 1),
+  LevelClearedMoment: (props: {
+    levelId: number;
+    levelName?: string;
+    onDismiss: () => void;
+  }) => (
+    <div
+      data-testid="level-cleared"
+      data-level={props.levelId}
+      data-name={props.levelName}
+    >
       <button type="button" onClick={props.onDismiss}>
         fermer
       </button>
