@@ -5,42 +5,96 @@
  * déclaratif (`LEARNING_CURRICULUM_AZERTY`). `LearningMode` bifurque ici quand la
  * disposition choisie est `azerty` ; `LegacyLearningMode` garde le chemin QWERTY.
  *
- * Task 12 (ce fichier) : squelette — migration de version au montage, chargement
- * de la progression / maîtrise / niveaux enseignés, routage étape
- * d'enseignement vs boucle de drill, rail de niveaux. La boucle de drill
- * elle-même (contenu généré, intégration de la maîtrise par touche, déblocage,
- * audio) arrive Task 13 : ici la zone de drill est un simple placeholder.
+ * Flux : migration de version au montage → chargement progression / maîtrise /
+ * niveaux enseignés → pour chaque niveau, une étape d'enseignement
+ * (`LevelTeachStep`) tant qu'il n'est pas « enseigné », puis une boucle de drill
+ * (contenu généré selon `kind`, série relancée à chaque fin). La maîtrise par
+ * touche s'accumule à partir du `keystrokeData` de `TypingArea` ; quand chaque
+ * nouveau geste atteint sa barre (et, pour un niveau `text`, la précision
+ * globale), le niveau suivant se débloque, avec `LevelClearedMoment` + relais
+ * spotlight vers son point de rail.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { LEARNING_CURRICULUM_AZERTY } from '@typewav/types';
+import { LEARNING_CURRICULUM_AZERTY, type CurriculumLevel } from '@typewav/types';
+import { clearLoadedPiece } from '@typewav/audio-engine';
 import {
+  applyLearningKeystrokes,
+  applySessionStats,
+  calculateCurriculumProgress,
+  canUnlockCurriculumLevel,
   createInitialLevelProgress,
   ensureCurriculumVersion,
   loadKeyMastery,
   loadLearningProgress,
   loadTaughtLevels,
+  saveKeyMastery,
   saveLearningProgress,
   saveTaughtLevels,
   unlockLevel,
   type KeyMastery,
   type LevelProgress,
 } from '@/lib/learning-progress';
+import {
+  generateLearningDrill,
+  mapCharToGestureId,
+  pickLearningText,
+  pickLearningWords,
+} from '@/lib/learning-content';
+import {
+  getCelebratedLearningLevels,
+  markLearningLevelCelebrated,
+} from '@/lib/onboarding';
+import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { TypingArea } from '@/components/typing/TypingArea';
+import { LevelClearedMoment } from './LevelClearedMoment';
+import { LevelRailSpotlight } from './LevelRailSpotlight';
 import { LevelTeachStep } from './LevelTeachStep';
 import type { LearningModeProps } from './LegacyLearningMode';
 
 const CURRICULUM = LEARNING_CURRICULUM_AZERTY;
 const RAIL_COMPACT_QUERY = '(max-width: 900px)';
+const DRILL_WORD_COUNT = 18;
+
+/** Morceau par défaut pour les niveaux `audio: 'piece'` (aucune sélection de
+ *  morceau dans le parcours). `TypingArea` le joue note à note. */
+const DEFAULT_LEARNING_PIECE = 'fur-elise';
+
+/** Note isolée jouée à chaque frappe correcte sur un niveau `audio: 'simple'`,
+ *  calée sur la rangée physique du niveau (musical, pas une mélodie). */
+const SIMPLE_PITCH_BY_SLUG: Record<string, string> = {
+  'home-row': 'C4',
+  'top-row': 'G4',
+  'bottom-row': 'G3',
+};
 
 function highestUnlockedId(progress: LevelProgress[]): number {
-  return progress.reduce((max, p) => (p.unlocked ? Math.max(max, p.levelId) : max), 1);
+  return progress.reduce(
+    (max, p) => (p.unlocked ? Math.max(max, p.levelId) : max),
+    1,
+  );
+}
+
+function generateLevelText(level: CurriculumLevel, mastery: KeyMastery): string {
+  switch (level.kind) {
+    case 'drill':
+      return generateLearningDrill(level, mastery, DRILL_WORD_COUNT);
+    case 'words':
+      return pickLearningWords(level, DRILL_WORD_COUNT);
+    case 'text':
+      return pickLearningText(level);
+    case 'anchors':
+    default:
+      return '';
+  }
 }
 
 export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
   const t = useTranslations('learning');
   const railCompact = useMediaQuery(RAIL_COMPACT_QUERY);
+  const { loadMidiPiece, playNoteName } = useAudioEngine();
 
   const [loaded, setLoaded] = useState(false);
   const [levelProgress, setLevelProgress] = useState<LevelProgress[]>(() =>
@@ -49,26 +103,46 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
   const [keyMastery, setKeyMastery] = useState<KeyMastery>({});
   const [taughtLevels, setTaughtLevels] = useState<number[]>([]);
   const [currentLevelId, setCurrentLevelId] = useState(1);
+  const [text, setText] = useState('');
+  const [runIndex, setRunIndex] = useState(0);
+  const [, setActiveKey] = useState<string | undefined>(undefined);
+  const [celebration, setCelebration] = useState<{
+    levelId: number;
+    samples: number;
+    accuracy: number;
+  } | null>(null);
+  const [spotlight, setSpotlight] = useState<{ x: number; y: number } | null>(
+    null,
+  );
 
-  // Maîtrise chargée : consommée par la boucle de drill (Task 13). Référencée
-  // ici pour ne pas la perdre au montage.
-  void keyMastery;
+  const celebratedLevelsRef = useRef<Set<number>>(new Set());
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       await ensureCurriculumVersion();
-      const [progress, mastery, taught] = await Promise.all([
+      const [progress, mastery, taught, celebrated] = await Promise.all([
         loadLearningProgress(),
         loadKeyMastery(),
         loadTaughtLevels(),
+        getCelebratedLearningLevels(),
       ]);
       if (cancelled) return;
       const list = progress ?? createInitialLevelProgress(CURRICULUM);
+      const startId = highestUnlockedId(list);
+      const startLevel = CURRICULUM[startId - 1];
+      celebratedLevelsRef.current = new Set(celebrated);
       setLevelProgress(list);
       setKeyMastery(mastery);
       setTaughtLevels(taught);
-      setCurrentLevelId(highestUnlockedId(list));
+      setCurrentLevelId(startId);
+      if (
+        startLevel &&
+        taught.includes(startId) &&
+        startLevel.kind !== 'anchors'
+      ) {
+        setText(generateLevelText(startLevel, mastery));
+      }
       setLoaded(true);
     })().catch(() => {
       // Fail open : sur erreur de lecture, on reste sur l'état initial (niveau 1)
@@ -81,6 +155,133 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
   }, []);
 
   const currentLevel = CURRICULUM[currentLevelId - 1];
+  const isTaught = taughtLevels.includes(currentLevelId);
+  const isLastLevel = currentLevelId === CURRICULUM.length;
+
+  // La régénération du texte est explicite (passage étape → drill, navigation
+  // rail, fin de série), jamais dans un effet : un effet qui `setText` +
+  // `setRunIndex` au montage remonterait `TypingArea` juste après le premier
+  // rendu.
+  const startDrill = useCallback(
+    (level: CurriculumLevel) => {
+      if (level.kind === 'anchors') return;
+      setText(generateLevelText(level, keyMastery));
+      setRunIndex((i) => i + 1);
+    },
+    [keyMastery],
+  );
+
+  // Bascule audio au changement de niveau : `piece` charge le morceau,
+  // `simple` vide le séquenceur (chaque frappe correcte joue une note isolée).
+  useEffect(() => {
+    if (!loaded) return;
+    const lvl = CURRICULUM[currentLevelId - 1];
+    if (!lvl) return;
+    if (lvl.audio === 'piece') {
+      void loadMidiPiece(DEFAULT_LEARNING_PIECE);
+    } else {
+      clearLoadedPiece();
+    }
+  }, [currentLevelId, loaded, loadMidiPiece]);
+
+  const targetGestureIds = useMemo(
+    () => [...text].map((ch) => mapCharToGestureId(ch)),
+    [text],
+  );
+
+  const currentProgress = levelProgress.find(
+    (p) => p.levelId === currentLevelId,
+  );
+  const curriculumProgress = currentLevel
+    ? calculateCurriculumProgress(currentLevel, keyMastery)
+    : { percent: 0, weakestKeyId: null, weakestKeyAccuracy: null };
+  const canUnlock =
+    !!currentLevel &&
+    !!currentProgress &&
+    canUnlockCurriculumLevel(currentLevel, keyMastery, {
+      samples: currentProgress.samples,
+      accuracy: currentProgress.accuracy,
+    });
+  const tutorialComplete = isLastLevel && canUnlock;
+
+  const maybeCelebrate = useCallback(
+    (levelId: number, samples: number, accuracy: number) => {
+      if (levelId >= CURRICULUM.length) return; // le dernier enchaîne sur la fin
+      if (celebratedLevelsRef.current.has(levelId)) return;
+      celebratedLevelsRef.current.add(levelId);
+      void markLearningLevelCelebrated(levelId);
+      setCelebration({
+        levelId,
+        samples: Math.round(samples),
+        accuracy: Math.round(accuracy),
+      });
+    },
+    [],
+  );
+
+  const handleSessionComplete = useCallback(
+    (stats: {
+      wpm: number;
+      accuracy: number;
+      correct: number;
+      total: number;
+      keystrokeData: { char: string; correct: boolean }[];
+    }) => {
+      if (!currentLevel) return;
+
+      const entries = stats.keystrokeData
+        .map((k, i) => ({ gestureId: targetGestureIds[i] ?? '', correct: k.correct }))
+        .filter((e) => e.gestureId !== '');
+      const nextMastery = applyLearningKeystrokes(keyMastery, entries);
+      setKeyMastery(nextMastery);
+      void saveKeyMastery(nextMastery);
+
+      let nextProgress = applySessionStats(levelProgress, currentLevelId, {
+        correct: stats.correct,
+        total: stats.total,
+      });
+      const cp = nextProgress.find((p) => p.levelId === currentLevelId);
+      const unlocks =
+        !!cp &&
+        !isLastLevel &&
+        canUnlockCurriculumLevel(currentLevel, nextMastery, {
+          samples: cp.samples,
+          accuracy: cp.accuracy,
+        });
+      if (unlocks) {
+        nextProgress = unlockLevel(nextProgress, currentLevelId + 1);
+      }
+      setLevelProgress(nextProgress);
+      void saveLearningProgress(nextProgress);
+
+      // Nouvelle série sur le même niveau (adaptative pour les niveaux `drill`).
+      setText(generateLevelText(currentLevel, nextMastery));
+      setRunIndex((i) => i + 1);
+
+      if (unlocks && cp) {
+        maybeCelebrate(currentLevelId, cp.samples, cp.accuracy);
+      }
+    },
+    [
+      currentLevel,
+      currentLevelId,
+      isLastLevel,
+      keyMastery,
+      levelProgress,
+      targetGestureIds,
+      maybeCelebrate,
+    ],
+  );
+
+  const handleNoteChange = useCallback(
+    (_note: string | null, isError: boolean) => {
+      if (isError) return;
+      const lvl = CURRICULUM[currentLevelId - 1];
+      if (lvl?.audio !== 'simple') return;
+      void playNoteName(SIMPLE_PITCH_BY_SLUG[lvl.slug] ?? 'C4');
+    },
+    [currentLevelId, playNoteName],
+  );
 
   const handleTeachDone = useCallback(() => {
     if (!currentLevel) return;
@@ -90,32 +291,46 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
     setTaughtLevels(nextTaught);
     void saveTaughtLevels(nextTaught);
 
-    // Le niveau 1 (`anchors`) EST son étape d'enseignement : la valider revient
-    // à valider le niveau. On débloque directement le suivant.
     if (currentLevel.kind === 'anchors') {
+      // Le niveau 1 (`anchors`) EST son étape d'enseignement : la valider
+      // revient à valider le niveau. On débloque directement le suivant.
       const nextId = currentLevelId + 1;
       const nextProgress = unlockLevel(levelProgress, nextId);
       setLevelProgress(nextProgress);
       void saveLearningProgress(nextProgress);
       setCurrentLevelId(nextId);
+    } else {
+      // Passage de l'étape d'enseignement à la boucle de drill du même niveau.
+      startDrill(currentLevel);
     }
-    // Sinon : `currentLevelId` est maintenant « enseigné » → la zone de drill
-    // s'affiche (Task 13).
-  }, [currentLevel, currentLevelId, taughtLevels, levelProgress]);
+  }, [currentLevel, currentLevelId, taughtLevels, levelProgress, startDrill]);
 
   const goToLevel = useCallback(
     (id: number) => {
       const target = levelProgress.find((p) => p.levelId === id);
-      if (target?.unlocked) setCurrentLevelId(id);
+      if (!target?.unlocked) return;
+      setCurrentLevelId(id);
+      const lvl = CURRICULUM[id - 1];
+      if (lvl && taughtLevels.includes(id)) startDrill(lvl);
     },
-    [levelProgress],
+    [levelProgress, taughtLevels, startDrill],
   );
+
+  const handleCelebrationDismiss = useCallback(() => {
+    setCelebration(null);
+    if (typeof document === 'undefined') return;
+    const dot = document.getElementById('level-rail-next-dot');
+    if (!dot) return;
+    const r = dot.getBoundingClientRect();
+    setSpotlight({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+  }, []);
 
   if (!loaded || !currentLevel) {
     return <div aria-busy="true" style={{ minHeight: 200 }} />;
   }
 
-  if (!taughtLevels.includes(currentLevelId)) {
+  // Niveau `anchors` (1) : toujours son étape d'enseignement, jamais de drill.
+  if (!isTaught || currentLevel.kind === 'anchors') {
     return (
       <LevelTeachStep
         key={currentLevelId}
@@ -201,27 +416,95 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
         >
           {t(`level.${currentLevel.slug}.name`)}
         </h2>
-        <p
-          role="status"
+
+        <div
+          role="progressbar"
+          aria-valuenow={curriculumProgress.percent}
+          aria-valuemin={0}
+          aria-valuemax={100}
           style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: 13,
-            color: 'var(--color-text-muted)',
+            width: 'min(420px, 100%)',
+            height: 6,
+            borderRadius: 999,
+            background: 'var(--color-border, rgba(255,255,255,0.12))',
+            overflow: 'hidden',
           }}
         >
-          {t('curriculum.levelCounter', {
-            id: currentLevelId,
-            total: CURRICULUM.length,
-          })}
-        </p>
-        {/* Zone de drill : remplie Task 13 (contenu généré + TypingArea). */}
-        <div data-testid="drill-zone" style={{ width: '100%', flex: '1 1 0%', minHeight: 0 }} />
-        {currentLevelId === CURRICULUM.length && (
-          <button type="button" onClick={onExitTutorial}>
-            {t('exitToClassic')}
+          <div
+            style={{
+              width: `${curriculumProgress.percent}%`,
+              height: '100%',
+              background: 'var(--color-accent)',
+              transition: 'width 240ms ease',
+            }}
+          />
+        </div>
+        {curriculumProgress.weakestKeyId && (
+          <p
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 13,
+              color: 'var(--color-text-muted)',
+            }}
+          >
+            {t('mastery.weakKey', {
+              key: curriculumProgress.weakestKeyId,
+              accuracy: curriculumProgress.weakestKeyAccuracy ?? 0,
+            })}
+          </p>
+        )}
+
+        <div
+          data-testid="drill-zone"
+          style={{ width: '100%', flex: '1 1 0%', minHeight: 0 }}
+        >
+          <TypingArea
+            key={`clm-${currentLevelId}-${runIndex}`}
+            text={text}
+            mode="learning"
+            autoNavigate={false}
+            onActiveKeyChange={setActiveKey}
+            onNoteChange={handleNoteChange}
+            onSessionComplete={handleSessionComplete}
+          />
+        </div>
+
+        {tutorialComplete && (
+          <button
+            type="button"
+            onClick={onExitTutorial}
+            style={{
+              padding: '10px 24px',
+              background: 'var(--color-accent)',
+              color: '#000',
+              borderRadius: 'var(--radius-lg)',
+              border: 'none',
+              fontFamily: 'var(--font-ui)',
+              fontWeight: 700,
+              fontSize: 14,
+              cursor: 'pointer',
+            }}
+          >
+            {t('tutorialComplete')}
           </button>
         )}
       </section>
+
+      {celebration && (
+        <LevelClearedMoment
+          levelId={celebration.levelId}
+          samples={celebration.samples}
+          accuracy={celebration.accuracy}
+          onDismiss={handleCelebrationDismiss}
+        />
+      )}
+      {spotlight && (
+        <LevelRailSpotlight
+          x={spotlight.x}
+          y={spotlight.y}
+          onDone={() => setSpotlight(null)}
+        />
+      )}
     </div>
   );
 }
