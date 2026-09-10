@@ -381,52 +381,52 @@
         "tagline": "Majuscules et ponctuation : les accents et les silences de ta musique."
       },
       "anchors": {
-        "name": "Les repères",
+        "name": "Le premier accord",
         "tagline": "F et J sous les index : tes deux points d'ancrage.",
         "teach": "Sens les deux bosses sous F et J : pose tes index dessus, les six autres doigts juste à côté."
       },
       "home-row": {
-        "name": "La rangée du repos",
+        "name": "La gamme du repos",
         "tagline": "Huit touches sans bouger la main, la base de tout.",
         "teach": "La rangée du repos. G et H se tapent en tendant l'index, sans bouger la main."
       },
       "top-row": {
-        "name": "La rangée du haut",
+        "name": "Monter d'un ton",
         "tagline": "Chaque doigt monte d'un cran, puis revient.",
         "teach": "La rangée du haut. Chaque doigt monte d'un cran depuis sa touche de repos, puis y revient."
       },
       "bottom-row": {
-        "name": "La rangée du bas",
+        "name": "Descendre d'un ton",
         "tagline": "On descend d'un cran, la virgule comprise.",
         "teach": "La rangée du bas. Chaque doigt descend d'un cran, la virgule se tape avec l'index droit."
       },
       "first-words": {
-        "name": "Tes premiers mots",
+        "name": "Les premières mesures",
         "tagline": "De vraies syllabes, une vraie mélodie qui se dessine.",
         "teach": "De vrais mots, sans accent ni majuscule. Regarde l'écran, pas tes mains."
       },
       "uppercase": {
-        "name": "Les majuscules",
+        "name": "Les temps forts",
         "tagline": "Une main tient Maj, l'autre frappe.",
         "teach": "Pour une majuscule, l'auriculaire de la main opposée tient Maj pendant que l'autre main frappe la lettre."
       },
       "direct-accents": {
-        "name": "Les accents directs",
+        "name": "Les nuances",
         "tagline": "é è à ç ù : une touche, un appui.",
         "teach": "Sur AZERTY, é è à ç sont des touches directes sur la rangée des chiffres, ù est à droite du M. Aucune combinaison."
       },
       "dead-keys": {
-        "name": "Les touches mortes",
+        "name": "Les liaisons",
         "tagline": "L'accent d'abord, la voyelle ensuite.",
         "teach": "L'accent circonflexe se tape en deux temps : d'abord la touche ^ (rien ne s'affiche), puis la voyelle. Tréma : Maj + ^, puis la voyelle."
       },
       "punctuation": {
-        "name": "La ponctuation",
+        "name": "Le phrasé",
         "tagline": "Le point, la virgule, le rythme d'une phrase.",
         "teach": "Le point se fait avec Maj sur la touche point-virgule ; le point d'interrogation avec Maj sur la virgule."
       },
       "digits": {
-        "name": "Les chiffres",
+        "name": "La mesure chiffrée",
         "tagline": "La rangée du haut, Maj enfoncée.",
         "teach": "Sur AZERTY, les chiffres se tapent avec Maj. Chaque chiffre garde le doigt de sa colonne."
       },
@@ -443,7 +443,7 @@
       "proof": "{samples} frappes enchaînées à {accuracy}% de précision",
       "continueHint": "une touche pour continuer"
     },
-    "progressStats":"{samples}/{minSamples} frappes • {accuracy}% précision (visé {targetAccuracy}%)",
+    "progressStats": "{samples}/{minSamples} frappes • {accuracy}% précision (visé {targetAccuracy}%)",
     "lastSession": "Dernière session : {wpm} MPM · {accuracy}% ({correct}/{total})",
     "needMoreReps": "Encore {samples} frappes à enchaîner (vise {accuracy}% de précision) pour débloquer la suite. Termine chaque série jusqu'au bout : une série interrompue ne compte pas.",
     "needMoreAccuracy": "Tu as fait assez de frappes, mais ta précision cumulée est encore sous les {accuracy}% visés. Enchaîne des séries précises pour la faire remonter.",

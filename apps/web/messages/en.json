@@ -381,52 +381,52 @@
         "tagline": "Capitals and punctuation: the accents and rests of your music."
       },
       "anchors": {
-        "name": "The Anchors",
+        "name": "The First Chord",
         "tagline": "F and J under your index fingers: your two anchor points.",
         "teach": "Feel the two bumps under F and J: rest your index fingers there, the other six fingers right beside them."
       },
       "home-row": {
-        "name": "The Home Row",
+        "name": "The Resting Scale",
         "tagline": "Eight keys without moving your hands, the base of everything.",
         "teach": "The home row. G and H are reached by stretching the index finger, without moving your hand."
       },
       "top-row": {
-        "name": "The Top Row",
+        "name": "Up a Tone",
         "tagline": "Each finger moves up one notch, then back.",
         "teach": "The top row. Each finger moves up one notch from its home key, then returns to it."
       },
       "bottom-row": {
-        "name": "The Bottom Row",
+        "name": "Down a Tone",
         "tagline": "Down one notch, comma included.",
         "teach": "The bottom row. Each finger moves down one notch; the comma is typed with the right index finger."
       },
       "first-words": {
-        "name": "Your First Words",
+        "name": "The First Measures",
         "tagline": "Real syllables, a real melody taking shape.",
         "teach": "Real words, no accents or capitals. Look at the screen, not at your hands."
       },
       "uppercase": {
-        "name": "Capitals",
+        "name": "The Strong Beats",
         "tagline": "One hand holds Shift, the other types.",
         "teach": "For a capital, the pinky of the opposite hand holds Shift while the other hand types the letter."
       },
       "direct-accents": {
-        "name": "Direct Accents",
+        "name": "The Nuances",
         "tagline": "é è à ç ù: one key, one press.",
         "teach": "On AZERTY, é è à ç are direct keys on the number row, and ù is to the right of M. No combination."
       },
       "dead-keys": {
-        "name": "Dead Keys",
+        "name": "The Slurs",
         "tagline": "The accent first, the vowel next.",
         "teach": "The circumflex is typed in two steps: first the ^ key (nothing appears), then the vowel. Diaeresis: Shift + ^, then the vowel."
       },
       "punctuation": {
-        "name": "Punctuation",
+        "name": "The Phrasing",
         "tagline": "The period, the comma, the rhythm of a sentence.",
         "teach": "The period is Shift on the semicolon key; the question mark is Shift on the comma."
       },
       "digits": {
-        "name": "Digits",
+        "name": "The Counted Measure",
         "tagline": "The top row, with Shift held down.",
         "teach": "On AZERTY, digits are typed with Shift. Each digit keeps the finger of its column."
       },
@@ -443,7 +443,7 @@
       "proof": "{samples} keystrokes in a row at {accuracy}% accuracy",
       "continueHint": "press any key to continue"
     },
-    "progressStats":"{samples}/{minSamples} keystrokes • {accuracy}% accuracy (target {targetAccuracy}%)",
+    "progressStats": "{samples}/{minSamples} keystrokes • {accuracy}% accuracy (target {targetAccuracy}%)",
     "lastSession": "Last session: {wpm} WPM · {accuracy}% ({correct}/{total})",
     "needMoreReps": "{samples} more keystrokes to go (aim for {accuracy}% accuracy) to unlock the next level. Finish each round to the end: an interrupted round doesn't count.",
     "needMoreAccuracy": "You've typed enough, but your cumulative accuracy is still below the {accuracy}% target. Run through precise rounds to bring it back up.",
