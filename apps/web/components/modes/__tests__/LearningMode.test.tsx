@@ -139,6 +139,23 @@ vi.mock('@/components/modes/LevelRailSpotlight', () => ({
   },
 }));
 
+// Le parcours curriculum AZERTY a ses propres tests
+// (CurriculumLearningMode.test.tsx). Ici on vérifie seulement que LearningMode
+// délègue à la bonne implémentation selon la disposition.
+const curriculumModePropsRef: {
+  current: null | { isOnboarding?: boolean; onExitTutorial: () => void };
+} = { current: null };
+
+vi.mock('@/components/modes/CurriculumLearningMode', () => ({
+  CurriculumLearningMode: (props: {
+    isOnboarding?: boolean;
+    onExitTutorial: () => void;
+  }) => {
+    curriculumModePropsRef.current = props;
+    return <div data-testid="curriculum-learning-mode" />;
+  },
+}));
+
 const mockLoadLearningProgress = vi.fn().mockResolvedValue(undefined);
 const mockSaveLearningProgress = vi.fn().mockResolvedValue(undefined);
 
@@ -557,10 +574,13 @@ describe('LearningMode : disposition clavier (ticket #62)', () => {
     mockMarkFingerIntroSeen.mockClear().mockResolvedValue(undefined);
   });
 
-  it('transmet la disposition qwerty par défaut au clavier visuel et au générateur de texte', async () => {
+  it('disposition qwerty : délègue au parcours legacy et lui transmet la disposition', async () => {
     render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
     await screen.findByTestId('keyboard-diagram');
 
+    expect(
+      screen.queryByTestId('curriculum-learning-mode'),
+    ).not.toBeInTheDocument();
     expect(keyboardDiagramPropsRef.current?.layout).toBe('qwerty');
     expect(mockGenerateLearningText).toHaveBeenCalledWith(
       1,
@@ -569,17 +589,16 @@ describe('LearningMode : disposition clavier (ticket #62)', () => {
     );
   });
 
-  it('transmet la disposition azerty au clavier visuel et au générateur de texte', async () => {
+  it('disposition azerty : délègue au parcours curriculum (CurriculumLearningMode)', async () => {
     mockUseKeyboardLayoutPreference.mockReturnValue({ layout: 'azerty' });
 
     render(<LearningMode onExitTutorial={mockOnExitTutorial} />);
-    await screen.findByTestId('keyboard-diagram');
+    await screen.findByTestId('curriculum-learning-mode');
 
-    expect(keyboardDiagramPropsRef.current?.layout).toBe('azerty');
-    expect(mockGenerateLearningText).toHaveBeenCalledWith(
-      1,
-      expect.any(Number),
-      'azerty',
+    expect(screen.queryByTestId('keyboard-diagram')).not.toBeInTheDocument();
+    expect(mockGenerateLearningText).not.toHaveBeenCalled();
+    expect(curriculumModePropsRef.current?.onExitTutorial).toBe(
+      mockOnExitTutorial,
     );
   });
 });

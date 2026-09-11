@@ -56,6 +56,14 @@ interface LevelClearedMomentProps {
   /** Précision cumulée sur le niveau, 0-100. */
   accuracy: number;
   onDismiss: () => void;
+  /**
+   * Nom / accroche du niveau validé. Le chemin legacy (QWERTY) les laisse
+   * `undefined` : ils sont alors lus depuis `learning.level.<levelId>.*`
+   * (niveaux numérotés 1-5). Le parcours curriculum (AZERTY) les fournit
+   * explicitement, ses niveaux étant indexés par slug, pas par numéro.
+   */
+  levelName?: string;
+  levelTagline?: string;
 }
 
 export function LevelClearedMoment({
@@ -63,6 +71,8 @@ export function LevelClearedMoment({
   samples,
   accuracy,
   onDismiss,
+  levelName,
+  levelTagline,
 }: LevelClearedMomentProps) {
   const t = useTranslations('learning');
   const shouldReduceMotion = useReducedMotion();
@@ -86,8 +96,8 @@ export function LevelClearedMoment({
     }
   }, [playNoteName]);
 
-  const name = t(`level.${levelId}.name`);
-  const levelTagline = t(`level.${levelId}.tagline`);
+  const name = levelName ?? t(`level.${levelId}.name`);
+  const tagline = levelTagline ?? t(`level.${levelId}.tagline`);
   const accuracyLabel = Math.round(accuracy);
 
   // Compteur de frappes qui monte (0 -> total). En reduced-motion : valeur
@@ -284,7 +294,7 @@ export function LevelClearedMoment({
             color: 'var(--color-accent)',
           }}
         >
-          {levelTagline}
+          {tagline}
         </motion.p>
 
         <motion.p
@@ -529,9 +539,17 @@ export function LevelClearedMoment({
   );
 }
 
-/** Ids des niveaux qui prennent ce moment (pas le dernier : il enchaîne sur
- *  l'écran de fin de tutoriel). Exporté pour que LearningMode et les tests
- *  partagent la même règle. */
-export const LEVELS_WITH_CLEARED_MOMENT = LEARNING_LEVELS.slice(0, -1).map(
-  (l) => l.id,
+/**
+ * Ids des niveaux qui prennent ce moment : tous sauf le dernier (qui enchaîne
+ * sur l'écran de fin de tutoriel). Paramétré par le nombre total de niveaux,
+ * pour servir aussi bien le legacy (5 niveaux, `LEARNING_LEVELS`) que le
+ * curriculum AZERTY (11 niveaux, `LEARNING_CURRICULUM_AZERTY`).
+ */
+export function getLevelsWithClearedMoment(totalLevels: number): number[] {
+  return Array.from({ length: Math.max(0, totalLevels - 1) }, (_, i) => i + 1);
+}
+
+/** Règle legacy (QWERTY, `LEARNING_LEVELS`) : niveaux 1..4. */
+export const LEVELS_WITH_CLEARED_MOMENT = getLevelsWithClearedMoment(
+  LEARNING_LEVELS.length,
 );

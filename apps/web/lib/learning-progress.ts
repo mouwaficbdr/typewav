@@ -4,10 +4,14 @@
  * loadLearningProgress/saveLearningProgress plus bas pour la persistance).
  */
 
-import type { LearningLevel } from '@typewav/types';
+import type { CurriculumLevel, LearningLevel } from '@typewav/types';
+import { CURRICULUM_VERSION, LEARNING_CURRICULUM_AZERTY } from '@typewav/types';
 import { getPreference, setPreference } from './db';
 
 const LEARNING_PROGRESS_KEY = 'learning_level_progress';
+const KEY_MASTERY_KEY = 'learning_key_mastery';
+const TAUGHT_LEVELS_KEY = 'learning_taught_levels';
+const CURRICULUM_VERSION_KEY = 'learning_curriculum_version';
 
 export interface LevelProgress {
   levelId: number;
@@ -17,7 +21,7 @@ export interface LevelProgress {
 }
 
 export function createInitialLevelProgress(
-  levels: LearningLevel[],
+  levels: { id: number }[],
 ): LevelProgress[] {
   return levels.map((l) => ({
     levelId: l.id,
@@ -82,6 +86,24 @@ export function unlockLevel(
   );
 }
 
+export type KeyMastery = Record<string, { correct: number; total: number }>;
+
+export function applyLearningKeystrokes(
+  mastery: KeyMastery,
+  entries: { gestureId: string; correct: boolean }[],
+): KeyMastery {
+  const next: KeyMastery = {};
+  for (const [id, v] of Object.entries(mastery)) next[id] = { ...v };
+  for (const e of entries) {
+    const cur = next[e.gestureId] ?? { correct: 0, total: 0 };
+    next[e.gestureId] = {
+      correct: cur.correct + (e.correct ? 1 : 0),
+      total: cur.total + 1,
+    };
+  }
+  return next;
+}
+
 /**
  * Charge la progression sauvegardée : undefined si jamais sauvegardée
  * (première visite). Sans ça, un simple rechargement de page remet tous
@@ -98,4 +120,86 @@ export async function saveLearningProgress(
   progress: LevelProgress[],
 ): Promise<void> {
   await setPreference(LEARNING_PROGRESS_KEY, progress);
+}
+
+export async function loadKeyMastery(): Promise<KeyMastery> {
+  return (await getPreference<KeyMastery>(KEY_MASTERY_KEY)) ?? {};
+}
+
+export async function saveKeyMastery(m: KeyMastery): Promise<void> {
+  await setPreference(KEY_MASTERY_KEY, m);
+}
+
+export async function loadTaughtLevels(): Promise<number[]> {
+  const v = await getPreference<number[]>(TAUGHT_LEVELS_KEY);
+  return Array.isArray(v) ? v : [];
+}
+
+export async function saveTaughtLevels(ids: number[]): Promise<void> {
+  await setPreference(TAUGHT_LEVELS_KEY, ids);
+}
+
+export async function ensureCurriculumVersion(): Promise<void> {
+  const stored = await getPreference<number>(CURRICULUM_VERSION_KEY);
+  if (stored === CURRICULUM_VERSION) return;
+  await setPreference(LEARNING_PROGRESS_KEY, createInitialLevelProgress(LEARNING_CURRICULUM_AZERTY));
+  await setPreference(KEY_MASTERY_KEY, {});
+  await setPreference(TAUGHT_LEVELS_KEY, []);
+  await setPreference(CURRICULUM_VERSION_KEY, CURRICULUM_VERSION);
+}
+
+function keyReachedBar(
+  m: { correct: number; total: number } | undefined,
+  level: CurriculumLevel,
+): boolean {
+  if (!m || m.total < level.minSamplesPerKey) return false;
+  return (m.correct / m.total) * 100 >= level.minAccuracyPerKey;
+}
+
+export function canUnlockCurriculumLevel(
+  level: CurriculumLevel,
+  mastery: KeyMastery,
+  levelProgress: { samples: number; accuracy: number },
+): boolean {
+  const everyKeyOk = level.newKeys.every((k) => keyReachedBar(mastery[k.id], level));
+  if (!everyKeyOk) return false;
+  if (level.kind === 'text') {
+    if (levelProgress.samples < (level.minSamplesTotal ?? 0)) return false;
+    if (levelProgress.accuracy < (level.minOverallAccuracy ?? 0)) return false;
+  }
+  return true;
+}
+
+export function calculateCurriculumProgress(
+  level: CurriculumLevel,
+  mastery: KeyMastery,
+): { percent: number; weakestKeyId: string | null; weakestKeyAccuracy: number | null } {
+  if (level.newKeys.length === 0) {
+    return { percent: 100, weakestKeyId: null, weakestKeyAccuracy: null };
+  }
+  let reached = 0;
+  let weakestKeyId: string | null = null;
+  let weakestScore = Infinity;
+  let weakestKeyAccuracy: number | null = null;
+  for (const k of level.newKeys) {
+    const m = mastery[k.id];
+    if (keyReachedBar(m, level)) {
+      reached += 1;
+      continue;
+    }
+    const samplesRatio = (m?.total ?? 0) / level.minSamplesPerKey;
+    const acc = m && m.total > 0 ? (m.correct / m.total) * 100 : 0;
+    const accuracyRatio = acc / level.minAccuracyPerKey;
+    const score = Math.min(samplesRatio, accuracyRatio);
+    if (score < weakestScore) {
+      weakestScore = score;
+      weakestKeyId = k.id;
+      weakestKeyAccuracy = Math.round(acc);
+    }
+  }
+  return {
+    percent: Math.round((100 * reached) / level.newKeys.length),
+    weakestKeyId,
+    weakestKeyAccuracy,
+  };
 }

@@ -19,7 +19,7 @@ import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useSession } from '@/hooks/useSession';
 import { CorrectionEchoTracker } from '@/lib/correction-echo';
 import { resetSequence } from '@typewav/audio-engine';
-import type { TypingMode } from '@typewav/types';
+import type { KeystrokeEntry, TypingMode } from '@typewav/types';
 import { useTranslations } from 'next-intl';
 import {
   memo,
@@ -168,6 +168,8 @@ interface TypingAreaProps {
     accuracy: number;
     correct: number;
     total: number;
+    /** Frappes brutes de la session : keystrokeData[i] correspond à text[i] */
+    keystrokeData: KeystrokeEntry[];
   }) => void;
   /**
    * Callback appelé à chaque frappe : pilote WaveformBars et AmbientAura.
@@ -338,6 +340,7 @@ export function TypingArea({
       accuracy,
       correct,
       total,
+      keystrokeData: keystrokes,
     });
   }, [isComplete, finalStats, keystrokes, onComplete, onSessionComplete]);
 
