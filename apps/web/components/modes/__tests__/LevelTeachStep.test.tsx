@@ -60,12 +60,12 @@ describe('LevelTeachStep', () => {
 
   it('joue la note de chaque nouveau geste tape, des la premiere touche', async () => {
     const onNote = vi.fn();
-    const level = LEARNING_CURRICULUM_AZERTY[1]!; // home-row : q C4, f G4
+    const level = LEARNING_CURRICULUM_AZERTY[1]!; // home-row : q C4, f F4
     render(<LevelTeachStep level={level} onDone={vi.fn()} onNote={onNote} />);
     const user = userEvent.setup();
     await user.keyboard('qf');
     expect(onNote).toHaveBeenNthCalledWith(1, 'C4');
-    expect(onNote).toHaveBeenNthCalledWith(2, 'G4');
+    expect(onNote).toHaveBeenNthCalledWith(2, 'F4');
   });
 
   it('ne joue rien pour une touche hors des nouveaux gestes', async () => {

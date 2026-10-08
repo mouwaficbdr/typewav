@@ -214,12 +214,11 @@ describe('expectedKeyForChar', () => {
 });
 
 describe('pitchForChar', () => {
-  it('une note par touche : chaque colonne de la rangee du repos a la sienne', () => {
+  it('une note par doigt sur la rangée du repos (D6)', () => {
     const home = [...'qsdfghjklm'].map((c) => pitchForChar(c));
-    expect(new Set(home).size).toBe(10);
-    expect(home[0]).toBe('C4');
-    expect(home[3]).toBe('G4');
-    expect(home[9]).toBe('A5');
+    expect(home).toEqual([
+      'C4', 'D4', 'E4', 'F4', 'F4', 'G4', 'G4', 'A4', 'B4', 'C5',
+    ]);
   });
 
   it('la rangee du haut est plus aigue, la rangee du bas plus grave', () => {

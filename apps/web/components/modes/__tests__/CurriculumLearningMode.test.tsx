@@ -457,7 +457,7 @@ describe("CurriculumLearningMode : accueil, règle et premiers sons (#117)", () 
 
     act(() => typingAreaPropsRef.current!.onNoteChange!(null, false, false, 'f'));
     act(() => typingAreaPropsRef.current!.onNoteChange!(null, false, false, 'q'));
-    expect(audio.playNoteName).toHaveBeenNthCalledWith(1, 'G4');
+    expect(audio.playNoteName).toHaveBeenNthCalledWith(1, 'F4');
     expect(audio.playNoteName).toHaveBeenNthCalledWith(2, 'C4');
 
     audio.playNoteName.mockClear();
