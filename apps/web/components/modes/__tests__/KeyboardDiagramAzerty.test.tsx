@@ -40,6 +40,14 @@ describe('KeyboardDiagramAzerty', () => {
     expect(container.querySelector('[data-key="ShiftLeft"]')?.getAttribute('data-hold')).toBeNull();
   });
 
+  it('majuscule hors curriculum : touche minuscule active et Maj tenu', () => {
+    const { container } = render(
+      <KeyboardDiagramAzerty activeKeyId="b" expectedShiftHand="R" />,
+    );
+    expect(container.querySelector('[data-key="b"]')?.getAttribute('data-active')).toBe('true');
+    expect(container.querySelector('[data-key="ShiftRight"]')?.getAttribute('data-hold')).toBe('true');
+  });
+
   it('touche morte : étape 1 pulse "^", étape 2 pulse la voyelle', () => {
     const step1 = render(<KeyboardDiagramAzerty activeKeyId="^e" deadKeyStep={1} />);
     expect(step1.container.querySelector('[data-key="^"]')?.getAttribute('data-active')).toBe('true');

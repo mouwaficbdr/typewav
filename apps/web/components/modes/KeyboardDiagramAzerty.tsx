@@ -28,7 +28,7 @@ export interface KeyboardDiagramAzertyProps {
   highlightKeys?: CurriculumKey[];
   /** Geste attendu courant (drill / étape d'enseignement) : un id de geste. */
   activeKeyId?: string;
-  /** Geste `layer: 'shift'` : quelle main tient Maj ('L' | 'R', opposée à la lettre). */
+  /** Quelle main tient Maj ('L' | 'R', opposée à la touche), quand le geste en demande un. */
   expectedShiftHand?: 'L' | 'R';
   /** Geste `layer: 'deadkey'` : 1 = touche morte (^ / ¨), 2 = la voyelle. */
   deadKeyStep?: 1 | 2;
@@ -194,10 +194,10 @@ export function KeyboardDiagramAzerty({
     activePhysicalId = activeKeyId;
   }
 
+  // Maj tenu : c'est l'appelant qui sait (majuscule, chiffre, `.` `?`), y compris
+  // pour une majuscule hors curriculum dont la touche active est la minuscule.
   const holdHand: 'L' | 'R' | undefined =
-    activeGesture?.layer === 'shift' && expectedShiftHand
-      ? expectedShiftHand
-      : undefined;
+    activePhysicalId !== undefined ? expectedShiftHand : undefined;
 
   return (
     <div

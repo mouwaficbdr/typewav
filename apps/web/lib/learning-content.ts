@@ -9,7 +9,7 @@
  * pools FR (`learning-texts.ts`).
  */
 
-import type { CurriculumLevel } from '@typewav/types';
+import { LEARNING_CURRICULUM_AZERTY, type CurriculumLevel } from '@typewav/types';
 import type { KeyMastery } from './learning-progress';
 import {
   LEARNING_PARAGRAPHS,
@@ -66,6 +66,52 @@ export function mapCharToGestureId(char: string): string {
   }
 
   return '';
+}
+
+// ─── expectedKeyForChar ──────────────────────────────────────────────────────
+
+const GESTURE_BY_ID = new Map(
+  LEARNING_CURRICULUM_AZERTY.flatMap((l) => l.newKeys).map((k) => [k.id, k]),
+);
+
+/** Quelle touche montrer sur le schema clavier pour un caractere attendu. */
+export interface ExpectedKey {
+  /** Id de geste (ou de touche physique : `'Space'`, une minuscule). */
+  activeKeyId: string;
+  /** Maj a tenir : la main opposee a celle qui tape la touche. */
+  expectedShiftHand?: 'L' | 'R';
+}
+
+const oppositeHand = (finger: string): 'L' | 'R' =>
+  finger.startsWith('L') ? 'R' : 'L';
+
+/**
+ * Le geste a faire pour taper `char`, tel que `KeyboardDiagramAzerty` le montre
+ * (touche, Maj de la main opposee pour une majuscule, un chiffre ou `.` `?`).
+ * `undefined` quand il n'y a rien a montrer (caractere sans geste).
+ */
+export function expectedKeyForChar(
+  char: string | undefined,
+): ExpectedKey | undefined {
+  if (char === undefined) return undefined;
+  if (char === ' ') return { activeKeyId: 'Space' };
+
+  const id = mapCharToGestureId(char);
+  if (id === '') return undefined;
+
+  const gesture = GESTURE_BY_ID.get(id);
+  if (gesture) {
+    return gesture.layer === 'shift'
+      ? { activeKeyId: id, expectedShiftHand: oppositeHand(gesture.finger) }
+      : { activeKeyId: id };
+  }
+
+  // Majuscule hors des 8 barrees au niveau 6 : la touche minuscule, Maj tenu.
+  const lower = GESTURE_BY_ID.get(char.toLowerCase());
+  if (lower && char !== char.toLowerCase()) {
+    return { activeKeyId: lower.id, expectedShiftHand: oppositeHand(lower.finger) };
+  }
+  return undefined;
 }
 
 // ─── generateLearningDrill ───────────────────────────────────────────────────

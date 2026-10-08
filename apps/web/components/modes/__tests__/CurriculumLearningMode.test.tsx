@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import frMessages from '../../../messages/fr.json';
@@ -56,6 +56,7 @@ vi.mock('@typewav/audio-engine', () => ({ clearLoadedPiece: vi.fn() }));
 const typingAreaPropsRef: {
   current: null | {
     text: string;
+    onActiveKeyChange?: (key: string | undefined) => void;
     onSessionComplete?: (stats: {
       wpm: number;
       accuracy: number;
@@ -69,6 +70,7 @@ const typingAreaPropsRef: {
 vi.mock('@/components/typing/TypingArea', () => ({
   TypingArea: (props: {
     text: string;
+    onActiveKeyChange?: (key: string | undefined) => void;
     onSessionComplete?: (stats: {
       wpm: number;
       accuracy: number;
@@ -330,5 +332,53 @@ describe('CurriculumLearningMode : navigation entre niveaux (#115)', () => {
     expect(
       screen.getByRole('heading', { name: levelName('first-words') }),
     ).toBeInTheDocument();
+  });
+});
+
+describe('CurriculumLearningMode : schéma clavier pendant le drill (#116)', () => {
+  const activeKey = (el: Element) =>
+    el.querySelector('[data-active="true"]')?.getAttribute('data-key');
+  const expectKey = (char: string | undefined) =>
+    act(() => typingAreaPropsRef.current!.onActiveKeyChange!(char));
+
+  it('montre la touche attendue', async () => {
+    seed({ taught: [1, 2], unlockedUpTo: 2 });
+    render(<CurriculumLearningMode onExitTutorial={vi.fn()} />);
+    await screen.findByTestId('drill-zone');
+    const diagram = screen.getByLabelText(/clavier azerty/i);
+
+    expectKey('f');
+    expect(activeKey(diagram)).toBe('f');
+    expectKey(undefined);
+    expect(activeKey(diagram)).toBeUndefined();
+  });
+
+  it('majuscule : touche minuscule active et Maj de la main opposée tenu', async () => {
+    seed({ taught: [1, 2, 3, 4, 5, 6], unlockedUpTo: 6 });
+    render(<CurriculumLearningMode onExitTutorial={vi.fn()} />);
+    await screen.findByTestId('drill-zone');
+    const diagram = screen.getByLabelText(/clavier azerty/i);
+
+    expectKey('M'); // m : auriculaire droit, donc Maj gauche
+    expect(activeKey(diagram)).toBe('m');
+    expect(
+      diagram.querySelector('[data-key="ShiftLeft"]')?.getAttribute('data-hold'),
+    ).toBe('true');
+  });
+
+  it('touche morte : étape 1 sur ^, étape 2 sur la voyelle après la touche morte', async () => {
+    seed({ taught: [1, 2, 3, 4, 5, 6, 7, 8], unlockedUpTo: 8 });
+    render(<CurriculumLearningMode onExitTutorial={vi.fn()} />);
+    await screen.findByTestId('drill-zone');
+    const diagram = screen.getByLabelText(/clavier azerty/i);
+
+    expectKey('ê');
+    expect(activeKey(diagram)).toBe('^');
+    fireEvent.keyDown(window, { key: 'Dead' });
+    expect(activeKey(diagram)).toBe('e');
+
+    // Caractère suivant puis un autre ê : on repart à l'étape 1.
+    expectKey('ê');
+    expect(activeKey(diagram)).toBe('^');
   });
 });

@@ -37,8 +37,12 @@ async function seedPreferences(
   }, prefs);
 }
 
-/** Ouvre l'ecran d'enseignement du niveau `level` (progression amorcee). */
-async function openTeachStep(page: Page, level: number): Promise<void> {
+/** Amorce la progression : niveaux 1..level debloques, 1..taughtUpTo enseignes. */
+async function openLearning(
+  page: Page,
+  level: number,
+  taughtUpTo: number,
+): Promise<void> {
   await page.goto('/fr');
   await page.waitForLoadState('networkidle');
   await seedPreferences(page, {
@@ -49,11 +53,22 @@ async function openTeachStep(page: Page, level: number): Promise<void> {
       samples: 0,
       unlocked: i + 1 <= level,
     })),
-    learning_taught_levels: Array.from({ length: level - 1 }, (_, i) => i + 1),
+    learning_taught_levels: Array.from({ length: taughtUpTo }, (_, i) => i + 1),
     learning_key_mastery: {},
   });
   await page.reload();
+}
+
+/** Ouvre l'ecran d'enseignement du niveau `level`. */
+async function openTeachStep(page: Page, level: number): Promise<void> {
+  await openLearning(page, level, level - 1);
   await expect(page.getByRole('button', { name: 'Commencer' })).toBeVisible();
+}
+
+/** Ouvre la boucle d'entrainement du niveau `level` (deja enseigne). */
+async function openDrill(page: Page, level: number): Promise<void> {
+  await openLearning(page, level, level);
+  await expect(page.getByTestId('drill-zone')).toBeVisible();
 }
 
 type Box = { x: number; y: number; width: number; height: number };
@@ -68,6 +83,26 @@ function overlapArea(a: Box, b: Box): number {
   const w = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x);
   const h = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y);
   return w > 0 && h > 0 ? w * h : 0;
+}
+
+/** Echoue si deux des elements nommes se recouvrent de plus d'1 px2. */
+async function expectNoOverlap(parts: Record<string, Locator>): Promise<Map<string, Box>> {
+  const boxes = new Map<string, Box>();
+  for (const [name, locator] of Object.entries(parts)) {
+    boxes.set(name, await boxOf(locator));
+  }
+  const names = [...boxes.keys()];
+  for (let i = 0; i < names.length; i += 1) {
+    for (let j = i + 1; j < names.length; j += 1) {
+      const a = names[i]!;
+      const b = names[j]!;
+      expect(
+        overlapArea(boxes.get(a)!, boxes.get(b)!),
+        `${a} recouvre ${b}`,
+      ).toBeLessThanOrEqual(1);
+    }
+  }
+  return boxes;
 }
 
 for (const viewport of VIEWPORTS) {
@@ -87,27 +122,52 @@ for (const viewport of VIEWPORTS) {
         bouton: main.getByRole('button', { name: 'Commencer' }),
       };
 
-      const boxes = new Map<string, Box>();
-      for (const [name, locator] of Object.entries(parts)) {
-        boxes.set(name, await boxOf(locator));
-      }
-
-      const names = [...boxes.keys()];
-      for (let i = 0; i < names.length; i += 1) {
-        for (let j = i + 1; j < names.length; j += 1) {
-          const a = names[i]!;
-          const b = names[j]!;
-          expect(
-            overlapArea(boxes.get(a)!, boxes.get(b)!),
-            `${a} recouvre ${b}`,
-          ).toBeLessThanOrEqual(1);
-        }
-      }
+      const boxes = await expectNoOverlap(parts);
 
       // Le bouton reste visible sans defiler la page, et le schema garde une
       // taille lisible.
       await expect(parts.bouton).toBeInViewport({ ratio: 1 });
       expect(boxes.get('schema')!.height).toBeGreaterThanOrEqual(120);
+    });
+  }
+}
+
+// Boucle d'entrainement : titre, progression, texte et schema ne se recouvrent
+// pas. Le schema prend la hauteur qui reste ; sous 90 px il se masque (fenetre
+// tres basse) plutot que de recouvrir le texte.
+const DRILL_LEVELS = [2, 6, 8];
+
+for (const viewport of VIEWPORTS) {
+  for (const level of DRILL_LEVELS) {
+    test(`entrainement niveau ${level} a ${viewport.width}x${viewport.height} : rien ne se chevauche`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      await openDrill(page, level);
+
+      const section = page.locator('main section');
+      const parts: Record<string, Locator> = {
+        titre: section.getByRole('heading', { level: 2 }),
+        progression: section.getByRole('progressbar'),
+        // La vraie boite du texte (le wrapper peut s'effondrer en laissant le
+        // texte deborder dessus).
+        texte: section.getByRole('application'),
+      };
+      for (const [i, button] of (
+        await section.getByRole('button').all()
+      ).entries()) {
+        parts[`bouton ${i + 1}`] = button;
+      }
+      const schema = section.locator('svg[aria-label]');
+      if (await schema.isVisible()) {
+        parts['schema'] = schema;
+      }
+      const boxes = await expectNoOverlap(parts);
+
+      // A 1280x650 il reste de la place : le schema doit etre la, lisible.
+      if (viewport.height >= 650) {
+        expect(boxes.get('schema')?.height ?? 0).toBeGreaterThanOrEqual(90);
+      }
     });
   }
 }

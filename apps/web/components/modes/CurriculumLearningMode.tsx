@@ -36,7 +36,11 @@ import {
   type KeyMastery,
   type LevelProgress,
 } from '@/lib/learning-progress';
-import { generateLevelText, mapCharToGestureId } from '@/lib/learning-content';
+import {
+  expectedKeyForChar,
+  generateLevelText,
+  mapCharToGestureId,
+} from '@/lib/learning-content';
 import {
   getCelebratedLearningLevels,
   markLearningLevelCelebrated,
@@ -48,6 +52,7 @@ import {
   LevelClearedMoment,
   getLevelsWithClearedMoment,
 } from './LevelClearedMoment';
+import { KeyboardDiagramAzerty } from './KeyboardDiagramAzerty';
 import { LevelTeachStep } from './LevelTeachStep';
 import type { LearningModeProps } from './LegacyLearningMode';
 
@@ -99,7 +104,12 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
   const [currentLevelId, setCurrentLevelId] = useState(1);
   const [text, setText] = useState('');
   const [runIndex, setRunIndex] = useState(0);
-  const [, setActiveKey] = useState<string | undefined>(undefined);
+  // Caractère attendu par TypingArea, et (touche morte) pour quel caractère la
+  // touche morte vient d'être pressée : l'étape 2 du geste ne vaut que pour lui.
+  const [activeKey, setActiveKey] = useState<string | undefined>(undefined);
+  const [deadPressedFor, setDeadPressedFor] = useState<string | undefined>(
+    undefined,
+  );
   const [celebration, setCelebration] = useState<{
     levelId: number;
     samples: number;
@@ -264,6 +274,21 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
     ],
   );
 
+  const handleActiveKeyChange = useCallback((key: string | undefined) => {
+    setActiveKey(key);
+    setDeadPressedFor(undefined);
+  }, []);
+
+  // Touche morte pressée : le schéma passe à l'étape 2 (la voyelle).
+  useEffect(() => {
+    if (!activeKey) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Dead') setDeadPressedFor(activeKey);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [activeKey]);
+
   const handleNoteChange = useCallback(
     (_note: string | null, isError: boolean) => {
       if (isError) return;
@@ -335,6 +360,9 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
   }
 
   const unlockedById = new Map(levelProgress.map((p) => [p.levelId, p.unlocked]));
+  const expected = expectedKeyForChar(activeKey);
+  const deadKeyStep: 1 | 2 =
+    deadPressedFor !== undefined && deadPressedFor === activeKey ? 2 : 1;
   // Niveau suivant déjà débloqué (validé à l'instant, ou déjà passé) : un bouton
   // large y mène, sans avoir à viser une pastille du rail.
   const nextLevel =
@@ -416,112 +444,156 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
       </nav>
 
       <section
-        className="flex flex-col items-center gap-4 flex-1"
-        style={{ minHeight: 0, justifyContent: 'center', width: '100%' }}
+        className="flex flex-col items-center flex-1"
+        style={{ minHeight: 0, gap: 10, width: '100%' }}
       >
-        <h2
-          style={{
-            fontFamily: 'var(--font-display)',
-            color: 'var(--color-accent)',
-            fontSize: '1.5rem',
-            textAlign: 'center',
-          }}
-        >
-          {t(`level.${currentLevel.slug}.name`)}
-        </h2>
-
+        {/* En-tête : précédent / titre / suivant sur une seule ligne, pour garder
+            la hauteur au texte et au schéma. Sous 900 px, le titre passe seul
+            sur sa ligne, les boutons dessous. */}
         <div
-          role="progressbar"
-          aria-valuenow={curriculumProgress.percent}
-          aria-valuemin={0}
-          aria-valuemax={100}
           style={{
-            width: 'min(420px, 100%)',
-            height: 6,
-            borderRadius: 999,
-            background: 'var(--color-border, rgba(255,255,255,0.12))',
-            overflow: 'hidden',
+            display: railCompact ? 'flex' : 'grid',
+            gridTemplateColumns: '1fr auto 1fr',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '6px 12px',
+            width: '100%',
+            maxWidth: 1000,
+            flexShrink: 0,
           }}
         >
-          <div
+          <h2
             style={{
-              width: `${curriculumProgress.percent}%`,
-              height: '100%',
-              background: 'var(--color-accent)',
-              transition: 'width 240ms ease',
-            }}
-          />
-        </div>
-        {curriculumProgress.weakestKeyId && (
-          <p
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 13,
-              color: 'var(--color-text-muted)',
+              fontFamily: 'var(--font-display)',
+              color: 'var(--color-accent)',
+              fontSize: '1.5rem',
+              lineHeight: 1.2,
+              textAlign: 'center',
+              ...(railCompact
+                ? { flexBasis: '100%' }
+                : { gridColumn: 2, gridRow: 1 }),
             }}
           >
-            {t('mastery.weakKey', {
-              key: curriculumProgress.weakestKeyId,
-              accuracy: curriculumProgress.weakestKeyAccuracy ?? 0,
-            })}
-          </p>
-        )}
+            {t(`level.${currentLevel.slug}.name`)}
+          </h2>
+          {currentLevelId > 1 && (
+            <button
+              type="button"
+              onClick={() => goToLevel(currentLevelId - 1)}
+              className={NAV_BUTTON_CLASS}
+              style={{
+                ...NAV_BUTTON_STYLE,
+                background: 'transparent',
+                color: 'var(--color-text-muted)',
+                border: '1px solid var(--color-border, rgba(255,255,255,0.2))',
+                ...(railCompact
+                  ? {}
+                  : { gridColumn: 1, gridRow: 1, justifySelf: 'start' }),
+              }}
+            >
+              {t('prevLevelCta')}
+            </button>
+          )}
+          {nextLevel && (
+            <button
+              type="button"
+              onClick={() => goToLevel(nextLevel.id)}
+              className={NAV_BUTTON_CLASS}
+              style={{
+                ...NAV_BUTTON_STYLE,
+                background: 'var(--color-accent)',
+                color: '#000',
+                border: 'none',
+                ...(railCompact
+                  ? {}
+                  : { gridColumn: 3, gridRow: 1, justifySelf: 'end' }),
+              }}
+            >
+              {t('nextLevelNamed', {
+                id: nextLevel.id,
+                name: t(`level.${nextLevel.slug}.name`),
+              })}
+            </button>
+          )}
+        </div>
 
         <div
-          data-testid="drill-zone"
-          style={{ width: '100%', flex: '1 1 0%', minHeight: 0 }}
+          className="flex flex-wrap items-center justify-center"
+          style={{ gap: '4px 12px', flexShrink: 0 }}
         >
+          <div
+            role="progressbar"
+            aria-valuenow={curriculumProgress.percent}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            style={{
+              width: 'min(320px, 60vw)',
+              height: 6,
+              borderRadius: 999,
+              background: 'var(--color-border, rgba(255,255,255,0.12))',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                width: `${curriculumProgress.percent}%`,
+                height: '100%',
+                background: 'var(--color-accent)',
+                transition: 'width 240ms ease',
+              }}
+            />
+          </div>
+          {curriculumProgress.weakestKeyId && (
+            <p
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 13,
+                color: 'var(--color-text-muted)',
+              }}
+            >
+              {t('mastery.weakKey', {
+                key: curriculumProgress.weakestKeyId,
+                accuracy: curriculumProgress.weakestKeyAccuracy ?? 0,
+              })}
+            </p>
+          )}
+        </div>
+
+        {/* Le texte garde sa hauteur naturelle (TypingArea : 3 lignes). */}
+        <div data-testid="drill-zone" style={{ width: '100%', flexShrink: 0 }}>
           <TypingArea
             key={`clm-${currentLevelId}-${runIndex}`}
             text={text}
             mode="learning"
             autoNavigate={false}
-            onActiveKeyChange={setActiveKey}
+            onActiveKeyChange={handleActiveKeyChange}
             onNoteChange={handleNoteChange}
             onSessionComplete={handleSessionComplete}
           />
         </div>
 
-        {(currentLevelId > 1 || nextLevel) && (
-          <div
-            className="flex flex-wrap items-center justify-center gap-3"
-            style={{ flexShrink: 0 }}
-          >
-            {currentLevelId > 1 && (
-              <button
-                type="button"
-                onClick={() => goToLevel(currentLevelId - 1)}
-                className={NAV_BUTTON_CLASS}
-                style={{
-                  ...NAV_BUTTON_STYLE,
-                  background: 'transparent',
-                  color: 'var(--color-text-muted)',
-                  border: '1px solid var(--color-border, rgba(255,255,255,0.2))',
-                }}
-              >
-                {t('prevLevelCta')}
-              </button>
-            )}
-            {nextLevel && (
-              <button
-                type="button"
-                onClick={() => goToLevel(nextLevel.id)}
-                className={NAV_BUTTON_CLASS}
-                style={{
-                  ...NAV_BUTTON_STYLE,
-                  background: 'var(--color-accent)',
-                  color: '#000',
-                  border: 'none',
-                }}
-              >
-                {t('nextLevelNamed', {
-                  id: nextLevel.id,
-                  name: t(`level.${nextLevel.slug}.name`),
-                })}
-              </button>
-            )}
-          </div>
-        )}
+        {/* Schéma : la touche à viser, le doigt, Maj à tenir, les deux temps
+            d'une touche morte. Il prend la hauteur qui reste, et se masque
+            (CSS, `.learning-diagram-slot`) sous 90 px plutôt que de devenir
+            illisible ou de recouvrir le texte. */}
+        <div
+          className="learning-diagram-slot"
+          style={{ width: '100%', maxWidth: 1000, flex: '1 1 0%', minHeight: 0, maxHeight: 220 }}
+        >
+          <KeyboardDiagramAzerty
+            highlightKeys={currentLevel.newKeys}
+            {...(expected
+              ? {
+                  activeKeyId: expected.activeKeyId,
+                  ...(expected.expectedShiftHand
+                    ? { expectedShiftHand: expected.expectedShiftHand }
+                    : {}),
+                  deadKeyStep,
+                }
+              : {})}
+          />
+        </div>
 
         {tutorialComplete && (
           <button

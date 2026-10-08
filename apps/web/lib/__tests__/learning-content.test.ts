@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { LEARNING_CURRICULUM_AZERTY } from '@typewav/types';
 import type { KeyMastery } from '../learning-progress';
 import {
+  expectedKeyForChar,
   generateLearningDrill,
   mapCharToGestureId,
   pickLearningText,
@@ -163,5 +164,50 @@ describe('pickLearningText', () => {
         /[.,;:!?]/.test(t) &&
         /[0-9]/.test(t),
     ).toBe(true);
+  });
+});
+
+describe('expectedKeyForChar', () => {
+  it('rien a montrer : undefined, ou un caractere sans geste', () => {
+    expect(expectedKeyForChar(undefined)).toBeUndefined();
+    expect(expectedKeyForChar('@')).toBeUndefined();
+  });
+
+  it('lettre minuscule, accent direct : la touche seule', () => {
+    expect(expectedKeyForChar('f')).toEqual({ activeKeyId: 'f' });
+    expect(expectedKeyForChar('é')).toEqual({ activeKeyId: 'é' });
+  });
+
+  it('espace : la barre d\'espace', () => {
+    expect(expectedKeyForChar(' ')).toEqual({ activeKeyId: 'Space' });
+  });
+
+  it('majuscule : Maj tenu par la main opposee a la lettre', () => {
+    // E se tape de la main gauche (majeur), donc Maj droit.
+    expect(expectedKeyForChar('E')).toEqual({ activeKeyId: 'E', expectedShiftHand: 'R' });
+    // U se tape de la main droite (index), donc Maj gauche.
+    expect(expectedKeyForChar('U')).toEqual({ activeKeyId: 'U', expectedShiftHand: 'L' });
+  });
+
+  it('majuscule hors des 8 barrees : la touche minuscule + Maj opposé', () => {
+    // M : auriculaire droit, donc Maj gauche.
+    expect(expectedKeyForChar('M')).toEqual({ activeKeyId: 'm', expectedShiftHand: 'L' });
+    // B : index gauche, donc Maj droit.
+    expect(expectedKeyForChar('B')).toEqual({ activeKeyId: 'b', expectedShiftHand: 'R' });
+  });
+
+  it('chiffre et ponctuation en Maj : Maj de la main opposee', () => {
+    expect(expectedKeyForChar('5')).toEqual({ activeKeyId: '5', expectedShiftHand: 'R' });
+    expect(expectedKeyForChar('?')).toEqual({ activeKeyId: '?', expectedShiftHand: 'L' });
+    expect(expectedKeyForChar('.')).toEqual({ activeKeyId: '.', expectedShiftHand: 'L' });
+  });
+
+  it('ponctuation directe : pas de Maj', () => {
+    expect(expectedKeyForChar(';')).toEqual({ activeKeyId: ';' });
+  });
+
+  it('touche morte : l\'id du geste', () => {
+    expect(expectedKeyForChar('ê')).toEqual({ activeKeyId: '^e' });
+    expect(expectedKeyForChar('ü')).toEqual({ activeKeyId: '¨u' });
   });
 });
