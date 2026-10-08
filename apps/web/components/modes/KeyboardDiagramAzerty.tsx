@@ -200,15 +200,25 @@ export function KeyboardDiagramAzerty({
       : undefined;
 
   return (
-    <div style={{ width: '100%' }} className="select-none">
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+      className="select-none"
+    >
+      {/* Le schéma remplit la boîte que lui donne le parent et se réduit avec
+          elle (viewBox, ratio conservé) : jamais de hauteur minimale imposée. */}
       <svg
         viewBox="-2 0 420 166"
         aria-label="Schéma du clavier AZERTY"
         style={{
           width: '100%',
-          minHeight: 'clamp(180px, 40vh, 320px)',
+          height: '100%',
           maxWidth: 1000,
-          objectFit: 'contain',
           display: 'block',
         }}
       >

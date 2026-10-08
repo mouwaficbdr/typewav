@@ -48,3 +48,9 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: Install Chromium (render tests)
+        run: pnpm --filter @typewav/web exec playwright install --with-deps chromium
+
+      - name: Render tests (Playwright)
+        run: pnpm --filter @typewav/web test:e2e
