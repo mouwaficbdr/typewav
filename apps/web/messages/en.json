@@ -6,7 +6,8 @@
     "leaderboard": "Leaderboard",
     "typing": "Typing",
     "settings": "Settings",
-    "about": "About"
+    "about": "About",
+    "conservatoire": "Conservatory"
   },
   "typing": {
     "start": "Start typing to begin…",
@@ -605,5 +606,39 @@
       "body": "TypeWav owes a lot to <mt>Monkeytype</mt>: its clarity, restraint and focus were the reference and the case study throughout. Thank you to its team and contributors."
     },
     "closing": "Enough reading. Back to the keyboard."
+  },
+  "conservatoire": {
+    "metaTitle": "The Conservatory",
+    "skip": "Skip",
+    "continue": "Space to continue",
+    "keyboard": "Keyboard",
+    "announceTarget": "Key {key}, {finger}.",
+    "mobile": "The Conservatory is played on a computer keyboard.",
+    "nudge": "The Conservatory is waiting for you",
+    "unsaved": "This browser can't save your progress: it will be lost when you close the page.",
+    "onboarding": {
+      "intro": { "title": "Your keyboard is an instrument.", "support": "Turn the sound up.", "start": "Space to begin" },
+      "f": { "title": "Rest your left index finger on F.", "support": "Feel the little bump: that's your anchor." },
+      "j": { "title": "And your right index finger on J.", "support": "Same bump, other side." },
+      "scale": { "title": "Place your other six fingers. Play from left to right.", "done": "You just played your first scale." },
+      "blind": { "title": "Play it again without looking at your hands.", "support": "The key reappears if you hesitate.", "done": "Your fingers already know the way." },
+      "silence": { "title": "Press K.", "other": "Now press any other key.", "done": "Silence. A mistake plays nothing." },
+      "data": {
+        "title": "Your progress stays in this browser.",
+        "support": "I to learn more",
+        "detail1": "Clearing your browser data erases your progress.",
+        "detail2": "A private window keeps nothing.",
+        "detail3": "You can save everything to a file from Settings."
+      },
+      "choiceHint": "1, 2 or 3",
+      "experience": { "title": "Do you already type a little?", "beginner": "I'm just starting", "someFingers": "With a few fingers", "touchTypist": "Without looking" },
+      "minutes": { "title": "How many minutes a day?", "option": "{minutes} minutes" },
+      "placement": {
+        "title": "Type the words as they come. 30 seconds.",
+        "support": "The timer starts on your first keystroke.",
+        "result": "{wpm} words per minute, {accuracy}% correct notes."
+      },
+      "ready": { "title": "Your first lesson is waiting." }
+    }
   }
 }

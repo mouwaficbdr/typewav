@@ -6,7 +6,8 @@
     "leaderboard": "Classement",
     "typing": "Clavier",
     "settings": "Paramètres",
-    "about": "À propos"
+    "about": "À propos",
+    "conservatoire": "Conservatoire"
   },
   "typing": {
     "start": "Commencez à taper pour démarrer…",
@@ -605,5 +606,39 @@
       "body": "TypeWav doit beaucoup à <mt>Monkeytype</mt> : sa clarté, sa sobriété et sa rigueur ont servi de référence et de cas d'étude tout du long. Merci à son équipe et à ses contributeurs."
     },
     "closing": "Assez lu. Retour au clavier."
+  },
+  "conservatoire": {
+    "metaTitle": "Le Conservatoire",
+    "skip": "Passer",
+    "continue": "Espace pour continuer",
+    "keyboard": "Clavier",
+    "announceTarget": "Touche {key}, {finger}.",
+    "mobile": "Le Conservatoire se joue avec un clavier d'ordinateur.",
+    "nudge": "Le Conservatoire t'attend",
+    "unsaved": "Ce navigateur ne peut pas enregistrer tes progrès : ils s'effaceront en fermant la page.",
+    "onboarding": {
+      "intro": { "title": "Ton clavier est un instrument.", "support": "Monte le son.", "start": "Espace pour commencer" },
+      "f": { "title": "Pose ton index gauche sur F.", "support": "Sens la petite bosse : c'est ton repère." },
+      "j": { "title": "Et ton index droit sur J.", "support": "La même bosse, de l'autre côté." },
+      "scale": { "title": "Pose les six autres doigts. Joue de gauche à droite.", "done": "Tu viens de jouer ta première gamme." },
+      "blind": { "title": "Rejoue-la sans regarder tes mains.", "support": "La touche réapparaît si tu hésites.", "done": "Tes doigts connaissent déjà le chemin." },
+      "silence": { "title": "Appuie sur K.", "other": "Maintenant, appuie sur une autre touche.", "done": "Silence. Une erreur ne joue rien." },
+      "data": {
+        "title": "Tes progrès restent dans ce navigateur.",
+        "support": "I pour en savoir plus",
+        "detail1": "Effacer les données du navigateur efface tes progrès.",
+        "detail2": "La navigation privée ne garde rien.",
+        "detail3": "Tu peux tout sauvegarder dans un fichier depuis Paramètres."
+      },
+      "choiceHint": "1, 2 ou 3",
+      "experience": { "title": "Tu tapes déjà un peu ?", "beginner": "Je débute", "someFingers": "Avec quelques doigts", "touchTypist": "Sans regarder" },
+      "minutes": { "title": "Combien de minutes par jour ?", "option": "{minutes} minutes" },
+      "placement": {
+        "title": "Tape les mots qui viennent. 30 secondes.",
+        "support": "Le chrono part à ta première frappe.",
+        "result": "{wpm} mots par minute, {accuracy} % de notes justes."
+      },
+      "ready": { "title": "Ta première leçon t'attend." }
+    }
   }
 }
