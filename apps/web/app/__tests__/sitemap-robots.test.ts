@@ -19,7 +19,6 @@ describe('sitemap', () => {
     expect(joined).not.toMatch(/\/auth\//);
     expect(joined).not.toMatch(/\/profil\b/);
     expect(joined).not.toMatch(/\/results\b/);
-    expect(joined).not.toMatch(/\/dev-onboarding\b/);
   });
 
   it('chaque entrée porte les alternates hreflang fr et en', () => {

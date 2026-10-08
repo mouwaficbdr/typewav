@@ -81,14 +81,12 @@ vi.mock('@/components/typing/TypingArea', () => ({
 
 const learningModePropsRef: {
   current: null | {
-    isOnboarding?: boolean;
     onExitTutorial: () => void;
   };
 } = { current: null };
 
 vi.mock('@/components/modes/LearningMode', () => ({
   LearningMode: (props: {
-    isOnboarding?: boolean;
     onExitTutorial: () => void;
   }) => {
     learningModePropsRef.current = props;
@@ -126,9 +124,30 @@ vi.mock('next-intl', () => ({
   useLocale: () => 'fr',
 }));
 
+const { mockPush, mockRouter } = vi.hoisted(() => {
+  const mockPush = vi.fn();
+  return { mockPush, mockRouter: { push: mockPush } };
+});
+
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => mockRouter,
   usePathname: () => '/fr',
+}));
+
+vi.mock('next/link', () => ({
+  default: ({
+    children,
+    href,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href: string;
+    [key: string]: unknown;
+  }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
 }));
 
 vi.mock('@typewav/audio-engine', () => ({
@@ -327,6 +346,7 @@ beforeEach(async () => {
   mockFetchCollection.mockClear();
   typingAreaPropsRef.current = null;
   learningModePropsRef.current = null;
+  mockPush.mockClear();
   mockHasCompletedOnboarding.mockClear().mockResolvedValue(true);
   mockMarkOnboardingComplete.mockClear().mockResolvedValue(undefined);
   mockGetPersonalRecords.mockClear().mockResolvedValue(null);
@@ -1343,17 +1363,13 @@ describe('HomeClient : mode Libre (textes personnels)', () => {
   });
 });
 
-describe('HomeClient : onboarding première visite', () => {
+describe('HomeClient : première visite', () => {
   const realMatchMedia = window.matchMedia;
   afterEach(() => {
     window.matchMedia = realMatchMedia;
   });
 
-  it("coupe l'onboarding sur appareil non desktop : frappe directe, aucun tutoriel, flag jamais touché", async () => {
-    // Primo-visiteur (hasCompletedOnboarding=false) sur un appareil tactile :
-    // le tutoriel ne doit pas se déclencher, et le flag doit rester vierge
-    // (le vrai tutoriel apparaîtra si la personne revient sur desktop).
-    mockHasCompletedOnboarding.mockResolvedValue(false);
+  const nonDesktop = () => {
     window.matchMedia = ((query: string) => ({
       matches: query === NON_DESKTOP_MEDIA_QUERY,
       media: query,
@@ -1364,45 +1380,44 @@ describe('HomeClient : onboarding première visite', () => {
       onchange: null,
       dispatchEvent: () => false,
     })) as unknown as typeof window.matchMedia;
+  };
 
+  it('première visite sur ordinateur : redirige vers le Conservatoire sans montrer la frappe', async () => {
+    mockHasCompletedOnboarding.mockResolvedValue(false);
+    const { HomeClient } = await import('../typing/HomeClient');
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/fr/conservatoire'));
+    expect(screen.queryByTestId('typing-area')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('learning-mode')).not.toBeInTheDocument();
+    expect(mockMarkOnboardingComplete).not.toHaveBeenCalled();
+  });
+
+  it('appareil non desktop : frappe directe, aucune redirection, flag jamais touché', async () => {
+    mockHasCompletedOnboarding.mockResolvedValue(false);
+    nonDesktop();
     const { HomeClient } = await import('../typing/HomeClient');
     render(<HomeClient initialCollection={mockLitterature as never} />);
 
     expect(await screen.findByTestId('typing-area')).toBeInTheDocument();
-    expect(screen.queryByTestId('learning-mode')).not.toBeInTheDocument();
+    expect(mockPush).not.toHaveBeenCalled();
     expect(mockHasCompletedOnboarding).not.toHaveBeenCalled();
     expect(mockMarkOnboardingComplete).not.toHaveBeenCalled();
   });
 
   it("un activeMode 'learning' persistant retombe sur 'classic' sur appareil non desktop (#98)", async () => {
-    mockHasCompletedOnboarding.mockResolvedValue(true); // pas d'onboarding en jeu
-    window.matchMedia = ((query: string) => ({
-      matches: query === NON_DESKTOP_MEDIA_QUERY,
-      media: query,
-      addEventListener: () => {},
-      removeEventListener: () => {},
-      addListener: () => {},
-      removeListener: () => {},
-      onchange: null,
-      dispatchEvent: () => false,
-    })) as unknown as typeof window.matchMedia;
-
+    mockHasCompletedOnboarding.mockResolvedValue(true);
+    nonDesktop();
     const { useConfigStore } = await import('@/stores/useConfigStore');
     const { HomeClient } = await import('../typing/HomeClient');
     useConfigStore.setState({ activeMode: 'learning' });
     render(<HomeClient initialCollection={mockLitterature as never} />);
 
-    await waitFor(() =>
-      expect(useConfigStore.getState().activeMode).toBe('classic'),
-    );
+    await waitFor(() => expect(useConfigStore.getState().activeMode).toBe('classic'));
   });
 
-  it("ne montre ni frappe ni apprentissage tant que l'onboarding n'est pas tranché (pas de flash)", async () => {
-    // hasCompletedOnboarding ne répond jamais : on est dans la fenêtre juste
-    // après le montage, avant que la lecture IndexedDB ait abouti.
-    mockHasCompletedOnboarding.mockImplementation(
-      () => new Promise<boolean>(() => {}),
-    );
+  it("ne montre ni frappe ni apprentissage tant que la première visite n'est pas tranchée (pas de flash)", async () => {
+    mockHasCompletedOnboarding.mockImplementation(() => new Promise<boolean>(() => {}));
     const { HomeClient } = await import('../typing/HomeClient');
     render(<HomeClient initialCollection={mockLitterature as never} />);
 
@@ -1416,71 +1431,42 @@ describe('HomeClient : onboarding première visite', () => {
     render(<HomeClient initialCollection={mockLitterature as never} />);
 
     expect(await screen.findByTestId('typing-area')).toBeInTheDocument();
-    expect(screen.queryByTestId('learning-mode')).not.toBeInTheDocument();
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it("force le mode apprentissage mais garde la ConfigBar visible : la navigation doit toujours rester possible", async () => {
-    mockHasCompletedOnboarding.mockResolvedValue(false);
+  it("flag illisible : aucune redirection forcée, la frappe s'affiche", async () => {
+    mockHasCompletedOnboarding.mockRejectedValue(new Error('IndexedDB indisponible'));
     const { HomeClient } = await import('../typing/HomeClient');
     render(<HomeClient initialCollection={mockLitterature as never} />);
 
-    await waitFor(() => {
-      expect(learningModePropsRef.current?.isOnboarding).toBe(true);
-    });
-    expect(screen.getByTestId('learning-mode')).toBeInTheDocument();
-    expect(screen.getByTestId('config-bar')).toBeInTheDocument();
+    expect(await screen.findByTestId('typing-area')).toBeInTheDocument();
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it("changer de mode depuis la ConfigBar pendant l'onboarding marque le tutoriel comme terminé (le piège ne doit pas revenir au prochain chargement)", async () => {
-    mockHasCompletedOnboarding.mockResolvedValue(false);
-    const { HomeClient } = await import('../typing/HomeClient');
-    const { useConfigStore } = await import('@/stores/useConfigStore');
-    render(<HomeClient initialCollection={mockLitterature as never} />);
-
-    await waitFor(() => {
-      expect(learningModePropsRef.current?.isOnboarding).toBe(true);
-    });
-
-    act(() => {
-      useConfigStore.setState({ activeMode: 'classic' });
-    });
-
-    await waitFor(() => {
-      expect(mockMarkOnboardingComplete).toHaveBeenCalledOnce();
-    });
-    expect(screen.getByTestId('config-bar')).toBeInTheDocument();
-    expect(screen.queryByTestId('learning-mode')).not.toBeInTheDocument();
-  });
-
-  it("n'affiche pas le mode apprentissage quand l'onboarding est déjà complété", async () => {
+  it("la pastille du Conservatoire reste visible sur l'accueil desktop", async () => {
     mockHasCompletedOnboarding.mockResolvedValue(true);
     const { HomeClient } = await import('../typing/HomeClient');
     render(<HomeClient initialCollection={mockLitterature as never} />);
 
-    await waitFor(() => expect(mockHasCompletedOnboarding).toHaveBeenCalled());
-    expect(screen.getByTestId('config-bar')).toBeInTheDocument();
-    expect(screen.queryByTestId('learning-mode')).not.toBeInTheDocument();
+    const nudge = await screen.findByTestId('conservatoire-nudge');
+    expect(nudge).toHaveAttribute('href', '/fr/conservatoire');
   });
 
-  it("marque l'onboarding comme terminé et repasse en mode classique à la sortie du tutoriel", async () => {
-    mockHasCompletedOnboarding.mockResolvedValue(false);
-    const { HomeClient } = await import('../typing/HomeClient');
+  it("la sortie réelle du tutoriel marque l'onboarding fait et repasse en mode classique", async () => {
+    mockHasCompletedOnboarding.mockResolvedValue(true);
     const { useConfigStore } = await import('@/stores/useConfigStore');
+    const { HomeClient } = await import('../typing/HomeClient');
+    useConfigStore.setState({ activeMode: 'learning' });
     render(<HomeClient initialCollection={mockLitterature as never} />);
 
-    await waitFor(() => {
-      expect(learningModePropsRef.current?.onExitTutorial).toBeInstanceOf(
-        Function,
-      );
-    });
-
+    await waitFor(() =>
+      expect(learningModePropsRef.current?.onExitTutorial).toBeInstanceOf(Function),
+    );
     act(() => {
       learningModePropsRef.current?.onExitTutorial();
     });
-
     expect(mockMarkOnboardingComplete).toHaveBeenCalledOnce();
     expect(useConfigStore.getState().activeMode).toBe('classic');
-    expect(screen.getByTestId('config-bar')).toBeInTheDocument();
   });
 });
 

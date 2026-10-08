@@ -1,7 +1,7 @@
 /**
  * Détection "première visite" : un seul flag persisté (IndexedDB, via le
- * store générique user_preferences), posé quand l'utilisateur quitte le
- * tutoriel de démarrage (skip ou réussite réelle).
+ * store générique user_preferences), posé à la fin de l'onboarding du
+ * Conservatoire (écran 10) ou après « Passer ».
  */
 
 import { getPreference, setPreference } from './db';

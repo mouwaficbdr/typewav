@@ -40,17 +40,17 @@ describe('GlobalNav', () => {
     expect(screen.getByRole('link', { name: /TypeWav/i })).toBeInTheDocument();
   });
 
-  it('affiche les cinq entrées de navigation', () => {
+  it('affiche les six entrées, le Conservatoire en premier', () => {
     render(<GlobalNav />);
-    for (const name of [
-      'typing',
-      'leaderboard',
-      'profile',
-      'settings',
-      'about',
-    ]) {
+    for (const name of ['conservatoire', 'typing', 'leaderboard', 'profile', 'settings', 'about']) {
       expect(screen.getByRole('link', { name })).toBeInTheDocument();
     }
+    const conservatoire = screen.getByRole('link', { name: 'conservatoire' });
+    expect(conservatoire).toHaveAttribute('href', '/fr/conservatoire');
+    expect(
+      conservatoire.compareDocumentPosition(screen.getByRole('link', { name: 'typing' })) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it("n'expose ni connexion ni premium", () => {

@@ -50,7 +50,6 @@ import {
   type PersonalText,
 } from '@/lib/db';
 import { isNonDesktopDevice } from '@/lib/device';
-import { IS_DEV_MODE } from '@/lib/featureFlags';
 import { noteNameToMidi } from '@/lib/note-visualization';
 import {
   hasCompletedOnboarding,
@@ -66,7 +65,9 @@ import { type MidiPieceId } from '@typewav/audio-engine';
 import { buildContinuousText, selectFromTexts } from '@typewav/collections';
 import type { CollectionConfig, TypingMode } from '@typewav/types';
 import { useReducedMotion } from 'motion/react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import webPackage from '../../package.json';
 
@@ -94,6 +95,9 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const tHint = useTranslations('typing');
   const tAudio = useTranslations('audio');
   const tGhost = useTranslations('ghost');
+  const tConservatoire = useTranslations('conservatoire');
+  const router = useRouter();
+  const locale = useLocale();
   const shouldReduceMotion = useReducedMotion();
 
   const [shuffleOffset, setShuffleOffset] = useState(0);
@@ -159,12 +163,10 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     isError: boolean;
     isPhraseBoundary: boolean;
   }>({ pitch: null, isError: false, isPhraseBoundary: false });
-  const [isOnboarding, setIsOnboarding] = useState(false);
   // Tant que la première visite n'est pas tranchée (lecture IndexedDB async),
-  // on ne rend NI la zone de frappe NI l'apprentissage : sinon la frappe
-  // s'affiche un court instant avant de basculer sur l'onboarding (flash).
-  // En dev, l'onboarding est court-circuité (IS_DEV_MODE) : rien à attendre.
-  const [onboardingResolved, setOnboardingResolved] = useState(IS_DEV_MODE);
+  // et pendant la redirection vers le Conservatoire, on ne rend NI la zone de
+  // frappe NI l'apprentissage : pas de flash.
+  const [onboardingResolved, setOnboardingResolved] = useState(false);
   const [personalTexts, setPersonalTexts] = useState<PersonalText[]>([]);
   const [isPersonalTextsPanelOpen, setIsPersonalTextsPanelOpen] =
     useState(false);
@@ -460,52 +462,31 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     }
   }, [activeMode, activeCollection, setCollection]);
 
-  // Déclenche le tutoriel d'onboarding uniquement à la toute première visite.
-  //
-  // TEMPORAIRE (phase de dev) : désactivé en dev pour ne plus avoir à le
-  // traverser à chaque rechargement pendant qu'on itère sur le reste de
-  // l'app. Se réactive tout seul en build de production (IS_DEV_MODE est
-  // figé à false hors `next dev`), mais c'est un changement de comportement
-  // voulu : pour voir/tester l'onboarding en dev, utiliser la route dédiée
-  // /dev-onboarding (apps/web/app/[locale]/dev-onboarding), qui le rejoue à
-  // chaque rechargement sans toucher au flag hasCompletedOnboarding réel.
-  // À RETIRER (avec ce guard et le dossier dev-onboarding en entier) une
-  // fois l'onboarding validé et prêt à revalider en conditions réelles.
+  // Première visite sur ordinateur : l'onboarding vit dans le Conservatoire
+  // (spec Conservatoire, partie 2). Appareil non desktop (#110) : ni lecture
+  // ni écriture du flag, frappe directe ; le vrai onboarding apparaîtra si la
+  // personne revient sur ordinateur.
   useEffect(() => {
-    if (IS_DEV_MODE) return;
     let cancelled = false;
-    // Onboarding coupé sur tout appareil non desktop (téléphone, tablette) :
-    // le tutoriel force le mode Apprentissage, or l'écran de frappe est
-    // desktop-first (voir passe responsive #71). Le primo-visiteur tactile
-    // arrive directement sur la frappe, en mode classique. On court-circuite
-    // la lecture du flag par `Promise.resolve(true)` ("comme si c'était fait")
-    // : rien n'est lu, rien n'est écrit, has_completed_onboarding reste
-    // vierge, donc le vrai tutoriel apparaîtra si cette personne ouvre
-    // TypeWav sur un desktop plus tard.
     const resolveOnboarding = isNonDesktopDevice()
       ? Promise.resolve(true)
       : hasCompletedOnboarding();
     resolveOnboarding
       .then((done) => {
         if (cancelled) return;
-        if (!done) {
-          setIsOnboarding(true);
-          setActiveMode('learning');
-        }
-        setOnboardingResolved(true);
+        if (done) setOnboardingResolved(true);
+        else router.push(`/${locale}/conservatoire`);
       })
       .catch(() => {
-        // Fail open : ne jamais forcer l'onboarding si on ne peut pas
-        // confirmer son état, mais débloquer quand même l'affichage.
+        // Fail open : jamais de redirection forcée si l'état est illisible.
         if (!cancelled) setOnboardingResolved(true);
       });
     return () => {
       cancelled = true;
     };
-  }, [setActiveMode]);
+  }, [router, locale]);
 
   const handleExitTutorial = useCallback(() => {
-    setIsOnboarding(false);
     void markOnboardingComplete();
     setActiveMode('classic');
   }, [setActiveMode]);
@@ -526,22 +507,6 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
       cancelled = true;
     };
   }, [activeMode, setActiveMode]);
-
-  // Si l'utilisateur quitte le mode Apprentissage via la ConfigBar pendant
-  // l'onboarding (plutôt que via le bouton "Passer le tutoriel"), c'est tout
-  // aussi explicite : on considère le tutoriel terminé pour de bon, sinon
-  // hasCompletedOnboarding() resterait faux et le piège onboarding reviendrait
-  // au prochain chargement.
-  useEffect(() => {
-    if (!isOnboarding || activeMode === 'learning') return;
-    let cancelled = false;
-    void markOnboardingComplete().then(() => {
-      if (!cancelled) setIsOnboarding(false);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [isOnboarding, activeMode]);
 
   const handlePieceChange = useCallback((pieceId: MidiPieceId) => {
     setSelectedPieceId(pieceId);
@@ -782,6 +747,21 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             {/* Zone 2 : ConfigBar */}
             <ConfigBar controlsMode={effectiveMode} />
 
+            {!isMobile && onboardingResolved && (
+              <Link
+                href={`/${locale}/conservatoire`}
+                data-testid="conservatoire-nudge"
+                style={{
+                  fontFamily: 'var(--font-ui)',
+                  fontSize: 13,
+                  color: 'var(--color-accent)',
+                  textDecoration: 'none',
+                }}
+              >
+                {tConservatoire('nudge')}
+              </Link>
+            )}
+
             {/* Zone 3 : sélection du morceau + contexte texte. Sur mobile, une
                 platine dédiée (barre pleine largeur + feuilles) au lieu du
                 cluster desktop qui wrappait en vrac : la musique d'un côté, le
@@ -1004,9 +984,9 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           </div>
         </div>
       ) : (
-        // La ConfigBar reste visible même pendant l'onboarding : sans elle,
-        // le mode Apprentissage devient un piège sans issue de navigation
-        // (le logo ne fait rien tant qu'on est déjà sur la même route).
+        // La ConfigBar reste visible en mode Apprentissage : sans elle, le
+        // mode devient un piège sans issue de navigation (le logo ne fait
+        // rien tant qu'on est déjà sur la même route).
         <ConfigBar controlsMode={effectiveMode} />
       )}
 
@@ -1063,10 +1043,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               minHeight: 0,
             }}
           >
-            <LearningMode
-              isOnboarding={isOnboarding}
-              onExitTutorial={handleExitTutorial}
-            />
+            <LearningMode onExitTutorial={handleExitTutorial} />
           </div>
         ) : (
           <div
