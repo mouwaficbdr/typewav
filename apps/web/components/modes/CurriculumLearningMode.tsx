@@ -29,11 +29,9 @@ import {
   loadKeyMastery,
   loadLearningProgress,
   loadTaughtLevels,
-  loadWelcomed,
   saveKeyMastery,
   saveLearningProgress,
   saveTaughtLevels,
-  saveWelcomed,
   unlockLevel,
   type KeyMastery,
   type LevelProgress,
@@ -56,7 +54,6 @@ import {
   getLevelsWithClearedMoment,
 } from './LevelClearedMoment';
 import { KeyboardDiagramAzerty } from './KeyboardDiagramAzerty';
-import { LearningWelcome } from './LearningWelcome';
 import { LevelTeachStep } from './LevelTeachStep';
 import type { LearningModeProps } from './LegacyLearningMode';
 
@@ -97,7 +94,6 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
   );
   const [keyMastery, setKeyMastery] = useState<KeyMastery>({});
   const [taughtLevels, setTaughtLevels] = useState<number[]>([]);
-  const [welcomed, setWelcomed] = useState(true);
   const [currentLevelId, setCurrentLevelId] = useState(1);
   const [text, setText] = useState('');
   const [runIndex, setRunIndex] = useState(0);
@@ -119,12 +115,11 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
     let cancelled = false;
     (async () => {
       await ensureCurriculumVersion();
-      const [progress, mastery, taught, celebrated, seenWelcome] = await Promise.all([
+      const [progress, mastery, taught, celebrated] = await Promise.all([
         loadLearningProgress(),
         loadKeyMastery(),
         loadTaughtLevels(),
         getCelebratedLearningLevels(),
-        loadWelcomed(),
       ]);
       if (cancelled) return;
       const list = progress ?? createInitialLevelProgress(CURRICULUM);
@@ -134,8 +129,6 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
       setLevelProgress(list);
       setKeyMastery(mastery);
       setTaughtLevels(taught);
-      // L'accueil n'est pour personne qui a déjà commencé (progression existante).
-      setWelcomed(seenWelcome || taught.length > 0);
       setCurrentLevelId(startId);
       if (
         startLevel &&
@@ -307,11 +300,6 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
     [playNoteName],
   );
 
-  const handleWelcomeStart = useCallback(() => {
-    setWelcomed(true);
-    void saveWelcomed();
-  }, []);
-
   const handleTeachDone = useCallback(() => {
     if (!currentLevel) return;
     const nextTaught = taughtLevels.includes(currentLevelId)
@@ -360,8 +348,6 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
   if (!loaded || !currentLevel) {
     return <div aria-busy="true" style={{ minHeight: 200 }} />;
   }
-
-  if (!welcomed) return <LearningWelcome onStart={handleWelcomeStart} />;
 
   // Niveau `anchors` (1) : toujours son étape d'enseignement, jamais de drill.
   if (!isTaught || currentLevel.kind === 'anchors') {

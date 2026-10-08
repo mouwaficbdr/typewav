@@ -168,8 +168,6 @@ function seed(opts: {
 
 beforeEach(() => {
   store.clear();
-  // Ecran d'accueil deja vu, sauf dans les tests qui le visent.
-  store.set('learning_welcomed', true);
   audio.loadMidiPiece.mockClear();
   audio.playNoteName.mockClear();
 });
@@ -397,31 +395,10 @@ describe('CurriculumLearningMode : schéma clavier pendant le drill (#116)', () 
   });
 });
 
-describe("CurriculumLearningMode : accueil, règle et premiers sons (#117)", () => {
-  const welcome = frMessages.learning.welcome;
-
-  it("à la toute première arrivée, un accueil explique le principe avant le niveau 1", async () => {
-    store.delete('learning_welcomed');
+describe("CurriculumLearningMode : règle et premiers sons (#117)", () => {
+  it("à la toute première arrivée, le niveau 1 s'ouvre directement", async () => {
     render(<CurriculumLearningMode onExitTutorial={vi.fn()} />);
-    expect(
-      await screen.findByRole('heading', { name: welcome.title }),
-    ).toBeInTheDocument();
-    expect(screen.getByText(welcome.rule)).toBeInTheDocument();
-    expect(screen.queryByText(/pose tes index/i)).not.toBeInTheDocument();
-
-    await userEvent.setup().click(screen.getByRole('button', { name: welcome.start }));
     expect(await screen.findByText(/pose tes index/i)).toBeInTheDocument();
-    expect(store.get('learning_welcomed')).toBe(true);
-  });
-
-  it("pas d'accueil quand une progression existe déjà", async () => {
-    store.delete('learning_welcomed');
-    seed({ taught: [1, 2], unlockedUpTo: 2 });
-    render(<CurriculumLearningMode onExitTutorial={vi.fn()} />);
-    await screen.findByTestId('drill-zone');
-    expect(
-      screen.queryByRole('heading', { name: welcome.title }),
-    ).not.toBeInTheDocument();
   });
 
   it("la règle note / silence / retour arrière est visible au premier entraînement, puis cède la place", async () => {
