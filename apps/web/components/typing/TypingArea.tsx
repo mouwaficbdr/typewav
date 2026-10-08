@@ -185,6 +185,18 @@ interface TypingAreaProps {
     /** Le caractère tapé (NFC) : permet à l'appelant de jouer sa propre note. */
     char?: string,
   ) => void;
+  /**
+   * Chaque caractère validé, juste ou faux, avant toute correction par Retour
+   * arrière : le moteur de maîtrise du Conservatoire compte les erreurs
+   * corrigées (D11). Le Retour arrière n'émet rien.
+   */
+  onAttempt?: (a: {
+    index: number;
+    expected: string;
+    typed: string;
+    correct: boolean;
+    at: number;
+  }) => void;
 }
 
 export function TypingArea({
@@ -200,6 +212,7 @@ export function TypingArea({
   onRestart,
   onSessionComplete,
   onNoteChange,
+  onAttempt,
 }: TypingAreaProps) {
   const {
     position,
@@ -419,6 +432,14 @@ export function TypingArea({
       const expected = text[position];
       const isCorrect = char === expected;
 
+      onAttempt?.({
+        index: position,
+        expected: expected ?? '',
+        typed: char,
+        correct: isCorrect,
+        at: Date.now(),
+      });
+
       handleKeystroke(char);
 
       await initPromise;
@@ -453,6 +474,7 @@ export function TypingArea({
       triggerSilence,
       triggerResume,
       onNoteChange,
+      onAttempt,
     ],
   );
 

@@ -213,6 +213,32 @@ describe('TypingArea : waveform note source', () => {
   });
 });
 
+describe('TypingArea : frappes brutes (onAttempt)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('émet chaque frappe, juste ou fausse, et rien pour le Retour arrière', async () => {
+    const onAttempt = vi.fn();
+    const user = userEvent.setup();
+    render(<TypingArea text="hello world" onAttempt={onAttempt} />);
+
+    await user.click(screen.getByRole('application'));
+    await user.keyboard('x{Backspace}e');
+
+    expect(onAttempt).toHaveBeenCalledTimes(2);
+    expect(onAttempt).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ index: 1, expected: 'e', typed: 'x', correct: false }),
+    );
+    expect(onAttempt).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ index: 1, expected: 'e', typed: 'e', correct: true }),
+    );
+    expect(typeof onAttempt.mock.calls[0]![0].at).toBe('number');
+  });
+});
+
 describe('TypingArea : mode zen', () => {
   it('masque le bandeau de stats live en mode zen ("sans pression")', () => {
     render(<TypingArea text="hello world" mode="zen" />);
