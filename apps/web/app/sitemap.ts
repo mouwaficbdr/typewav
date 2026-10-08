@@ -4,10 +4,10 @@ import type { MetadataRoute } from 'next';
 
 /**
  * Pages publiques indexables. Volontairement absentes : `/profil` `/results`
- * `/replay` `/challenge` `/dev-onboarding` (états de session ou dashboard local,
- * sans valeur d'entrée), `/parametres` (utilitaire).
+ * `/replay` `/challenge` (états de session ou dashboard local, sans valeur
+ * d'entrée), `/parametres` (utilitaire).
  */
-const PUBLIC_PATHS = ['', '/classement', '/about'] as const;
+const PUBLIC_PATHS = ['', '/classement', '/about', '/conservatoire'] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();

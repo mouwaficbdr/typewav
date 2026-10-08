@@ -8,7 +8,7 @@ describe('sitemap', () => {
   const urls = entries.map((e) => e.url);
 
   it('liste chaque page publique dans les deux locales', () => {
-    for (const path of ['', '/classement', '/about']) {
+    for (const path of ['', '/classement', '/about', '/conservatoire']) {
       expect(urls).toContain(`${APP_URL}/fr${path}`);
       expect(urls).toContain(`${APP_URL}/en${path}`);
     }
