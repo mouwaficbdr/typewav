@@ -460,7 +460,7 @@
     "welcome": {
       "title": "Bienvenue sur TypeWav",
       "what": "TypeWav t'apprend à taper au clavier : chaque frappe juste joue la note suivante d'un vrai morceau de piano.",
-      "path": "Ce parcours compte 11 niveaux, de la rangée du repos jusqu'à un vrai texte. Compte quelques heures en tout, par petites séances de quelques minutes.",
+      "path": "Ce parcours compte 11 niveaux, de la rangée du repos jusqu'à un vrai texte. Compte une dizaine d'heures pour connaître tout le clavier, en séances de 10 à 15 minutes.",
       "rule": "La règle : une frappe juste joue la note, une erreur reste silencieuse, Retour arrière pour corriger.",
       "layoutHint": "Ton clavier n'est pas AZERTY ? Change la disposition dans les Paramètres.",
       "start": "C'est parti"

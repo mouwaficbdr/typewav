@@ -460,7 +460,7 @@
     "welcome": {
       "title": "Welcome to TypeWav",
       "what": "TypeWav teaches you to type: every correct keystroke plays the next note of a real piano piece.",
-      "path": "This path has 11 levels, from the home row to real text. Plan on a few hours in total, in short sessions of a few minutes.",
+      "path": "This path has 11 levels, from the home row to real text. Plan on about ten hours to learn the whole keyboard, in sessions of 10 to 15 minutes.",
       "rule": "The rule: a correct keystroke plays the note, a mistake stays silent, Backspace to correct.",
       "layoutHint": "Not on an AZERTY keyboard? Change the layout in Settings.",
       "start": "Let's go"
