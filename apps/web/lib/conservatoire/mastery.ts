@@ -62,7 +62,10 @@ export function recordAttempt(
   if (id === '') return mastery;
 
   const gap = previousAt === null ? null : input.at - previousAt;
-  const latencyMs = gap !== null && gap >= 0 && gap <= PAUSE_MS ? gap : null;
+  // Deux frappes au même instant (gap === 0) ne sont pas une latence humaine
+  // valide : signe d'un double évènement (input + compositionend), jamais
+  // d'une vraie frappe. Null, comme une horloge qui recule.
+  const latencyMs = gap !== null && gap > 0 && gap <= PAUSE_MS ? gap : null;
 
   const prev = mastery[id];
   const attempts = [

@@ -41,12 +41,13 @@ describe('recordAttempt', () => {
     expect(recordAttempt({}, { expected: '@', correct: true, at: T0 }, null)).toEqual({});
   });
 
-  it('latence = écart avec la frappe précédente, null au-delà de 3 s, en début ou si négative', () => {
+  it('latence = écart avec la frappe précédente, null au-delà de 3 s, en début, si négative ou nulle', () => {
     let m = recordAttempt({}, { expected: 'e', correct: true, at: T0 }, null);
     m = recordAttempt(m, { expected: 'e', correct: true, at: T0 + 250 }, T0);
     m = recordAttempt(m, { expected: 'e', correct: true, at: T0 + 5000 }, T0 + 250);
     m = recordAttempt(m, { expected: 'e', correct: true, at: T0 + 4000 }, T0 + 5000);
-    expect(m.e?.attempts.map((a) => a.latencyMs)).toEqual([null, 250, null, null]);
+    m = recordAttempt(m, { expected: 'e', correct: true, at: T0 + 4000 }, T0 + 4000);
+    expect(m.e?.attempts.map((a) => a.latencyMs)).toEqual([null, 250, null, null, null]);
   });
 
   it('ne garde jamais plus de WINDOW tentatives', () => {
