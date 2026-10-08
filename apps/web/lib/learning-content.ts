@@ -258,15 +258,32 @@ function pickFrom(pool: string[]): string {
   return pool[Math.floor(Math.random() * pool.length)] ?? pool[0] ?? '';
 }
 
+/** Part des mots d'une serie tires pour entrainer une touche encore barree. */
+const TARGET_SHARE = 0.9;
+
+/** Ids de geste d'un mot (sans doublon, sans les caracteres sans geste). */
+function gestureIdsOf(word: string): Set<string> {
+  const ids = new Set<string>();
+  for (const ch of word) {
+    const id = mapCharToGestureId(ch);
+    if (id !== '') ids.add(id);
+  }
+  return ids;
+}
+
 /**
  * `wordCount` mots tires du pool adapte au `slug` du niveau, filtres pour que
  * chaque caractere corresponde a un `id` de `level.poolKeys` (via
- * `mapCharToGestureId`). Repli sur le pool non filtre si le filtre vide tout ;
- * jamais une chaine vide.
+ * `mapCharToGestureId`). Les touches du niveau pas encore a la barre sont
+ * ciblees : environ `TARGET_SHARE` des mots en contiennent une, tiree selon son
+ * deficit (sans cela, une touche rare comme Z ou ü n'arrive presque jamais).
+ * Jamais deux fois le meme mot de suite quand le pool le permet. Repli sur le
+ * pool non filtre si le filtre vide tout ; jamais une chaine vide.
  */
 export function pickLearningWords(
   level: CurriculumLevel,
   wordCount: number = DEFAULT_WORD_COUNT,
+  mastery: KeyMastery = {},
 ): string {
   const count = Math.max(1, Math.floor(wordCount));
   const stagePool = stageWordPool(level.slug);
@@ -276,8 +293,28 @@ export function pickLearningWords(
   if (eligible.length === 0) eligible = stagePool;
   if (eligible.length === 0) eligible = [...WORDS_FR_PLAIN];
 
+  const wordsByGesture = new Map<string, string[]>();
+  for (const w of eligible) {
+    for (const id of gestureIdsOf(w)) {
+      const list = wordsByGesture.get(id);
+      if (list) list.push(w);
+      else wordsByGesture.set(id, [w]);
+    }
+  }
+  const targets = level.newKeys
+    .map((k) => k.id)
+    .filter((id) => wordsByGesture.has(id) && !keyReachedBar(level, mastery, id));
+
   const picks: string[] = [];
-  for (let i = 0; i < count; i += 1) picks.push(pickFrom(eligible));
+  for (let i = 0; i < count; i += 1) {
+    let word = '';
+    if (targets.length > 0 && Math.random() < TARGET_SHARE) {
+      const id = pickWeighted(targets, (t) => 1 + keyDeficit(level, mastery, t));
+      word = pickFrom(wordsByGesture.get(id) ?? []);
+    }
+    if (word === '' || word === picks[i - 1]) word = pickFrom(eligible);
+    picks.push(word);
+  }
   return picks.join(' ');
 }
 
@@ -298,14 +335,58 @@ function tagForSlug(slug: string): ParagraphTag {
 }
 
 /**
- * Un paragraphe `LEARNING_PARAGRAPHS` au hasard dont les `tags` contiennent le
- * tag du niveau : `punctuation` pour le stade ponctuation, `digits` pour les
- * chiffres, `full` pour la partition complete. Renvoie le `.text`.
+ * Un paragraphe `LEARNING_PARAGRAPHS` dont les `tags` contiennent le tag du
+ * niveau : `punctuation` pour le stade ponctuation, `digits` pour les chiffres,
+ * `full` pour la partition complete. Parmi eux, celui qui contient le plus de
+ * touches du niveau pas encore a la barre (pondere par leur deficit) ; egalite
+ * ou aucune touche cible (`full`) : au hasard. Renvoie le `.text`.
  */
-export function pickLearningText(level: CurriculumLevel): string {
+export function pickLearningText(
+  level: CurriculumLevel,
+  mastery: KeyMastery = {},
+): string {
   const tag = tagForSlug(level.slug);
   const candidates = LEARNING_PARAGRAPHS.filter((p) => p.tags.includes(tag));
   const list = candidates.length > 0 ? candidates : LEARNING_PARAGRAPHS;
-  const chosen = list[Math.floor(Math.random() * list.length)];
-  return chosen ? chosen.text : '';
+
+  const weights = new Map<string, number>();
+  for (const k of level.newKeys) {
+    if (!keyReachedBar(level, mastery, k.id)) {
+      weights.set(k.id, 1 + keyDeficit(level, mastery, k.id));
+    }
+  }
+  const scoreOf = (text: string): number => {
+    let score = 0;
+    for (const ch of text) score += weights.get(mapCharToGestureId(ch)) ?? 0;
+    return score;
+  };
+
+  const scored = list.map((p) => ({ p, score: scoreOf(p.text) }));
+  const best = Math.max(...scored.map((s) => s.score));
+  const top = scored.filter((s) => s.score === best);
+  const chosen = top[Math.floor(Math.random() * top.length)];
+  return chosen ? chosen.p.text : '';
+}
+
+// ─── generateLevelText ───────────────────────────────────────────────────────
+
+/** Mots (ou groupes de lettres) par serie pour les niveaux `drill` et `words`. */
+const RUN_WORD_COUNT = 18;
+
+/** Contenu d'une serie du niveau, selon son `kind` (vide pour `anchors`). */
+export function generateLevelText(
+  level: CurriculumLevel,
+  mastery: KeyMastery,
+): string {
+  switch (level.kind) {
+    case 'drill':
+      return generateLearningDrill(level, mastery, RUN_WORD_COUNT);
+    case 'words':
+      return pickLearningWords(level, RUN_WORD_COUNT, mastery);
+    case 'text':
+      return pickLearningText(level, mastery);
+    case 'anchors':
+    default:
+      return '';
+  }
 }

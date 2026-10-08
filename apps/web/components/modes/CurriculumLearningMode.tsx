@@ -36,12 +36,7 @@ import {
   type KeyMastery,
   type LevelProgress,
 } from '@/lib/learning-progress';
-import {
-  generateLearningDrill,
-  mapCharToGestureId,
-  pickLearningText,
-  pickLearningWords,
-} from '@/lib/learning-content';
+import { generateLevelText, mapCharToGestureId } from '@/lib/learning-content';
 import {
   getCelebratedLearningLevels,
   markLearningLevelCelebrated,
@@ -59,7 +54,6 @@ import type { LearningModeProps } from './LegacyLearningMode';
 
 const CURRICULUM = LEARNING_CURRICULUM_AZERTY;
 const RAIL_COMPACT_QUERY = '(max-width: 900px)';
-const DRILL_WORD_COUNT = 18;
 const CELEBRATED_LEVELS = getLevelsWithClearedMoment(CURRICULUM.length);
 
 /** Morceau par défaut pour les niveaux `audio: 'piece'` (aucune sélection de
@@ -79,20 +73,6 @@ function highestUnlockedId(progress: LevelProgress[]): number {
     (max, p) => (p.unlocked ? Math.max(max, p.levelId) : max),
     1,
   );
-}
-
-function generateLevelText(level: CurriculumLevel, mastery: KeyMastery): string {
-  switch (level.kind) {
-    case 'drill':
-      return generateLearningDrill(level, mastery, DRILL_WORD_COUNT);
-    case 'words':
-      return pickLearningWords(level, DRILL_WORD_COUNT);
-    case 'text':
-      return pickLearningText(level);
-    case 'anchors':
-    default:
-      return '';
-  }
 }
 
 export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {

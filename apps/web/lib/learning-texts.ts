@@ -263,10 +263,36 @@ export const WORDS_FR_PLAIN: string[] = [
   'cygne',
   'faucon',
   'aigle',
+  // Lettres rares : z et u
+  'zone',
+  'zero',
+  'zeste',
+  'zigzag',
+  'zoo',
+  'zinc',
+  'un',
+  'une',
+  'union',
+  'unique',
+  'usage',
+  'usine',
+  'utile',
+  'ultime',
 ];
 
 /** Noms propres capitalises, sans accent ni circonflexe. */
 export const WORDS_FR_PROPER: string[] = [
+  // Initiales rares : Z et U
+  'Zara',
+  'Zadig',
+  'Zola',
+  'Zorro',
+  'Zurich',
+  'Ulysse',
+  'Urbain',
+  'Ursule',
+  'Uriel',
+  'Utrecht',
   // Villes
   'Paris',
   'Rome',
@@ -452,6 +478,40 @@ export const WORDS_FR_ACCENTS: string[] = [
 
 /** Mots contenant au moins un accent circonflexe ou un trema. */
 export const WORDS_FR_CIRCUMFLEX: string[] = [
+  // Circonflexe sur a
+  'âme',
+  'âge',
+  'âne',
+  'âcre',
+  'pâte',
+  'pâle',
+  'mâle',
+  'gâteau',
+  'château',
+  'bâton',
+  'théâtre',
+  'plâtre',
+  'tâche',
+  'grâce',
+  'bâtiment',
+  'lâcher',
+  'mâcher',
+  'pâturage',
+  // Trema sur e
+  'Noël',
+  'Joël',
+  'Gaël',
+  'Gaëlle',
+  'Israël',
+  'Raphaël',
+  'canoë',
+  'ciguë',
+  // Trema sur u
+  'ambigüe',
+  'capharnaüm',
+  'Saül',
+  'Emmaüs',
+  'Esaü',
   // Circonflexe sur e
   'être',
   'tête',
@@ -585,6 +645,20 @@ export const LEARNING_PARAGRAPHS: LearningParagraph[] = [
     tags: ['punctuation'],
     text: "Un dernier conseil sur les signes: lis la phrase à voix haute avant de la taper. Là où tu respires, mets une virgule; là où tu t'arrêtes, mets un point. Besoin de lier deux idées proches? Un point-virgule fait le pont. Besoin d'annoncer une suite? Deux-points. Un cri, une surprise, un ordre bref: le point d'exclamation! Et si le doute reste, l'interrogation attend, patiente.",
   },
+  // Paragraphes denses en signes : ? ; ! : et le trait d'union reviennent
+  // souvent, pour rester atteignables en quelques series.
+  {
+    tags: ['punctuation'],
+    text: "Prêt pour un défi? Voici la règle: un signe, un geste, un souffle. Où vas-tu? Là-bas! Reste calme; respire; relis. Est-ce clair? Presque; encore un effort! Dis-moi ce qui coince: la virgule? Le point-virgule? Vas-y, essaie encore! Peut-être faut-il ralentir; peut-être faut-il relire. Voici trois étapes: viser, taper, vérifier. Bravo! Ce n'est pas fini; continue!",
+  },
+  {
+    tags: ['punctuation'],
+    text: "Trois questions avant de taper: est-ce utile? est-ce clair? est-ce court? Si oui, avance; sinon, reprends. Pourquoi ralentir? Parce qu'une faute coûte plus cher qu'une pause! Ci-dessous, une consigne: garde le dos droit; garde les poignets souples; garde les yeux sur le texte. Qui l'a dit? Peut-être toi-même, hier! Alors vas-y: tape, respire, recommence. Chaque essai compte: voilà le secret!",
+  },
+  {
+    tags: ['punctuation'],
+    text: "Un petit dialogue pour s'entraîner. Lui: tu viens ce soir? Elle: peut-être; je termine d'abord mon exercice! Lui: lequel? Elle: celui des signes, c'est-à-dire virgule, point-virgule, deux-points. Lui: et alors? Elle: alors je m'entraîne; je relis; je corrige! Lui: bravo, tu progresses vite! Elle: merci; rendez-vous demain, même heure? Lui: d'accord: à demain!",
+  },
 
   // --- Stade chiffres : dates, quantites, prix ---
   {
@@ -606,6 +680,20 @@ export const LEARNING_PARAGRAPHS: LearningParagraph[] = [
   {
     tags: ['digits'],
     text: "Règle des paliers: on ne monte le rythme qu'après deux séances propres. Semaine 1, vise 25 mots par minute; semaine 2, vise 33; semaine 3, vise 40. Une faute pour 8 lignes reste acceptable, pas plus. Repose les mains 5 secondes toutes les 3 lignes. En 4 semaines, le gain moyen atteint 60 pour cent.",
+  },
+  // Paragraphes denses en chiffres : chaque chiffre revient plusieurs fois,
+  // pour que les plus rares (6, 7, 8, 9) restent atteignables en quelques series.
+  {
+    tags: ['digits'],
+    text: "Exercice de chiffres: tape 1234567890 sans regarder, puis à l'envers: 0987654321. Retiens ces codes d'essai: 4719, 8265, 3096, 5871. Un horaire s'écrit ainsi: 06 h 45, 07 h 58, 16 h 29, 19 h 37. Hier, 9 coureurs ont fait 6 tours de 1 800 mètres, soit 10 800 mètres chacun. Vérifie chaque nombre avant d'avancer: 7, 8, 9, 6.",
+  },
+  {
+    tags: ['digits'],
+    text: "Tableau du mois: la semaine 1 compte 67 séries, la semaine 2 en compte 78, la semaine 3 en compte 89, la semaine 4 en compte 96. Total: 330 séries, soit 4 780 frappes par jour en moyenne. Dates à retenir: le 16 mars, le 27 avril, le 18 mai, le 29 juin, le 30 juillet. Numéro de salle: 7908. Code du casier: 6 5 4 3 2 1 0 9 8 7.",
+  },
+  {
+    tags: ['digits'],
+    text: "Petit budget de voyage: train 69 euros, hôtel 178 euros, repas 94 euros, musée 17 euros, souvenirs 36 euros. Le total atteint 394 euros, pour 7 jours et 8 nuits. Départ le 19 août à 6 h 50, retour le 27 à 21 h 45. Le vol 8206 décolle de la porte 39, siège 14, rangée 25. Garde le code de réservation: 5 9 0 7 3 8 1 2 6 4.",
   },
 
   // --- Stade complet : majuscules, accents, circonflexes, ponctuation, chiffres ---
