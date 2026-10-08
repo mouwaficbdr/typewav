@@ -88,3 +88,51 @@ export function recordAttempt(
 
   return { ...mastery, [id]: { ...draft, reviewStep } };
 }
+
+const DAY_MS = 86_400_000;
+
+/**
+ * Toutes les nouvelles touches de la leçon sont sûres ou automatiques au même
+ * moment. Liste vide : faux (le récital de cycle a sa propre règle).
+ */
+export function lessonValidated(
+  mastery: Mastery,
+  gestureIds: readonly string[],
+): boolean {
+  if (gestureIds.length === 0) return false;
+  return gestureIds.every((id) => isSureOrBetter(keyState(mastery[id])));
+}
+
+/** Touches sûres dont l'intervalle de révision (`REVIEW_DAYS[reviewStep]`) est écoulé. */
+export function dueForReview(mastery: Mastery, now: number): string[] {
+  return Object.entries(mastery)
+    .filter(([, record]) => isSureOrBetter(keyState(record)))
+    .filter(([, record]) => {
+      const step = Math.min(record.reviewStep, REVIEW_DAYS.length - 1);
+      return now - record.lastSeenAt >= REVIEW_DAYS[step]! * DAY_MS;
+    })
+    .map(([id]) => id);
+}
+
+/**
+ * Les `count` touches les plus faibles parmi `gestureIds` : justesse récente
+ * croissante, puis latence médiane décroissante. Jamais jouée = la plus faible.
+ */
+export function weakestKeys(
+  mastery: Mastery,
+  gestureIds: readonly string[],
+  count: number,
+): string[] {
+  return gestureIds
+    .map((id) => {
+      const record = mastery[id];
+      return {
+        id,
+        acc: record ? accuracy(record.attempts) : 0,
+        lat: (record && medianLatency(record.attempts)) ?? Number.MAX_SAFE_INTEGER,
+      };
+    })
+    .sort((a, b) => a.acc - b.acc || b.lat - a.lat)
+    .slice(0, count)
+    .map((k) => k.id);
+}

@@ -3,9 +3,13 @@ import type { Mastery } from '@typewav/types';
 import {
   AUTOMATIC_MEDIAN_MS,
   MIN_ATTEMPTS,
+  REVIEW_DAYS,
   WINDOW,
+  dueForReview,
   keyState,
+  lessonValidated,
   recordAttempt,
+  weakestKeys,
 } from '../conservatoire/mastery';
 
 const T0 = new Date(2026, 9, 8, 10, 0, 0).getTime();
@@ -89,5 +93,64 @@ describe('keyState', () => {
     expect(keyState(m.e)).toBe('sure');
     m = play('e', 3, { gapMs: 800, wrong: [0, 1, 2], start: T0 + 60_000, mastery: m });
     expect(keyState(m.e)).toBe('learned');
+  });
+});
+
+const DAY = 86_400_000;
+
+describe('lessonValidated', () => {
+  it('vrai quand toutes les nouvelles touches sont sûres ou automatiques', () => {
+    let m = play('e', MIN_ATTEMPTS, { gapMs: 800 });
+    m = play('a', MIN_ATTEMPTS, { gapMs: 300, mastery: m, start: T0 + 60_000 });
+    expect(lessonValidated(m, ['e', 'a'])).toBe(true);
+  });
+
+  it('faux tant qu\'une touche est seulement apprise', () => {
+    let m = play('e', MIN_ATTEMPTS, { gapMs: 800 });
+    m = play('a', 5, { mastery: m, start: T0 + 60_000 });
+    expect(lessonValidated(m, ['e', 'a'])).toBe(false);
+  });
+
+  it('faux pour une leçon sans nouvelle touche (le récital a sa propre règle)', () => {
+    expect(lessonValidated(play('e', MIN_ATTEMPTS), [])).toBe(false);
+  });
+});
+
+describe('dueForReview et reviewStep', () => {
+  it('une touche sûre est due après REVIEW_DAYS[0] jour, pas avant', () => {
+    const m = play('e', MIN_ATTEMPTS, { gapMs: 800 });
+    const last = m.e!.lastSeenAt;
+    expect(dueForReview(m, last + REVIEW_DAYS[0] * DAY - 1)).toEqual([]);
+    expect(dueForReview(m, last + REVIEW_DAYS[0] * DAY)).toEqual(['e']);
+  });
+
+  it("reviewStep avance quand la touche reste sûre un autre jour, l'intervalle s'allonge", () => {
+    let m = play('e', MIN_ATTEMPTS, { gapMs: 800 });
+    m = play('e', 1, { mastery: m, start: T0 + 2 * DAY });
+    expect(m.e?.reviewStep).toBe(1);
+    const last = m.e!.lastSeenAt;
+    expect(dueForReview(m, last + 2 * DAY)).toEqual([]);
+    expect(dueForReview(m, last + REVIEW_DAYS[1] * DAY)).toEqual(['e']);
+  });
+
+  it('reviewStep revient à 0 quand la touche retombe à apprise', () => {
+    let m = play('e', MIN_ATTEMPTS, { gapMs: 800 });
+    m = play('e', 1, { mastery: m, start: T0 + 2 * DAY });
+    m = play('e', 3, { mastery: m, start: T0 + 3 * DAY, wrong: [0, 1, 2] });
+    expect(m.e?.reviewStep).toBe(0);
+  });
+
+  it("une touche seulement apprise n'est jamais due en révision", () => {
+    const m = play('e', 3);
+    expect(dueForReview(m, T0 + 60 * DAY)).toEqual([]);
+  });
+});
+
+describe('weakestKeys', () => {
+  it('trie par justesse récente, puis par lenteur ; une touche jamais jouée passe en premier', () => {
+    let m = play('e', 10, { wrong: [0, 1, 2] }); // 70 %
+    m = play('a', 10, { gapMs: 900, mastery: m, start: T0 + 60_000 }); // 100 %, lente
+    m = play('s', 10, { gapMs: 200, mastery: m, start: T0 + 120_000 }); // 100 %, rapide
+    expect(weakestKeys(m, ['s', 'a', 'e', 'i'], 3)).toEqual(['i', 'e', 'a']);
   });
 });
