@@ -57,6 +57,12 @@ const typingAreaPropsRef: {
   current: null | {
     text: string;
     onActiveKeyChange?: (key: string | undefined) => void;
+    onNoteChange?: (
+      note: string | null,
+      isError: boolean,
+      isPhraseBoundary: boolean,
+      char?: string,
+    ) => void;
     onSessionComplete?: (stats: {
       wpm: number;
       accuracy: number;
@@ -71,6 +77,12 @@ vi.mock('@/components/typing/TypingArea', () => ({
   TypingArea: (props: {
     text: string;
     onActiveKeyChange?: (key: string | undefined) => void;
+    onNoteChange?: (
+      note: string | null,
+      isError: boolean,
+      isPhraseBoundary: boolean,
+      char?: string,
+    ) => void;
     onSessionComplete?: (stats: {
       wpm: number;
       accuracy: number;
@@ -156,6 +168,8 @@ function seed(opts: {
 
 beforeEach(() => {
   store.clear();
+  // Ecran d'accueil deja vu, sauf dans les tests qui le visent.
+  store.set('learning_welcomed', true);
   audio.loadMidiPiece.mockClear();
   audio.playNoteName.mockClear();
 });
@@ -380,5 +394,81 @@ describe('CurriculumLearningMode : schéma clavier pendant le drill (#116)', () 
     // Caractère suivant puis un autre ê : on repart à l'étape 1.
     expectKey('ê');
     expect(activeKey(diagram)).toBe('^');
+  });
+});
+
+describe("CurriculumLearningMode : accueil, règle et premiers sons (#117)", () => {
+  const welcome = frMessages.learning.welcome;
+
+  it("à la toute première arrivée, un accueil explique le principe avant le niveau 1", async () => {
+    store.delete('learning_welcomed');
+    render(<CurriculumLearningMode onExitTutorial={vi.fn()} />);
+    expect(
+      await screen.findByRole('heading', { name: welcome.title }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(welcome.rule)).toBeInTheDocument();
+    expect(screen.queryByText(/pose tes index/i)).not.toBeInTheDocument();
+
+    await userEvent.setup().click(screen.getByRole('button', { name: welcome.start }));
+    expect(await screen.findByText(/pose tes index/i)).toBeInTheDocument();
+    expect(store.get('learning_welcomed')).toBe(true);
+  });
+
+  it("pas d'accueil quand une progression existe déjà", async () => {
+    store.delete('learning_welcomed');
+    seed({ taught: [1, 2], unlockedUpTo: 2 });
+    render(<CurriculumLearningMode onExitTutorial={vi.fn()} />);
+    await screen.findByTestId('drill-zone');
+    expect(
+      screen.queryByRole('heading', { name: welcome.title }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("la règle note / silence / retour arrière est visible au premier entraînement, puis cède la place", async () => {
+    seed({ taught: [1, 2], unlockedUpTo: 2 });
+    render(<CurriculumLearningMode onExitTutorial={vi.fn()} />);
+    const user = userEvent.setup();
+    expect(await screen.findByText(frMessages.learning.ruleReminder)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /finir la série/i }));
+    expect(screen.queryByText(frMessages.learning.ruleReminder)).not.toBeInTheDocument();
+  });
+
+  it("la règle ne revient pas au premier entraînement d'un niveau ultérieur", async () => {
+    store.set('learning_curriculum_version', CURRICULUM_VERSION);
+    store.set('learning_taught_levels', [1, 2, 3]);
+    store.set(
+      'learning_level_progress',
+      createInitialLevelProgress(CURRICULUM).map((p) =>
+        p.levelId <= 3
+          ? { ...p, unlocked: true, samples: p.levelId === 2 ? 300 : 0 }
+          : p,
+      ),
+    );
+    render(<CurriculumLearningMode onExitTutorial={vi.fn()} />);
+    await screen.findByTestId('drill-zone');
+    expect(screen.queryByText(frMessages.learning.ruleReminder)).not.toBeInTheDocument();
+  });
+
+  it("niveau 'simple' : chaque frappe juste joue la note de sa touche", async () => {
+    seed({ taught: [1, 2], unlockedUpTo: 2 });
+    render(<CurriculumLearningMode onExitTutorial={vi.fn()} />);
+    await screen.findByTestId('drill-zone');
+
+    act(() => typingAreaPropsRef.current!.onNoteChange!(null, false, false, 'f'));
+    act(() => typingAreaPropsRef.current!.onNoteChange!(null, false, false, 'q'));
+    expect(audio.playNoteName).toHaveBeenNthCalledWith(1, 'G4');
+    expect(audio.playNoteName).toHaveBeenNthCalledWith(2, 'C4');
+
+    audio.playNoteName.mockClear();
+    act(() => typingAreaPropsRef.current!.onNoteChange!(null, true, false, 'x'));
+    expect(audio.playNoteName).not.toHaveBeenCalled();
+  });
+
+  it("dès l'enseignement du niveau 1, une touche tapée joue une note", async () => {
+    render(<CurriculumLearningMode onExitTutorial={vi.fn()} />);
+    await screen.findByRole('button', { name: /commencer/i });
+    await userEvent.setup().keyboard('q');
+    expect(audio.playNoteName).toHaveBeenCalledWith('C4');
   });
 });

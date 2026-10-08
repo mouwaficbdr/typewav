@@ -6,6 +6,7 @@ import {
   generateLearningDrill,
   mapCharToGestureId,
   pickLearningText,
+  pitchForChar,
   pickLearningWords,
 } from '../learning-content';
 
@@ -209,5 +210,31 @@ describe('expectedKeyForChar', () => {
   it('touche morte : l\'id du geste', () => {
     expect(expectedKeyForChar('ê')).toEqual({ activeKeyId: '^e' });
     expect(expectedKeyForChar('ü')).toEqual({ activeKeyId: '¨u' });
+  });
+});
+
+describe('pitchForChar', () => {
+  it('une note par touche : chaque colonne de la rangee du repos a la sienne', () => {
+    const home = [...'qsdfghjklm'].map((c) => pitchForChar(c));
+    expect(new Set(home).size).toBe(10);
+    expect(home[0]).toBe('C4');
+    expect(home[3]).toBe('G4');
+    expect(home[9]).toBe('A5');
+  });
+
+  it('la rangee du haut est plus aigue, la rangee du bas plus grave', () => {
+    expect(pitchForChar('a')).toBe('C5');
+    expect(pitchForChar('q')).toBe('C4');
+    expect(pitchForChar('w')).toBe('C3');
+  });
+
+  it('une majuscule garde la note de sa touche', () => {
+    expect(pitchForChar('E')).toBe(pitchForChar('e'));
+  });
+
+  it('rien pour un espace ou un caractere sans geste', () => {
+    expect(pitchForChar(' ')).toBeUndefined();
+    expect(pitchForChar('@')).toBeUndefined();
+    expect(pitchForChar(undefined)).toBeUndefined();
   });
 });

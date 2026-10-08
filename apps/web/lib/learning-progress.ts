@@ -12,6 +12,7 @@ const LEARNING_PROGRESS_KEY = 'learning_level_progress';
 const KEY_MASTERY_KEY = 'learning_key_mastery';
 const TAUGHT_LEVELS_KEY = 'learning_taught_levels';
 const CURRICULUM_VERSION_KEY = 'learning_curriculum_version';
+const WELCOMED_KEY = 'learning_welcomed';
 
 export interface LevelProgress {
   levelId: number;
@@ -137,6 +138,14 @@ export async function loadTaughtLevels(): Promise<number[]> {
 
 export async function saveTaughtLevels(ids: number[]): Promise<void> {
   await setPreference(TAUGHT_LEVELS_KEY, ids);
+}
+
+export async function loadWelcomed(): Promise<boolean> {
+  return (await getPreference<boolean>(WELCOMED_KEY)) === true;
+}
+
+export async function saveWelcomed(): Promise<void> {
+  await setPreference(WELCOMED_KEY, true);
 }
 
 export async function ensureCurriculumVersion(): Promise<void> {

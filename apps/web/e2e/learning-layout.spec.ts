@@ -47,6 +47,7 @@ async function openLearning(
   await page.waitForLoadState('networkidle');
   await seedPreferences(page, {
     learning_curriculum_version: CURRICULUM_VERSION,
+    learning_welcomed: true,
     learning_level_progress: Array.from({ length: LEVEL_COUNT }, (_, i) => ({
       levelId: i + 1,
       accuracy: 0,
@@ -170,4 +171,29 @@ for (const viewport of VIEWPORTS) {
       }
     });
   }
+}
+
+// Accueil (premiere arrivee) : titre, trois phrases, bouton, sans recouvrement.
+for (const viewport of VIEWPORTS) {
+  test(`accueil a ${viewport.width}x${viewport.height} : lisible, rien ne se chevauche`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/fr');
+    const main = page.locator('main');
+    await expect(
+      main.getByRole('heading', { name: 'Bienvenue sur TypeWav' }),
+    ).toBeVisible();
+
+    const paragraphs = await main.locator('p').all();
+    const parts: Record<string, Locator> = {
+      titre: main.getByRole('heading', { level: 2 }),
+      bouton: main.getByRole('button', { name: "C'est parti" }),
+    };
+    paragraphs.forEach((p, i) => {
+      parts[`phrase ${i + 1}`] = p;
+    });
+    await expectNoOverlap(parts);
+    await expect(parts['bouton']!).toBeInViewport({ ratio: 1 });
+  });
 }

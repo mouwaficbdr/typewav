@@ -22,6 +22,7 @@
     "hint": "cliquer pour activer · chaque frappe produit une note",
     "ariaTypingArea": "Zone de frappe",
     "ariaTypingInstructions": "Tapez le texte affiché. Une frappe correcte joue la note suivante, une erreur reste silencieuse. Retour arrière pour corriger.",
+    "ariaTypingInstructionsLearning": "Tape le texte affiché. Une frappe juste joue la note suivante, une erreur reste silencieuse. Retour arrière pour corriger.",
     "ariaTargetTextLabel": "Texte à taper",
     "srProgress": "{percent} % du texte tapé, {wpm} mots par minute, {accuracy} % de précision",
     "srComplete": "Texte terminé. {wpm} mots par minute, {accuracy} % de précision.",
@@ -46,6 +47,7 @@
       "challenge": "Challenge"
     },
     "clickToFocus": "Cliquez pour activer",
+    "clickToFocusLearning": "Clique pour activer",
     "nextTest": "Test suivant",
     "restartTestTooltip": "Recommencer le test",
     "restartKeyTab": "Tab",
@@ -454,6 +456,15 @@
     "unlockedAnnouncement": "Niveau {id} débloqué : {name}.",
     "nextLevelCta": "Niveau suivant",
     "nextLevelNamed": "Passer au niveau {id} : {name}",
+    "ruleReminder": "Frappe juste : une note. Erreur : silence. Retour arrière pour corriger.",
+    "welcome": {
+      "title": "Bienvenue sur TypeWav",
+      "what": "TypeWav t'apprend à taper au clavier : chaque frappe juste joue la note suivante d'un vrai morceau de piano.",
+      "path": "Ce parcours compte 11 niveaux, de la rangée du repos jusqu'à un vrai texte. Compte quelques heures en tout, par petites séances de quelques minutes.",
+      "rule": "La règle : une frappe juste joue la note, une erreur reste silencieuse, Retour arrière pour corriger.",
+      "layoutHint": "Ton clavier n'est pas AZERTY ? Change la disposition dans les Paramètres.",
+      "start": "C'est parti"
+    },
     "prevLevelCta": "Niveau précédent",
     "levelCounter": "Niveau {id} / {total}",
     "fingerIntro": {

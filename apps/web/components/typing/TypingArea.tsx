@@ -182,6 +182,8 @@ interface TypingAreaProps {
     note: string | null,
     isError: boolean,
     isPhraseBoundary: boolean,
+    /** Le caractère tapé (NFC) : permet à l'appelant de jouer sa propre note. */
+    char?: string,
   ) => void;
 }
 
@@ -427,6 +429,7 @@ export function TypingArea({
           played?.note ?? null,
           false,
           played?.isPhraseBoundary ?? false,
+          char,
         );
       } else {
         triggerSilence();
@@ -643,7 +646,7 @@ export function TypingArea({
           Hors du conteneur role="application" pour rester parcourables au
           curseur de révision d'un lecteur d'écran. */}
       <p id={instructionsId} className="sr-only">
-        {t('ariaTypingInstructions')}
+        {t(mode === 'learning' ? 'ariaTypingInstructionsLearning' : 'ariaTypingInstructions')}
       </p>
       <p className="sr-only" data-testid="typing-target-text">
         {t('ariaTargetTextLabel')}: {text}
@@ -873,7 +876,7 @@ export function TypingArea({
               className="shrink-0"
               data-testid="typing-activation-cursor-icon"
             />
-            {t('clickToFocus')}
+            {t(mode === 'learning' ? 'clickToFocusLearning' : 'clickToFocus')}
           </span>
         </div>
 

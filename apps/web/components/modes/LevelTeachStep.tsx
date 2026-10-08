@@ -17,6 +17,7 @@
 import { useCallback, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { CurriculumLevel } from '@typewav/types';
+import { pitchForChar } from '@/lib/learning-content';
 import { KeyboardDiagramAzerty } from './KeyboardDiagramAzerty';
 import { useHiddenCapture } from './useHiddenCapture';
 
@@ -26,9 +27,11 @@ const DIAGRAM_MIN_HEIGHT = 120;
 export interface LevelTeachStepProps {
   level: CurriculumLevel;
   onDone: () => void;
+  /** Note de la touche tapée (premier son dès l'enseignement). */
+  onNote?: (pitch: string) => void;
 }
 
-export function LevelTeachStep({ level, onDone }: LevelTeachStepProps) {
+export function LevelTeachStep({ level, onDone, onNote }: LevelTeachStepProps) {
   const t = useTranslations('learning');
   const [produced, setProduced] = useState<ReadonlySet<string>>(
     () => new Set<string>(),
@@ -42,6 +45,8 @@ export function LevelTeachStep({ level, onDone }: LevelTeachStepProps) {
         (k) => k.char.normalize('NFC') === char,
       );
       if (!match) return;
+      const pitch = pitchForChar(match.char);
+      if (pitch) onNote?.(pitch);
       setProduced((prev) => {
         if (prev.has(match.id)) return prev;
         const next = new Set(prev);
@@ -49,7 +54,7 @@ export function LevelTeachStep({ level, onDone }: LevelTeachStepProps) {
         return next;
       });
     },
-    [level],
+    [level, onNote],
   );
 
   const { containerRef, inputRef } = useHiddenCapture(handleChar);

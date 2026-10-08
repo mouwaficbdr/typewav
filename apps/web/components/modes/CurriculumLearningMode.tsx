@@ -29,9 +29,11 @@ import {
   loadKeyMastery,
   loadLearningProgress,
   loadTaughtLevels,
+  loadWelcomed,
   saveKeyMastery,
   saveLearningProgress,
   saveTaughtLevels,
+  saveWelcomed,
   unlockLevel,
   type KeyMastery,
   type LevelProgress,
@@ -40,6 +42,7 @@ import {
   expectedKeyForChar,
   generateLevelText,
   mapCharToGestureId,
+  pitchForChar,
 } from '@/lib/learning-content';
 import {
   getCelebratedLearningLevels,
@@ -53,6 +56,7 @@ import {
   getLevelsWithClearedMoment,
 } from './LevelClearedMoment';
 import { KeyboardDiagramAzerty } from './KeyboardDiagramAzerty';
+import { LearningWelcome } from './LearningWelcome';
 import { LevelTeachStep } from './LevelTeachStep';
 import type { LearningModeProps } from './LegacyLearningMode';
 
@@ -63,14 +67,6 @@ const CELEBRATED_LEVELS = getLevelsWithClearedMoment(CURRICULUM.length);
 /** Morceau par défaut pour les niveaux `audio: 'piece'` (aucune sélection de
  *  morceau dans le parcours). `TypingArea` le joue note à note. */
 const DEFAULT_LEARNING_PIECE = 'fur-elise';
-
-/** Note isolée jouée à chaque frappe correcte sur un niveau `audio: 'simple'`,
- *  calée sur la rangée physique du niveau (musical, pas une mélodie). */
-const SIMPLE_PITCH_BY_SLUG: Record<string, string> = {
-  'home-row': 'C4',
-  'top-row': 'G4',
-  'bottom-row': 'G3',
-};
 
 const NAV_BUTTON_CLASS =
   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--color-accent)]';
@@ -101,6 +97,7 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
   );
   const [keyMastery, setKeyMastery] = useState<KeyMastery>({});
   const [taughtLevels, setTaughtLevels] = useState<number[]>([]);
+  const [welcomed, setWelcomed] = useState(true);
   const [currentLevelId, setCurrentLevelId] = useState(1);
   const [text, setText] = useState('');
   const [runIndex, setRunIndex] = useState(0);
@@ -122,11 +119,12 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
     let cancelled = false;
     (async () => {
       await ensureCurriculumVersion();
-      const [progress, mastery, taught, celebrated] = await Promise.all([
+      const [progress, mastery, taught, celebrated, seenWelcome] = await Promise.all([
         loadLearningProgress(),
         loadKeyMastery(),
         loadTaughtLevels(),
         getCelebratedLearningLevels(),
+        loadWelcomed(),
       ]);
       if (cancelled) return;
       const list = progress ?? createInitialLevelProgress(CURRICULUM);
@@ -136,6 +134,8 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
       setLevelProgress(list);
       setKeyMastery(mastery);
       setTaughtLevels(taught);
+      // L'accueil n'est pour personne qui a déjà commencé (progression existante).
+      setWelcomed(seenWelcome || taught.length > 0);
       setCurrentLevelId(startId);
       if (
         startLevel &&
@@ -289,15 +289,28 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [activeKey]);
 
+  // Niveau `simple` : chaque frappe juste joue la note de sa touche (la
+  // colonne donne le degré, la rangée l'octave : une mélodie qui suit la main).
   const handleNoteChange = useCallback(
-    (_note: string | null, isError: boolean) => {
+    (_note: string | null, isError: boolean, _boundary?: boolean, char?: string) => {
       if (isError) return;
       const lvl = CURRICULUM[currentLevelId - 1];
       if (lvl?.audio !== 'simple') return;
-      void playNoteName(SIMPLE_PITCH_BY_SLUG[lvl.slug] ?? 'C4');
+      const pitch = pitchForChar(char);
+      if (pitch) void playNoteName(pitch);
     },
     [currentLevelId, playNoteName],
   );
+
+  const handleTeachNote = useCallback(
+    (pitch: string) => void playNoteName(pitch),
+    [playNoteName],
+  );
+
+  const handleWelcomeStart = useCallback(() => {
+    setWelcomed(true);
+    void saveWelcomed();
+  }, []);
 
   const handleTeachDone = useCallback(() => {
     if (!currentLevel) return;
@@ -348,6 +361,8 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
     return <div aria-busy="true" style={{ minHeight: 200 }} />;
   }
 
+  if (!welcomed) return <LearningWelcome onStart={handleWelcomeStart} />;
+
   // Niveau `anchors` (1) : toujours son étape d'enseignement, jamais de drill.
   if (!isTaught || currentLevel.kind === 'anchors') {
     return (
@@ -355,11 +370,15 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
         key={currentLevelId}
         level={currentLevel}
         onDone={handleTeachDone}
+        onNote={handleTeachNote}
       />
     );
   }
 
   const unlockedById = new Map(levelProgress.map((p) => [p.levelId, p.unlocked]));
+  // Tout premier entraînement du parcours : la règle du produit est écrite,
+  // visible, à la place de « la touche qui coince » qui n'a encore rien à dire.
+  const isFirstSeries = levelProgress.every((p) => p.samples === 0);
   const expected = expectedKeyForChar(activeKey);
   const deadKeyStep: 1 | 2 =
     deadPressedFor !== undefined && deadPressedFor === activeKey ? 2 : 1;
@@ -544,7 +563,17 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
               }}
             />
           </div>
-          {curriculumProgress.weakestKeyId && (
+          {isFirstSeries ? (
+            <p
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 13,
+                color: 'var(--color-text-muted)',
+              }}
+            >
+              {t('ruleReminder')}
+            </p>
+          ) : curriculumProgress.weakestKeyId && (
             <p
               style={{
                 fontFamily: 'var(--font-mono)',

@@ -195,7 +195,7 @@ describe('TypingArea : waveform note source', () => {
     await user.click(container);
     await user.keyboard('e');
 
-    expect(onNoteChange).toHaveBeenCalledWith('C4', false, false);
+    expect(onNoteChange).toHaveBeenCalledWith('C4', false, false, 'e');
   });
 
   it('signale une fin de phrase à onNoteChange quand la note jouée en marque une', async () => {
@@ -209,7 +209,7 @@ describe('TypingArea : waveform note source', () => {
     await user.click(container);
     await user.keyboard('e');
 
-    expect(onNoteChange).toHaveBeenCalledWith('E4', false, true);
+    expect(onNoteChange).toHaveBeenCalledWith('E4', false, true, 'e');
   });
 });
 
@@ -506,6 +506,16 @@ describe("TypingArea : accessibilité lecteur d'écran (WS-1)", () => {
     expect(describedBy).toBeTruthy();
     expect(document.getElementById(describedBy as string)).toHaveTextContent(
       'ariaTypingInstructions',
+    );
+  });
+
+  it('mode Apprentissage : instructions lues en tutoiement, comme le reste du parcours', () => {
+    render(<TypingArea text="hello world" mode="learning" />);
+    const describedBy = screen
+      .getByRole('application')
+      .getAttribute('aria-describedby');
+    expect(document.getElementById(describedBy as string)).toHaveTextContent(
+      'ariaTypingInstructionsLearning',
     );
   });
 

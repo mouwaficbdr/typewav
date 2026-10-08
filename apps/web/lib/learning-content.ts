@@ -114,6 +114,40 @@ export function expectedKeyForChar(
   return undefined;
 }
 
+// ─── pitchForChar ────────────────────────────────────────────────────────────
+
+/** Gamme pentatonique de do : jamais de fausse note, quelle que soit la touche. */
+const PENTATONIC = ['C', 'D', 'E', 'G', 'A'] as const;
+
+/** Rangees physiques, de gauche a droite, et leur octave de depart. */
+const PITCH_ROWS: { keys: string[]; octave: number }[] = [
+  { keys: [...'&é"\'(-è_çà'], octave: 5 },
+  { keys: [...'azertyuiop'], octave: 5 },
+  { keys: [...'qsdfghjklm'], octave: 4 },
+  { keys: [...'wxcvbn,;:!'], octave: 3 },
+];
+
+/**
+ * La note d'une touche : la colonne donne le degre de la gamme, la rangee
+ * l'octave (haut aigu, bas grave). Taper une suite de lettres joue donc une
+ * melodie qui suit la main, et les niveaux « Monter d'un ton » / « Descendre
+ * d'un ton » s'entendent. `undefined` pour une espace ou un caractere sans geste.
+ */
+export function pitchForChar(char: string | undefined): string | undefined {
+  if (char === undefined) return undefined;
+  const id = mapCharToGestureId(char);
+  if (id === '') return undefined;
+  const gesture = GESTURE_BY_ID.get(id) ?? GESTURE_BY_ID.get(char.toLowerCase());
+  if (!gesture) return undefined;
+  for (const row of PITCH_ROWS) {
+    const col = row.keys.indexOf(gesture.physical);
+    if (col >= 0) {
+      return `${PENTATONIC[col % PENTATONIC.length]}${row.octave + Math.floor(col / PENTATONIC.length)}`;
+    }
+  }
+  return undefined;
+}
+
 // ─── generateLearningDrill ───────────────────────────────────────────────────
 
 const DEFAULT_GROUP_COUNT = 12;
