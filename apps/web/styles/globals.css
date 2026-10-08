@@ -385,3 +385,24 @@ body {
   border: 1px solid color-mix(in srgb, var(--color-text-primary) 8%, transparent);
   box-shadow: 0 4px 30px color-mix(in srgb, var(--color-bg) 40%, transparent);
 }
+
+/* Conservatoire : respiration lente de la seule touche attendue (R4). */
+@keyframes lk-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.72;
+  }
+}
+
+.lk-breathe {
+  animation: lk-breathe 2.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lk-breathe {
+    animation: none;
+  }
+}
