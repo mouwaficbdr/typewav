@@ -453,6 +453,7 @@
     "readyToUnlock": "Level {id} ready: {name}. Click to continue.",
     "unlockedAnnouncement": "Level {id} unlocked: {name}.",
     "nextLevelCta": "Next level",
+    "nextLevelNamed": "Go to level {id}: {name}",
     "prevLevelCta": "Previous level",
     "levelCounter": "Level {id} / {total}",
     "fingerIntro": {

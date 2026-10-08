@@ -249,3 +249,86 @@ describe('CurriculumLearningMode — audio', () => {
     await waitFor(() => expect(audio.loadMidiPiece).toHaveBeenCalled());
   });
 });
+
+const levelName = (slug: string): string =>
+  (frMessages.learning.level as Record<string, { name: string }>)[slug]!.name;
+
+function masteredKeys(levelIndex: number) {
+  return Object.fromEntries(
+    CURRICULUM[levelIndex]!.newKeys.map((k) => [k.id, { correct: 20, total: 20 }]),
+  );
+}
+
+describe('CurriculumLearningMode : navigation entre niveaux (#115)', () => {
+  it("après « Niveau validé », fermer la célébration mène à l'enseignement du niveau suivant", async () => {
+    seed({ taught: [1, 2], unlockedUpTo: 2, mastery: masteredKeys(1) });
+    render(<CurriculumLearningMode onExitTutorial={vi.fn()} />);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: /finir la série/i }));
+    await user.click(await screen.findByRole('button', { name: 'fermer' }));
+
+    expect(
+      await screen.findByRole('heading', { name: levelName('top-row') }),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId('drill-zone')).not.toBeInTheDocument();
+  });
+
+  it('sur un niveau validé, un bouton large mène au niveau suivant, nom compris', async () => {
+    seed({ taught: [1, 2, 3], unlockedUpTo: 3, mastery: masteredKeys(1) });
+    render(<CurriculumLearningMode onExitTutorial={vi.fn()} />);
+    const user = userEvent.setup();
+    await screen.findByTestId('drill-zone');
+    await user.click(screen.getByRole('button', { name: /^2\b/ })); // pastille du niveau 2
+
+    const next = await screen.findByRole('button', {
+      name: new RegExp(`niveau 3.*${levelName('top-row')}`, 'i'),
+    });
+    await user.click(next);
+    expect(
+      await screen.findByRole('heading', { name: levelName('top-row') }),
+    ).toBeInTheDocument();
+  });
+
+  it('un bouton « Niveau précédent » ramène au niveau d\'avant', async () => {
+    seed({ taught: [1, 2, 3], unlockedUpTo: 3 });
+    render(<CurriculumLearningMode onExitTutorial={vi.fn()} />);
+    const user = userEvent.setup();
+    await screen.findByTestId('drill-zone');
+    await user.click(screen.getByRole('button', { name: /niveau précédent/i }));
+    expect(
+      await screen.findByRole('heading', { name: levelName('home-row') }),
+    ).toBeInTheDocument();
+  });
+
+  it('les pastilles du rail sont numérotées et font au moins 24 px', async () => {
+    seed({ taught: [1, 2], unlockedUpTo: 2 });
+    render(<CurriculumLearningMode onExitTutorial={vi.fn()} />);
+    await screen.findByTestId('drill-zone');
+    const dots = screen
+      .getAllByRole('button')
+      .filter((b) => /^\d+$/.test(b.textContent ?? ''));
+    expect(dots.map((b) => b.textContent)).toEqual(
+      CURRICULUM.map((l) => String(l.id)),
+    );
+    for (const dot of dots) {
+      expect(parseInt(dot.style.width, 10)).toBeGreaterThanOrEqual(24);
+      expect(parseInt(dot.style.height, 10)).toBeGreaterThanOrEqual(24);
+    }
+  });
+
+  it("rejouer les repères depuis le rail puis « Commencer » ramène au niveau où l'on en était", async () => {
+    seed({ taught: [1, 2, 3, 4, 5], unlockedUpTo: 5 });
+    render(<CurriculumLearningMode onExitTutorial={vi.fn()} />);
+    const user = userEvent.setup();
+    await screen.findByTestId('drill-zone');
+    await user.click(screen.getByRole('button', { name: /^1\b/ })); // pastille du niveau 1
+    await screen.findByRole('button', { name: /commencer/i });
+    await user.keyboard('qsdfjklm');
+    await user.click(screen.getByRole('button', { name: /commencer/i }));
+
+    expect(await screen.findByTestId('drill-zone')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: levelName('first-words') }),
+    ).toBeInTheDocument();
+  });
+});

@@ -48,7 +48,6 @@ import {
   LevelClearedMoment,
   getLevelsWithClearedMoment,
 } from './LevelClearedMoment';
-import { LevelRailSpotlight } from './LevelRailSpotlight';
 import { LevelTeachStep } from './LevelTeachStep';
 import type { LearningModeProps } from './LegacyLearningMode';
 
@@ -67,6 +66,17 @@ const SIMPLE_PITCH_BY_SLUG: Record<string, string> = {
   'top-row': 'G4',
   'bottom-row': 'G3',
 };
+
+const NAV_BUTTON_CLASS =
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--color-accent)]';
+const NAV_BUTTON_STYLE = {
+  padding: '8px 18px',
+  borderRadius: 'var(--radius-lg)',
+  fontFamily: 'var(--font-ui)',
+  fontWeight: 600,
+  fontSize: 14,
+  cursor: 'pointer',
+} as const;
 
 function highestUnlockedId(progress: LevelProgress[]): number {
   return progress.reduce(
@@ -95,9 +105,6 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
     samples: number;
     accuracy: number;
   } | null>(null);
-  const [spotlight, setSpotlight] = useState<{ x: number; y: number } | null>(
-    null,
-  );
 
   const celebratedLevelsRef = useRef<Set<number>>(new Set());
 
@@ -277,12 +284,16 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
 
     if (currentLevel.kind === 'anchors') {
       // Le niveau 1 (`anchors`) EST son étape d'enseignement : la valider
-      // revient à valider le niveau. On débloque directement le suivant.
-      const nextId = currentLevelId + 1;
-      const nextProgress = unlockLevel(levelProgress, nextId);
+      // revient à valider le niveau. On débloque le suivant, puis on va au plus
+      // haut niveau atteint (rejouer les repères depuis le rail ne doit pas
+      // renvoyer au niveau 2).
+      const nextProgress = unlockLevel(levelProgress, currentLevelId + 1);
       setLevelProgress(nextProgress);
       void saveLearningProgress(nextProgress);
-      setCurrentLevelId(nextId);
+      const targetId = highestUnlockedId(nextProgress);
+      const target = CURRICULUM[targetId - 1];
+      setCurrentLevelId(targetId);
+      if (target && nextTaught.includes(targetId)) startDrill(target);
     } else {
       // Passage de l'étape d'enseignement à la boucle de drill du même niveau.
       startDrill(currentLevel);
@@ -300,14 +311,13 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
     [levelProgress, taughtLevels, startDrill],
   );
 
+  // Fermer la célébration mène au niveau qui vient de se débloquer : le
+  // « une touche pour continuer » du moment dit vrai.
   const handleCelebrationDismiss = useCallback(() => {
+    const clearedId = celebration?.levelId;
     setCelebration(null);
-    if (typeof document === 'undefined') return;
-    const dot = document.getElementById('level-rail-next-dot');
-    if (!dot) return;
-    const r = dot.getBoundingClientRect();
-    setSpotlight({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
-  }, []);
+    if (clearedId !== undefined) goToLevel(clearedId + 1);
+  }, [celebration, goToLevel]);
 
   if (!loaded || !currentLevel) {
     return <div aria-busy="true" style={{ minHeight: 200 }} />;
@@ -325,6 +335,12 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
   }
 
   const unlockedById = new Map(levelProgress.map((p) => [p.levelId, p.unlocked]));
+  // Niveau suivant déjà débloqué (validé à l'instant, ou déjà passé) : un bouton
+  // large y mène, sans avoir à viser une pastille du rail.
+  const nextLevel =
+    !isLastLevel && unlockedById.get(currentLevelId + 1)
+      ? CURRICULUM[currentLevelId]
+      : undefined;
 
   return (
     <div
@@ -364,8 +380,8 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
               aria-current={isCurrent ? 'step' : undefined}
               title={t(`level.${level.slug}.name`)}
               style={{
-                width: railCompact ? 10 : 14,
-                height: railCompact ? 10 : 14,
+                width: railCompact ? 24 : 28,
+                height: railCompact ? 24 : 28,
                 borderRadius: '50%',
                 border: `2px solid ${
                   isCurrent || isUnlocked
@@ -377,11 +393,24 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
                   : isUnlocked
                     ? 'transparent'
                     : 'var(--color-border, rgba(255,255,255,0.12))',
+                color: isCurrent
+                  ? '#000'
+                  : isUnlocked
+                    ? 'var(--color-accent)'
+                    : 'var(--color-text-muted)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 12,
+                fontWeight: 700,
+                lineHeight: 1,
+                display: 'grid',
+                placeItems: 'center',
                 padding: 0,
                 cursor: isUnlocked ? 'pointer' : 'not-allowed',
                 transition: 'background 160ms ease, border-color 160ms ease',
               }}
-            />
+            >
+              {level.id}
+            </button>
           );
         })}
       </nav>
@@ -453,6 +482,47 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
           />
         </div>
 
+        {(currentLevelId > 1 || nextLevel) && (
+          <div
+            className="flex flex-wrap items-center justify-center gap-3"
+            style={{ flexShrink: 0 }}
+          >
+            {currentLevelId > 1 && (
+              <button
+                type="button"
+                onClick={() => goToLevel(currentLevelId - 1)}
+                className={NAV_BUTTON_CLASS}
+                style={{
+                  ...NAV_BUTTON_STYLE,
+                  background: 'transparent',
+                  color: 'var(--color-text-muted)',
+                  border: '1px solid var(--color-border, rgba(255,255,255,0.2))',
+                }}
+              >
+                {t('prevLevelCta')}
+              </button>
+            )}
+            {nextLevel && (
+              <button
+                type="button"
+                onClick={() => goToLevel(nextLevel.id)}
+                className={NAV_BUTTON_CLASS}
+                style={{
+                  ...NAV_BUTTON_STYLE,
+                  background: 'var(--color-accent)',
+                  color: '#000',
+                  border: 'none',
+                }}
+              >
+                {t('nextLevelNamed', {
+                  id: nextLevel.id,
+                  name: t(`level.${nextLevel.slug}.name`),
+                })}
+              </button>
+            )}
+          </div>
+        )}
+
         {tutorialComplete && (
           <button
             type="button"
@@ -486,13 +556,6 @@ export function CurriculumLearningMode({ onExitTutorial }: LearningModeProps) {
           levelTagline={t(
             `level.${CURRICULUM[celebration.levelId - 1]?.slug ?? ''}.tagline`,
           )}
-        />
-      )}
-      {spotlight && (
-        <LevelRailSpotlight
-          x={spotlight.x}
-          y={spotlight.y}
-          onDone={() => setSpotlight(null)}
         />
       )}
     </div>

@@ -453,6 +453,7 @@
     "readyToUnlock": "Niveau {id} prêt : {name}. Cliquer pour continuer.",
     "unlockedAnnouncement": "Niveau {id} débloqué : {name}.",
     "nextLevelCta": "Niveau suivant",
+    "nextLevelNamed": "Passer au niveau {id} : {name}",
     "prevLevelCta": "Niveau précédent",
     "levelCounter": "Niveau {id} / {total}",
     "fingerIntro": {
