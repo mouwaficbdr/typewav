@@ -24,3 +24,29 @@ export type KeyState = 'new' | 'learned' | 'sure' | 'automatic';
 
 /** Clé = id de geste (`'e'`, `'é'`, `'^e'`, `'A'`…), voir `mapCharToGestureId`. */
 export type Mastery = Record<string, GestureRecord>;
+
+/** Réponse à « Tu tapes déjà un peu ? ». */
+export type ExperienceLevel = 'beginner' | 'some-fingers' | 'touch-typist';
+
+/** Réponse à « Combien de minutes par jour ? ». */
+export type DailyMinutes = 5 | 10 | 15;
+
+export type PlacementOutcome = 'lesson1' | 'lesson1-fast' | 'cycle1-validated';
+
+/** Résultat du test de placement : mots par minute, justesse en pourcentage (0 à 100). */
+export interface PlacementResult {
+  wpm: number;
+  accuracy: number;
+}
+
+/** Clé `conservatoire_profile`. La partie 4 y ajoute les jours par semaine. */
+export interface ConservatoireProfile {
+  version: 1;
+  startedAt: number;
+  experience: ExperienceLevel | null;
+  dailyMinutes: DailyMinutes | null;
+  placement: PlacementResult | null;
+  outcome: PlacementOutcome | null;
+  /** Onboarding quitté par « Passer ». */
+  skipped: boolean;
+}
