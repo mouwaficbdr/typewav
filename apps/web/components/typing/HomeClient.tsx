@@ -510,6 +510,23 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     setActiveMode('classic');
   }, [setActiveMode]);
 
+  // Garde-fou desktop-only (#98) : le mode Apprentissage n'est pas jouable au
+  // doigt. Si un `activeMode: 'learning'` persistant (config d'un autre
+  // appareil, ou fenêtre redimensionnée) se charge sur téléphone / tablette,
+  // on repasse en classique. Complète le gating du déclenchement de
+  // l'onboarding (#110). setState différé par microtâche
+  // (react-hooks/set-state-in-effect), même idiome que le reste du fichier.
+  useEffect(() => {
+    if (activeMode !== 'learning') return;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled && isNonDesktopDevice()) setActiveMode('classic');
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeMode, setActiveMode]);
+
   // Si l'utilisateur quitte le mode Apprentissage via la ConfigBar pendant
   // l'onboarding (plutôt que via le bouton "Passer le tutoriel"), c'est tout
   // aussi explicite : on considère le tutoriel terminé pour de bon, sinon

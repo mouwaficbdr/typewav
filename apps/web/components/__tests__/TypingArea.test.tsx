@@ -195,7 +195,7 @@ describe('TypingArea : waveform note source', () => {
     await user.click(container);
     await user.keyboard('e');
 
-    expect(onNoteChange).toHaveBeenCalledWith('C4', false, false);
+    expect(onNoteChange).toHaveBeenCalledWith('C4', false, false, 'e');
   });
 
   it('signale une fin de phrase à onNoteChange quand la note jouée en marque une', async () => {
@@ -209,7 +209,7 @@ describe('TypingArea : waveform note source', () => {
     await user.click(container);
     await user.keyboard('e');
 
-    expect(onNoteChange).toHaveBeenCalledWith('E4', false, true);
+    expect(onNoteChange).toHaveBeenCalledWith('E4', false, true, 'e');
   });
 });
 
@@ -458,6 +458,29 @@ describe('TypingArea : fin de session', () => {
     expect(onComplete).not.toHaveBeenCalled();
     expect(onSessionComplete).not.toHaveBeenCalled();
   });
+
+  it('inclut keystrokeData (les frappes alignées sur le texte) dans le payload', () => {
+    const keystrokes: KeystrokeEntry[] = [
+      { char: 'f', timestamp: 1000, correct: true, deltaMs: 0 },
+      { char: 'j', timestamp: 1120, correct: true, deltaMs: 120 },
+    ];
+    mockSessionState.isComplete = true;
+    mockSessionState.keystrokes = keystrokes;
+    mockSessionState.finalStats = {
+      wpm: 30,
+      wpmRaw: 30,
+      accuracy: 100,
+      consistency: 100,
+    };
+
+    const onSessionComplete = vi.fn();
+
+    render(<TypingArea text="fj" onSessionComplete={onSessionComplete} />);
+
+    expect(onSessionComplete).toHaveBeenCalledWith(
+      expect.objectContaining({ keystrokeData: keystrokes }),
+    );
+  });
 });
 
 describe("TypingArea : accessibilité lecteur d'écran (WS-1)", () => {
@@ -483,6 +506,16 @@ describe("TypingArea : accessibilité lecteur d'écran (WS-1)", () => {
     expect(describedBy).toBeTruthy();
     expect(document.getElementById(describedBy as string)).toHaveTextContent(
       'ariaTypingInstructions',
+    );
+  });
+
+  it('mode Apprentissage : instructions lues en tutoiement, comme le reste du parcours', () => {
+    render(<TypingArea text="hello world" mode="learning" />);
+    const describedBy = screen
+      .getByRole('application')
+      .getAttribute('aria-describedby');
+    expect(document.getElementById(describedBy as string)).toHaveTextContent(
+      'ariaTypingInstructionsLearning',
     );
   });
 

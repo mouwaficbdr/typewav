@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { NON_DESKTOP_MEDIA_QUERY } from '@/lib/device';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -273,5 +274,43 @@ describe('ParametresClient : revoir le positionnement des doigts (ticket #62)', 
     expect(mockResetLearningFingerIntroSeen).toHaveBeenCalledOnce();
     expect(mockSetMode).toHaveBeenCalledWith('learning');
     expect(mockPush).toHaveBeenCalledWith('/fr');
+  });
+});
+
+describe('ParametresClient : positionnement des doigts, desktop-only (#98)', () => {
+  const realMatchMedia = window.matchMedia;
+  afterEach(() => {
+    window.matchMedia = realMatchMedia;
+  });
+
+  function setMatchMedia(matches: (q: string) => boolean) {
+    window.matchMedia = ((q: string) => ({
+      matches: matches(q),
+      media: q,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    })) as unknown as typeof window.matchMedia;
+  }
+
+  it("masque l'entrée « revoir le positionnement des doigts » sur appareil non desktop", async () => {
+    setMatchMedia((q) => q === NON_DESKTOP_MEDIA_QUERY);
+    render(<ParametresClient />);
+    await waitFor(() =>
+      expect(
+        screen.queryByText('reviewFingerPositioning'),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
+  it("affiche l'entrée sur desktop", async () => {
+    setMatchMedia(() => false);
+    render(<ParametresClient />);
+    expect(
+      await screen.findByText('reviewFingerPositioning'),
+    ).toBeInTheDocument();
   });
 });

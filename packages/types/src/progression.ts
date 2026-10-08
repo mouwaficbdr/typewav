@@ -76,6 +76,11 @@ export interface UserProfile {
 
 // ─── Niveaux apprentissage ─────────────────────────────────────────────────────
 
+/**
+ * @deprecated Chemin QWERTY uniquement. Le parcours AZERTY est piloté par
+ * `LEARNING_CURRICULUM_AZERTY` (./learning.ts). À supprimer quand le ticket
+ * « Curriculum apprentissage QWERTY » aura porté le nouveau système à QWERTY.
+ */
 export interface LearningLevel {
   id: number;
   name: string;
@@ -84,6 +89,11 @@ export interface LearningLevel {
   minSamples: number;
 }
 
+/**
+ * @deprecated Chemin QWERTY uniquement. Le parcours AZERTY est piloté par
+ * `LEARNING_CURRICULUM_AZERTY` (./learning.ts). À supprimer quand le ticket
+ * « Curriculum apprentissage QWERTY » aura porté le nouveau système à QWERTY.
+ */
 export const LEARNING_LEVELS: LearningLevel[] = [
   {
     id: 1,

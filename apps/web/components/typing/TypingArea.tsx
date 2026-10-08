@@ -19,7 +19,7 @@ import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useSession } from '@/hooks/useSession';
 import { CorrectionEchoTracker } from '@/lib/correction-echo';
 import { resetSequence } from '@typewav/audio-engine';
-import type { TypingMode } from '@typewav/types';
+import type { KeystrokeEntry, TypingMode } from '@typewav/types';
 import { useTranslations } from 'next-intl';
 import {
   memo,
@@ -168,6 +168,8 @@ interface TypingAreaProps {
     accuracy: number;
     correct: number;
     total: number;
+    /** Frappes brutes de la session : keystrokeData[i] correspond à text[i] */
+    keystrokeData: KeystrokeEntry[];
   }) => void;
   /**
    * Callback appelé à chaque frappe : pilote WaveformBars et AmbientAura.
@@ -180,6 +182,8 @@ interface TypingAreaProps {
     note: string | null,
     isError: boolean,
     isPhraseBoundary: boolean,
+    /** Le caractère tapé (NFC) : permet à l'appelant de jouer sa propre note. */
+    char?: string,
   ) => void;
 }
 
@@ -338,6 +342,7 @@ export function TypingArea({
       accuracy,
       correct,
       total,
+      keystrokeData: keystrokes,
     });
   }, [isComplete, finalStats, keystrokes, onComplete, onSessionComplete]);
 
@@ -424,6 +429,7 @@ export function TypingArea({
           played?.note ?? null,
           false,
           played?.isPhraseBoundary ?? false,
+          char,
         );
       } else {
         triggerSilence();
@@ -640,7 +646,7 @@ export function TypingArea({
           Hors du conteneur role="application" pour rester parcourables au
           curseur de révision d'un lecteur d'écran. */}
       <p id={instructionsId} className="sr-only">
-        {t('ariaTypingInstructions')}
+        {t(mode === 'learning' ? 'ariaTypingInstructionsLearning' : 'ariaTypingInstructions')}
       </p>
       <p className="sr-only" data-testid="typing-target-text">
         {t('ariaTargetTextLabel')}: {text}
@@ -870,7 +876,7 @@ export function TypingArea({
               className="shrink-0"
               data-testid="typing-activation-cursor-icon"
             />
-            {t('clickToFocus')}
+            {t(mode === 'learning' ? 'clickToFocusLearning' : 'clickToFocus')}
           </span>
         </div>
 

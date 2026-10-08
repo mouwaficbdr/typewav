@@ -294,6 +294,19 @@ body {
   }
 }
 
+/* Mode Apprentissage : le schéma du drill occupe la hauteur laissée par le texte.
+   Sous 90 px il serait illisible : on le masque plutôt que de le laisser rogné
+   ou de recouvrir le texte (voir CurriculumLearningMode). */
+.learning-diagram-slot {
+  container-type: size;
+}
+@container (max-height: 89px) {
+  /* !important : le schéma pose son propre display:flex en style inline. */
+  .learning-diagram-slot > * {
+    display: none !important;
+  }
+}
+
 .results-encore {
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
 }

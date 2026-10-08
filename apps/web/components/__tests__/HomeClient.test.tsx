@@ -1374,6 +1374,29 @@ describe('HomeClient : onboarding première visite', () => {
     expect(mockMarkOnboardingComplete).not.toHaveBeenCalled();
   });
 
+  it("un activeMode 'learning' persistant retombe sur 'classic' sur appareil non desktop (#98)", async () => {
+    mockHasCompletedOnboarding.mockResolvedValue(true); // pas d'onboarding en jeu
+    window.matchMedia = ((query: string) => ({
+      matches: query === NON_DESKTOP_MEDIA_QUERY,
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      onchange: null,
+      dispatchEvent: () => false,
+    })) as unknown as typeof window.matchMedia;
+
+    const { useConfigStore } = await import('@/stores/useConfigStore');
+    const { HomeClient } = await import('../typing/HomeClient');
+    useConfigStore.setState({ activeMode: 'learning' });
+    render(<HomeClient initialCollection={mockLitterature as never} />);
+
+    await waitFor(() =>
+      expect(useConfigStore.getState().activeMode).toBe('classic'),
+    );
+  });
+
   it("ne montre ni frappe ni apprentissage tant que l'onboarding n'est pas tranché (pas de flash)", async () => {
     // hasCompletedOnboarding ne répond jamais : on est dans la fenêtre juste
     // après le montage, avant que la lecture IndexedDB ait abouti.

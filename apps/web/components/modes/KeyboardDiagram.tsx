@@ -12,6 +12,8 @@ import {
   type KeyboardLayout,
 } from '@/lib/keyboardLayouts';
 import { useTranslations } from 'next-intl';
+import type { FingerId } from '@typewav/types';
+import { FINGER_COLORS } from './finger-colors';
 
 interface KeyData {
   key: string;
@@ -19,21 +21,8 @@ interface KeyData {
   y: number;
   w: number;
   h: number;
-  finger: 'LP' | 'LR' | 'LM' | 'LI' | 'LT' | 'RI' | 'RM' | 'RR' | 'RP' | 'RT';
+  finger: FingerId;
 }
-
-const FINGER_COLORS: Record<KeyData['finger'], string> = {
-  LP: '#FF6B6B', // Auriculaire gauche
-  LR: '#FF9F43', // Annulaire gauche
-  LM: '#FECA57', // Majeur gauche
-  LI: '#48DBFB', // Index gauche
-  LT: '#A29BFE', // Pouce gauche
-  RT: '#A29BFE', // Pouce droit
-  RI: '#00D4AA', // Index droit
-  RM: '#1DD1A1', // Majeur droit
-  RR: '#54A0FF', // Annulaire droit
-  RP: '#C44569', // Auriculaire droit
-};
 
 // Les labels sont maintenant gérés via next-intl dans le composant
 

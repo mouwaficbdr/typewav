@@ -58,7 +58,10 @@ vi.mock('@/hooks/useAudioEngine', () => ({
   useAudioEngine: () => ({ playNoteName: mockPlayNoteName }),
 }));
 
-import { LevelClearedMoment } from '../LevelClearedMoment';
+import {
+  LevelClearedMoment,
+  getLevelsWithClearedMoment,
+} from '../LevelClearedMoment';
 
 const baseProps = {
   levelId: 2,
@@ -156,5 +159,37 @@ describe('LevelClearedMoment', () => {
 
     fireEvent.keyDown(window, { key: ' ' });
     expect(baseProps.onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('utilise levelName / levelTagline fournis (niveaux curriculum indexés par slug)', () => {
+    render(
+      <LevelClearedMoment
+        {...baseProps}
+        levelId={10}
+        levelName="La mesure chiffrée"
+        levelTagline="La rangée du haut, Maj enfoncée."
+      />,
+    );
+
+    expect(screen.getByText('La mesure chiffrée')).toBeInTheDocument();
+    expect(
+      screen.getByText('La rangée du haut, Maj enfoncée.'),
+    ).toBeInTheDocument();
+    // Pas de repli sur une clé i18n manquante (`learning.level.10.name`).
+    expect(screen.queryByText(/level\.10\.name/)).not.toBeInTheDocument();
+  });
+});
+
+describe('getLevelsWithClearedMoment', () => {
+  it('rend tous les ids sauf le dernier', () => {
+    expect(getLevelsWithClearedMoment(5)).toEqual([1, 2, 3, 4]);
+    expect(getLevelsWithClearedMoment(11)).toEqual([
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+    ]);
+  });
+
+  it('borné à 0 pour des totaux dégénérés', () => {
+    expect(getLevelsWithClearedMoment(1)).toEqual([]);
+    expect(getLevelsWithClearedMoment(0)).toEqual([]);
   });
 });
