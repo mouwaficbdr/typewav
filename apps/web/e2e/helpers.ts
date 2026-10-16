@@ -24,8 +24,8 @@ export async function seedPreferences(
 
 export type Box = { x: number; y: number; width: number; height: number };
 
-export async function boxOf(locator: Locator): Promise<Box> {
-  const box = await locator.boundingBox();
+export async function boxOf(locator: Locator, timeout?: number): Promise<Box> {
+  const box = await locator.boundingBox({ ...(timeout !== undefined ? { timeout } : {}) });
   if (!box) throw new Error('element sans boite : non rendu');
   return box;
 }
@@ -36,11 +36,19 @@ export function overlapArea(a: Box, b: Box): number {
   return w > 0 && h > 0 ? w * h : 0;
 }
 
-/** Echoue si deux des elements nommes se recouvrent de plus d'1 px2. */
-export async function expectNoOverlap(parts: Record<string, Locator>): Promise<Map<string, Box>> {
+/**
+ * Echoue si deux des elements nommes se recouvrent de plus d'1 px2.
+ * `timeout` : delai de chaque boundingBox (par defaut, celui de Playwright) ;
+ * a etendre la ou une transition reelle ou un chargement reel (audio) peut
+ * retarder la stabilisation du DOM.
+ */
+export async function expectNoOverlap(
+  parts: Record<string, Locator>,
+  timeout?: number,
+): Promise<Map<string, Box>> {
   const boxes = new Map<string, Box>();
   for (const [name, locator] of Object.entries(parts)) {
-    boxes.set(name, await boxOf(locator));
+    boxes.set(name, await boxOf(locator, timeout));
   }
   const names = [...boxes.keys()];
   for (let i = 0; i < names.length; i += 1) {

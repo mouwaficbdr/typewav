@@ -124,9 +124,10 @@ vi.mock('next-intl', () => ({
   useLocale: () => 'fr',
 }));
 
-const { mockPush, mockRouter } = vi.hoisted(() => {
+const { mockPush, mockReplace, mockRouter } = vi.hoisted(() => {
   const mockPush = vi.fn();
-  return { mockPush, mockRouter: { push: mockPush } };
+  const mockReplace = vi.fn();
+  return { mockPush, mockReplace, mockRouter: { push: mockPush, replace: mockReplace } };
 });
 
 vi.mock('next/navigation', () => ({
@@ -347,6 +348,7 @@ beforeEach(async () => {
   typingAreaPropsRef.current = null;
   learningModePropsRef.current = null;
   mockPush.mockClear();
+  mockReplace.mockClear();
   mockHasCompletedOnboarding.mockClear().mockResolvedValue(true);
   mockMarkOnboardingComplete.mockClear().mockResolvedValue(undefined);
   mockGetPersonalRecords.mockClear().mockResolvedValue(null);
@@ -1387,7 +1389,8 @@ describe('HomeClient : première visite', () => {
     const { HomeClient } = await import('../typing/HomeClient');
     render(<HomeClient initialCollection={mockLitterature as never} />);
 
-    await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/fr/conservatoire'));
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/fr/conservatoire'));
+    expect(mockPush).not.toHaveBeenCalled();
     expect(screen.queryByTestId('typing-area')).not.toBeInTheDocument();
     expect(screen.queryByTestId('learning-mode')).not.toBeInTheDocument();
     expect(mockMarkOnboardingComplete).not.toHaveBeenCalled();
@@ -1400,7 +1403,7 @@ describe('HomeClient : première visite', () => {
     render(<HomeClient initialCollection={mockLitterature as never} />);
 
     expect(await screen.findByTestId('typing-area')).toBeInTheDocument();
-    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
     expect(mockHasCompletedOnboarding).not.toHaveBeenCalled();
     expect(mockMarkOnboardingComplete).not.toHaveBeenCalled();
   });
@@ -1431,7 +1434,7 @@ describe('HomeClient : première visite', () => {
     render(<HomeClient initialCollection={mockLitterature as never} />);
 
     expect(await screen.findByTestId('typing-area')).toBeInTheDocument();
-    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 
   it("flag illisible : aucune redirection forcée, la frappe s'affiche", async () => {
@@ -1440,7 +1443,7 @@ describe('HomeClient : première visite', () => {
     render(<HomeClient initialCollection={mockLitterature as never} />);
 
     expect(await screen.findByTestId('typing-area')).toBeInTheDocument();
-    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 
   it("la pastille du Conservatoire reste visible sur l'accueil desktop", async () => {

@@ -5,6 +5,14 @@ import { OnboardingFlow } from '../OnboardingFlow';
 
 vi.mock('next-intl', async () => (await import('../../__tests__/intl')).nextIntlFr);
 
+// Comme ailleurs dans le projet (ContextSelectors, CollectionSelector…) :
+// AnimatePresence transparent, sinon le composant qui quitte reste monté
+// jusqu'à la fin de sa transition (R5), ce que les tests n'ont pas à attendre.
+vi.mock('motion/react', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('motion/react')>()),
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 const { audio } = vi.hoisted(() => ({
   audio: {
     initialize: vi.fn(async () => undefined),
@@ -259,6 +267,7 @@ describe('OnboardingFlow : données, choix, fin (écrans 6 à 10)', () => {
     expect(title()).toBe(ob.placement.title);
     fireEvent.click(screen.getByRole('button', { name: 'fin du placement' }));
     expect(title()).toBe('34 mots par minute, 96 % de notes justes.');
+    wait(1000); // passe le verrou anti-élan (RESULT_LOCK_MS)
     press('Space');
     expect(title()).toBe(ob.ready.title);
     await act(async () => {
@@ -272,6 +281,23 @@ describe('OnboardingFlow : données, choix, fin (écrans 6 à 10)', () => {
         outcome: 'cycle1-validated',
       }),
     );
+  });
+
+  it("un Espace tapé juste après la fin du placement (élan de la frappe) ne saute pas le résultat", () => {
+    renderFlow();
+    toData();
+    press('Space');
+    press('Digit3');
+    wait(400);
+    press('Digit1');
+    wait(400);
+    fireEvent.click(screen.getByRole('button', { name: 'fin du placement' }));
+    // Espace tapé dans la foulée, avant que le verrou ne se relâche : ignoré.
+    press('Space');
+    expect(title()).toBe('34 mots par minute, 96 % de notes justes.');
+    wait(1000);
+    press('Space');
+    expect(title()).toBe(ob.ready.title);
   });
 
   it("« Passer » avant l'écran des données y mène d'abord, puis sort", async () => {
@@ -306,6 +332,19 @@ describe('OnboardingFlow : données, choix, fin (écrans 6 à 10)', () => {
     fireEvent.keyDown(skip, { code: 'Space', key: ' ' });
     expect(title()).toBe(ob.intro.title);
     expect(audio.initialize).not.toHaveBeenCalled();
+  });
+
+  it('Entrée sur un lien de navigation focalisé est laissée au lien : pas détournée par « continuer »', () => {
+    renderFlow();
+    const link = document.createElement('a');
+    link.href = '/fr/classement';
+    link.textContent = 'Classement';
+    document.body.appendChild(link);
+    link.focus();
+    fireEvent.keyDown(link, { code: 'Enter', key: 'Enter' });
+    expect(title()).toBe(ob.intro.title);
+    expect(audio.initialize).not.toHaveBeenCalled();
+    link.remove();
   });
 
   it("IndexedDB indisponible : la fin de l'onboarding n'est jamais bloquée", async () => {

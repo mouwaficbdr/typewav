@@ -37,6 +37,20 @@ describe('LivingKeyboard', () => {
     expect(keyEl(container, 'KeyQ')).toHaveTextContent('q');
   });
 
+  it('le réétiquetage à la détection de disposition passe par une transition douce (R5), sauf en mouvement réduit (R6)', () => {
+    const { container, rerender } = render(<LivingKeyboard layout="azerty" />);
+    const labelOf = (code: string) => keyEl(container, code)?.querySelector('text');
+    expect(labelOf('KeyQ')).toHaveClass('lk-label-fade');
+
+    rerender(<LivingKeyboard layout="qwerty" />);
+    expect(labelOf('KeyQ')).toHaveTextContent('q');
+    expect(labelOf('KeyQ')).toHaveClass('lk-label-fade');
+
+    motionPref.reduce = true;
+    rerender(<LivingKeyboard layout="azerty" />);
+    expect(labelOf('KeyQ')).not.toHaveClass('lk-label-fade');
+  });
+
   it("seule la cible porte la couleur, et le nom de son doigt s'écrit dessous", () => {
     const { container } = render(<LivingKeyboard layout="azerty" target="KeyF" />);
     const targets = container.querySelectorAll('[data-target]');

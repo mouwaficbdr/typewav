@@ -475,7 +475,9 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
       .then((done) => {
         if (cancelled) return;
         if (done) setOnboardingResolved(true);
-        else router.push(`/${locale}/conservatoire`);
+        // replace, pas push : sans historique, Retour depuis /conservatoire
+        // ne doit pas ramener sur cette même redirection (revue finale, Important #3).
+        else router.replace(`/${locale}/conservatoire`);
       })
       .catch(() => {
         // Fail open : jamais de redirection forcée si l'état est illisible.

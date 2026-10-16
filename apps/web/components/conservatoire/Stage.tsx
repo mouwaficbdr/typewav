@@ -4,11 +4,13 @@
  * Stage : la primitive « un écran, une chose » du Conservatoire (R1, R5).
  * Une phrase principale, une ligne d'appui au plus, un emplacement, la touche
  * à presser en pied d'écran, « Passer » en haut à droite si demandé. Chaque
- * nouvelle phrase entre en 240 ms (fondu et 8 px) ; chaque écran est annoncé
- * dans une région aria-live. Les parties portent `data-part` (tests de rendu).
+ * nouvelle phrase entre en 240 ms (fondu et 8 px) ; l'emplacement fait de
+ * même à chaque changement de `slotKey`, sans coupure sèche (R5). Chaque
+ * écran est annoncé dans une région aria-live. Les parties portent
+ * `data-part` (tests de rendu).
  */
 
-import { motion, useReducedMotion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 
@@ -22,9 +24,18 @@ export interface StageProps {
   announce?: string;
   onSkip?: () => void;
   children?: ReactNode;
+  /**
+   * Identité du contenu de l'emplacement (R5) : une transition douce joue à
+   * chaque changement de valeur (une touche sèche, jamais une coupure
+   * sèche) ; la même valeur entre deux rendus garde l'instance en place, par
+   * exemple pour laisser une onde ou un clavier vivant survivre à plusieurs
+   * écrans. Sans valeur, une seule identité stable (compatible, aucune
+   * transition).
+   */
+  slotKey?: string;
 }
 
-export function Stage({ title, support, footer, announce, onSkip, children }: StageProps) {
+export function Stage({ title, support, footer, announce, onSkip, children, slotKey }: StageProps) {
   const t = useTranslations('conservatoire');
   const reduceMotion = useReducedMotion() === true;
 
@@ -95,22 +106,29 @@ export function Stage({ title, support, footer, announce, onSkip, children }: St
         )}
       </motion.div>
 
-      {children !== undefined && (
-        <div
-          data-part="slot"
-          style={{
-            width: '100%',
-            maxWidth: 880,
-            minHeight: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 12,
-          }}
-        >
-          {children}
-        </div>
-      )}
+      <AnimatePresence>
+        {children !== undefined && (
+          <motion.div
+            key={slotKey ?? 'slot'}
+            data-part="slot"
+            initial={{ opacity: reduceMotion ? 1 : 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: reduceMotion ? 1 : 0 }}
+            transition={{ duration: reduceMotion ? 0.01 : 0.24, ease: EASE_STRONG }}
+            style={{
+              width: '100%',
+              maxWidth: 880,
+              minHeight: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 12,
+            }}
+          >
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {footer && (
         <p

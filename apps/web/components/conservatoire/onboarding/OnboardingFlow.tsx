@@ -36,6 +36,13 @@ const SKIPPABLE: readonly Step[] = [
 const ADVANCE_MS = 650;
 const CHOICE_MS = 400;
 const HINT_MS = 1600;
+/**
+ * Le résultat du placement arrive alors que la personne tape encore (elan de
+ * frappe) : les Espace qui suivent dans la seconde ne sont pas une action sur
+ * l'écran de résultat, ce sont les derniers mots du test. Revue finale,
+ * Important #1.
+ */
+const RESULT_LOCK_MS = 1000;
 /** La cadence attend que la dernière note de la gamme ait sonné. */
 const CADENCE_DELAY_MS = 300;
 const EXPERIENCES: readonly ExperienceLevel[] = ['beginner', 'some-fingers', 'touch-typist'];
@@ -160,6 +167,14 @@ export function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowProps) {
     }
   }
 
+  function handlePlacementDone(result: PlacementResult) {
+    setPlacement(result);
+    lockedRef.current = true;
+    later(RESULT_LOCK_MS, () => {
+      lockedRef.current = false;
+    });
+  }
+
   const applyLayout = useEffectEvent((detected: KeyboardLayout | null) => {
     if (detected && detected !== layout) setLayout(detected);
   });
@@ -177,7 +192,12 @@ export function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowProps) {
   const onKey = useEffectEvent((e: KeyboardEvent) => {
     if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
     applyLayout(detectLayoutFromKey(e.code, e.key));
-    if (e.target instanceof Element && e.target.closest('button')) return;
+    if (
+      e.target instanceof Element &&
+      e.target.closest('a, button, input, select, textarea, [contenteditable="true"], [role="button"], [role="link"]')
+    ) {
+      return;
+    }
     if (lockedRef.current) return;
     const scaleDone = scaleIndex >= HOME_SCALE.length;
 
@@ -281,6 +301,12 @@ export function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowProps) {
   let support: string | undefined;
   let footer: string | undefined;
   let slot: ReactNode;
+  /**
+   * Identité du contenu de l'emplacement (R5) : le clavier garde la même
+   * identité de F au silence (une seule instance, voir le commentaire plus
+   * bas) ; chaque identité différente joue la transition de Stage.
+   */
+  let slotKey: string | undefined;
 
   // Même position dans l'arbre d'un écran à l'autre : le clavier (et ses ondes
   // en cours) survit aux transitions de F à la fin du silence.
@@ -351,22 +377,26 @@ export function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowProps) {
       title = t(`${step}.title`);
       support = t(`${step}.support`);
       slot = keyboard;
+      slotKey = 'keyboard';
       break;
     case 'scale':
       title = scaleDone ? t('scale.done') : t('scale.title');
       if (scaleDone) footer = continueHint;
       slot = keyboard;
+      slotKey = 'keyboard';
       break;
     case 'blind':
       title = scaleDone ? t('blind.done') : t('blind.title');
       if (scaleDone) footer = continueHint;
       else support = t('blind.support');
       slot = keyboard;
+      slotKey = 'keyboard';
       break;
     case 'silence':
       title = t(`silence.${silencePhase}`);
       if (silencePhase === 'done') footer = continueHint;
       slot = keyboard;
+      slotKey = 'keyboard';
       break;
     case 'data':
       title = t('data.title');
@@ -382,6 +412,7 @@ export function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowProps) {
             ))}
           </div>
         );
+        slotKey = 'data-detail';
       }
       break;
     case 'experience':
@@ -391,6 +422,7 @@ export function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowProps) {
         EXPERIENCES.map((e) => t(`experience.${EXPERIENCE_LABEL[e]}`)),
         experience ? EXPERIENCES.indexOf(experience) : -1,
       );
+      slotKey = 'choices-experience';
       break;
     case 'minutes':
       title = t('minutes.title');
@@ -399,6 +431,7 @@ export function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowProps) {
         MINUTES.map((m) => t('minutes.option', { minutes: m })),
         minutes ? MINUTES.indexOf(minutes) : -1,
       );
+      slotKey = 'choices-minutes';
       break;
     case 'placement':
       if (placement) {
@@ -407,7 +440,8 @@ export function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowProps) {
       } else {
         title = t('placement.title');
         support = t('placement.support');
-        slot = <PlacementTest onDone={setPlacement} />;
+        slot = <PlacementTest onDone={handlePlacementDone} />;
+        slotKey = 'placement-test';
       }
       break;
     case 'ready':
@@ -432,6 +466,7 @@ export function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowProps) {
       announce={announce}
       {...(support !== undefined ? { support } : {})}
       {...(footer !== undefined ? { footer } : {})}
+      {...(slotKey !== undefined ? { slotKey } : {})}
       {...(canSkip ? { onSkip: skip } : {})}
     >
       {slot}

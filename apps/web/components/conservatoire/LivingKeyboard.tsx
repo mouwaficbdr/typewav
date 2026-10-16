@@ -230,6 +230,8 @@ export function LivingKeyboard({
                   strokeWidth={isTarget ? 1.5 : 1}
                 />
                 <text
+                  key={layout}
+                  className={reduceMotion ? undefined : 'lk-label-fade'}
                   x={key.x + key.w / 2}
                   y={key.y + key.h / 2 + 4}
                   textAnchor="middle"

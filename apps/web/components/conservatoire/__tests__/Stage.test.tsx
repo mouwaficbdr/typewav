@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { useEffect } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import fr from '@/messages/fr.json';
 import { Stage } from '../Stage';
@@ -37,5 +38,36 @@ describe('Stage', () => {
     rerender(<Stage title="Titre" onSkip={onSkip} />);
     fireEvent.click(screen.getByRole('button', { name: fr.conservatoire.skip }));
     expect(onSkip).toHaveBeenCalledOnce();
+  });
+
+  it("l'emplacement garde la même instance tant que slotKey ne change pas, et en change quand slotKey change (R5)", () => {
+    let mounts = 0;
+    function Probe() {
+      useEffect(() => {
+        mounts += 1;
+      }, []);
+      return <div data-testid="probe" />;
+    }
+
+    const { rerender } = render(
+      <Stage title="Titre" slotKey="a">
+        <Probe />
+      </Stage>,
+    );
+    expect(mounts).toBe(1);
+
+    rerender(
+      <Stage title="Titre" slotKey="a">
+        <Probe />
+      </Stage>,
+    );
+    expect(mounts).toBe(1); // même identité : pas de remontage, pas de coupure sèche
+
+    rerender(
+      <Stage title="Titre" slotKey="b">
+        <Probe />
+      </Stage>,
+    );
+    expect(mounts).toBe(2); // nouvelle identité : la transition joue, le contenu remonte
   });
 });
