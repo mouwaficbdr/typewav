@@ -42,14 +42,14 @@ vi.mock('@/hooks/useSession', () => ({
 }));
 
 const mockPlayNote = vi.fn().mockResolvedValue(undefined);
-const mockTriggerSilence = vi.fn();
+const mockTriggerErrorEcho = vi.fn();
 const mockTriggerResume = vi.fn().mockResolvedValue(undefined);
 
 vi.mock('@/hooks/useAudioEngine', () => ({
   useAudioEngine: vi.fn(() => ({
     initialize: vi.fn().mockResolvedValue(undefined),
     playNote: mockPlayNote,
-    triggerSilence: mockTriggerSilence,
+    triggerErrorEcho: mockTriggerErrorEcho,
     triggerResume: mockTriggerResume,
   })),
 }));
@@ -158,7 +158,7 @@ describe('TypingArea : Backspace', () => {
     expect(mockHandleBackspace).toHaveBeenCalledOnce();
   });
 
-  it("ne joue pas de note sur Backspace (triggerSilence n'est pas appelé non plus)", async () => {
+  it("ne joue pas de note sur Backspace (triggerErrorEcho n'est pas appelé non plus)", async () => {
     const user = userEvent.setup();
     render(<TypingArea text="hello world" />);
 
@@ -167,7 +167,7 @@ describe('TypingArea : Backspace', () => {
     await user.keyboard('{Backspace}');
 
     expect(mockPlayNote).not.toHaveBeenCalled();
-    expect(mockTriggerSilence).not.toHaveBeenCalled();
+    expect(mockTriggerErrorEcho).not.toHaveBeenCalled();
   });
 });
 

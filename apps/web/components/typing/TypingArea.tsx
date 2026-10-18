@@ -216,7 +216,7 @@ export function TypingArea({
     autoNavigate,
     trackProgress,
   });
-  const { initialize, playNote, triggerSilence, triggerResume } =
+  const { initialize, playNote, triggerErrorEcho, triggerResume } =
     useAudioEngine();
   const t = useTranslations('typing');
 
@@ -422,7 +422,7 @@ export function TypingArea({
           char,
         );
       } else {
-        triggerSilence();
+        triggerErrorEcho();
         onNoteChange?.(null, true, false);
       }
 
@@ -440,7 +440,7 @@ export function TypingArea({
       initialize,
       handleKeystroke,
       playNote,
-      triggerSilence,
+      triggerErrorEcho,
       triggerResume,
       onNoteChange,
     ],

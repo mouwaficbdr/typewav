@@ -28,7 +28,7 @@ function isHomeRowCode(code: string): code is HomeRowCode {
  * l'app). `data-ripple-count` sur la racine compte les notes jouées.
  */
 export function HomeRowTeaser() {
-  const { initialize, playNoteName, triggerSilence } = useAudioEngine();
+  const { initialize, playNoteName, triggerErrorEcho } = useAudioEngine();
   const locale = useLocale();
   const reduceMotion = useReducedMotion() === true;
 
@@ -94,13 +94,13 @@ export function HomeRowTeaser() {
         // Une vraie touche de caractère, pas Tab/Entrée/Shift/une flèche :
         // ces touches de navigation ne sont pas des fautes de frappe, et
         // Entrée a déjà son propre rôle sur cette page (mène à l'accueil).
-        void triggerSilence();
+        void triggerErrorEcho();
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [triggerSilence]);
+  }, [triggerErrorEcho]);
 
   return (
     <div data-ripple-count={rippleCount} style={{ width: '100%' }}>

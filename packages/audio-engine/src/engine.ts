@@ -26,10 +26,10 @@ export interface AudioEngine {
   playNote(char: string, wordIndex: number): void;
 
   /**
-   * Silence total pour une frappe incorrecte.
+   * Écho tout bas de la dernière note pour une frappe incorrecte.
    * Ne joue jamais une fausse note : spec stricte.
    */
-  triggerSilence(): void;
+  triggerErrorEcho(): void;
 
   /**
    * Reprend la musique après une correction, avec micro-reverb.

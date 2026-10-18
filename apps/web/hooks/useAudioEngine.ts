@@ -5,7 +5,7 @@
  *
  * Règles absolues (non négociables) :
  * - Tone.start() UNIQUEMENT après un événement keydown utilisateur
- * - Erreur = SILENCE (jamais une fausse note)
+ * - Erreur = écho tout bas de la dernière note (jamais une fausse note)
  * - Correction = reprise + micro-reverb (decay 0.3, wet 0.4)
  * - Lazy loading : uniquement le pack actif en mémoire
  *
@@ -659,7 +659,7 @@ export function useAudioEngine() {
   );
 
   /**
-   * Silence pour une frappe incorrecte : n'avance jamais la séquence et ne
+   * Écho pour une frappe incorrecte : n'avance jamais la séquence et ne
    * joue jamais de note nouvelle (règle absolue : jamais une fausse note).
    *
    * Une coupure sèche et répétée se vit comme une sanction plutôt qu'une
@@ -671,7 +671,7 @@ export function useAudioEngine() {
    * une nouvelle) : ça produit un vrai son qui s'éteint en fondu, sans
    * introduire le moindre contenu mélodique nouveau ni avancer la pièce.
    */
-  const triggerSilence = useCallback(async () => {
+  const triggerErrorEcho = useCallback(async () => {
     if (!useAudioStore.getState().initialized) return;
 
     const lastNote = engine.lastPlayedNote;
@@ -817,7 +817,7 @@ export function useAudioEngine() {
     initialize,
     playNote,
     playNoteName,
-    triggerSilence,
+    triggerErrorEcho,
     triggerResume,
     loadSoundPack,
     loadMidiPiece,
