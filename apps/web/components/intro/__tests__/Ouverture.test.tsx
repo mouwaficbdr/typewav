@@ -18,6 +18,17 @@ vi.mock('@/hooks/useAudioEngine', () => ({
   }),
 }));
 
+// PlayScreen (écran 2) a sa propre suite (PlayScreen.test.tsx) : ici, un
+// bouton de test suffit à vérifier que l'Ouverture avance correctement
+// quand il signale la fin, sans retaper « les notes » dans chaque test.
+vi.mock('../screens/PlayScreen', () => ({
+  PlayScreen: ({ onDone }: { onDone: () => void }) => (
+    <button type="button" data-testid="play-screen-done" onClick={onDone}>
+      done
+    </button>
+  ),
+}));
+
 function setMatchMedia(matches: boolean) {
   window.matchMedia = ((query: string) => ({
     matches,
@@ -64,8 +75,13 @@ async function advanceToScreen(target: number, onClose = vi.fn()) {
     <Ouverture urlLocale="fr" firstRun={true} onClose={onClose} />,
   );
   while (currentScreen() < target) {
-    const next = currentScreen() + 1;
-    fireEvent.keyDown(window, { code: 'Space', key: ' ' });
+    const current = currentScreen();
+    const next = current + 1;
+    if (current === 2) {
+      fireEvent.click(screen.getByTestId('play-screen-done'));
+    } else {
+      fireEvent.keyDown(window, { code: 'Space', key: ' ' });
+    }
     await waitFor(() =>
       expect(screen.getByRole('region')).toHaveAttribute(
         'data-intro-screen',
@@ -171,8 +187,13 @@ describe('Ouverture : sortie', () => {
       useAudioStore.setState({ isSamplerLoaded: true });
     });
     while (currentScreen() < 4) {
-      const next = currentScreen() + 1;
-      fireEvent.keyDown(window, { code: 'Space', key: ' ' });
+      const current = currentScreen();
+      const next = current + 1;
+      if (current === 2) {
+        fireEvent.click(screen.getByTestId('play-screen-done'));
+      } else {
+        fireEvent.keyDown(window, { code: 'Space', key: ' ' });
+      }
       await waitFor(() =>
         expect(screen.getByRole('region')).toHaveAttribute(
           'data-intro-screen',
@@ -232,7 +253,11 @@ describe('Ouverture : écran 4, les envies', () => {
     render(<Ouverture urlLocale="fr" firstRun={true} onClose={onClose} />);
     while (currentScreen() < 4) {
       act(() => {
-        fireEvent.keyDown(window, { code: 'Space', key: ' ' });
+        if (currentScreen() === 2) {
+          fireEvent.click(screen.getByTestId('play-screen-done'));
+        } else {
+          fireEvent.keyDown(window, { code: 'Space', key: ' ' });
+        }
       });
     }
     expect(screen.getByRole('region')).toHaveAttribute(
@@ -285,8 +310,13 @@ describe('Ouverture : mode tactile', () => {
     const onClose = vi.fn();
     render(<Ouverture urlLocale="fr" firstRun={true} onClose={onClose} />);
     while (currentScreen() < 6) {
-      const next = currentScreen() + 1;
-      fireEvent.click(screen.getByTestId('intro-continue-touch'));
+      const current = currentScreen();
+      const next = current + 1;
+      if (current === 2) {
+        fireEvent.click(screen.getByTestId('play-screen-done'));
+      } else {
+        fireEvent.click(screen.getByTestId('intro-continue-touch'));
+      }
       await waitFor(() =>
         expect(screen.getByRole('region')).toHaveAttribute(
           'data-intro-screen',

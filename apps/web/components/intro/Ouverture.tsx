@@ -7,11 +7,12 @@ import frMessages from '@/messages/fr.json';
 import { useAudioStore } from '@/stores/useAudioStore';
 import { NextIntlClientProvider, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { exitSettings, type IntroExit, type IntroLanguage } from './apply-exit';
+import type { IntroExit, IntroLanguage } from './apply-exit';
 import { FINAL_CHORD, SAMPLER_WAIT_MS, STAFF_PHRASE, playChord } from './intro-music';
 import { DataScreen } from './screens/DataScreen';
 import { FEATURE_KEYS, FeaturesScreen } from './screens/FeaturesScreen';
 import { LanguageScreen } from './screens/LanguageScreen';
+import { PlayScreen } from './screens/PlayScreen';
 import { StartScreen } from './screens/StartScreen';
 import { WhyScreen } from './screens/WhyScreen';
 import { Staff } from './Staff';
@@ -190,6 +191,10 @@ export function Ouverture({ urlLocale, firstRun, onClose }: OuvertureProps) {
         return;
       }
 
+      // Écran 2 : Espace/Entrée et Retour arrière appartiennent à PlayScreen
+      // (`onDone` prévient quand « resumed » autorise vraiment à continuer).
+      if (current === 2) return;
+
       if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight') {
         e.preventDefault();
         advanceFrom(current);
@@ -239,6 +244,7 @@ export function Ouverture({ urlLocale, firstRun, onClose }: OuvertureProps) {
         onExplore={() => onClose(currentExit())}
         onSkip={() => onClose(currentExit())}
         onTouchContinue={handleTouchContinue}
+        onPlayScreenDone={() => advanceFrom(2)}
       />
     </NextIntlClientProvider>
   );
@@ -259,6 +265,7 @@ interface ChromeProps {
   onExplore: () => void;
   onSkip: () => void;
   onTouchContinue: () => void;
+  onPlayScreenDone: () => void;
 }
 
 function screenTitle(
@@ -300,6 +307,7 @@ function OuvertureChrome({
   onExplore,
   onSkip,
   onTouchContinue,
+  onPlayScreenDone,
 }: ChromeProps) {
   const t = useTranslations('intro');
   const title = screenTitle(screen, t, featuresIndex, featuresRest);
@@ -317,7 +325,7 @@ function OuvertureChrome({
         padding: 'clamp(24px, 5vw, 64px)',
       }}
     >
-      {touchMode ? (
+      {touchMode && screen !== 2 ? (
         <button
           type="button"
           data-testid="intro-continue-touch"
@@ -355,7 +363,9 @@ function OuvertureChrome({
               onChoose={onChooseLanguage}
             />
           )}
-          {screen === 2 && <div data-part="play-screen-placeholder" />}
+          {screen === 2 && (
+            <PlayScreen onDone={onPlayScreenDone} touch={touchMode} />
+          )}
           {screen === 3 && <WhyScreen />}
           {screen === 4 && (
             <FeaturesScreen
@@ -375,23 +385,25 @@ function OuvertureChrome({
           )}
         </div>
 
-        <Staff step={screen} heads={[]} />
+        {screen !== 2 && <Staff step={screen} heads={[]} />}
       </div>
 
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 'clamp(16px, 3vw, 32px)',
-          left: 'clamp(16px, 3vw, 32px)',
-          fontFamily: 'var(--font-mono)',
-          fontSize: '0.78rem',
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-          color: 'var(--color-text-muted)',
-        }}
-      >
-        {touchMode ? t('continueTouch') : t('continue')}
-      </div>
+      {screen !== 2 && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 'clamp(16px, 3vw, 32px)',
+            left: 'clamp(16px, 3vw, 32px)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.78rem',
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            color: 'var(--color-text-muted)',
+          }}
+        >
+          {touchMode ? t('continueTouch') : t('continue')}
+        </div>
+      )}
 
       {touchMode ? (
         <button
