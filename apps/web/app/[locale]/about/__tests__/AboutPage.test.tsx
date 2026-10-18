@@ -115,10 +115,10 @@ describe('AboutPage', () => {
     }
   });
 
-  it('énonce la règle produit : une faute ne joue rien', async () => {
+  it('énonce la règle produit : une faute ne joue jamais de fausse note', async () => {
     await renderPage();
     expect(
-      screen.getByText(/Jamais de fausse note, seulement du silence/i),
+      screen.getByText(/la dernière note résonne tout bas/i),
     ).toBeInTheDocument();
   });
 

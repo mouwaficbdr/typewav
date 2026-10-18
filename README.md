@@ -20,7 +20,7 @@
 
 <p align="center">
   <b>A musical, customizable typing test.</b> Every correct keystroke plays the next note of a real
-  piano piece; a mistake plays nothing, never a wrong note.
+  piano piece; a mistake never plays a wrong note, the last note rings softly.
 </p>
 
 <p align="center">
@@ -40,8 +40,9 @@ instant feedback on every typo) built around one idea: the reward for typing wel
 number.
 
 Each `.mid` file is a real piece of music. As you type, every **correct** keystroke advances the
-sequencer and plays the **next note** of that piece. A **wrong** keystroke produces **silence**,
-never a wrong note. Correcting with Backspace resumes the music with a short reverb cue. The tempo
+sequencer and plays the **next note** of that piece. A **wrong** keystroke never plays a wrong
+note: the music does not advance and the last note rings softly. Correcting with Backspace resumes
+the music with a short reverb cue. The tempo
 follows your typing speed; the octave moves in a fixed pattern per word. The piece only sounds
 right when you type right.
 
