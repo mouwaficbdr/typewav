@@ -1,8 +1,12 @@
 import 'fake-indexeddb/auto';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getPreference } from '@/lib/db';
-import { DEFAULT_CONFIG, useConfigStore } from '../useConfigStore';
+import { getPreference, setPreference } from '@/lib/db';
+import {
+  DEFAULT_CONFIG,
+  normalizeActiveMode,
+  useConfigStore,
+} from '../useConfigStore';
 
 // Le storage IndexedDB est asynchrone : l'hydratation automatique déclenchée
 // à la création du store (une seule fois, à l'import du module) peut se
@@ -83,5 +87,30 @@ describe('useConfigStore', () => {
 
     expect(setItemSpy).not.toHaveBeenCalled();
     setItemSpy.mockRestore();
+  });
+
+  it("normalizeActiveMode remplace l'ancien mode Apprentissage par le mode Temps", () => {
+    expect(normalizeActiveMode('learning')).toBe('classic');
+  });
+
+  it('normalizeActiveMode laisse les autres modes intacts', () => {
+    expect(normalizeActiveMode('zen')).toBe('zen');
+    expect(normalizeActiveMode('code')).toBe('code');
+  });
+
+  it("une config persistée avec activeMode 'learning' se réhydrate en 'classic'", async () => {
+    await setPreference(
+      'typewav-config',
+      JSON.stringify({
+        state: { ...DEFAULT_CONFIG, activeMode: 'learning' },
+        version: 0,
+      }),
+    );
+
+    await act(async () => {
+      await useConfigStore.persist.rehydrate();
+    });
+
+    expect(useConfigStore.getState().activeMode).toBe('classic');
   });
 });
