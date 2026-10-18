@@ -153,6 +153,9 @@ describe('AboutPage', () => {
       'href',
       'https://github.com/mouwaficbdr',
     );
+    expect(
+      screen.getByRole('link', { name: "Revoir l'introduction" }),
+    ).toHaveAttribute('href', '/fr?intro=1');
     expect(screen.queryByRole('link', { name: 'Transparence' })).toBeNull();
   });
 

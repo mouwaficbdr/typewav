@@ -21,6 +21,8 @@ import {
 } from '@/app/[locale]/actions/collections';
 import { ActiveSessionHeader } from '@/components/typing/ActiveSessionHeader';
 import { AmbientAura } from '@/components/typing/AmbientAura';
+import { exitSettings, type IntroExit } from '@/components/intro/apply-exit';
+import { Ouverture } from '@/components/intro/Ouverture';
 import { ConfigBar } from '@/components/typing/ConfigBar';
 import { CollectionSelector } from '@/components/typing/CollectionSelector';
 import { ContextSelectors } from '@/components/typing/ContextSelectors';
@@ -48,6 +50,7 @@ import {
   getUserProfile,
   type PersonalText,
 } from '@/lib/db';
+import { hasSeenIntro, markIntroSeen } from '@/lib/intro';
 import { noteNameToMidi } from '@/lib/note-visualization';
 import { applyTextFilters } from '@/lib/text-filters';
 import { useAudioStore } from '@/stores/useAudioStore';
@@ -59,7 +62,8 @@ import { type MidiPieceId } from '@typewav/audio-engine';
 import { buildContinuousText, selectFromTexts } from '@typewav/collections';
 import type { CollectionConfig, TypingMode } from '@typewav/types';
 import { useReducedMotion } from 'motion/react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import webPackage from '../../package.json';
 
@@ -88,6 +92,8 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const tAudio = useTranslations('audio');
   const tGhost = useTranslations('ghost');
   const shouldReduceMotion = useReducedMotion();
+  const locale = useLocale() as 'fr' | 'en';
+  const router = useRouter();
 
   const [shuffleOffset, setShuffleOffset] = useState(0);
   const [restartKey, setRestartKey] = useState(0);
@@ -194,8 +200,65 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const wordCount = useConfigStore((s) => s.wordCount);
   const textLanguage = useConfigStore((s) => s.textLanguage);
   const durationSeconds = useConfigStore((s) => s.durationSeconds);
+  const setTextLanguage = useConfigStore((s) => s.setTextLanguage);
+  const setDuration = useConfigStore((s) => s.setDuration);
   const activePersonalTextId = useCustomTextStore(
     (s) => s.activePersonalTextId,
+  );
+
+  // L'Ouverture (spec partie B) : drapeau lu une fois au montage, jamais
+  // revérifié ensuite. Rien ne s'affiche avant que ce drapeau soit tranché
+  // (pas d'éclair de l'accueil) ; `?intro=1` (lien « Revoir l'introduction »
+  // d'À propos) rejoue l'Ouverture sans reposer ni retoucher le drapeau.
+  const [introResolved, setIntroResolved] = useState(false);
+  const [showIntro, setShowIntro] = useState(false);
+  const [introFirstRun, setIntroFirstRun] = useState(true);
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const seen = await hasSeenIntro();
+      if (cancelled) return;
+      const forceReplay =
+        new URLSearchParams(window.location.search).get('intro') === '1';
+      if (!seen) {
+        setShowIntro(true);
+        setIntroFirstRun(true);
+      } else if (forceReplay) {
+        setShowIntro(true);
+        setIntroFirstRun(false);
+      }
+      setIntroResolved(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleIntroClose = useCallback(
+    (exit: IntroExit) => {
+      const { textLanguage: lang, setTimedMode30, localeTarget } =
+        exitSettings(exit);
+      if (lang) setTextLanguage(lang);
+      if (setTimedMode30) {
+        setActiveMode('classic');
+        setDuration(30);
+      }
+      void markIntroSeen();
+      setShowIntro(false);
+
+      const url = new URL(window.location.href);
+      url.searchParams.delete('intro');
+      window.history.replaceState({}, '', url.toString());
+
+      if (localeTarget && localeTarget !== locale) {
+        router.replace(`/${localeTarget}`);
+      } else {
+        document
+          .querySelector<HTMLInputElement>('[data-testid="typing-capture"]')
+          ?.focus();
+      }
+    },
+    [locale, router, setActiveMode, setDuration, setTextLanguage],
   );
 
   const activePersonalText = useMemo(
@@ -575,8 +638,19 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   // Le layout unifié supprime les "sauts" ou "jumps" de l'UI.
   const appVersion = webPackage.version;
 
+  // Rien ne s'affiche avant que le drapeau de l'Ouverture soit tranché.
+  if (!introResolved) return null;
+
   return (
-    <main
+    <>
+      {showIntro && (
+        <Ouverture
+          urlLocale={locale}
+          firstRun={introFirstRun}
+          onClose={handleIntroClose}
+        />
+      )}
+      <main
       className="home-main"
       style={{
         display: 'flex',
@@ -1195,6 +1269,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         personalTexts={personalTexts}
         onChange={refreshPersonalTexts}
       />
-    </main>
+      </main>
+    </>
   );
 }

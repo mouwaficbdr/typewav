@@ -7,7 +7,7 @@ import { ShortcutRow } from '@/components/about/ShortcutRow';
 import { Keycap } from '@/components/ui/Keycap';
 import { routing } from '@/i18n/routing';
 import { buildMetadata } from '@/lib/seo';
-import { BookText, CircleUserRound, Github } from 'lucide-react';
+import { BookText, CircleUserRound, Github, Theater } from 'lucide-react';
 import type { Metadata } from 'next';
 import { hasLocale } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
@@ -286,6 +286,14 @@ export default async function AboutPage({ params }: Props) {
             <CircleUserRound size={16} aria-hidden="true" />
             {t('links.profile')}
           </a>
+          <Link
+            href={`/${locale}?intro=1`}
+            style={LINK_STYLE}
+            className="hover:text-[var(--color-text-primary)] transition-colors"
+          >
+            <Theater size={16} aria-hidden="true" />
+            {t('links.replayIntro')}
+          </Link>
         </div>
       </AboutSection>
 
