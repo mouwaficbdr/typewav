@@ -454,7 +454,8 @@
       "heading": "Liens",
       "github": "Code source",
       "readme": "README",
-      "profile": "L'auteur"
+      "profile": "L'auteur",
+      "replayIntro": "Revoir l'introduction"
     },
     "credits": {
       "heading": "Crédits",
@@ -473,5 +474,83 @@
     "promise3": "Tes touches faibles reviennent jusqu'à devenir sûres.",
     "teaser": "Pose tes doigts, joue la gamme.",
     "cta": "En attendant, joue"
+  },
+  "intro": {
+    "skip": "Passer · Échap",
+    "skipTouch": "Passer",
+    "continue": "Espace pour continuer",
+    "continueTouch": "Touche pour continuer",
+    "announce": "Écran {n} sur 6 : {title}",
+    "language": {
+      "prompt": "Choisis ta langue · Choose your language",
+      "sound": "Monte le son · Turn up the sound",
+      "tuning": "Le piano s'accorde… · Tuning the piano…",
+      "soundFailed": "Le son n'a pas pu démarrer. S pour réessayer."
+    },
+    "play": {
+      "instruction": "Tape la bonne lettre, la musique suit.",
+      "text": "les notes",
+      "askMiss": "Maintenant, rate une touche.",
+      "waiting": "La musique attend.",
+      "missLine": "Une faute ne joue jamais de fausse note : seule la dernière note résonne, tout bas. Retour arrière pour reprendre.",
+      "touchInstruction": "TypeWav se joue au clavier d'un ordinateur. Touche l'écran pour l'entendre.",
+      "touchMissLine": "Une faute ne joue jamais de fausse note : seule la dernière note résonne, tout bas."
+    },
+    "why": {
+      "title": "Ton oreille entend la faute avant tes yeux.",
+      "line": "Pour qui veut taper plus vite et plus juste, sans fixer un chronomètre : du curieux au dactylo confirmé."
+    },
+    "features": {
+      "modes": {
+        "title": "Les modes",
+        "line": "Temps, Mots, Citation, Zen, Code, ou tes propres textes."
+      },
+      "pieces": {
+        "title": "Les morceaux",
+        "line": "Choisis la musique que ta frappe dévoile."
+      },
+      "replay": {
+        "title": "Les résultats et le replay",
+        "line": "Ta séance rejouée note par note."
+      },
+      "progress": {
+        "title": "Ta progression",
+        "line": "Records, rang, classement : tout se garde."
+      },
+      "challenge": {
+        "title": "Le défi",
+        "line": "Un lien, le même texte, ton score à battre. Et le Fantôme rejoue ton record."
+      },
+      "rest": "Le reste se découvre en jouant."
+    },
+    "data": {
+      "title": "Tout reste dans ce navigateur.",
+      "line": "Pas de compte, rien n'est envoyé, aucun pistage. I pour en savoir plus.",
+      "more": "En savoir plus",
+      "private": {
+        "term": "Navigation privée",
+        "def": "rien n'est gardé."
+      },
+      "clear": {
+        "term": "Effacer les données du site",
+        "def": "tout disparaît."
+      },
+      "other": {
+        "term": "Autre navigateur, autre appareil",
+        "def": "on repart de zéro."
+      },
+      "backup": {
+        "term": "Ta sauvegarde",
+        "def": "« Télécharger mes données », dans les Paramètres, puis « Importer un fichier » pour tout retrouver."
+      }
+    },
+    "start": {
+      "title": "Ton premier morceau t'attend.",
+      "future": "Bientôt : le Conservatoire, pour apprendre à taper à dix doigts.",
+      "go": "Espace pour commencer",
+      "share": "Envoie-toi le lien",
+      "copied": "Lien copié.",
+      "explore": "Explorer quand même"
+    }
   }
 }
