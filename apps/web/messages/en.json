@@ -6,7 +6,8 @@
     "leaderboard": "Leaderboard",
     "typing": "Typing",
     "settings": "Settings",
-    "about": "About"
+    "about": "About",
+    "conservatoire": "Conservatory"
   },
   "typing": {
     "start": "Start typing to begin…",
@@ -460,5 +461,16 @@
       "body": "TypeWav owes a lot to <mt>Monkeytype</mt>: its clarity, restraint and focus were the reference and the case study throughout. Thank you to its team and contributors."
     },
     "closing": "Enough reading. Back to the keyboard."
+  },
+  "comingSoon": {
+    "metaTitle": "The Conservatory",
+    "metaDescription": "Coming to TypeWav: learn to touch type, in music.",
+    "kicker": "The Conservatory · soon",
+    "title": "Learn to touch type, in music.",
+    "promise1": "One-minute lessons, one key at a time.",
+    "promise2": "Every right key plays its note on the piano. A mistake never plays a wrong note.",
+    "promise3": "Your weak keys come back until they're sure.",
+    "teaser": "Rest your fingers, play the scale.",
+    "cta": "Meanwhile, play"
   }
 }

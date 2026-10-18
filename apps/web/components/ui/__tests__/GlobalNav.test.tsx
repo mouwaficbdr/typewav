@@ -40,9 +40,10 @@ describe('GlobalNav', () => {
     expect(screen.getByRole('link', { name: /TypeWav/i })).toBeInTheDocument();
   });
 
-  it('affiche les cinq entrées de navigation', () => {
+  it('affiche les six entrées de navigation', () => {
     render(<GlobalNav />);
     for (const name of [
+      'conservatoire',
       'typing',
       'leaderboard',
       'profile',
@@ -51,6 +52,14 @@ describe('GlobalNav', () => {
     ]) {
       expect(screen.getByRole('link', { name })).toBeInTheDocument();
     }
+  });
+
+  it("l'entrée piano Conservatoire est en première position", () => {
+    render(<GlobalNav />);
+    const links = screen.getAllByRole('link');
+    // Le premier lien est NavLogo ; le premier lien de navigation suit.
+    expect(links[1]).toHaveAttribute('href', '/fr/conservatoire');
+    expect(links[1]).toHaveAttribute('aria-label', 'conservatoire');
   });
 
   it("n'expose ni connexion ni premium", () => {
