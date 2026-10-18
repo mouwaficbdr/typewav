@@ -54,11 +54,11 @@ export function ComingSoonClient() {
       style={{
         maxWidth: '760px',
         margin: '0 auto',
-        padding: 'clamp(24px, 5vw, 48px) clamp(20px, 6vw, 56px) 96px',
+        padding: 'clamp(16px, 3vw, 28px) clamp(20px, 6vw, 56px) 24px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-start',
-        gap: '44px',
+        gap: '16px',
       }}
     >
       <header
@@ -72,6 +72,7 @@ export function ComingSoonClient() {
       >
         <div style={{ flex: '1 1 auto', minWidth: 0 }}>
           <p
+            data-testid="coming-soon-kicker"
             style={{
               margin: 0,
               fontFamily: 'var(--font-mono)',
@@ -85,10 +86,10 @@ export function ComingSoonClient() {
           </p>
           <h1
             style={{
-              margin: '14px 0 0',
+              margin: '10px 0 0',
               fontFamily: 'var(--font-display)',
               fontWeight: 300,
-              fontSize: 'clamp(2.4rem, 7vw, 3.6rem)',
+              fontSize: 'clamp(2.1rem, 6vw, 3.2rem)',
               lineHeight: 1.08,
               letterSpacing: '0.01em',
               color: 'var(--color-text-primary)',
@@ -153,7 +154,7 @@ export function ComingSoonClient() {
           listStyle: 'none',
           display: 'flex',
           flexDirection: 'column',
-          gap: '18px',
+          gap: '10px',
           width: '100%',
         }}
       >
@@ -194,6 +195,7 @@ export function ComingSoonClient() {
 
       <div style={{ width: '100%' }}>
         <p
+          data-testid="coming-soon-teaser"
           style={{
             margin: '0 0 16px',
             fontFamily: 'var(--font-ui)',

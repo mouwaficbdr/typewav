@@ -123,7 +123,7 @@ export function HomeRowTeaser() {
               style={{
                 position: 'relative',
                 flex: '1 1 0',
-                aspectRatio: '1',
+                height: 'clamp(48px, 8vw, 64px)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
