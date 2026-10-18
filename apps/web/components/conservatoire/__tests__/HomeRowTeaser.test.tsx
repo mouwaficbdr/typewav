@@ -87,6 +87,16 @@ describe('HomeRowTeaser', () => {
     "une touche hors rangée de repos déclenche l'écho de la dernière note jouée",
   );
 
+  it('un clic (souris, tactile, ou Entrée/Espace au clavier sur le bouton natif) joue la note', async () => {
+    render(<HomeRowTeaser />);
+
+    // fireEvent.click couvre aussi l'activation clavier native d'un <button>
+    // (Entrée/Espace sur l'élément focalisé), pas seulement le pointeur.
+    fireEvent.click(screen.getByTestId('home-row-key-KeyF'));
+
+    await waitFor(() => expect(mockPlayNoteName).toHaveBeenCalledWith('F4'));
+  });
+
   it('le libellé AZERTY se corrige en QWERTY dès la première frappe QWERTY', async () => {
     render(<HomeRowTeaser />);
     expect(screen.getByText('q')).toBeInTheDocument();

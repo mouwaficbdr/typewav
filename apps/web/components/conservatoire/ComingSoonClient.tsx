@@ -211,6 +211,11 @@ export function ComingSoonClient() {
       <Link
         href={`/${locale}`}
         style={{
+          // Zone tactile >= 44px (même règle que GlobalNav) : seule action de
+          // la page, elle ne doit jamais être ratée au pouce.
+          display: 'inline-block',
+          margin: '-10px 0',
+          padding: '10px 0',
           fontFamily: 'var(--font-display)',
           fontStyle: 'italic',
           fontSize: '1.5rem',

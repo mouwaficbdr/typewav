@@ -90,7 +90,10 @@ export function HomeRowTeaser() {
 
       if (isHomeRowCode(e.code)) {
         void trigger(e.code);
-      } else {
+      } else if (e.key.length === 1) {
+        // Une vraie touche de caractère, pas Tab/Entrée/Shift/une flèche :
+        // ces touches de navigation ne sont pas des fautes de frappe, et
+        // Entrée a déjà son propre rôle sur cette page (mène à l'accueil).
         void triggerSilence();
       }
     };
@@ -119,7 +122,8 @@ export function HomeRowTeaser() {
               type="button"
               data-testid={`home-row-key-${code}`}
               data-pressed={isPressed ? 'true' : undefined}
-              onPointerDown={() => void trigger(code)}
+              className="home-row-key"
+              onClick={() => void trigger(code)}
               style={{
                 position: 'relative',
                 flex: '1 1 0',
@@ -138,7 +142,7 @@ export function HomeRowTeaser() {
                 touchAction: 'manipulation',
                 WebkitTapHighlightColor: 'transparent',
                 transform: isPressed ? 'scale(0.94)' : 'scale(1)',
-                transition: 'transform 0.12s ease-out',
+                transition: 'transform 0.12s ease-out, background 0.15s ease-out',
                 overflow: 'hidden',
               }}
             >
@@ -165,6 +169,9 @@ export function HomeRowTeaser() {
         @keyframes home-row-ripple {
           from { transform: scale(0.2); opacity: 0.45; }
           to { transform: scale(2.2); opacity: 0; }
+        }
+        .home-row-key:hover {
+          background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface));
         }
       `}</style>
     </div>
