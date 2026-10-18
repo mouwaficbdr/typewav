@@ -4,8 +4,6 @@ export type {
   CollectionLanguage,
   TextEntry,
 } from './collection';
-export * from './learning';
-export * from './conservatoire';
 export { LEARNING_LEVELS, RANKS } from './progression';
 export type {
   LearningLevel,

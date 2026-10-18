@@ -158,3 +158,53 @@ Avec : Crump et Logan (2010), Hierarchical control and skilled typing: Evidence 
 | 6. Peu, mais souvent, et dormir dessus | Baddeley et Longman 1978 ; Walker et al. 2002 |
 | 7. La régularité est un signe de maîtrise | Rapport DTIC ADA123644 ; Sheffield 2014 |
 | 8. Le plateau cède en poussant juste au-delà du confort | Ericsson et Pool 2016 ; Dhakal et al. 2018 ; Yousician |
+
+---
+
+## 2. Le programme TypingClub, modèle du Conservatoire (octobre 2026)
+
+Recherche menée le 18 octobre 2026, après la décision de Mouwafic de calquer le programme du Conservatoire sur celui de TypingClub, la méthode avec laquelle il a lui-même appris à taper à dix doigts. Question de départ : comment TypingClub structure-t-il ses leçons, introduit-il les touches, note-t-il et fait-il revenir l'élève ?
+
+### 2.1 Sources
+
+- **Grade 2 Typing Handbook** (edclub / TypingClub, 2022, 10 pages), fourni par Mouwafic. Texte intégral lu.
+- **Typing Jungle Teacher Handbook** (edclub / TypingClub, [PDF](https://login.typingclub.com/m/edclubdocs/media/pdf/typing-jungle-handbook.pdf)), consulté le 18 octobre 2026. Texte intégral lu (extraction du PDF). Typing Jungle est le parcours par défaut de TypingClub.
+- **Aide edclub, glossaire** ([lien](https://www.edclub.com/help/faq/glossary.html)) et **page de résultats** ([lien](https://www.edclub.com/help/student-management/track-progress/results-page.html)), consultés le 18 octobre 2026. Texte lu via un résumé automatique de la page : formulations à revérifier avant toute citation publique.
+
+### 2.2 Constats
+
+- **Une granularité extrême.** Typing Jungle compte environ 660 leçons ; la seule rangée du milieu en occupe 23 (leçons 1 à 23), toutes les lettres sont couvertes à la leçon 88. Grade 2 : 1 052 leçons. (Handbooks, lus.)
+- **Les touches arrivent par paires symétriques, rangée par rangée.** Typing Jungle : f j k d s l (leçons 1 à 11), puis a ; g h (12 à 23) ; rangée du haut r u e i w o (24 à 38), puis q y p t (39 à 51) ; rangée du bas v m c , (52 à 68), puis z / b n (69 à 88). Chaque doigt « monte en diagonale » depuis sa touche de repos et y revient. (Typing Jungle, lu.)
+- **Un type de leçon par intention.** Introduction de touche (sans note, avec la consigne du doigt), révision de touches, pratique, leçon dynamique (texte généré à partir des caractères les plus manqués), leçon d'ancrage (une main maintient F ou J enfoncée, l'autre tape : la chasse au clavier devient impossible), voyage en diagonale, motifs fréquents, mots piégeux, leçons de contenu, jeux, vidéos courtes, tests de vitesse. (Typing Jungle, lu.)
+- **L'ordre est imposé au début.** « Do the first 5 sections in order » ; « Each pair of characters should be mastered before moving on to the next one ». (Handbooks, lus.)
+- **Des étoiles à chaque tentative.** 0 à 5 étoiles par leçon ; au moins 1 étoile pour passer à la suivante (réglable) ; 5 étoiles = objectif de vitesse atteint avec 100 % de justesse ; « Mastery equals 5 stars ». Seuils du Grade 2 : 80 % de justesse minimum ; objectif de 1 à 10 mots par minute selon la section. Typing Jungle : minimum 3, objectif 10 dans les trois premières rangées. Une étoile « platine » récompense le score parfait, environ 2,5 fois l'objectif avec une justesse quasi parfaite. Les seuils de 1 à 4 étoiles ne sont pas publiés. (Handbooks lus ; aide edclub, résumé.)
+- **La justesse pèse plus que la vitesse.** Chaque erreur est pénalisée deux fois ; une erreur corrigée garde une pénalité plus faible. Deux mesures : la justesse (corrections comprises) et la justesse réelle (du premier coup). (Aide edclub, résumé.)
+- **Le résultat se lit tout de suite.** Écran de résultat : performance à gauche, exigences de la leçon à droite ; relecture de la tentative et caractères les plus manqués. (Typing Jungle, lu.)
+- **Aides visuelles et réglages.** Mains virtuelles (deux mains, gauche ou droite), à retirer dans les leçons avancées ; vitesse et justesse en direct en option ; « blocage sur erreur » (la suite ne vient pas tant que la bonne touche n'est pas tapée) en option ; Retour arrière recommandé pour les débutants. (Typing Jungle, lu.)
+- **Motivation.** Badges à seuils croissants (vitesse tenue, séries de jours, leçons 5 étoiles dans la journée, durée d'une séance), calendrier de pratique, statistiques par touche et par doigt, couverture du clavier. 45 à 60 minutes par semaine en deux ou trois séances courtes. (Typing Jungle, lu.)
+- **Ce qui n'a pas été trouvé.** La formule exacte du score et des étoiles ; la durée moyenne d'une leçon (l'expérience de Mouwafic et la structure, environ 20 caractères à quelques lignes par leçon, suggèrent moins d'une minute au début, non vérifié par une source) ; le détail du parcours français AZERTY de TypingClub.
+
+### 2.3 Ce que TypeWav en tire
+
+- Le Conservatoire adopte la structure de TypingClub : des sections par rangée, des micro-leçons, les touches par paires symétriques, un type de leçon par intention, l'ordre imposé, des étoiles à chaque tentative et au moins une étoile pour avancer.
+- Les touches étant désignées par leur position physique (`KeyboardEvent.code`), le même programme vaut pour l'AZERTY et le QWERTY dans les rangées de lettres ; seuls les mots et les phrases changent de langue.
+- La plus-value de TypeWav se pose sur cette structure sans la remplacer : chaque frappe juste joue la note de son doigt, l'erreur se tait, la leçon dynamique s'appuie sur le moteur de maîtrise (partie 1), la relecture de la tentative devient une écoute de la phrase jouée.
+
+---
+
+## 3. L'onboarding provisoire de TypeWav (octobre 2026)
+
+Recherche menée le 18 octobre 2026 pour l'onboarding provisoire (#125). Question de départ : qu'est-ce qui fait qu'un onboarding sert vraiment, combien d'étapes il supporte, et que faut-il dire honnêtement sur des données gardées dans le navigateur ?
+
+### 3.1 Sources et constats
+
+- **Nielsen Norman Group, étude sur les tutoriels mobiles en cartes** ([lien](https://www.nngroup.com/articles/mobile-tutorials/)), consulté le 18 octobre 2026. Lu via un résumé automatique de la page. Étude à 70 participants (35 par groupe) sur quatre apps iOS : lire le tutoriel ne change ni la réussite (91 % contre 94 %, p = 0,443) ni le temps de tâche ; ceux qui l'ont lu jugent les tâches plus difficiles (4,92 contre 5,49 sur 7, p = 0,047). NN/g recommande de rendre l'interface évidente et de préférer l'aide en contexte à la visite guidée.
+- **Révélations « poussées » et « tirées »** (NN/g, Page Laubheimer, 2023), connu seulement par un compte rendu secondaire, non vérifié à la source : une information poussée hors contexte se retient mal ; l'aide déclenchée au moment où elle sert fonctionne mieux.
+- **Taux de complétion des visites guidées selon le nombre d'étapes**, chiffres publiés par des éditeurs d'outils, non indépendants, lus via des résumés : Produktly 2026 (256 visites) : 73 % pour 1 à 2 étapes, 38 % pour 3 à 5, 25 % pour 6 à 8, 8 % au-delà ([lien](https://produktly.com/research/saas-onboarding-benchmarks-2026)) ; Chameleon : l'attention chute nettement après 4 étapes ([rapport 2019](https://www.chameleon.io/assets/chameleon-product-tour-benchmarks-report-2019.pdf)) ; Intercom : 34 % de complétion médiane pour 5 étapes ([lien](https://www.intercom.com/help/en/articles/3027087-see-how-your-product-tours-are-performing)).
+- **Safari efface le stockage écrit par script après 7 jours sans visite** (ITP, depuis 2020) : IndexedDB comprise. Sources secondaires concordantes ([Didomi](https://docs.didomi.io/releases-and-announcements/announcements/apple-implements-7-day-cap-on-script-writable-storage), [Ionic](https://ionic.io/blog/wp-json/wp/v2/posts/3240)), pas de document WebKit récent trouvé : non retenu : décision du 18 octobre 2026 de ne pas en parler dans l'app.
+
+### 3.2 Ce que TypeWav en tire
+
+- Montrer plutôt qu'expliquer : le moment où la musique avance sous les doigts vaut mieux que tout paragraphe sur la musique.
+- Peu d'étapes, chacune utile, toujours passables ; les fonctionnalités se présentent comme des envies, pas comme un mode d'emploi, et l'aide détaillée vient en contexte.
+- L'écran des données dit les vraies limites du stockage local (navigation privée, effacement des données du site, autre navigateur) et la parade (l'export).

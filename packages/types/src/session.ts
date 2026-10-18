@@ -1,6 +1,6 @@
 export type TypingMode =
   | 'classic' // Mots aléatoires
-  | 'learning' // Apprentissage Home Row : débutants
+  | 'learning' // Historique seulement : ancien mode Apprentissage, plus jamais sélectionnable
   | 'bigrams' // Bigrams ciblés depuis diagnostic
   | 'code' // Snippets de code réel
   | 'numbers' // Chiffres et ponctuation

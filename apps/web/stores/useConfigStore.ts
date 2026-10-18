@@ -70,6 +70,16 @@ const indexedDBStorage: StateStorage = {
   },
 };
 
+/**
+ * Une config persistée peut porter un `activeMode` qui n'est plus
+ * sélectionnable (l'ancien mode Apprentissage, retiré). On ne le lit jamais
+ * tel quel : il retombe sur le mode Temps à la réhydratation, sans erreur ni
+ * écran vide.
+ */
+export function normalizeActiveMode(mode: TypingMode): TypingMode {
+  return mode === 'learning' ? 'classic' : mode;
+}
+
 export const DEFAULT_CONFIG: ConfigState = {
   activeMode: 'classic',
   punctuationEnabled: false,
@@ -96,6 +106,16 @@ export const useConfigStore = create<ConfigState & ConfigActions>()(
     {
       name: 'typewav-config',
       storage: createJSONStorage(() => indexedDBStorage),
+      merge: (persistedState, currentState) => {
+        const merged = {
+          ...currentState,
+          ...(persistedState as Partial<ConfigState>),
+        };
+        return {
+          ...merged,
+          activeMode: normalizeActiveMode(merged.activeMode),
+        };
+      },
     },
   ),
 );

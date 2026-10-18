@@ -1,21 +1,13 @@
 'use client';
 
 import { DataManagement } from '@/components/settings/DataManagement';
-import {
-  KEYBOARD_LAYOUTS,
-  useKeyboardLayoutPreference,
-} from '@/hooks/useKeyboardLayoutPreference';
 import { routing } from '@/i18n/routing';
-import { isNonDesktopDevice } from '@/lib/device';
-import { resetLearningFingerIntroSeen } from '@/lib/onboarding';
 import { APP_THEMES } from '@/lib/theme/defaultThemes';
-import { useConfigStore } from '@/stores/useConfigStore';
 import { useThemeStore } from '@/stores/useThemeStore';
-import { CheckCircle2, Keyboard, Languages, Palette } from 'lucide-react';
+import { CheckCircle2, Languages, Palette } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 const LANGUAGE_LABEL_KEYS: Record<string, string> = {
   fr: 'languageFr',
@@ -26,39 +18,8 @@ export function ParametresClient() {
   const t = useTranslations('settings');
   const locale = useLocale();
   const pathname = usePathname();
-  const router = useRouter();
-  const { layout, setLayout } = useKeyboardLayoutPreference();
-  const { setMode } = useConfigStore();
   const themeId = useThemeStore((s) => s.themeId);
   const setTheme = useThemeStore((s) => s.setTheme);
-
-  // Sort de la ConfigBar (ticket #62, obsession-architect) : le mode
-  // Apprentissage n'est utile qu'une fois par utilisateur (ou après un
-  // changement de disposition), pas assez pour mériter un onglet permanent
-  // à côté des modes récurrents. Ce lien réinitialise explicitement l'écran
-  // de positionnement des doigts avant d'y naviguer : contrairement au
-  // premier passage automatique (jamais revu une fois vu), ici l'intention
-  // explicite de le revoir doit toujours le montrer.
-  function handleReviewFingerPositioning() {
-    void resetLearningFingerIntroSeen();
-    setMode('learning');
-    router.push(`/${locale}`);
-  }
-
-  // Le mode Apprentissage est desktop-only (#98). Sur téléphone / tablette,
-  // l'entrée « revoir le positionnement des doigts » n'a nulle part où mener :
-  // on la masque. Lu dans un effet (matchMedia indisponible au rendu serveur),
-  // setState différé par microtâche (react-hooks/set-state-in-effect).
-  const [nonDesktop, setNonDesktop] = useState(false);
-  useEffect(() => {
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (!cancelled) setNonDesktop(isNonDesktopDevice());
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   // Tous les thèmes d'`APP_THEMES` sont débloqués d'office : le sélecteur les
   // propose tous, sans filtrage par profil.
@@ -146,7 +107,7 @@ export function ParametresClient() {
           </div>
         </section>
 
-        {/* Section : langue & clavier */}
+        {/* Section : langue */}
         <section className="flex flex-col gap-10">
           <div className="flex items-center gap-2 text-[var(--color-text-muted)] font-mono mb-4 border-b border-[var(--color-border)] pb-2">
             <Languages className="w-4 h-4" aria-hidden="true" />
@@ -192,58 +153,6 @@ export function ParametresClient() {
                 );
               })}
             </div>
-          </div>
-
-          {/* Disposition du clavier physique : préférence IndexedDB, pas de
-              consommateur pour l'instant (voir ticket #62, clavier visuel du
-              mode Apprentissage). */}
-          <div className="flex flex-col gap-4">
-            <h3 className="font-mono text-sm text-[var(--color-text-primary)]">
-              {t('keyboardLayoutTitle')}
-            </h3>
-            <div className="flex gap-3">
-              {KEYBOARD_LAYOUTS.map((kl) => {
-                const isActive = kl === layout;
-                const label = t(kl === 'qwerty' ? 'layoutQwerty' : 'layoutAzerty');
-                return (
-                  <button
-                    key={kl}
-                    type="button"
-                    onClick={() => setLayout(kl)}
-                    aria-pressed={isActive}
-                    aria-label={t('selectLayout', { name: label })}
-                    className="relative flex items-center gap-2 px-3 py-2 rounded font-mono text-xs transition-transform hover:scale-[1.02] focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--color-accent)]"
-                    style={{
-                      color: isActive
-                        ? 'var(--color-text-primary)'
-                        : 'var(--color-text-muted)',
-                      border: `1px solid ${isActive ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                      background: isActive
-                        ? 'color-mix(in srgb, var(--color-accent) 10%, transparent)'
-                        : 'transparent',
-                    }}
-                  >
-                    {isActive && (
-                      <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
-                    )}
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-            <p className="text-xs text-[var(--color-text-muted)] font-mono">
-              {t('keyboardLayoutHint')}
-            </p>
-            {!nonDesktop && (
-              <button
-                type="button"
-                onClick={handleReviewFingerPositioning}
-                className="self-start flex items-center gap-2 px-3 py-2 rounded font-mono text-xs border border-[var(--color-border)] text-[var(--color-text-muted)] transition-transform hover:scale-[1.02] hover:text-[var(--color-text-primary)] focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--color-accent)]"
-              >
-                <Keyboard className="w-3.5 h-3.5" aria-hidden="true" />
-                {t('reviewFingerPositioning')}
-              </button>
-            )}
           </div>
         </section>
 
