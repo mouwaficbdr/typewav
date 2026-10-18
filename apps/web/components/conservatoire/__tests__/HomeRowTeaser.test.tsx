@@ -81,11 +81,11 @@ describe('HomeRowTeaser', () => {
     expect(root).toHaveAttribute('data-ripple-count', '0');
   });
 
-  // Réactivé en tâche 10 : playNoteName ne renseigne lastPlayedNote qu'à
-  // partir de là, donc l'écho n'est pas encore audible de bout en bout.
-  it.todo(
-    "une touche hors rangée de repos déclenche l'écho de la dernière note jouée",
-  );
+  // Le couplage réel playNoteName -> lastPlayedNote -> triggerErrorEcho est
+  // vérifié au niveau du moteur (useAudioEngine.test.ts, tâche 10) : ici,
+  // playNoteName et triggerErrorEcho sont des mocks indépendants, donc le
+  // test ci-dessus (triggerErrorEcho appelé) est la seule assertion possible
+  // à ce niveau de composant.
 
   it('un clic (souris, tactile, ou Entrée/Espace au clavier sur le bouton natif) joue la note', async () => {
     render(<HomeRowTeaser />);
