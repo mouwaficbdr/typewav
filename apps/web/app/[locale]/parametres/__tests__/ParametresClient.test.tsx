@@ -1,20 +1,13 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import { userEvent } from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { NON_DESKTOP_MEDIA_QUERY } from '@/lib/device';
+import { render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
 const mockGetUserProfile = vi.fn();
-const mockGetPreference = vi.fn().mockResolvedValue(undefined);
-const mockSetPreference = vi.fn().mockResolvedValue(undefined);
 vi.mock('@/lib/db', () => ({
   getUserProfile: () => mockGetUserProfile(),
   exportAll: vi.fn(),
   importAll: vi.fn(),
-  getPreference: (key: string) => mockGetPreference(key),
-  setPreference: (key: string, value: unknown) =>
-    mockSetPreference(key, value),
 }));
 
 const mockSetTheme = vi.fn();
@@ -28,20 +21,8 @@ vi.mock('next-intl', () => ({
   useLocale: () => 'fr',
 }));
 
-const mockPush = vi.fn();
 vi.mock('next/navigation', () => ({
   usePathname: () => '/fr/parametres',
-  useRouter: () => ({ push: mockPush }),
-}));
-
-const mockSetMode = vi.fn();
-vi.mock('@/stores/useConfigStore', () => ({
-  useConfigStore: () => ({ setMode: mockSetMode }),
-}));
-
-const mockResetLearningFingerIntroSeen = vi.fn().mockResolvedValue(undefined);
-vi.mock('@/lib/onboarding', () => ({
-  resetLearningFingerIntroSeen: () => mockResetLearningFingerIntroSeen(),
 }));
 
 vi.mock('next/link', () => ({
@@ -81,7 +62,6 @@ vi.mock('lucide-react', () => ({
   CheckCircle2: () => null,
   Palette: () => null,
   Languages: () => null,
-  Keyboard: () => null,
   HardDrive: () => null,
   Download: () => null,
   Upload: () => null,
@@ -103,8 +83,6 @@ const FORMERLY_GATED_NAMES = ['noir', 'arcade', 'soleil de minuit'];
 
 beforeEach(() => {
   mockGetUserProfile.mockReset();
-  mockGetPreference.mockReset().mockResolvedValue(undefined);
-  mockSetPreference.mockReset().mockResolvedValue(undefined);
 });
 
 describe('ParametresClient : sélecteur de thème', () => {
@@ -206,111 +184,13 @@ describe('ParametresClient : langue d’affichage (ticket #60)', () => {
   });
 });
 
-describe('ParametresClient : disposition du clavier (ticket #60)', () => {
-  it('affiche azerty comme disposition active par défaut', async () => {
+describe('ParametresClient : plus de choix de disposition du clavier (retrait du mode Apprentissage)', () => {
+  it("les Paramètres n'offrent plus de choix de disposition du clavier", () => {
     mockGetUserProfile.mockReturnValue(new Promise(() => {}));
 
     render(<ParametresClient />);
 
-    await waitFor(() => expect(mockGetPreference).toHaveBeenCalled());
-    const buttons = screen.getAllByRole('button', { name: 'selectLayout' });
-    expect(buttons).toHaveLength(2);
-    // Le mock i18n renvoie la clé brute, pas le libellé traduit.
-    const azerty = buttons.find((b) => b.textContent?.includes('layoutAzerty'))!;
-    expect(azerty).toHaveAttribute('aria-pressed', 'true');
-  });
-
-  it('charge la disposition déjà stockée', async () => {
-    mockGetUserProfile.mockReturnValue(new Promise(() => {}));
-    mockGetPreference.mockResolvedValue('azerty');
-
-    render(<ParametresClient />);
-
-    await waitFor(() => {
-      const azerty = screen
-        .getAllByRole('button', { name: 'selectLayout' })
-        .find((b) => b.textContent?.includes('layoutAzerty'))!;
-      expect(azerty).toHaveAttribute('aria-pressed', 'true');
-    });
-  });
-
-  it('cliquer sur une disposition la persiste', async () => {
-    mockGetUserProfile.mockReturnValue(new Promise(() => {}));
-    const user = userEvent.setup();
-
-    render(<ParametresClient />);
-
-    await waitFor(() => expect(mockGetPreference).toHaveBeenCalled());
-    const azerty = screen
-      .getAllByRole('button', { name: 'selectLayout' })
-      .find((b) => b.textContent?.includes('layoutAzerty'))!;
-    await user.click(azerty);
-
-    await waitFor(() =>
-      expect(mockSetPreference).toHaveBeenCalledWith('keyboardLayout', 'azerty'),
-    );
-    expect(azerty).toHaveAttribute('aria-pressed', 'true');
-  });
-});
-
-describe('ParametresClient : revoir le positionnement des doigts (ticket #62)', () => {
-  beforeEach(() => {
-    mockPush.mockClear();
-    mockSetMode.mockClear();
-    mockResetLearningFingerIntroSeen.mockClear().mockResolvedValue(undefined);
-  });
-
-  it('réinitialise l’écran de positionnement, bascule sur Apprentissage et navigue vers l’accueil', async () => {
-    mockGetUserProfile.mockReturnValue(new Promise(() => {}));
-    const user = userEvent.setup();
-
-    render(<ParametresClient />);
-
-    const reviewButton = await screen.findByRole('button', {
-      name: 'reviewFingerPositioning',
-    });
-    await user.click(reviewButton);
-
-    expect(mockResetLearningFingerIntroSeen).toHaveBeenCalledOnce();
-    expect(mockSetMode).toHaveBeenCalledWith('learning');
-    expect(mockPush).toHaveBeenCalledWith('/fr');
-  });
-});
-
-describe('ParametresClient : positionnement des doigts, desktop-only (#98)', () => {
-  const realMatchMedia = window.matchMedia;
-  afterEach(() => {
-    window.matchMedia = realMatchMedia;
-  });
-
-  function setMatchMedia(matches: (q: string) => boolean) {
-    window.matchMedia = ((q: string) => ({
-      matches: matches(q),
-      media: q,
-      onchange: null,
-      addEventListener: () => {},
-      removeEventListener: () => {},
-      addListener: () => {},
-      removeListener: () => {},
-      dispatchEvent: () => false,
-    })) as unknown as typeof window.matchMedia;
-  }
-
-  it("masque l'entrée « revoir le positionnement des doigts » sur appareil non desktop", async () => {
-    setMatchMedia((q) => q === NON_DESKTOP_MEDIA_QUERY);
-    render(<ParametresClient />);
-    await waitFor(() =>
-      expect(
-        screen.queryByText('reviewFingerPositioning'),
-      ).not.toBeInTheDocument(),
-    );
-  });
-
-  it("affiche l'entrée sur desktop", async () => {
-    setMatchMedia(() => false);
-    render(<ParametresClient />);
-    expect(
-      await screen.findByText('reviewFingerPositioning'),
-    ).toBeInTheDocument();
+    expect(screen.queryByText(/AZERTY|QWERTY/i)).toBeNull();
+    expect(screen.getByText('languageTitle')).toBeInTheDocument();
   });
 });

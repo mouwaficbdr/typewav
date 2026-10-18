@@ -22,7 +22,6 @@
     "hint": "cliquer pour activer · chaque frappe produit une note",
     "ariaTypingArea": "Zone de frappe",
     "ariaTypingInstructions": "Tapez le texte affiché. Une frappe correcte joue la note suivante, une erreur reste silencieuse. Retour arrière pour corriger.",
-    "ariaTypingInstructionsLearning": "Tape le texte affiché. Une frappe juste joue la note suivante, une erreur reste silencieuse. Retour arrière pour corriger.",
     "ariaTargetTextLabel": "Texte à taper",
     "srProgress": "{percent} % du texte tapé, {wpm} mots par minute, {accuracy} % de précision",
     "srComplete": "Texte terminé. {wpm} mots par minute, {accuracy} % de précision.",
@@ -36,7 +35,6 @@
     },
     "mode": {
       "ghost": "Ghost",
-      "learning": "Apprentissage",
       "code": "Code",
       "sprint": "Sprint",
       "endurance": "Endurance",
@@ -47,7 +45,6 @@
       "challenge": "Challenge"
     },
     "clickToFocus": "Cliquez pour activer",
-    "clickToFocusLearning": "Clique pour activer",
     "nextTest": "Test suivant",
     "restartTestTooltip": "Recommencer le test",
     "restartKeyTab": "Tab",
@@ -80,7 +77,6 @@
     "changeCollection": "Changer la collection de textes",
     "ariaSessionWaveform": "Forme d onde de la session",
     "ariaWpmChart": "Graphique WPM de la session",
-    "ariaKeyboardDiagram": "Clavier QWERTY interactif",
     "ariaLoadingCollection": "Chargement de la collection",
     "myTexts": "Mes textes",
     "desktopHint": "TypeWav se pratique au clavier physique : l'expérience est meilleure sur ordinateur.",
@@ -346,7 +342,6 @@
       "quote": "Citation",
       "zen": "Zen",
       "code": "Code",
-      "learning": "Apprentissage",
       "ghost": "Fantôme",
       "classics": "Classiques",
       "custom": "Libre",
@@ -358,138 +353,6 @@
       "philosophie": "Philosophie",
       "gaming": "Gaming"
     }
-  },
-  "learning": {
-    "tagline": "Chaque touche est déjà une note.",
-    "level": {
-      "1": {
-        "name": "Les premières notes",
-        "tagline": "Pose tes doigts, la musique commence."
-      },
-      "2": {
-        "name": "Vers les aigus",
-        "tagline": "Ta mélodie grimpe d'un rang."
-      },
-      "3": {
-        "name": "Vers les graves",
-        "tagline": "Elle descend, elle respire."
-      },
-      "4": {
-        "name": "Ta première partition",
-        "tagline": "De vrais mots, une vraie mélodie qui prend forme."
-      },
-      "5": {
-        "name": "Nuances et silences",
-        "tagline": "Majuscules et ponctuation : les accents et les silences de ta musique."
-      },
-      "anchors": {
-        "name": "Le premier accord",
-        "tagline": "F et J sous les index : tes deux points d'ancrage.",
-        "teach": "Sens les deux bosses sous F et J : pose tes index dessus, les six autres doigts juste à côté."
-      },
-      "home-row": {
-        "name": "La gamme du repos",
-        "tagline": "Huit touches sans bouger la main, la base de tout.",
-        "teach": "La rangée du repos. G et H se tapent en tendant l'index, sans bouger la main."
-      },
-      "top-row": {
-        "name": "Monter d'un ton",
-        "tagline": "Chaque doigt monte d'un cran, puis revient.",
-        "teach": "La rangée du haut. Chaque doigt monte d'un cran depuis sa touche de repos, puis y revient."
-      },
-      "bottom-row": {
-        "name": "Descendre d'un ton",
-        "tagline": "On descend d'un cran, la virgule comprise.",
-        "teach": "La rangée du bas. Chaque doigt descend d'un cran, la virgule se tape avec l'index droit."
-      },
-      "first-words": {
-        "name": "Les premières mesures",
-        "tagline": "De vraies syllabes, une vraie mélodie qui se dessine.",
-        "teach": "De vrais mots, sans accent ni majuscule. Regarde l'écran, pas tes mains."
-      },
-      "uppercase": {
-        "name": "Les temps forts",
-        "tagline": "Une main tient Maj, l'autre frappe.",
-        "teach": "Pour une majuscule, l'auriculaire de la main opposée tient Maj pendant que l'autre main frappe la lettre."
-      },
-      "direct-accents": {
-        "name": "Les nuances",
-        "tagline": "é è à ç ù : une touche, un appui.",
-        "teach": "Sur AZERTY, é è à ç sont des touches directes sur la rangée des chiffres, ù est à droite du M. Aucune combinaison."
-      },
-      "dead-keys": {
-        "name": "Les liaisons",
-        "tagline": "L'accent d'abord, la voyelle ensuite.",
-        "teach": "L'accent circonflexe se tape en deux temps : d'abord la touche ^ (rien ne s'affiche), puis la voyelle. Tréma : Maj + ^, puis la voyelle."
-      },
-      "punctuation": {
-        "name": "Le phrasé",
-        "tagline": "Le point, la virgule, le rythme d'une phrase.",
-        "teach": "Le point se fait avec Maj sur la touche point-virgule ; le point d'interrogation avec Maj sur la virgule."
-      },
-      "digits": {
-        "name": "La mesure chiffrée",
-        "tagline": "La rangée du haut, Maj enfoncée.",
-        "teach": "Sur AZERTY, les chiffres se tapent avec Maj. Chaque chiffre garde le doigt de sa colonne."
-      },
-      "full-score": {
-        "name": "La partition complète",
-        "tagline": "Un vrai texte français, tout l'acquis réuni.",
-        "teach": "Tout est là. Un vrai texte français, à ton rythme, jusqu'à 95 % de précision."
-      }
-    },
-    "levelHeading": "Niveau {id} : {name}",
-    "levelCleared": {
-      "eyebrow": "Niveau {id}",
-      "status": "validé",
-      "proof": "{samples} frappes enchaînées à {accuracy}% de précision",
-      "continueHint": "une touche pour continuer"
-    },
-    "progressStats": "{samples}/{minSamples} frappes • {accuracy}% précision (visé {targetAccuracy}%)",
-    "lastSession": "Dernière session : {wpm} MPM · {accuracy}% ({correct}/{total})",
-    "needMoreReps": "Encore {samples} frappes à enchaîner (vise {accuracy}% de précision) pour débloquer la suite. Termine chaque série jusqu'au bout : une série interrompue ne compte pas.",
-    "needMoreAccuracy": "Tu as fait assez de frappes, mais ta précision cumulée est encore sous les {accuracy}% visés. Enchaîne des séries précises pour la faire remonter.",
-    "skipTutorial": "Passer le tutoriel",
-    "tutorialComplete": "Tutoriel terminé ! Tu improvises déjà.",
-    "exitToClassic": "Passer en mode classique →",
-    "readyToUnlock": "Niveau {id} prêt : {name}. Cliquer pour continuer.",
-    "unlockedAnnouncement": "Niveau {id} débloqué : {name}.",
-    "nextLevelCta": "Niveau suivant",
-    "nextLevelNamed": "Passer au niveau {id} : {name}",
-    "ruleReminder": "Frappe juste : une note. Erreur : silence. Retour arrière pour corriger.",
-    "welcome": {
-      "title": "Bienvenue sur TypeWav",
-      "what": "TypeWav t'apprend à taper au clavier : chaque frappe juste joue la note suivante d'un vrai morceau de piano.",
-      "path": "Ce parcours compte 11 niveaux, de la rangée du repos jusqu'à un vrai texte. Compte une dizaine d'heures pour connaître tout le clavier, en séances de 10 à 15 minutes.",
-      "rule": "La règle : une frappe juste joue la note, une erreur reste silencieuse, Retour arrière pour corriger.",
-      "layoutHint": "Ton clavier n'est pas AZERTY ? Change la disposition dans les Paramètres.",
-      "start": "C'est parti"
-    },
-    "prevLevelCta": "Niveau précédent",
-    "levelCounter": "Niveau {id} / {total}",
-    "fingerIntro": {
-      "title": "Où poser tes doigts",
-      "caption": "F et J ont une petite bosse que tu peux sentir sans regarder : ce n'est pas un hasard, ce sont tes deux repères. Pose tes index dessus, les 6 autres doigts se posent juste à côté, chacun sur sa propre touche.",
-      "practiceLabel": "Touche chaque repère pour t'entraîner",
-      "practiceProgress": "{count}/{total} repères touchés",
-      "start": "Commencer"
-    },
-    "teachStep": {
-      "practiceLabel": "Produis chaque nouveau geste une fois",
-      "practiceProgress": "{count}/{total} gestes",
-      "start": "Commencer"
-    },
-    "mastery": {
-      "weakKey": "La touche qui coince : {key} à {accuracy}%",
-      "levelProgress": "{percent}% des nouvelles touches maîtrisées"
-    },
-    "curriculum": {
-      "levelCounter": "Niveau {id} / {total}"
-    }
-  },
-  "hint": {
-    "restart": "Recommencer (Tab + Entrée)",
-    "tabEnter": "tab + entrée : nouveau texte"
   },
   "source": {
     "label": "Source du texte"
@@ -513,17 +376,11 @@
     "dataImport": "Importer un fichier",
     "dataImportConfirm": "Remplacer toutes vos données locales par ce fichier ? Cette action est irréversible.",
     "dataImportError": "Ce fichier n'a pas pu être importé.",
-    "localeGroup": "langue et clavier",
+    "localeGroup": "langue",
     "languageTitle": "Langue d'affichage",
     "languageFr": "Français",
     "languageEn": "English",
-    "selectLanguage": "Passer l'interface en {name}",
-    "keyboardLayoutTitle": "Disposition du clavier",
-    "layoutQwerty": "QWERTY",
-    "layoutAzerty": "AZERTY",
-    "selectLayout": "Utiliser la disposition {name}",
-    "keyboardLayoutHint": "Utilisée par le clavier visuel du mode Apprentissage.",
-    "reviewFingerPositioning": "Revoir le clavier et le positionnement des doigts"
+    "selectLanguage": "Passer l'interface en {name}"
   },
   "about": {
     "metaTitle": "À propos",
@@ -559,8 +416,6 @@
       "zenDesc": "Sans minuteur ni objectif de mots. On avance à son rythme.",
       "codeName": "Code",
       "codeDesc": "Des extraits de code réels, ponctuation et chiffres compris.",
-      "learningName": "Apprentissage",
-      "learningDesc": "Cinq niveaux progressifs, de la rangée de repos au clavier complet.",
       "ghostName": "Fantôme",
       "ghostDesc": "Un curseur rejoue ton meilleur record pendant que tu tapes.",
       "customName": "Libre",

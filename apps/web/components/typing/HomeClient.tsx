@@ -19,7 +19,6 @@ import {
   type CollectionId,
   fetchCollection,
 } from '@/app/[locale]/actions/collections';
-import { LearningMode } from '@/components/modes/LearningMode';
 import { ActiveSessionHeader } from '@/components/typing/ActiveSessionHeader';
 import { AmbientAura } from '@/components/typing/AmbientAura';
 import { ConfigBar } from '@/components/typing/ConfigBar';
@@ -49,13 +48,7 @@ import {
   getUserProfile,
   type PersonalText,
 } from '@/lib/db';
-import { isNonDesktopDevice } from '@/lib/device';
-import { IS_DEV_MODE } from '@/lib/featureFlags';
 import { noteNameToMidi } from '@/lib/note-visualization';
-import {
-  hasCompletedOnboarding,
-  markOnboardingComplete,
-} from '@/lib/onboarding';
 import { applyTextFilters } from '@/lib/text-filters';
 import { useAudioStore } from '@/stores/useAudioStore';
 import { useConfigStore } from '@/stores/useConfigStore';
@@ -159,12 +152,6 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     isError: boolean;
     isPhraseBoundary: boolean;
   }>({ pitch: null, isError: false, isPhraseBoundary: false });
-  const [isOnboarding, setIsOnboarding] = useState(false);
-  // Tant que la première visite n'est pas tranchée (lecture IndexedDB async),
-  // on ne rend NI la zone de frappe NI l'apprentissage : sinon la frappe
-  // s'affiche un court instant avant de basculer sur l'onboarding (flash).
-  // En dev, l'onboarding est court-circuité (IS_DEV_MODE) : rien à attendre.
-  const [onboardingResolved, setOnboardingResolved] = useState(IS_DEV_MODE);
   const [personalTexts, setPersonalTexts] = useState<PersonalText[]>([]);
   const [isPersonalTextsPanelOpen, setIsPersonalTextsPanelOpen] =
     useState(false);
@@ -216,7 +203,6 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     [personalTexts, activePersonalTextId],
   );
 
-  const isLearningMode = activeMode === 'learning';
   const hasGhostData = ghostData !== null;
   const ghostEnabled = activeMode === 'ghost' && hasGhostData;
 
@@ -328,17 +314,13 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   // ignorait totalement la durée/le nombre de mots demandés. Tourne dans un
   // effet (jamais dans le rendu) : selectFromTexts utilise Math.random(),
   // qui provoquerait un mismatch d'hydratation SSR/client sinon.
-  // Libre a sa propre source de texte (voir plus bas) ; Apprentissage ne
-  // consomme pas ce texte du tout. Fantôme avec une vraie donnée personnelle
-  // rejoue le texte original de la session enregistrée (voir plus bas) et
-  // saute donc cet effet ; sans donnée, la session se comporte comme Classic
-  // (bannière visible), donc cet effet tourne normalement pour elle aussi.
+  // Libre a sa propre source de texte (voir plus bas). Fantôme avec une
+  // vraie donnée personnelle rejoue le texte original de la session
+  // enregistrée (voir plus bas) et saute donc cet effet ; sans donnée, la
+  // session se comporte comme Classic (bannière visible), donc cet effet
+  // tourne normalement pour elle aussi.
   useEffect(() => {
-    if (
-      effectiveMode === 'custom' ||
-      effectiveMode === 'ghost' ||
-      effectiveMode === 'learning'
-    ) {
+    if (effectiveMode === 'custom' || effectiveMode === 'ghost') {
       return;
     }
 
@@ -459,89 +441,6 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
       setCollection('litterature');
     }
   }, [activeMode, activeCollection, setCollection]);
-
-  // Déclenche le tutoriel d'onboarding uniquement à la toute première visite.
-  //
-  // TEMPORAIRE (phase de dev) : désactivé en dev pour ne plus avoir à le
-  // traverser à chaque rechargement pendant qu'on itère sur le reste de
-  // l'app. Se réactive tout seul en build de production (IS_DEV_MODE est
-  // figé à false hors `next dev`), mais c'est un changement de comportement
-  // voulu : pour voir/tester l'onboarding en dev, utiliser la route dédiée
-  // /dev-onboarding (apps/web/app/[locale]/dev-onboarding), qui le rejoue à
-  // chaque rechargement sans toucher au flag hasCompletedOnboarding réel.
-  // À RETIRER (avec ce guard et le dossier dev-onboarding en entier) une
-  // fois l'onboarding validé et prêt à revalider en conditions réelles.
-  useEffect(() => {
-    if (IS_DEV_MODE) return;
-    let cancelled = false;
-    // Onboarding coupé sur tout appareil non desktop (téléphone, tablette) :
-    // le tutoriel force le mode Apprentissage, or l'écran de frappe est
-    // desktop-first (voir passe responsive #71). Le primo-visiteur tactile
-    // arrive directement sur la frappe, en mode classique. On court-circuite
-    // la lecture du flag par `Promise.resolve(true)` ("comme si c'était fait")
-    // : rien n'est lu, rien n'est écrit, has_completed_onboarding reste
-    // vierge, donc le vrai tutoriel apparaîtra si cette personne ouvre
-    // TypeWav sur un desktop plus tard.
-    const resolveOnboarding = isNonDesktopDevice()
-      ? Promise.resolve(true)
-      : hasCompletedOnboarding();
-    resolveOnboarding
-      .then((done) => {
-        if (cancelled) return;
-        if (!done) {
-          setIsOnboarding(true);
-          setActiveMode('learning');
-        }
-        setOnboardingResolved(true);
-      })
-      .catch(() => {
-        // Fail open : ne jamais forcer l'onboarding si on ne peut pas
-        // confirmer son état, mais débloquer quand même l'affichage.
-        if (!cancelled) setOnboardingResolved(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [setActiveMode]);
-
-  const handleExitTutorial = useCallback(() => {
-    setIsOnboarding(false);
-    void markOnboardingComplete();
-    setActiveMode('classic');
-  }, [setActiveMode]);
-
-  // Garde-fou desktop-only (#98) : le mode Apprentissage n'est pas jouable au
-  // doigt. Si un `activeMode: 'learning'` persistant (config d'un autre
-  // appareil, ou fenêtre redimensionnée) se charge sur téléphone / tablette,
-  // on repasse en classique. Complète le gating du déclenchement de
-  // l'onboarding (#110). setState différé par microtâche
-  // (react-hooks/set-state-in-effect), même idiome que le reste du fichier.
-  useEffect(() => {
-    if (activeMode !== 'learning') return;
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (!cancelled && isNonDesktopDevice()) setActiveMode('classic');
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [activeMode, setActiveMode]);
-
-  // Si l'utilisateur quitte le mode Apprentissage via la ConfigBar pendant
-  // l'onboarding (plutôt que via le bouton "Passer le tutoriel"), c'est tout
-  // aussi explicite : on considère le tutoriel terminé pour de bon, sinon
-  // hasCompletedOnboarding() resterait faux et le piège onboarding reviendrait
-  // au prochain chargement.
-  useEffect(() => {
-    if (!isOnboarding || activeMode === 'learning') return;
-    let cancelled = false;
-    void markOnboardingComplete().then(() => {
-      if (!cancelled) setIsOnboarding(false);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [isOnboarding, activeMode]);
 
   const handlePieceChange = useCallback((pieceId: MidiPieceId) => {
     setSelectedPieceId(pieceId);
@@ -674,7 +573,6 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   ]);
 
   // Le layout unifié supprime les "sauts" ou "jumps" de l'UI.
-  // LearningMode y est maintenant intégré de manière fluide.
   const appVersion = webPackage.version;
 
   return (
@@ -684,42 +582,18 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        // Le mode Apprentissage empile davantage de sections que les autres
-        // (bandeau de niveau, sélecteur, zone de frappe, schéma clavier) sur
-        // un conteneur à hauteur fixe qui ne scrolle jamais : le "airy
-        // spacing" pensé pour les modes de test tient moins bien ici, donc
-        // resserré spécifiquement pour ce mode plutôt que globalement.
-        // Apprentissage : le compteur wpm/précision de TypingArea flotte en
-        // position:absolute a top:-1.75rem au-dessus de sa boite. Depuis que
-        // le bandeau de niveau est parti dans le rail lateral, la zone de
-        // frappe est le premier element sous la ConfigBar : cet ecart doit
-        // rester > ~30px pour que le compteur ne chevauche pas la ConfigBar.
         // Gaps et paddings fluides : sur viewport court (laptop 13", mobile
         // paysage) les valeurs fixes poussaient le pied de page ou le
-        // sélecteur de morceau hors du cadre `overflow:hidden`. Le plancher
-        // du gap en mode Apprentissage reste > 30px : le compteur
-        // wpm/précision de TypingArea flotte en `position:absolute`
-        // `top:-1.75rem` au-dessus de sa boîte, sous cet écart il
-        // chevaucherait la ConfigBar.
-        gap: isLearningMode
-          ? 'clamp(32px, 3.5vh, 40px)'
-          : 'clamp(16px, 3vh, 36px)',
-        paddingBlock: isLearningMode
-          ? 'clamp(12px, 2vh, 16px) clamp(10px, 1.5vh, 12px)'
-          : 'clamp(20px, 3.5vh, 32px) clamp(12px, 2vh, 16px)',
+        // sélecteur de morceau hors du cadre `overflow:hidden`.
+        gap: 'clamp(16px, 3vh, 36px)',
+        paddingBlock: 'clamp(20px, 3.5vh, 32px) clamp(12px, 2vh, 16px)',
         // Padding latéral fluide + respect des encoches (écran de frappe
         // plein cadre `100dvh`).
         paddingLeft: 'max(clamp(16px, 4vw, 32px), env(safe-area-inset-left))',
         paddingRight: 'max(clamp(16px, 4vw, 32px), env(safe-area-inset-right))',
         height: 'calc(100dvh - var(--nav-height))',
         overflow: 'hidden', // Account for nav height
-        // Mode Apprentissage : pas de plafond de largeur. Le rail de niveaux
-        // vit dans la 1re colonne (1fr) de la grille de LearningMode et doit
-        // toucher le bord gauche de la page, exactement comme dans
-        // l'onboarding (dont le <main> n'a pas ce plafond). Le contenu (zone
-        // de frappe, clavier) reste centre sur la fenetre via la colonne
-        // centrale symetrique de la grille. Les autres modes gardent 1600.
-        maxWidth: isLearningMode ? 'none' : '1600px',
+        maxWidth: '1600px',
         margin: '0 auto',
         width: '100%',
         backgroundColor: 'transparent',
@@ -740,7 +614,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
       <MobileTypingHint />
 
       {/* En-tête de Configuration */}
-      {!isLearningMode ? (
+      {
         // Enveloppe extérieure jamais inert (sinon elle ne recevrait plus
         // elle-même d'événements souris) : c'est elle qui capte le survol
         // pour rouvrir la config bar en pleine frappe (ticket #61). Le
@@ -1003,45 +877,21 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           )}
           </div>
         </div>
-      ) : (
-        // La ConfigBar reste visible même pendant l'onboarding : sans elle,
-        // le mode Apprentissage devient un piège sans issue de navigation
-        // (le logo ne fait rien tant qu'on est déjà sur la même route).
-        <ConfigBar controlsMode={effectiveMode} />
-      )}
+      }
 
       <div
         style={{
           width: '100%',
           display: 'flex',
-          alignItems: isLearningMode ? 'stretch' : 'flex-start',
+          alignItems: 'flex-start',
           justifyContent: 'center',
-          // Mode Apprentissage : ce wrapper doit avoir une vraie hauteur
-          // (flex:1 dans la colonne fixe de <main>) pour que le schéma
-          // clavier puisse remplir "l'espace qui reste" au lieu de deviner
-          // une taille en vh : sinon rien ne garantit que titre + onglets +
-          // texte + clavier tiennent ensemble sans pousser le footer hors
-          // du conteneur (qui ne scrolle jamais). Les autres modes gardent
-          // le comportement existant (hauteur intrinsèque, espace restant
-          // absorbé par marginBottom:auto).
-          flex: isLearningMode ? '1 1 0%' : 'initial',
-          minHeight: isLearningMode ? 0 : undefined,
-          marginBottom: isLearningMode ? 0 : 'auto',
-          // On descend la zone de texte pour la centrer visuellement (sauf en mode apprentissage)
-          marginTop: isLearningMode ? '0' : '4vh',
+          flex: 'initial',
+          marginBottom: 'auto',
+          // On descend la zone de texte pour la centrer visuellement.
+          marginTop: '4vh',
         }}
       >
-        {!onboardingResolved ? (
-          // Fenêtre "première visite pas encore tranchée" : fond de page nu,
-          // même boîte que le reste pour ne pas provoquer de saut. Invisible
-          // en pratique (quelques ms de lecture IndexedDB), mais garantit
-          // qu'on ne voit jamais le mauvais écran avant l'onboarding.
-          <div
-            aria-hidden="true"
-            className="content-typing"
-            style={{ height: 150, backgroundColor: 'var(--color-bg)' }}
-          />
-        ) : loadingCollection && !isLearningMode ? (
+        {loadingCollection ? (
           <div
             role="status"
             aria-label={tHint('ariaLoadingCollection')}
@@ -1053,21 +903,6 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
               borderRadius: 'var(--radius-md)',
             }}
           />
-        ) : isLearningMode ? (
-          <div
-            style={{
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'center',
-              animation: 'fadeIn 0.3s ease-out',
-              minHeight: 0,
-            }}
-          >
-            <LearningMode
-              isOnboarding={isOnboarding}
-              onExitTutorial={handleExitTutorial}
-            />
-          </div>
         ) : (
           <div
             style={{
@@ -1118,8 +953,8 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         )}
       </div>
 
-      {/* Zone 5 : Controls, Hints & Visualizer (centrés sous TypingArea), masqués en mode apprentissage */}
-      {!isLearningMode && (
+      {/* Zone 5 : Controls, Hints & Visualizer (centrés sous TypingArea) */}
+      {
         <div
           style={{
             display: 'flex',
@@ -1299,7 +1134,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
             )}
           </div>
         </div>
-      )}
+      }
 
       {/* Zone 6 : Footer minimal avec les contrôles secondaires éparpillés */}
       <footer
@@ -1314,11 +1149,11 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
           // (main a seulement 16px de padding bas). marginTop:auto absorbe
           // l'espace libre en premier, donc sur écran court ça se resserre
           // proprement sans pousser le contenu hors du cadre overflow:hidden.
-          marginBottom: isLearningMode ? '14px' : '30px',
+          marginBottom: '30px',
           fontFamily: 'var(--font-ui)',
           fontSize: '0.75rem',
           color: 'var(--color-text-muted)',
-          paddingTop: isLearningMode ? '14px' : '32px',
+          paddingTop: '32px',
           ...fadeOnStart(10),
         }}
       >

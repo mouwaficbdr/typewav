@@ -47,7 +47,6 @@ const MODE_KEYS = [
   'quote',
   'zen',
   'code',
-  'learning',
   'ghost',
   'custom',
 ] as const;

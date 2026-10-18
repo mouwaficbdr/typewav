@@ -143,12 +143,10 @@ interface TypingAreaProps {
   mode?: TypingMode;
   collectionId?: string;
   durationSeconds?: number;
-  /** Si false, ne navigue pas vers /results automatiquement (ex: LearningMode) */
+  /** Si false, ne navigue pas vers /results automatiquement */
   autoNavigate?: boolean;
   /** Si false, la session n'est ni sauvegardée ni comptée pour la progression (ex: Zen) */
   trackProgress?: boolean;
-  /** Callback : touche attendue actuellement (pour KeyboardDiagram) */
-  onActiveKeyChange?: (key: string | undefined) => void;
   /** Timings inter-frappe du record personnel (ms) : active le ghost mode */
   ghostTimings?: number[];
   /** Callback appelé à la fin du test avec le WPM final (utile si autoNavigate=false) */
@@ -194,7 +192,6 @@ export function TypingArea({
   durationSeconds,
   autoNavigate = true,
   trackProgress = true,
-  onActiveKeyChange,
   ghostTimings,
   onComplete,
   onRestart,
@@ -309,13 +306,6 @@ export function TypingArea({
   useEffect(() => {
     resetSequence();
   }, []);
-
-  // Notifier la touche actuellement attendue (pour KeyboardDiagram)
-  useEffect(() => {
-    if (!onActiveKeyChange) return;
-    const expected = text[position];
-    onActiveKeyChange(isComplete ? undefined : expected);
-  }, [position, text, isComplete, onActiveKeyChange]);
 
   // Callback(s) de fin quand le test se termine.
   // Attend finalStats plutôt que de lire liveStats.wpm : liveStats n'est
@@ -646,7 +636,7 @@ export function TypingArea({
           Hors du conteneur role="application" pour rester parcourables au
           curseur de révision d'un lecteur d'écran. */}
       <p id={instructionsId} className="sr-only">
-        {t(mode === 'learning' ? 'ariaTypingInstructionsLearning' : 'ariaTypingInstructions')}
+        {t('ariaTypingInstructions')}
       </p>
       <p className="sr-only" data-testid="typing-target-text">
         {t('ariaTargetTextLabel')}: {text}
@@ -876,7 +866,7 @@ export function TypingArea({
               className="shrink-0"
               data-testid="typing-activation-cursor-icon"
             />
-            {t(mode === 'learning' ? 'clickToFocusLearning' : 'clickToFocus')}
+            {t('clickToFocus')}
           </span>
         </div>
 
@@ -909,7 +899,7 @@ export function TypingArea({
               transition: 'transform 0.25s cubic-bezier(0.2, 0, 0, 1)',
               userSelect: 'none',
               columnGap: '0.6em',
-              justifyContent: mode === 'learning' ? 'center' : 'flex-start',
+              justifyContent: 'flex-start',
               rowGap: '0',
             }}
           >

@@ -96,7 +96,7 @@ describe('AboutPage', () => {
     );
   });
 
-  it('liste les huit modes avec leur nom', async () => {
+  it('liste les sept modes avec leur nom', async () => {
     await renderPage();
     const modesSection = screen
       .getAllByRole('heading', { level: 2 })
@@ -108,7 +108,6 @@ describe('AboutPage', () => {
       'Citation',
       'Zen',
       'Code',
-      'Apprentissage',
       'Fantôme',
       'Libre',
     ]) {

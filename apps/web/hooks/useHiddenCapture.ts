@@ -11,7 +11,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
  * (ni collage, ni glisser). Jamais de listener `keydown` de texte.
  *
  * Le consommateur pose `containerRef` sur son conteneur et rend, à l'intérieur,
- * un `<input>` portant `inputRef` (voir `LevelTeachStep` pour le gabarit).
+ * un `<input>` portant `inputRef`.
  */
 export function useHiddenCapture(onChar: (nfcChar: string) => void): {
   containerRef: React.RefObject<HTMLDivElement | null>;

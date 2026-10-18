@@ -509,16 +509,6 @@ describe("TypingArea : accessibilité lecteur d'écran (WS-1)", () => {
     );
   });
 
-  it('mode Apprentissage : instructions lues en tutoiement, comme le reste du parcours', () => {
-    render(<TypingArea text="hello world" mode="learning" />);
-    const describedBy = screen
-      .getByRole('application')
-      .getAttribute('aria-describedby');
-    expect(document.getElementById(describedBy as string)).toHaveTextContent(
-      'ariaTypingInstructionsLearning',
-    );
-  });
-
   it("expose le texte cible complet aux technologies d'assistance", () => {
     render(<TypingArea text="hello world" />);
     expect(screen.getByTestId('typing-target-text')).toHaveTextContent(

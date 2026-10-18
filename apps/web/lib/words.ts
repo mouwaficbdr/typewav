@@ -1,16 +1,9 @@
 /**
- * Listes de mots pour le mode classique, apprentissage et niveaux adaptatifs.
+ * Listes de mots pour le mode classique et les niveaux adaptatifs.
  * Tous les mots sont en domaine public.
  *
  * Organisés par longueur pour la difficulté adaptative.
  */
-
-import {
-  HOME_ROW_AZERTY,
-  mapKeyForLayout,
-  type KeyboardLayout,
-} from '@/lib/keyboardLayouts';
-import { LEARNING_LEVELS } from '@typewav/types';
 
 /** Niveau facile : mots courts et tres frequents (2 a 4 lettres). */
 export const WORDS_EASY = [
@@ -114,47 +107,6 @@ export const WORDS_EXPERT = [
   'characteristic', 'documentation', 'collaboration', 'determination',
 ];
 
-/**
- * Mots Home Row : lettres tirées uniquement des touches a s d f j k l.
- * generateLearningText(1) refiltre par les touches réelles du niveau, donc
- * un mot avec une lettre hors home row (jade, flash, balls...) n'y arrivait
- * jamais : c'était du poids mort. Retiré aussi 'jall', qui passait le filtre
- * sans être un mot. Tout ce qui reste est un vrai mot 100 % home row.
- */
-export const WORDS_HOME_ROW = [
-  'ad',
-  'as',
-  'add',
-  'ads',
-  'ala',
-  'all',
-  'ask',
-  'dad',
-  'fad',
-  'lad',
-  'sad',
-  'ska',
-  'adds',
-  'alas',
-  'alfa',
-  'asks',
-  'dads',
-  'fads',
-  'fall',
-  'flak',
-  'lads',
-  'lass',
-  'sass',
-  'flask',
-  'salad',
-  'salsa',
-  'falls',
-  'flasks',
-  'salads',
-  'salsas',
-  'alfalfa',
-];
-
 /** Sélectionne des mots aléatoires d'une liste */
 export function pickRandomWords(words: string[], count: number): string[] {
   const result: string[] = [];
@@ -185,122 +137,6 @@ export function generateWordList(complexity: number, wordCount = 30): string {
   else if (level === 3) pool = WORDS_NORMAL;
   else if (level === 4) pool = [...WORDS_NORMAL, ...WORDS_HARD];
   else pool = [...WORDS_HARD, ...WORDS_EXPERT];
-
-  return pickRandomWords(pool, wordCount).join(' ');
-}
-
-/** Ne garde que les mots dont toutes les lettres sont dans `allowedKeys`. */
-function filterWordsByKeys(words: string[], allowedKeys: string[]): string[] {
-  if (allowedKeys.length === 0) return words;
-  const allowed = new Set(allowedKeys.map((k) => k.toLowerCase()));
-  return words.filter((word) =>
-    word
-      .toLowerCase()
-      .split('')
-      .every((ch) => allowed.has(ch)),
-  );
-}
-
-function capitalize(word: string): string {
-  if (word.length === 0) return word;
-  return word[0]!.toUpperCase() + word.slice(1);
-}
-
-const SENTENCE_TERMINATORS = ['.', '!', '?'];
-const SENTENCE_LENGTH = 5;
-
-/**
- * Génère un texte avec majuscules de début de phrase et ponctuation
- * (niveau 5 "Shift & Punctuation"). Le thème du niveau est justement
- * d'introduire Shift et la ponctuation, donc leur présence est garantie
- * plutôt que laissée au hasard.
- */
-function generatePunctuatedText(wordCount: number): string {
-  const words = pickRandomWords([...WORDS_NORMAL, ...WORDS_HARD], wordCount);
-
-  const sentences: string[] = [];
-  for (let start = 0; start < words.length; start += SENTENCE_LENGTH) {
-    const sentenceWords = words.slice(start, start + SENTENCE_LENGTH);
-    if (sentenceWords.length === 0) continue;
-
-    const [first, ...rest] = sentenceWords;
-    const capitalized = capitalize(first!);
-    // Virgule après le deuxième mot pour les phrases assez longues.
-    const withComma =
-      rest.length >= 2 ? [`${rest[0]},`, ...rest.slice(1)] : rest;
-    const terminator =
-      SENTENCE_TERMINATORS[sentences.length % SENTENCE_TERMINATORS.length]!;
-
-    sentences.push(`${[capitalized, ...withComma].join(' ')}${terminator}`);
-  }
-
-  return sentences.join(' ');
-}
-
-/**
- * Génère un texte pour le mode Apprentissage selon le niveau.
- * Les mots n'utilisent que les touches autorisées au niveau courant.
- */
-// Longueurs qui imitent la variété naturelle de WORDS_HOME_ROW (2 à 7
-// lettres). Aucun vrai mot ne tient sur les 8 lettres de HOME_ROW_AZERTY
-// (aucune voyelle) : on tire donc des suites de lettres façon exercice
-// plutôt que des mots, uniquement pour ce cas.
-const AZERTY_DRILL_LENGTHS = [2, 3, 3, 4, 4, 5];
-
-function generateAzertyHomeRowDrill(wordCount: number): string {
-  const words: string[] = [];
-  for (let i = 0; i < wordCount; i++) {
-    const length =
-      AZERTY_DRILL_LENGTHS[
-        Math.floor(Math.random() * AZERTY_DRILL_LENGTHS.length)
-      ]!;
-    let word = '';
-    for (let j = 0; j < length; j++) {
-      word +=
-        HOME_ROW_AZERTY[Math.floor(Math.random() * HOME_ROW_AZERTY.length)];
-    }
-    words.push(word);
-  }
-  return words.join(' ');
-}
-
-export function generateLearningText(
-  levelId: number,
-  wordCount = 20,
-  layout: KeyboardLayout = 'qwerty',
-): string {
-  if (levelId === 1 && layout === 'azerty') {
-    return generateAzertyHomeRowDrill(wordCount);
-  }
-
-  if (levelId === 5) {
-    return generatePunctuatedText(wordCount);
-  }
-
-  // Les positions physiques des niveaux (LEARNING_LEVELS[n].keys) sont
-  // toujours exprimées en labels QWERTY ; en AZERTY, le caractère réellement
-  // tapé à chaque position diffère pour 4 touches (voir mapKeyForLayout).
-  // Le filtrage de mots doit porter sur les vrais caractères tapés, pas sur
-  // les labels internes.
-  const qwertyKeys = LEARNING_LEVELS.find((l) => l.id === levelId)?.keys ?? [];
-  const allowedKeys = qwertyKeys.map((k) => mapKeyForLayout(k, layout));
-
-  if (levelId === 1) {
-    const filtered = filterWordsByKeys(WORDS_HOME_ROW, allowedKeys);
-    const pool = filtered.length > 0 ? filtered : WORDS_HOME_ROW;
-    return pickRandomWords(pool, wordCount).join(' ');
-  }
-
-  // Pour les niveaux 2-4, utiliser des mots de difficulté croissante
-  const basePool =
-    levelId === 2
-      ? WORDS_EASY
-      : levelId === 3
-        ? [...WORDS_EASY, ...WORDS_NORMAL]
-        : WORDS_NORMAL;
-
-  const filtered = filterWordsByKeys(basePool, allowedKeys);
-  const pool = filtered.length > 0 ? filtered : basePool;
 
   return pickRandomWords(pool, wordCount).join(' ');
 }
