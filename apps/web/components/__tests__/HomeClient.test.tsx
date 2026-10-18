@@ -13,7 +13,7 @@ vi.mock('@/hooks/useAudioEngine', () => ({
   useAudioEngine: () => ({
     initialize: vi.fn().mockResolvedValue(undefined),
     playNote: vi.fn().mockResolvedValue(undefined),
-    triggerSilence: vi.fn(),
+    triggerErrorEcho: vi.fn(),
     triggerResume: vi.fn().mockResolvedValue(undefined),
     loadMidiPiece: vi.fn().mockResolvedValue(undefined),
     disableMidiMode: vi.fn(),

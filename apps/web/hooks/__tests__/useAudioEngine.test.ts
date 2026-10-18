@@ -198,7 +198,7 @@ describe('useAudioEngine : triggerResume', () => {
   });
 });
 
-describe('useAudioEngine : triggerSilence', () => {
+describe('useAudioEngine : triggerErrorEcho', () => {
   it('rejoue en écho doux la dernière note déjà jouée, jamais une nouvelle', async () => {
     loadPieceFromData(TEST_PIECE);
     const { result, unmount } = renderHook(() => useAudioEngine());
@@ -217,7 +217,7 @@ describe('useAudioEngine : triggerSilence', () => {
       sampler.triggerAttackRelease.mock.calls[0]!;
 
     await act(async () => {
-      await result.current.triggerSilence();
+      await result.current.triggerErrorEcho();
     });
 
     expect(sampler.triggerAttackRelease).toHaveBeenCalledTimes(2);
@@ -238,7 +238,7 @@ describe('useAudioEngine : triggerSilence', () => {
     await waitFor(() => expect(samplerInstances.length).toBe(1));
 
     await act(async () => {
-      await result.current.triggerSilence();
+      await result.current.triggerErrorEcho();
     });
 
     expect(samplerInstances[0]!.triggerAttackRelease).not.toHaveBeenCalled();
@@ -250,7 +250,7 @@ describe('useAudioEngine : triggerSilence', () => {
     const { result, unmount } = renderHook(() => useAudioEngine());
 
     await act(async () => {
-      await result.current.triggerSilence();
+      await result.current.triggerErrorEcho();
     });
 
     samplerInstances.forEach((sampler) => {

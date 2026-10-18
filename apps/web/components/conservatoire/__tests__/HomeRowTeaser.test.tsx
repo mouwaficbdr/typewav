@@ -4,14 +4,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
 const mockPlayNoteName = vi.fn().mockResolvedValue(undefined);
-const mockTriggerSilence = vi.fn().mockResolvedValue(undefined);
+const mockTriggerErrorEcho = vi.fn().mockResolvedValue(undefined);
 const mockInitialize = vi.fn().mockResolvedValue(undefined);
 
 vi.mock('@/hooks/useAudioEngine', () => ({
   useAudioEngine: () => ({
     initialize: mockInitialize,
     playNoteName: mockPlayNoteName,
-    triggerSilence: mockTriggerSilence,
+    triggerErrorEcho: mockTriggerErrorEcho,
   }),
 }));
 
@@ -46,7 +46,7 @@ beforeEach(() => {
   mockLocale = 'fr';
   mockUseReducedMotion.mockReturnValue(false);
   mockPlayNoteName.mockClear();
-  mockTriggerSilence.mockClear();
+  mockTriggerErrorEcho.mockClear();
   mockInitialize.mockClear();
 });
 
@@ -76,7 +76,7 @@ describe('HomeRowTeaser', () => {
 
     fireEvent.keyDown(window, { code: 'KeyZ', key: 'z' });
 
-    await waitFor(() => expect(mockTriggerSilence).toHaveBeenCalled());
+    await waitFor(() => expect(mockTriggerErrorEcho).toHaveBeenCalled());
     expect(mockPlayNoteName).not.toHaveBeenCalled();
     expect(root).toHaveAttribute('data-ripple-count', '0');
   });
