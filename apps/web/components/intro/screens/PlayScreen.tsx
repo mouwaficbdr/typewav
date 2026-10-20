@@ -129,6 +129,7 @@ export function PlayScreen({ onDone, touch }: PlayScreenProps) {
 
   return (
     <div
+      data-part="play-screen"
       data-play-phase={touch ? undefined : playState.phase}
       style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}
     >
@@ -150,7 +151,7 @@ export function PlayScreen({ onDone, touch }: PlayScreenProps) {
             position: 'relative',
             fontFamily: 'var(--font-display)',
             fontWeight: 300,
-            fontSize: 'clamp(2.2rem, 6vw, 3.4rem)',
+            fontSize: 'clamp(2.8rem, 7.5vw, 4.6rem)',
             letterSpacing: '0.01em',
           }}
         >
@@ -173,12 +174,13 @@ export function PlayScreen({ onDone, touch }: PlayScreenProps) {
             [...text].map((char, i) => (
               <span
                 key={i}
-                style={{
-                  color:
-                    i < playState.typed
-                      ? 'var(--color-text-primary)'
-                      : 'var(--color-text-muted)',
-                }}
+                className={
+                  i < playState.typed
+                    ? 'char-correct'
+                    : i === playState.typed
+                      ? 'char-current'
+                      : 'char-pending'
+                }
               >
                 {char}
               </span>
@@ -196,6 +198,7 @@ export function PlayScreen({ onDone, touch }: PlayScreenProps) {
           type="button"
           data-testid="play-touch-surface"
           onClick={handleTouchTap}
+          className="touch-manipulation hover:opacity-70 transition-opacity"
           style={{
             position: 'relative',
             textAlign: 'left',
@@ -205,7 +208,7 @@ export function PlayScreen({ onDone, touch }: PlayScreenProps) {
             cursor: 'pointer',
             fontFamily: 'var(--font-display)',
             fontWeight: 300,
-            fontSize: 'clamp(2.2rem, 6vw, 3.4rem)',
+            fontSize: 'clamp(2.8rem, 7.5vw, 4.6rem)',
             color: 'var(--color-text-primary)',
           }}
         >

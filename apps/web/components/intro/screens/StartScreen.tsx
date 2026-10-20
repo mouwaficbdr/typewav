@@ -29,7 +29,7 @@ export function StartScreen({
           margin: 0,
           fontFamily: 'var(--font-display)',
           fontWeight: 300,
-          fontSize: 'clamp(2rem, 5vw, 3rem)',
+          fontSize: 'clamp(2.6rem, 6.5vw, 4.2rem)',
           color: 'var(--color-text-primary)',
         }}
       >
@@ -55,6 +55,7 @@ export function StartScreen({
             type="button"
             data-part="start-share"
             onClick={onShare}
+            className="touch-manipulation hover:opacity-70 transition-opacity"
             style={{
               fontFamily: 'var(--font-ui)',
               fontSize: '0.95rem',
@@ -64,6 +65,7 @@ export function StartScreen({
               borderRadius: 'var(--radius-sm)',
               padding: '10px 16px',
               cursor: 'pointer',
+              pointerEvents: 'auto',
             }}
           >
             {copied ? t('start.copied') : t('start.share')}
@@ -72,6 +74,7 @@ export function StartScreen({
             type="button"
             data-part="start-explore"
             onClick={onExplore}
+            className="touch-manipulation hover:opacity-70 transition-opacity"
             style={{
               fontFamily: 'var(--font-ui)',
               fontSize: '0.95rem',
@@ -80,6 +83,7 @@ export function StartScreen({
               border: 'none',
               padding: '10px 0',
               cursor: 'pointer',
+              pointerEvents: 'auto',
             }}
           >
             {t('start.explore')}

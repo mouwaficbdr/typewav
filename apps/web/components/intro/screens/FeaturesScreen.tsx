@@ -55,7 +55,7 @@ export function FeaturesScreen({
           margin: 0,
           fontFamily: 'var(--font-display)',
           fontWeight: 300,
-          fontSize: 'clamp(1.8rem, 4.5vw, 2.6rem)',
+          fontSize: 'clamp(2.4rem, 6vw, 3.6rem)',
           color: 'var(--color-accent)',
         }}
       >
@@ -82,16 +82,21 @@ export function FeaturesScreen({
               data-active={i === activeIndex}
               onClick={() => onSelect(i)}
               aria-label={t(`features.${k}.title`)}
+              className="touch-manipulation hover:opacity-70 transition-opacity"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '36px',
-                height: '36px',
+                // 44px, cible tactile minimale (WCAG 2.5.5, Apple HIG), pas
+                // 36px : ces boutons se tapent en plein milieu du parcours,
+                // à chaque session tactile.
+                width: '44px',
+                height: '44px',
                 borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--color-border)',
                 background: 'none',
                 cursor: 'pointer',
+                pointerEvents: 'auto',
                 color:
                   i === activeIndex
                     ? 'var(--color-accent)'

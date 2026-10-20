@@ -9,14 +9,14 @@ export function WhyScreen() {
   return (
     <div
       data-part="why-screen"
-      style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '60%' }}
+      style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
     >
       <h2
         style={{
           margin: 0,
           fontFamily: 'var(--font-display)',
           fontWeight: 300,
-          fontSize: 'clamp(2rem, 5vw, 3rem)',
+          fontSize: 'clamp(2.6rem, 6.5vw, 4.2rem)',
           lineHeight: 1.1,
           color: 'var(--color-text-primary)',
         }}

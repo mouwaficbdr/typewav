@@ -48,6 +48,7 @@ export function Staff({ step, heads }: StaffProps) {
 
   return (
     <div
+      data-part="staff"
       data-staff-step={step}
       data-note-heads={heads.length}
       aria-hidden="true"

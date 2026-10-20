@@ -1,6 +1,7 @@
 'use client';
 
 import { Keycap } from '@/components/ui/Keycap';
+import { useReducedMotion } from 'motion/react';
 import { useTranslations } from 'next-intl';
 import type { IntroLanguage } from '../apply-exit';
 
@@ -18,14 +19,16 @@ const OPTION_STYLE = {
   border: 'none',
   padding: 0,
   cursor: 'pointer',
+  pointerEvents: 'auto',
   fontFamily: 'var(--font-display)',
-  fontSize: 'clamp(1.6rem, 4vw, 2.4rem)',
+  fontSize: 'clamp(2.2rem, 5.5vw, 3.4rem)',
   fontWeight: 300,
 } as const;
 
 /** Écran 1 : le titre et la langue (spec partie B). */
 export function LanguageScreen({ language, status, onChoose }: LanguageScreenProps) {
   const t = useTranslations('intro');
+  const reduceMotion = useReducedMotion() === true;
 
   return (
     <div
@@ -49,6 +52,7 @@ export function LanguageScreen({ language, status, onChoose }: LanguageScreenPro
           data-testid="language-fr"
           data-selected={language === 'fr'}
           onClick={() => onChoose('fr')}
+          className="touch-manipulation hover:opacity-70 transition-opacity"
           style={{
             ...OPTION_STYLE,
             color:
@@ -57,7 +61,13 @@ export function LanguageScreen({ language, status, onChoose }: LanguageScreenPro
                 : 'var(--color-text-muted)',
           }}
         >
-          Français <Keycap size="sm">F</Keycap>
+          Français
+          {language === 'fr' && (
+            <span className="cursor-blink" aria-hidden="true">
+              |
+            </span>
+          )}{' '}
+          <Keycap size="sm">F</Keycap>
         </button>
         <button
           type="button"
@@ -65,6 +75,7 @@ export function LanguageScreen({ language, status, onChoose }: LanguageScreenPro
           data-testid="language-en"
           data-selected={language === 'en'}
           onClick={() => onChoose('en')}
+          className="touch-manipulation hover:opacity-70 transition-opacity"
           style={{
             ...OPTION_STYLE,
             color:
@@ -73,7 +84,13 @@ export function LanguageScreen({ language, status, onChoose }: LanguageScreenPro
                 : 'var(--color-text-muted)',
           }}
         >
-          English <Keycap size="sm">E</Keycap>
+          English
+          {language === 'en' && (
+            <span className="cursor-blink" aria-hidden="true">
+              |
+            </span>
+          )}{' '}
+          <Keycap size="sm">E</Keycap>
         </button>
       </div>
       <div
@@ -90,7 +107,7 @@ export function LanguageScreen({ language, status, onChoose }: LanguageScreenPro
               background: 'var(--color-text-muted)',
               borderRadius: '2px',
               animation:
-                status === 'tuning'
+                status === 'tuning' && !reduceMotion
                   ? `intro-equalizer 900ms ease-in-out ${i * 120}ms infinite`
                   : 'none',
             }}

@@ -322,6 +322,7 @@ function OuvertureChrome({
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
+        alignItems: 'center',
         padding: 'clamp(24px, 5vw, 64px)',
       }}
     >
@@ -331,6 +332,7 @@ function OuvertureChrome({
           data-testid="intro-continue-touch"
           onClick={onTouchContinue}
           aria-label={t('continueTouch')}
+          className="touch-manipulation"
           style={{
             position: 'absolute',
             inset: 0,
@@ -353,9 +355,16 @@ function OuvertureChrome({
           display: 'flex',
           flexDirection: 'column',
           gap: '40px',
+          // Le bouton tactile plein écran est rendu AVANT ce bloc dans le DOM
+          // (pour rester visuellement en dessous), ce qui le place aussi en
+          // dessous dans l'ordre d'empilement : sans ce `none`, ce bloc (même
+          // ses zones vides) intercepterait les appuis destinés au bouton.
+          // Les seuls éléments cliquables qu'il contient (langue, partager/
+          // explorer, envies) redonnent `auto` sur eux-mêmes.
+          pointerEvents: touchMode && screen !== 2 ? 'none' : undefined,
         }}
       >
-        <div style={{ maxWidth: '58%' }}>
+        <div style={{ width: '100%', maxWidth: 'min(880px, 86vw)' }}>
           {screen === 1 && (
             <LanguageScreen
               language={language}
@@ -390,6 +399,7 @@ function OuvertureChrome({
 
       {screen !== 2 && (
         <div
+          data-part="chrome-continue"
           style={{
             position: 'absolute',
             bottom: 'clamp(16px, 3vw, 32px)',
@@ -408,7 +418,9 @@ function OuvertureChrome({
       {touchMode ? (
         <button
           type="button"
+          data-part="chrome-skip"
           onClick={onSkip}
+          className="touch-manipulation hover:opacity-70 transition-opacity"
           style={{
             position: 'absolute',
             top: 'clamp(16px, 3vw, 32px)',
@@ -427,6 +439,7 @@ function OuvertureChrome({
         </button>
       ) : (
         <div
+          data-part="chrome-skip"
           style={{
             position: 'absolute',
             top: 'clamp(16px, 3vw, 32px)',
