@@ -21,6 +21,8 @@ import {
 } from '@/app/[locale]/actions/collections';
 import { ActiveSessionHeader } from '@/components/typing/ActiveSessionHeader';
 import { AmbientAura } from '@/components/typing/AmbientAura';
+import { exitSettings, type IntroExit } from '@/components/intro/apply-exit';
+import { Ouverture } from '@/components/intro/Ouverture';
 import { ConfigBar } from '@/components/typing/ConfigBar';
 import { CollectionSelector } from '@/components/typing/CollectionSelector';
 import { ContextSelectors } from '@/components/typing/ContextSelectors';
@@ -48,6 +50,7 @@ import {
   getUserProfile,
   type PersonalText,
 } from '@/lib/db';
+import { hasSeenIntro, markIntroSeen } from '@/lib/intro';
 import { noteNameToMidi } from '@/lib/note-visualization';
 import { applyTextFilters } from '@/lib/text-filters';
 import { useAudioStore } from '@/stores/useAudioStore';
@@ -59,7 +62,8 @@ import { type MidiPieceId } from '@typewav/audio-engine';
 import { buildContinuousText, selectFromTexts } from '@typewav/collections';
 import type { CollectionConfig, TypingMode } from '@typewav/types';
 import { useReducedMotion } from 'motion/react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import webPackage from '../../package.json';
 
@@ -88,6 +92,8 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const tAudio = useTranslations('audio');
   const tGhost = useTranslations('ghost');
   const shouldReduceMotion = useReducedMotion();
+  const locale = useLocale() as 'fr' | 'en';
+  const router = useRouter();
 
   const [shuffleOffset, setShuffleOffset] = useState(0);
   const [restartKey, setRestartKey] = useState(0);
@@ -194,8 +200,91 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   const wordCount = useConfigStore((s) => s.wordCount);
   const textLanguage = useConfigStore((s) => s.textLanguage);
   const durationSeconds = useConfigStore((s) => s.durationSeconds);
+  const setTextLanguage = useConfigStore((s) => s.setTextLanguage);
+  const setDuration = useConfigStore((s) => s.setDuration);
   const activePersonalTextId = useCustomTextStore(
     (s) => s.activePersonalTextId,
+  );
+
+  // `useConfigStore` persiste dans IndexedDB (async, voir useConfigStore.ts) :
+  // au tout premier montage, `textLanguage` (et le reste de la config) peut
+  // encore valoir le défaut en mémoire le temps que la réhydratation
+  // termine. Sans ce garde-fou, l'effet de sélection de texte plus bas
+  // pouvait tourner une fois avec une config pas encore à jour (ex. juste
+  // après l'Ouverture, qui vient de choisir une langue et de rediriger vers
+  // `/en` : la toute première séance choisissait parfois un texte français
+  // malgré `textLanguage: 'en'` déjà correct dans le store, bug réel signalé
+  // par Mouwafic le 2026-10-22).
+  const [configHydrated, setConfigHydrated] = useState(() =>
+    useConfigStore.persist.hasHydrated(),
+  );
+  useEffect(() => {
+    if (configHydrated) return;
+    return useConfigStore.persist.onFinishHydration(() =>
+      setConfigHydrated(true),
+    );
+  }, [configHydrated]);
+
+  // L'Ouverture (spec partie B) : drapeau lu une fois au montage, jamais
+  // revérifié ensuite. Rien ne s'affiche avant que ce drapeau soit tranché
+  // (pas d'éclair de l'accueil) ; `?intro=1` (lien « Revoir l'introduction »
+  // d'À propos) rejoue l'Ouverture sans reposer ni retoucher le drapeau.
+  const [introResolved, setIntroResolved] = useState(false);
+  const [showIntro, setShowIntro] = useState(false);
+  const [introFirstRun, setIntroFirstRun] = useState(true);
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const seen = await hasSeenIntro();
+      if (cancelled) return;
+      const forceReplay =
+        new URLSearchParams(window.location.search).get('intro') === '1';
+      if (!seen) {
+        setShowIntro(true);
+        setIntroFirstRun(true);
+      } else if (forceReplay) {
+        setShowIntro(true);
+        setIntroFirstRun(false);
+      }
+      setIntroResolved(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleIntroClose = useCallback(
+    (exit: IntroExit) => {
+      const { textLanguage: lang, setTimedMode30, localeTarget } =
+        exitSettings(exit);
+      if (lang) setTextLanguage(lang);
+      if (setTimedMode30) {
+        setActiveMode('classic');
+        setDuration(30);
+      }
+      void markIntroSeen();
+      setShowIntro(false);
+
+      const url = new URL(window.location.href);
+      url.searchParams.delete('intro');
+      window.history.replaceState({}, '', url.toString());
+
+      if (localeTarget && localeTarget !== locale) {
+        router.replace(`/${localeTarget}`);
+      } else {
+        // `<main>` ne redevient focusable qu'une fois le re-render de
+        // `setShowIntro(false)` commit (voir le commentaire sur `inert`) :
+        // un `.focus()` synchrone ici viserait un élément encore inerte et
+        // échouerait silencieusement. `requestAnimationFrame` attend le
+        // prochain paint, donc le DOM a déjà perdu `inert` à ce moment-là.
+        requestAnimationFrame(() => {
+          document
+            .querySelector<HTMLInputElement>('[data-testid="typing-capture"]')
+            ?.focus();
+        });
+      }
+    },
+    [locale, router, setActiveMode, setDuration, setTextLanguage],
   );
 
   const activePersonalText = useMemo(
@@ -323,6 +412,9 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     if (effectiveMode === 'custom' || effectiveMode === 'ghost') {
       return;
     }
+    // Attend la réhydratation de la config (voir plus haut) : sinon
+    // `textLanguage` peut encore valoir le défaut en mémoire ici.
+    if (!configHydrated) return;
 
     const collKey = activeCollection as CollectionId;
     const collection = collectionsCache[collKey];
@@ -382,6 +474,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     shuffleOffset,
     collectionsCache,
     textLanguage,
+    configHydrated,
     wordCount,
     numbersEnabled,
   ]);
@@ -575,8 +668,30 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
   // Le layout unifié supprime les "sauts" ou "jumps" de l'UI.
   const appVersion = webPackage.version;
 
+  // Rien ne s'affiche avant que le drapeau de l'Ouverture soit tranché.
+  if (!introResolved) return null;
+
   return (
-    <main
+    <>
+      {showIntro && (
+        <Ouverture
+          urlLocale={locale}
+          firstRun={introFirstRun}
+          onClose={handleIntroClose}
+        />
+      )}
+      <main
+      // L'Ouverture est un overlay, pas une route : rien ne l'empêchait de
+      // coexister avec la vraie séance de frappe en dessous, dont le
+      // `typing-capture` caché garde le focus par défaut. N'importe quelle
+      // touche visant l'Ouverture (même juste choisir F/E à l'écran 1)
+      // pouvait donc AUSSI démarrer une vraie séance chronométrée en
+      // silence derrière le rideau, qui se terminait seule et atterrissait
+      // sur /results dès la fermeture (bug réel, signalé par Mouwafic le
+      // 2026-10-22). `inert` retire tout le dessous du focus et des
+      // événements tant que l'Ouverture occupe l'écran : mécanisme natif,
+      // pas de gestion de focus maison à écrire ou à faire fuir.
+      inert={showIntro}
       className="home-main"
       style={{
         display: 'flex',
@@ -1195,6 +1310,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         personalTexts={personalTexts}
         onChange={refreshPersonalTexts}
       />
-    </main>
+      </main>
+    </>
   );
 }

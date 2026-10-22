@@ -726,7 +726,9 @@ export function useAudioEngine() {
   /**
    * Joue une note nommée (ex. "C4") telle quelle, sans passer par la séquence
    * MIDI ni l'expression de frappe. Utilisé pour rejouer la mélodie d'une
-   * session terminée (bouton Réécouter de l'écran de résultats).
+   * session terminée (bouton Réécouter de l'écran de résultats) et par la
+   * musique de l'Ouverture. Renseigne `lastPlayedNote` comme `playParsedNote` :
+   * une faute qui suit dans ces contextes fait résonner cette note en écho.
    */
   const playNoteName = useCallback(
     async (noteName: string, durationSec = 0.6): Promise<void> => {
@@ -740,6 +742,7 @@ export function useAudioEngine() {
           playTime,
           velocity,
         );
+        engine.lastPlayedNote = noteName;
       } else if (engine.fallbackSynth) {
         engine.fallbackSynth.triggerAttackRelease(
           noteName,
@@ -747,6 +750,7 @@ export function useAudioEngine() {
           playTime,
           velocity,
         );
+        engine.lastPlayedNote = noteName;
       }
     },
     [],

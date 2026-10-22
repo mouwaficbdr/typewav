@@ -454,7 +454,8 @@
       "heading": "Links",
       "github": "Source code",
       "readme": "README",
-      "profile": "The author"
+      "profile": "The author",
+      "replayIntro": "Replay the intro"
     },
     "credits": {
       "heading": "Credits",
@@ -473,5 +474,88 @@
     "promise3": "Your weak keys come back until they're sure.",
     "teaser": "Rest your fingers, play the scale.",
     "cta": "Meanwhile, play"
+  },
+  "intro": {
+    "skip": "Skip",
+    "skipTouch": "Skip",
+    "continue": "to continue",
+    "continueTouch": "Tap to continue",
+    "screenCount": "Screen {n} of {total}",
+    "announce": "Screen {n} of 6: {title}",
+    "keySpace": "Space",
+    "keyEscape": "Esc",
+    "language": {
+      "prompt": "Choisis ta langue · Choose your language",
+      "sound": "Monte le son · Turn up the sound",
+      "tuning": "Le piano s'accorde… · Tuning the piano…",
+      "soundFailed": "Sound couldn't start.",
+      "retrySuffix": "to try again"
+    },
+    "play": {
+      "instruction": "Type the right letter, the music follows.",
+      "text": "the notes",
+      "askMiss": "Now, miss a key.",
+      "waiting": "The music waits.",
+      "missLine": "A mistake never plays a wrong note: only the last note rings, softly.",
+      "resumeAction": "to resume",
+      "touchInstruction": "TypeWav is played on a computer keyboard. Tap the screen to hear it.",
+      "touchMissLine": "A mistake never plays a wrong note: only the last note rings, softly."
+    },
+    "why": {
+      "title": "Your ear hears the mistake before your eyes do.",
+      "line": "For anyone who wants to type faster and cleaner without staring at a timer: from the curious to the seasoned typist."
+    },
+    "features": {
+      "modes": {
+        "title": "The modes",
+        "line": "Time, Words, Quote, Zen, Code, or your own texts."
+      },
+      "pieces": {
+        "title": "The pieces",
+        "line": "Pick the music your typing reveals."
+      },
+      "replay": {
+        "title": "Results and replay",
+        "line": "Your session replayed note by note."
+      },
+      "progress": {
+        "title": "Your progress",
+        "line": "Records, rank, leaderboard: it's all kept."
+      },
+      "challenge": {
+        "title": "The challenge",
+        "line": "One link, the same text, your score to beat. And the Ghost replays your record."
+      },
+      "rest": "The rest you'll find by playing."
+    },
+    "data": {
+      "title": "Everything stays in this browser.",
+      "line": "No account, nothing is sent, no tracking.",
+      "more": "Learn more",
+      "private": {
+        "term": "Private browsing",
+        "def": "nothing is kept."
+      },
+      "clear": {
+        "term": "Clearing site data",
+        "def": "everything is gone."
+      },
+      "other": {
+        "term": "Another browser, another device",
+        "def": "you start from scratch."
+      },
+      "backup": {
+        "term": "Your backup",
+        "def": "\"Download my data\" in Settings, then \"Import a file\" to get everything back."
+      }
+    },
+    "start": {
+      "title": "Your first piece awaits.",
+      "future": "Soon: the Conservatory, to learn touch typing with all ten fingers.",
+      "go": "to begin",
+      "share": "Send yourself the link",
+      "copied": "Link copied.",
+      "explore": "Explore anyway"
+    }
   }
 }

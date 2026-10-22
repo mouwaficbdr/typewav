@@ -124,6 +124,29 @@ body {
   }
 }
 
+/*
+ * Respiration continue sur le texte d'action attendue (« Espace pour
+ * continuer », « Retour arrière pour reprendre »...), pour qu'elle se
+ * distingue sans ambiguïté du texte explicatif ou décoratif autour (retour
+ * Mouwafic 2026-10-22 : « pas de mise en évidence claire de l'action à
+ * mener »). `transform` + `opacity` seulement (compositor-friendly).
+ */
+.intro-pulse {
+  animation: intro-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes intro-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
 .char-pending {
   color: color-mix(in srgb, var(--color-text-primary) 35%, transparent);
 }
@@ -238,6 +261,12 @@ body {
   .char-current::after {
     animation: none;
     opacity: 1;
+  }
+
+  .intro-pulse {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 
   .skeleton {

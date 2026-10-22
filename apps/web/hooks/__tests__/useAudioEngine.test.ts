@@ -261,6 +261,40 @@ describe('useAudioEngine : triggerErrorEcho', () => {
   });
 });
 
+describe('useAudioEngine : playNoteName renseigne lastPlayedNote', () => {
+  it("après playNoteName('E5'), triggerErrorEcho rejoue E5 tout bas", async () => {
+    const { result, unmount } = renderHook(() => useAudioEngine());
+
+    await act(async () => {
+      await result.current.initialize();
+    });
+    await waitFor(() => expect(samplerInstances.length).toBe(1));
+
+    await act(async () => {
+      await result.current.playNoteName('E5');
+    });
+
+    const sampler = samplerInstances[0]!;
+    const [firstNote, , , firstVelocity] =
+      sampler.triggerAttackRelease.mock.calls[0]!;
+    expect(firstNote).toBe('E5');
+
+    await act(async () => {
+      await result.current.triggerErrorEcho();
+    });
+
+    expect(sampler.triggerAttackRelease).toHaveBeenCalledTimes(2);
+    const [echoNote, echoDuration, , echoVelocity] =
+      sampler.triggerAttackRelease.mock.calls[1]!;
+    expect(echoNote).toBe('E5');
+    expect(echoDuration).toBe(1.6);
+    expect(echoVelocity).toBeLessThan(firstVelocity as number);
+    expect(echoVelocity).toBe(0.18);
+
+    unmount();
+  });
+});
+
 describe('useAudioEngine : playNote', () => {
   it('pousse le BPM live de warpEngine dans useAudioStore à chaque note', async () => {
     loadPieceFromData(TEST_PIECE);

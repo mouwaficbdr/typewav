@@ -9,6 +9,15 @@ vi.mock('@/app/[locale]/actions/collections', () => ({
   fetchCollection: (...args: unknown[]) => mockFetchCollection(...args),
 }));
 
+// Les tests de ce fichier ne portent pas sur l'Ouverture (voir
+// HomeClient.intro.test.tsx) : drapeau toujours "vu" pour ne jamais la
+// monter ici (elle dépend d'un vrai NextIntlClientProvider que ce fichier
+// ne mocke pas).
+vi.mock('@/lib/intro', () => ({
+  hasSeenIntro: () => Promise.resolve(true),
+  markIntroSeen: () => Promise.resolve(undefined),
+}));
+
 vi.mock('@/hooks/useAudioEngine', () => ({
   useAudioEngine: () => ({
     initialize: vi.fn().mockResolvedValue(undefined),
