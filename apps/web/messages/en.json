@@ -476,17 +476,20 @@
     "cta": "Meanwhile, play"
   },
   "intro": {
-    "skip": "Skip · Esc",
+    "skip": "Skip",
     "skipTouch": "Skip",
-    "continue": "Space to continue",
+    "continue": "to continue",
     "continueTouch": "Tap to continue",
     "screenCount": "Screen {n} of {total}",
     "announce": "Screen {n} of 6: {title}",
+    "keySpace": "Space",
+    "keyEscape": "Esc",
     "language": {
       "prompt": "Choisis ta langue · Choose your language",
       "sound": "Monte le son · Turn up the sound",
       "tuning": "Le piano s'accorde… · Tuning the piano…",
-      "soundFailed": "Sound couldn't start. Press S to try again."
+      "soundFailed": "Sound couldn't start.",
+      "retrySuffix": "to try again"
     },
     "play": {
       "instruction": "Type the right letter, the music follows.",
@@ -494,7 +497,7 @@
       "askMiss": "Now, miss a key.",
       "waiting": "The music waits.",
       "missLine": "A mistake never plays a wrong note: only the last note rings, softly.",
-      "resumeAction": "Backspace to resume",
+      "resumeAction": "to resume",
       "touchInstruction": "TypeWav is played on a computer keyboard. Tap the screen to hear it.",
       "touchMissLine": "A mistake never plays a wrong note: only the last note rings, softly."
     },
@@ -527,7 +530,7 @@
     },
     "data": {
       "title": "Everything stays in this browser.",
-      "line": "No account, nothing is sent, no tracking. Press I to learn more.",
+      "line": "No account, nothing is sent, no tracking.",
       "more": "Learn more",
       "private": {
         "term": "Private browsing",
@@ -549,7 +552,7 @@
     "start": {
       "title": "Your first piece awaits.",
       "future": "Soon: the Conservatory, to learn touch typing with all ten fingers.",
-      "go": "Space to begin",
+      "go": "to begin",
       "share": "Send yourself the link",
       "copied": "Link copied.",
       "explore": "Explore anyway"

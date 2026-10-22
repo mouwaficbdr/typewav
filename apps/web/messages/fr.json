@@ -476,17 +476,20 @@
     "cta": "En attendant, joue"
   },
   "intro": {
-    "skip": "Passer · Échap",
+    "skip": "Passer",
     "skipTouch": "Passer",
-    "continue": "Espace pour continuer",
+    "continue": "pour continuer",
     "continueTouch": "Touche pour continuer",
     "screenCount": "Écran {n} sur {total}",
     "announce": "Écran {n} sur 6 : {title}",
+    "keySpace": "Espace",
+    "keyEscape": "Échap",
     "language": {
       "prompt": "Choisis ta langue · Choose your language",
       "sound": "Monte le son · Turn up the sound",
       "tuning": "Le piano s'accorde… · Tuning the piano…",
-      "soundFailed": "Le son n'a pas pu démarrer. S pour réessayer."
+      "soundFailed": "Le son n'a pas pu démarrer.",
+      "retrySuffix": "pour réessayer"
     },
     "play": {
       "instruction": "Tape la bonne lettre, la musique suit.",
@@ -494,7 +497,7 @@
       "askMiss": "Maintenant, rate une touche.",
       "waiting": "La musique attend.",
       "missLine": "Une faute ne joue jamais de fausse note : seule la dernière note résonne, tout bas.",
-      "resumeAction": "Retour arrière pour reprendre",
+      "resumeAction": "pour reprendre",
       "touchInstruction": "TypeWav se joue au clavier d'un ordinateur. Touche l'écran pour l'entendre.",
       "touchMissLine": "Une faute ne joue jamais de fausse note : seule la dernière note résonne, tout bas."
     },
@@ -527,7 +530,7 @@
     },
     "data": {
       "title": "Tout reste dans ce navigateur.",
-      "line": "Pas de compte, rien n'est envoyé, aucun pistage. I pour en savoir plus.",
+      "line": "Pas de compte, rien n'est envoyé, aucun pistage.",
       "more": "En savoir plus",
       "private": {
         "term": "Navigation privée",
@@ -549,7 +552,7 @@
     "start": {
       "title": "Ton premier morceau t'attend.",
       "future": "Bientôt : le Conservatoire, pour apprendre à taper à dix doigts.",
-      "go": "Espace pour commencer",
+      "go": "pour commencer",
       "share": "Envoie-toi le lien",
       "copied": "Lien copié.",
       "explore": "Explorer quand même"

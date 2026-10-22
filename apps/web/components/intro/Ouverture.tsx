@@ -1,5 +1,6 @@
 'use client';
 
+import { Keycap } from '@/components/ui/Keycap';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { isNonDesktopDevice } from '@/lib/device';
 import enMessages from '@/messages/en.json';
@@ -15,7 +16,6 @@ import { LanguageScreen } from './screens/LanguageScreen';
 import { PlayScreen } from './screens/PlayScreen';
 import { StartScreen } from './screens/StartScreen';
 import { WhyScreen } from './screens/WhyScreen';
-import { Staff } from './Staff';
 
 const INTRO_MESSAGES: Record<IntroLanguage, { intro: typeof frMessages.intro }> = {
   fr: { intro: frMessages.intro },
@@ -399,8 +399,6 @@ function OuvertureChrome({
             />
           )}
         </div>
-
-        {screen !== 2 && <Staff step={screen} heads={[]} />}
       </div>
 
       {/* Écran 1 au clavier exclu : "Espace pour continuer" y serait faux
@@ -416,6 +414,9 @@ function OuvertureChrome({
             position: 'absolute',
             bottom: 'clamp(16px, 3vw, 32px)',
             left: 'clamp(16px, 3vw, 32px)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
             fontFamily: 'var(--font-mono)',
             fontSize: '0.78rem',
             textTransform: 'uppercase',
@@ -423,7 +424,14 @@ function OuvertureChrome({
             color: 'var(--color-text-muted)',
           }}
         >
-          {touchMode ? t('continueTouch') : t('continue')}
+          {touchMode ? (
+            t('continueTouch')
+          ) : (
+            <>
+              <Keycap size="sm">{t('keySpace')}</Keycap>
+              {t('continue')}
+            </>
+          )}
         </div>
       )}
 
@@ -456,6 +464,9 @@ function OuvertureChrome({
             position: 'absolute',
             top: 'clamp(16px, 3vw, 32px)',
             right: 'clamp(16px, 3vw, 32px)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
             fontFamily: 'var(--font-mono)',
             fontSize: '0.78rem',
             textTransform: 'uppercase',
@@ -463,6 +474,7 @@ function OuvertureChrome({
             color: 'var(--color-text-muted)',
           }}
         >
+          <Keycap size="sm">{t('keyEscape')}</Keycap>
           {t('skip')}
         </div>
       )}

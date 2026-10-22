@@ -1,5 +1,6 @@
 'use client';
 
+import { Keycap } from '@/components/ui/Keycap';
 import { Piano } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
@@ -91,13 +92,18 @@ export function StartScreen({
         </div>
       ) : (
         <p
+          className="intro-pulse"
           style={{
             margin: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
             fontFamily: 'var(--font-mono)',
             fontSize: '0.8rem',
             color: 'var(--color-text-muted)',
           }}
         >
+          <Keycap size="sm">{t('keySpace')}</Keycap>
           {t('start.go')}
         </p>
       )}

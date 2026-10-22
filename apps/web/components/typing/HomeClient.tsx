@@ -253,9 +253,16 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
       if (localeTarget && localeTarget !== locale) {
         router.replace(`/${localeTarget}`);
       } else {
-        document
-          .querySelector<HTMLInputElement>('[data-testid="typing-capture"]')
-          ?.focus();
+        // `<main>` ne redevient focusable qu'une fois le re-render de
+        // `setShowIntro(false)` commit (voir le commentaire sur `inert`) :
+        // un `.focus()` synchrone ici viserait un élément encore inerte et
+        // échouerait silencieusement. `requestAnimationFrame` attend le
+        // prochain paint, donc le DOM a déjà perdu `inert` à ce moment-là.
+        requestAnimationFrame(() => {
+          document
+            .querySelector<HTMLInputElement>('[data-testid="typing-capture"]')
+            ?.focus();
+        });
       }
     },
     [locale, router, setActiveMode, setDuration, setTextLanguage],
@@ -651,6 +658,17 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
         />
       )}
       <main
+      // L'Ouverture est un overlay, pas une route : rien ne l'empêchait de
+      // coexister avec la vraie séance de frappe en dessous, dont le
+      // `typing-capture` caché garde le focus par défaut. N'importe quelle
+      // touche visant l'Ouverture (même juste choisir F/E à l'écran 1)
+      // pouvait donc AUSSI démarrer une vraie séance chronométrée en
+      // silence derrière le rideau, qui se terminait seule et atterrissait
+      // sur /results dès la fermeture (bug réel, signalé par Mouwafic le
+      // 2026-10-22). `inert` retire tout le dessous du focus et des
+      // événements tant que l'Ouverture occupe l'écran : mécanisme natif,
+      // pas de gestion de focus maison à écrire ou à faire fuir.
+      inert={showIntro}
       className="home-main"
       style={{
         display: 'flex',

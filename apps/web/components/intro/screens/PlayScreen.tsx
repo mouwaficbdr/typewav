@@ -1,5 +1,6 @@
 'use client';
 
+import { Keycap } from '@/components/ui/Keycap';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useHiddenCapture } from '@/hooks/useHiddenCapture';
 import { useAudioStore } from '@/stores/useAudioStore';
@@ -248,6 +249,9 @@ export function PlayScreen({ onDone, touch }: PlayScreenProps) {
           className="intro-pulse"
           style={{
             margin: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
             fontFamily: 'var(--font-mono)',
             fontSize: '0.78rem',
             textTransform: 'uppercase',
@@ -255,6 +259,7 @@ export function PlayScreen({ onDone, touch }: PlayScreenProps) {
             color: 'var(--color-accent)',
           }}
         >
+          <Keycap size="sm">⌫</Keycap>
           {t('play.resumeAction')}
         </p>
       )}
@@ -264,6 +269,9 @@ export function PlayScreen({ onDone, touch }: PlayScreenProps) {
           className="intro-pulse"
           style={{
             margin: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
             fontFamily: 'var(--font-mono)',
             fontSize: '0.78rem',
             textTransform: 'uppercase',
@@ -271,6 +279,7 @@ export function PlayScreen({ onDone, touch }: PlayScreenProps) {
             color: 'var(--color-text-muted)',
           }}
         >
+          <Keycap size="sm">{t('keySpace')}</Keycap>
           {t('continue')}
         </p>
       )}

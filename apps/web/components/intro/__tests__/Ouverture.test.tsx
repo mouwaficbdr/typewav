@@ -112,7 +112,11 @@ describe('Ouverture : écran 1, la langue', () => {
   it('E bascule les textes en anglais sans appeler de navigation', () => {
     render(<Ouverture urlLocale="fr" firstRun={true} onClose={vi.fn()} />);
     fireEvent.keyDown(window, { code: 'KeyE', key: 'e' });
-    expect(screen.getByText('Skip · Esc')).toBeInTheDocument();
+    // Depuis la clarification des touches (Keycap + libellé), « Esc » et
+    // « Skip » sont deux noeuds de texte distincts, pas une seule chaîne.
+    expect(document.querySelector('[data-part="chrome-skip"]')).toHaveTextContent(
+      'Skip',
+    );
   });
 
   it("tant que isSamplerLoaded est faux, on reste sur l'écran 1 avec language.tuning", async () => {

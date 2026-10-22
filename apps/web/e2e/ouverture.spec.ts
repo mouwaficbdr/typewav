@@ -146,6 +146,16 @@ for (const viewport of DESKTOP_VIEWPORTS) {
     await expect(page).toHaveURL(/\/fr\/?$/);
     await expect(page.getByTestId('typing-capture')).toBeFocused();
 
+    // Bug réel signalé par Mouwafic le 2026-10-22 : le <main> en dessous de
+    // l'Ouverture restait focusable et recevait les frappes (F, Backspace…)
+    // destinées à l'Ouverture, démarrant en silence une vraie séance
+    // chronométrée qui se terminait seule après coup. Aucun caractère de la
+    // vraie zone de frappe ne doit avoir été marqué par les frappes faites
+    // dans l'Ouverture (tout reste à l'état initial, non tapé).
+    await expect(page.locator('[data-testid="char-0"]')).toHaveClass(
+      /char-current/,
+    );
+
     // Un rechargement ne remontre pas l'Ouverture.
     await page.reload();
     await expect(

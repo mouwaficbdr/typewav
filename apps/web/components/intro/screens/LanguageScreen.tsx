@@ -117,6 +117,9 @@ export function LanguageScreen({ language, status, onChoose }: LanguageScreenPro
       <p
         style={{
           margin: 0,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
           fontFamily: 'var(--font-mono)',
           fontSize: '0.8rem',
           color:
@@ -125,11 +128,17 @@ export function LanguageScreen({ language, status, onChoose }: LanguageScreenPro
               : 'var(--color-text-muted)',
         }}
       >
-        {status === 'failed'
-          ? t('language.soundFailed')
-          : status === 'tuning'
-            ? t('language.tuning')
-            : t('language.sound')}
+        {status === 'failed' ? (
+          <>
+            {t('language.soundFailed')}
+            <Keycap size="sm">S</Keycap>
+            {t('language.retrySuffix')}
+          </>
+        ) : status === 'tuning' ? (
+          t('language.tuning')
+        ) : (
+          t('language.sound')
+        )}
       </p>
       <style>{`
         @keyframes intro-equalizer {

@@ -1,5 +1,6 @@
 'use client';
 
+import { Keycap } from '@/components/ui/Keycap';
 import { useTranslations } from 'next-intl';
 
 const TERMS = ['private', 'clear', 'other', 'backup'] as const;
@@ -38,6 +39,24 @@ export function DataScreen({ expanded }: DataScreenProps) {
       >
         {t('data.line')}
       </p>
+      {!expanded && (
+        <p
+          style={{
+            margin: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.78rem',
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            color: 'var(--color-text-muted)',
+          }}
+        >
+          <Keycap size="sm">I</Keycap>
+          {t('data.more')}
+        </p>
+      )}
       {expanded && (
         <dl
           data-part="data-detail"
