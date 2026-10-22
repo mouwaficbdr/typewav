@@ -6,14 +6,12 @@ import { expectNoOverlap, skipIntro } from './helpers';
  * liste des promesses, avant-goût jouable et action unique ne doivent jamais
  * se recouvrir, à aucune des trois tailles cibles, et rester entièrement
  * visibles sans défilement.
+ *
+ * Plusieurs tests d'ici démarrent un vrai moteur audio (Tone.js) : la suite
+ * e2e tourne sans parallélisme (`workers: 1`, voir playwright.config.ts)
+ * pour ne jamais faire cohabiter deux contextes Web Audio réels.
  */
 
-// Plusieurs tests d'ici démarrent un vrai moteur audio (Tone.js) : exécutés
-// en parallèle (comportement par défaut, `fullyParallel`), plusieurs
-// contextes Web Audio réels se disputent le même CPU et l'un d'eux peut ne
-// jamais finir par s'initialiser dans le délai, pas juste plus lentement
-// (voir issue #132). Sérialiser ce fichier élimine la contention observée.
-test.describe.configure({ mode: 'serial' });
 const VIEWPORTS = [
   { width: 1280, height: 650 },
   { width: 1024, height: 600 },

@@ -43,10 +43,7 @@ export function PlayScreen({ onDone, touch }: PlayScreenProps) {
         void playChord(notes, playNoteName, () => isSamplerLoaded);
         setHeads((prev) => [
           ...prev,
-          ...notes.map((note) => ({
-            id: `h${headIdRef.current++}`,
-            note,
-          })),
+          ...notes.map(() => ({ id: `h${headIdRef.current++}` })),
         ]);
       } else if (effect.kind === 'echo') {
         void triggerErrorEcho();
@@ -57,9 +54,7 @@ export function PlayScreen({ onDone, touch }: PlayScreenProps) {
         void triggerResume();
         const notes = INTRO_MELODY[8] ?? [];
         void playChord(notes, playNoteName, () => isSamplerLoaded);
-        setHeads(
-          notes.map((note) => ({ id: `h${headIdRef.current++}`, note })),
-        );
+        setHeads(notes.map(() => ({ id: `h${headIdRef.current++}` })));
       }
     },
     [playNoteName, triggerErrorEcho, triggerResume, isSamplerLoaded],
@@ -120,7 +115,7 @@ export function PlayScreen({ onDone, touch }: PlayScreenProps) {
     void playChord(notes, playNoteName, () => isSamplerLoaded);
     setHeads((prev) => [
       ...prev,
-      ...notes.map((note) => ({ id: `h${headIdRef.current++}`, note })),
+      ...notes.map(() => ({ id: `h${headIdRef.current++}` })),
     ]);
     setTouchCount((n) => n + 1);
   }, [touchCount, playNoteName, isSamplerLoaded, onDone]);
@@ -218,17 +213,22 @@ export function PlayScreen({ onDone, touch }: PlayScreenProps) {
 
       {!touch && playState.phase === 'askMiss' && (
         <p
+          className="intro-pulse"
           style={{
             margin: 0,
             fontFamily: 'var(--font-ui)',
             fontSize: '0.95rem',
-            color: 'var(--color-text-muted)',
+            color: 'var(--color-text-primary)',
           }}
         >
           {t('play.askMiss')}
         </p>
       )}
 
+      {/* L'explication reste neutre (pourquoi la musique s'est arrêtée) ;
+          l'action à mener (resumeAction) est un élément distinct, au même
+          style que les indications « continuer » du reste de l'Ouverture,
+          et pulse pour ne jamais se confondre avec du texte d'ambiance. */}
       {!touch && (playState.phase === 'waiting' || playState.phase === 'resumed') && (
         <p
           style={{
@@ -242,8 +242,26 @@ export function PlayScreen({ onDone, touch }: PlayScreenProps) {
         </p>
       )}
 
+      {!touch && playState.phase === 'waiting' && (
+        <p
+          data-part="play-resume-action"
+          className="intro-pulse"
+          style={{
+            margin: 0,
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.78rem',
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            color: 'var(--color-accent)',
+          }}
+        >
+          {t('play.resumeAction')}
+        </p>
+      )}
+
       {!touch && playState.phase === 'resumed' && (
         <p
+          className="intro-pulse"
           style={{
             margin: 0,
             fontFamily: 'var(--font-mono)',
@@ -272,7 +290,7 @@ export function PlayScreen({ onDone, touch }: PlayScreenProps) {
         </p>
       )}
 
-      <Staff step={2} heads={heads} />
+      <Staff step={2} heads={heads} trailLength={INTRO_MELODY.length} />
     </div>
   );
 }

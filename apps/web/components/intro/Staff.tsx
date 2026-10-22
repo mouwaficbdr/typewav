@@ -4,46 +4,37 @@ import { motion, useReducedMotion } from 'motion/react';
 
 export interface StaffHead {
   id: string;
-  note: string;
   faded?: boolean;
 }
 
 interface StaffProps {
-  /** Écran courant, 1 à 6 : pilote la progression et la mesure affichée. */
+  /** Écran courant, 1 à 6 : ignoré par le rendu (purement décoratif), gardé pour le suivi externe. */
   step: number;
-  /** Têtes de note posées par l'écran courant (vide hors écran 2). */
+  /** Têtes posées par l'écran 2 à chaque touche juste (vide ailleurs). */
   heads: StaffHead[];
+  /** Nombre de touches de l'écran 2 (espace la traînée) ; ignoré ailleurs. */
+  trailLength?: number;
 }
 
 const LINE_COUNT = 5;
 const LINE_GAP = 10;
 const LINE_TOP = 30;
-const PROGRESS_COUNT = 6;
-const VIEW_HEIGHT = 120;
-
-/** Hauteur approximative de chaque note sur la portée, do4 grave au do5 aigu. */
-const NOTE_Y: Record<string, number> = {
-  A2: LINE_TOP + LINE_GAP * 7,
-  C4: LINE_TOP + LINE_GAP * 4,
-  D4: LINE_TOP + LINE_GAP * 3.5,
-  'D#4': LINE_TOP + LINE_GAP * 3.5,
-  E4: LINE_TOP + LINE_GAP * 3,
-  F4: LINE_TOP + LINE_GAP * 2.5,
-  G4: LINE_TOP + LINE_GAP * 2,
-  A4: LINE_TOP + LINE_GAP * 1.5,
-  B4: LINE_TOP + LINE_GAP * 1,
-  C5: LINE_TOP + LINE_GAP * 0.5,
-  'D#5': LINE_TOP - LINE_GAP * 0.5,
-  D5: LINE_TOP,
-  E5: LINE_TOP - LINE_GAP * 1,
-};
+const VIEW_HEIGHT = 80;
+const TRAIL_Y = LINE_TOP + LINE_GAP * 2;
 
 /**
- * La portée : fil conducteur de l'Ouverture (spec partie B, « La portée, fil
- * conducteur »). Cinq lignes très fines qui traversent l'écran, six notes de
- * progression (une par écran), et les têtes de note posées par l'écran 2.
+ * La portée : fil conducteur purement décoratif de l'Ouverture (spec partie
+ * B, « La portée, fil conducteur »). Cinq lignes très fines qui traversent
+ * l'écran, rien de plus : jusqu'au 2026-10-22 elle portait aussi 6 cercles de
+ * progression ET les têtes de note de l'écran 2 au même langage visuel
+ * (petits cercles), ce qui rendait les deux illisibles (retour Mouwafic :
+ * « on ne comprend pas ce que ça fabrique »). La progression vit maintenant
+ * ailleurs (`screen X / 6` dans Ouverture.tsx), et les têtes de note ne
+ * mappent plus la hauteur réelle de la note (illisible sans lire une
+ * partition) : elles s'allument en ligne, de gauche à droite, une par
+ * touche juste, comme une traînée qui avance avec la frappe.
  */
-export function Staff({ step, heads }: StaffProps) {
+export function Staff({ step, heads, trailLength = heads.length || 1 }: StaffProps) {
   const reduceMotion = useReducedMotion() === true;
 
   return (
@@ -89,37 +80,14 @@ export function Staff({ step, heads }: StaffProps) {
           );
         })}
 
-        {Array.from({ length: PROGRESS_COUNT }, (_, i) => {
-          const n = i + 1;
-          const state = n < step ? 'done' : n === step ? 'current' : 'todo';
-          const cx = `${((i + 1) / (PROGRESS_COUNT + 1)) * 100}%`;
-          return (
-            <circle
-              key={i}
-              data-progress-state={state}
-              cx={cx}
-              cy={LINE_TOP + LINE_GAP * 2}
-              r={4}
-              fill={
-                state === 'todo'
-                  ? 'transparent'
-                  : state === 'current'
-                    ? 'var(--color-accent)'
-                    : 'var(--color-text-primary)'
-              }
-              stroke={state === 'todo' ? 'var(--color-text-muted)' : 'none'}
-              strokeWidth={state === 'todo' ? 1.5 : 0}
-            />
-          );
-        })}
-
-        {heads.map((head) =>
-          reduceMotion ? (
+        {heads.map((head, i) => {
+          const slot = Math.min(i, trailLength - 1);
+          const cx = `${((slot + 1) / (trailLength + 1)) * 100}%`;
+          return reduceMotion ? (
             <circle
               key={head.id}
-              data-head-note={head.note}
-              cx="50%"
-              cy={NOTE_Y[head.note] ?? LINE_TOP + LINE_GAP * 2}
+              cx={cx}
+              cy={TRAIL_Y}
               r={5}
               fill="var(--color-accent)"
               opacity={head.faded ? 0 : 1}
@@ -127,16 +95,15 @@ export function Staff({ step, heads }: StaffProps) {
           ) : (
             <motion.circle
               key={head.id}
-              data-head-note={head.note}
-              cy={NOTE_Y[head.note] ?? LINE_TOP + LINE_GAP * 2}
+              cy={TRAIL_Y}
               r={5}
               fill="var(--color-accent)"
-              initial={{ cx: '50%', opacity: 1 }}
-              animate={{ cx: '20%', opacity: head.faded ? 0 : 1 }}
-              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+              initial={{ cx, opacity: 0, scale: 0.4 }}
+              animate={{ cx, opacity: head.faded ? 0 : 1, scale: 1 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             />
-          ),
-        )}
+          );
+        })}
       </svg>
     </div>
   );

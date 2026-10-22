@@ -480,6 +480,7 @@
     "skipTouch": "Skip",
     "continue": "Space to continue",
     "continueTouch": "Tap to continue",
+    "screenCount": "Screen {n} of {total}",
     "announce": "Screen {n} of 6: {title}",
     "language": {
       "prompt": "Choisis ta langue · Choose your language",
@@ -492,7 +493,8 @@
       "text": "the notes",
       "askMiss": "Now, miss a key.",
       "waiting": "The music waits.",
-      "missLine": "A mistake never plays a wrong note: only the last note rings, softly. Backspace to resume.",
+      "missLine": "A mistake never plays a wrong note: only the last note rings, softly.",
+      "resumeAction": "Backspace to resume",
       "touchInstruction": "TypeWav is played on a computer keyboard. Tap the screen to hear it.",
       "touchMissLine": "A mistake never plays a wrong note: only the last note rings, softly."
     },

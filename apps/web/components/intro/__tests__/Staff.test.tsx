@@ -54,19 +54,16 @@ describe('namespace intro : mêmes clés en fr et en', () => {
 });
 
 describe('Staff', () => {
-  it('step=3 : 2 notes done, 1 current, 3 todo', () => {
+  it('purement décorative : aucun cercle de progression (retiré le 2026-10-22, voir chrome-progress)', () => {
     const { container } = render(<Staff step={3} heads={[]} />);
-    expect(container.querySelectorAll('[data-progress-state="done"]')).toHaveLength(2);
-    expect(container.querySelectorAll('[data-progress-state="current"]')).toHaveLength(1);
-    expect(container.querySelectorAll('[data-progress-state="todo"]')).toHaveLength(3);
+    expect(container.querySelectorAll('[data-progress-state]')).toHaveLength(0);
   });
 
   it('data-note-heads reflète la longueur de heads', () => {
-    const heads = Array.from({ length: 9 }, (_, i) => ({
-      id: `h${i}`,
-      note: 'E5',
-    }));
-    const { container } = render(<Staff step={2} heads={heads} />);
+    const heads = Array.from({ length: 9 }, (_, i) => ({ id: `h${i}` }));
+    const { container } = render(
+      <Staff step={2} heads={heads} trailLength={9} />,
+    );
     expect(container.firstElementChild).toHaveAttribute('data-note-heads', '9');
   });
 
@@ -75,9 +72,27 @@ describe('Staff', () => {
     expect(container.firstElementChild).toHaveAttribute('data-staff-step', '5');
   });
 
+  it('les têtes s’alignent de gauche à droite selon leur rang, pas selon une hauteur de note', () => {
+    // mouvement réduit : `cx` est un attribut statique du <circle>, pas une
+    // valeur animée (motion.circle mocké ne la reflète pas, voir plus haut).
+    mockUseReducedMotion.mockReturnValue(true);
+    const heads = [{ id: 'h0' }, { id: 'h1' }, { id: 'h2' }];
+    const { container } = render(
+      <Staff step={2} heads={heads} trailLength={3} />,
+    );
+    mockUseReducedMotion.mockReturnValue(false);
+    const circles = [...container.querySelectorAll('circle')];
+    expect(circles).toHaveLength(3);
+    const xs = circles.map((c) => c.getAttribute('cx'));
+    expect(xs).toEqual(['25%', '50%', '75%']);
+    // Même ordonnée pour toutes : ligne horizontale, pas une portée à lire.
+    const ys = new Set(circles.map((c) => c.getAttribute('cy')));
+    expect(ys.size).toBe(1);
+  });
+
   it('sous mouvement réduit : aucune animation de translation', () => {
     mockUseReducedMotion.mockReturnValue(true);
-    const heads = [{ id: 'h1', note: 'E5' }];
+    const heads = [{ id: 'h1' }];
     const { container } = render(<Staff step={2} heads={heads} />);
     for (const el of container.querySelectorAll('*')) {
       expect((el as HTMLElement).style.transform).toBe('');

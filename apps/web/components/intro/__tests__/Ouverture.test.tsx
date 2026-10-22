@@ -74,6 +74,10 @@ async function advanceToScreen(target: number, onClose = vi.fn()) {
   render(
     <Ouverture urlLocale="fr" firstRun={true} onClose={onClose} />,
   );
+  // L'avance automatique de l'écran 1 exige désormais un choix de langue
+  // explicite cette fois-ci, pas seulement un piano déjà chaud (bug réel
+  // corrigé dans Ouverture.tsx le 2026-10-22).
+  fireEvent.keyDown(window, { code: 'KeyF', key: 'f' });
   while (currentScreen() < target) {
     const current = currentScreen();
     const next = current + 1;
@@ -251,6 +255,9 @@ describe('Ouverture : écran 4, les envies', () => {
     const onClose = vi.fn();
     useAudioStore.setState({ isSamplerLoaded: true });
     render(<Ouverture urlLocale="fr" firstRun={true} onClose={onClose} />);
+    act(() => {
+      fireEvent.keyDown(window, { code: 'KeyF', key: 'f' });
+    });
     while (currentScreen() < 4) {
       act(() => {
         if (currentScreen() === 2) {
@@ -289,7 +296,7 @@ describe('Ouverture : écran 6, à toi', () => {
     const onClose = await advanceToScreen(6);
     fireEvent.keyDown(window, { code: 'Space', key: ' ' });
     expect(onClose).toHaveBeenCalledWith({
-      chosenLanguage: null,
+      chosenLanguage: 'fr',
       introLanguage: 'fr',
       firstRun: true,
     } satisfies IntroExit);

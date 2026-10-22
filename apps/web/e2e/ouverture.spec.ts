@@ -6,6 +6,10 @@ import { expectNoOverlap, readPreference } from './helpers';
  * l'accueil. Le drapeau `has_seen_intro_v1` n'est volontairement JAMAIS posé
  * avant ces tests (contrairement aux autres specs, voir `skipIntro`) : c'est
  * justement ce qu'on veut voir apparaître.
+ *
+ * Plusieurs tests démarrent un vrai moteur audio (Tone.js) : la suite e2e
+ * tourne sans parallélisme (`workers: 1`, voir playwright.config.ts) pour
+ * ne jamais faire cohabiter deux contextes Web Audio réels.
  */
 
 const DESKTOP_VIEWPORTS = [
@@ -40,6 +44,7 @@ async function expectScreenNoOverlap(
   const candidates: Record<string, Locator> = {
     skip: page.locator('[data-part="chrome-skip"]'),
     continue: page.locator('[data-part="chrome-continue"]'),
+    progress: page.locator('[data-part="chrome-progress"]'),
     staff: page.locator('[data-part="staff"]'),
   };
   for (const [name, locator] of Object.entries(candidates)) {
@@ -86,6 +91,10 @@ async function clearPlayScreen(page: Page): Promise<void> {
     'data-play-phase',
     'waiting',
   );
+  // L'action à mener (retour arrière) est un élément distinct et visible,
+  // pas noyée dans la phrase d'explication (retour Mouwafic 2026-10-22 :
+  // « comment on passe à la suite »).
+  await expect(page.locator('[data-part="play-resume-action"]')).toBeVisible();
   await page.keyboard.press('Backspace');
   await expect(page.locator('[data-part="play-screen"]')).toHaveAttribute(
     'data-play-phase',
@@ -173,6 +182,38 @@ test("la langue : E à l'écran 1 puis Échap change l'URL et persiste textLangu
     .toBe('en');
 });
 
+test('rejouer depuis À propos pendant que le piano est déjà chaud ne saute pas l’écran 1', async ({
+  page,
+}) => {
+  // Bug réel signalé par Mouwafic le 2026-10-22 : l'avance automatique de
+  // l'écran 1 ne regardait que isSamplerLoaded, pas si une langue avait été
+  // choisie CETTE FOIS-CI. Un piano déjà chaud (ici : laissé tel quel après
+  // Échap, sans recharger la page) faisait sauter l'écran 1 au montage,
+  // avant même de pouvoir lire quoi que ce soit.
+  await page.setViewportSize(DESKTOP_VIEWPORTS[0]!);
+  await page.goto('/fr');
+  // Attendre que l'écran 1 soit effectivement là avant la première frappe :
+  // juste après `goto`, le listener clavier peut ne pas encore être attaché,
+  // et un `KeyF` trop précoce se perd silencieusement (vécu en vérifiant ce
+  // correctif à la main).
+  await expect(page.locator('[data-part="language-screen"]')).toBeVisible();
+  await page.keyboard.press('KeyF');
+  await waitForPiano(page);
+  await waitForScreen(page, 2, 15_000);
+  await page.keyboard.press('Escape'); // ferme sans recharger : le piano reste chaud
+
+  await page.getByRole('link', { name: 'À propos' }).click();
+  await page.getByRole('link', { name: "Revoir l'introduction" }).click();
+
+  // Doit rester sur l'écran 1, pas sauter directement à l'écran 2 ou plus.
+  await expect(page.getByRole('region', { name: 'Ouverture' })).toHaveAttribute(
+    'data-intro-screen',
+    '1',
+  );
+  await page.waitForTimeout(2000);
+  expect(await regionScreen(page)).toBe('1');
+});
+
 test.describe('tactile', () => {
   test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
 
@@ -210,6 +251,10 @@ test('mouvement réduit : le parcours se termine, aucun élément animé en tran
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.setViewportSize(DESKTOP_VIEWPORTS[0]!);
   await page.goto('/fr');
+  // Comme pour le test de rejeu depuis À propos : attendre l'écran 1 avant
+  // la première frappe, sans quoi `KeyF` peut arriver avant que le listener
+  // clavier soit attaché et se perdre silencieusement.
+  await expect(page.locator('[data-part="language-screen"]')).toBeVisible();
 
   await page.keyboard.press('KeyF');
   await waitForPiano(page);

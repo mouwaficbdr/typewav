@@ -480,6 +480,7 @@
     "skipTouch": "Passer",
     "continue": "Espace pour continuer",
     "continueTouch": "Touche pour continuer",
+    "screenCount": "Écran {n} sur {total}",
     "announce": "Écran {n} sur 6 : {title}",
     "language": {
       "prompt": "Choisis ta langue · Choose your language",
@@ -492,7 +493,8 @@
       "text": "les notes",
       "askMiss": "Maintenant, rate une touche.",
       "waiting": "La musique attend.",
-      "missLine": "Une faute ne joue jamais de fausse note : seule la dernière note résonne, tout bas. Retour arrière pour reprendre.",
+      "missLine": "Une faute ne joue jamais de fausse note : seule la dernière note résonne, tout bas.",
+      "resumeAction": "Retour arrière pour reprendre",
       "touchInstruction": "TypeWav se joue au clavier d'un ordinateur. Touche l'écran pour l'entendre.",
       "touchMissLine": "Une faute ne joue jamais de fausse note : seule la dernière note résonne, tout bas."
     },

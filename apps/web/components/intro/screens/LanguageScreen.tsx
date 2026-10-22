@@ -67,7 +67,7 @@ export function LanguageScreen({ language, status, onChoose }: LanguageScreenPro
               |
             </span>
           )}{' '}
-          <Keycap size="sm">F</Keycap>
+          <Keycap size="sm" className="intro-pulse">F</Keycap>
         </button>
         <button
           type="button"
@@ -90,7 +90,7 @@ export function LanguageScreen({ language, status, onChoose }: LanguageScreenPro
               |
             </span>
           )}{' '}
-          <Keycap size="sm">E</Keycap>
+          <Keycap size="sm" className="intro-pulse">E</Keycap>
         </button>
       </div>
       <div

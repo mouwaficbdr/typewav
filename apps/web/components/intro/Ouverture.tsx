@@ -23,6 +23,7 @@ const INTRO_MESSAGES: Record<IntroLanguage, { intro: typeof frMessages.intro }> 
 };
 
 const FEATURES_INTERVAL_MS = 2800;
+const TOTAL_SCREENS = 6;
 const LETTER_CODE = /^Key[A-Z]$/;
 const DIGIT_CODE = /^Digit([1-5])$/;
 
@@ -78,7 +79,7 @@ export function Ouverture({ urlLocale, firstRun, onClose }: OuvertureProps) {
   /** Valide l'écran `current` (joue sa note), avance ou ferme depuis l'écran 6. */
   const advanceFrom = useCallback(
     (current: number) => {
-      if (current >= 6) {
+      if (current >= TOTAL_SCREENS) {
         onClose(currentExit());
         return;
       }
@@ -92,14 +93,19 @@ export function Ouverture({ urlLocale, firstRun, onClose }: OuvertureProps) {
     [isSamplerLoaded, playNoteName, onClose, currentExit],
   );
 
-  // Dès que le piano est prêt à l'écran 1, on avance automatiquement : pas
-  // besoin d'un second geste après le choix de langue qui a démarré l'audio.
+  // Dès que le piano est prêt ET qu'une langue a été choisie CETTE FOIS-CI,
+  // on avance automatiquement : pas besoin d'un second geste après le choix
+  // de langue qui a démarré l'audio. Le garde-fou `chosenLanguage` est
+  // essentiel : sans lui, un piano déjà chaud depuis une visite précédente
+  // dans le même onglet (ex. `?intro=1` rejoué) faisait sauter l'écran 1 au
+  // montage, avant même que quiconque ait pu choisir une langue ou lire quoi
+  // que ce soit (bug réel, signalé par Mouwafic le 2026-10-22).
   useEffect(() => {
-    if (screenRef.current === 1 && isSamplerLoaded) {
+    if (screenRef.current === 1 && isSamplerLoaded && chosenLanguage) {
       advanceFrom(1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSamplerLoaded]);
+  }, [isSamplerLoaded, chosenLanguage]);
 
   // Au-delà de SAMPLER_WAIT_MS sans piano, on peut continuer sans son.
   useEffect(() => {
@@ -397,9 +403,15 @@ function OuvertureChrome({
         {screen !== 2 && <Staff step={screen} heads={[]} />}
       </div>
 
-      {screen !== 2 && (
+      {/* Écran 1 au clavier exclu : "Espace pour continuer" y serait faux
+          (il faut choisir F/E, pas Espace) ; LanguageScreen porte sa propre
+          indication (les touches à côté de chaque langue). En tactile
+          l'indication reste vraie : taper n'importe où choisit la langue
+          présélectionnée (voir handleTouchContinue). */}
+      {screen !== 2 && (touchMode || screen !== 1) && (
         <div
           data-part="chrome-continue"
+          className="intro-pulse"
           style={{
             position: 'absolute',
             bottom: 'clamp(16px, 3vw, 32px)',
@@ -454,6 +466,26 @@ function OuvertureChrome({
           {t('skip')}
         </div>
       )}
+
+      {/* Indicateur de progression, séparé de la portée (purement
+          décorative depuis le 2026-10-22, voir Staff.tsx) : un décompte
+          textuel sans ambiguïté possible, pas des cercles qui se
+          confondaient avec les têtes de note de l'écran 2. */}
+      <div
+        data-part="chrome-progress"
+        style={{
+          position: 'absolute',
+          bottom: 'clamp(16px, 3vw, 32px)',
+          right: 'clamp(16px, 3vw, 32px)',
+          fontFamily: 'var(--font-mono)',
+          fontSize: '0.78rem',
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+          color: 'var(--color-text-muted)',
+        }}
+      >
+        {t('screenCount', { n: screen, total: TOTAL_SCREENS })}
+      </div>
     </div>
   );
 }
