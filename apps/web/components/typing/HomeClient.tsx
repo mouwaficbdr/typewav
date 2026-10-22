@@ -206,6 +206,25 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     (s) => s.activePersonalTextId,
   );
 
+  // `useConfigStore` persiste dans IndexedDB (async, voir useConfigStore.ts) :
+  // au tout premier montage, `textLanguage` (et le reste de la config) peut
+  // encore valoir le défaut en mémoire le temps que la réhydratation
+  // termine. Sans ce garde-fou, l'effet de sélection de texte plus bas
+  // pouvait tourner une fois avec une config pas encore à jour (ex. juste
+  // après l'Ouverture, qui vient de choisir une langue et de rediriger vers
+  // `/en` : la toute première séance choisissait parfois un texte français
+  // malgré `textLanguage: 'en'` déjà correct dans le store, bug réel signalé
+  // par Mouwafic le 2026-10-22).
+  const [configHydrated, setConfigHydrated] = useState(() =>
+    useConfigStore.persist.hasHydrated(),
+  );
+  useEffect(() => {
+    if (configHydrated) return;
+    return useConfigStore.persist.onFinishHydration(() =>
+      setConfigHydrated(true),
+    );
+  }, [configHydrated]);
+
   // L'Ouverture (spec partie B) : drapeau lu une fois au montage, jamais
   // revérifié ensuite. Rien ne s'affiche avant que ce drapeau soit tranché
   // (pas d'éclair de l'accueil) ; `?intro=1` (lien « Revoir l'introduction »
@@ -393,6 +412,9 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     if (effectiveMode === 'custom' || effectiveMode === 'ghost') {
       return;
     }
+    // Attend la réhydratation de la config (voir plus haut) : sinon
+    // `textLanguage` peut encore valoir le défaut en mémoire ici.
+    if (!configHydrated) return;
 
     const collKey = activeCollection as CollectionId;
     const collection = collectionsCache[collKey];
@@ -452,6 +474,7 @@ export function HomeClient({ initialCollection }: HomeClientProps) {
     shuffleOffset,
     collectionsCache,
     textLanguage,
+    configHydrated,
     wordCount,
     numbersEnabled,
   ]);
